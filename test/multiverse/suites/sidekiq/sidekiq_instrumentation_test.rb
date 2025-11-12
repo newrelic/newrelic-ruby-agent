@@ -70,4 +70,8 @@ class SidekiqInstrumentationTest < Minitest::Test
       assert_equal 1, segments.size, "Expected to find a single Sidekiq job segment, found #{segments.size}"
     end
   end
+
+  def test_sidekiq_ignore_retry_errors_default_is_false
+    refute NewRelic::Agent.config[:'sidekiq.ignore_retry_errors'], 'Expected default value for sidekiq.ignore_retry_errors to be false'
+  end
 end
