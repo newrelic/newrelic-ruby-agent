@@ -4,9 +4,8 @@
 
 require 'optparse'
 
-# Run the command given by the first argument.  Right
-# now all we have is deployments. We hope to have other
-# kinds of events here later.
+# Run the command given by the first argument.
+# Commands can be found in the commands/ directory.
 $LOAD_PATH << "#{File.dirname(__FILE__)}/.."
 module NewRelic
   module Cli
@@ -67,8 +66,6 @@ module NewRelic
         end
         extra = options.order!
         command = extra.shift
-        # just make it a little easier on them
-        command = 'deployments' if command.include?('deploy')
         if command.nil?
           STDERR.puts options
         elsif !@command_names.include?(command)

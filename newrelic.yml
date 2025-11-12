@@ -791,6 +791,10 @@ common: &default_settings
   # will be included.
   # sidekiq.args.include: []
 
+  # If true, the agent will ignore exceptions raised during Sidekiq's retry
+  # attempts and will only report the error if the job permanently fails.
+  # sidekiq.ignore_retry_errors: false
+
   # If true, the agent collects slow SQL queries.
   # slow_sql.enabled: true
 

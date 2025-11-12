@@ -59,7 +59,6 @@ development:
   license_key: bootstrap_newrelic_admin_license_key_000
   app_name: test
   host: localhost
-  api_host: localhost
   port: <%= $collector && $collector.port %>
   browser_monitoring:
     auto_instrument: true

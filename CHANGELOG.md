@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.0.0
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
@@ -9,6 +9,10 @@
   The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
 
 ## v9.23.0
+
+- **Feature: Add sidekiq.ignore_retry_errors configuration option**
+
+  A new configuration option, `sidekiq.ignore_retry_errors`, has been added to control if Sidekiq job retries are captured. Retry errors are captured by default, but now if `sidekiq.ignore_retry_errors` is set to `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails. Thank you [DonGiulio](https://github.com/DonGiulio) for recognizing this improvement and contributing a solution. [PR#3317](https://github.com/newrelic/newrelic-ruby-agent/pull/3317)
 
 - **Feature: Deprecation notice for recording deployments using Capistrano**
 

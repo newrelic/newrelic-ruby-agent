@@ -10,7 +10,6 @@ development:
   app_name: test
   log_level: debug
   host: 127.0.0.1
-  api_host: 127.0.0.1
   transaction_trace:
     record_sql: obfuscated
     enabled: true
