@@ -32,7 +32,6 @@ class HealthyUrlsTest < Minitest::Test
     Envfile
     Gemfile
     Guardfile
-    install_mysql55
     LICENSE
     mega-runner
     newrelic
