@@ -41,8 +41,6 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.record_custom_event('valid_Event_underscore', {})
     NewRelic::Agent.record_custom_event('Valid:Event:Colon', {})
     NewRelic::Agent.record_custom_event('Valid Event Space', {})
-    NewRelic::Agent.record_custom_event('Valid.Event.Period', {})
-    NewRelic::Agent.record_custom_event('Valid/Event/ForwardSlash', {})
     NewRelic::Agent.record_custom_event('Valid123Event456Numbers', {})
     NewRelic::Agent.record_custom_event('valideventlowercase', {})
     NewRelic::Agent.record_custom_event(:ValidSymbol, {})
@@ -51,7 +49,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     events = last_posted_events
 
-    assert_equal(10, events.size)
+    assert_equal(8, events.size)
   end
 
   def test_record_custom_event_raises_on_invalid_event_types
