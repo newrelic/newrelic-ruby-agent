@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## v9.23.0
+## v10.0.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**
 
