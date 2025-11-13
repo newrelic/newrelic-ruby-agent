@@ -6,7 +6,7 @@
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
 - **Feature: Add `logger` as a dependency**
-  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 3.5.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
+  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
 
 - **Breaking Change: Rename ActiveJob metrics**
   ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
