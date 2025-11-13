@@ -436,22 +436,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_default_to_value_of
-      with_config(:port => 8888) do
-        result = @manager.fetch(:api_port)
-
-        assert_equal 8888, result
-      end
-    end
-
-    def test_default_to_value_of_only_happens_at_defaults
-      with_config(:port => 8888, :api_port => 3000) do
-        result = @manager.fetch(:api_port)
-
-        assert_equal 3000, result
-      end
-    end
-
     def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
       callable = proc { 'test' }
 

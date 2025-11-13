@@ -161,6 +161,25 @@ module NewRelic
           transaction.parent_span_id = payload.id
 
           unless payload.sampled.nil?
+            if payload.sampled == true
+              set_priority_and_sampled_newrelic_header(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
+            elsif payload.sampled == false
+              set_priority_and_sampled_newrelic_header(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
+            else
+              transaction.sampled = payload.sampled
+              transaction.priority = payload.priority if payload.priority
+            end
+          end
+        end
+
+        def set_priority_and_sampled_newrelic_header(config, payload)
+          if config == 'always_on'
+            transaction.sampled = true
+            transaction.priority = 2.0
+          elsif config == 'always_off'
+            transaction.sampled = false
+            transaction.priority = 0
+          else # case for 'default' value
             transaction.sampled = payload.sampled
             transaction.priority = payload.priority if payload.priority
           end
