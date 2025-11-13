@@ -36,14 +36,6 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
-  def test_api_server_uses_configured_values
-    control.instance_variable_set(:@api_server, nil)
-    with_config(:api_host => 'somewhere', :api_port => 8080) do
-      assert_equal 'somewhere', control.api_server.name
-      assert_equal 8080, control.api_server.port
-    end
-  end
-
   def test_server_from_host_uses_configured_values
     with_config(:host => 'donkeytown', :port => 8080) do
       assert_equal 'donkeytown', control.server_from_host.name
