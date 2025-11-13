@@ -8,25 +8,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-      # This allows the cache in the following step to be able to write files to the directory needed for mysql
-    - if: inputs.ruby-version == '2.4.10'
-      name: Prepare mysql directory
-      shell: bash
-      run: sudo chown -R $USER /usr/local
-
-    - if: inputs.ruby-version == '2.4.10'
-      name: Cache mysql55
-      id: mysql55-cache
-      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
-      with:
-        path: /usr/local/mysql55
-        key: mysql55-install
-
-    - if: steps.mysql55-cache.outputs.cache-hit != 'true' && inputs.ruby-version == '2.4.10'
-      name: Install mysql55
-      shell: bash
-      run: sudo ./test/script/install_mysql55
-
     - name: Wait for/Check Mysql
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
       with:
