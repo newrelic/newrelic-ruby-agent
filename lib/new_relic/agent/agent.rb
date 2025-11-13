@@ -238,8 +238,7 @@ module NewRelic
           return false if !needs_restart ||
             !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            disconnected? ||
-            !control.security_settings_valid?
+            disconnected?
 
           true
         end

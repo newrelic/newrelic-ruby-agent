@@ -13,6 +13,9 @@
 - **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
   The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
 
+- **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
+  The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**
