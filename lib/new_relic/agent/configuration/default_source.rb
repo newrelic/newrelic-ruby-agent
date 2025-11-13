@@ -2180,6 +2180,13 @@ module NewRelic
             argument array elements and job argument scalars will be excluded.
           SIDEKIQ_ARGS_EXCLUDE
         },
+        :'sidekiq.ignore_retry_errors' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
+        },
         # Slow SQL
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
