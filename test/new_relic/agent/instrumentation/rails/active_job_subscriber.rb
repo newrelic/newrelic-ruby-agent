@@ -25,6 +25,16 @@ module NewRelic::Agent::Instrumentation
     end
   end
 
+  module MyApp
+    module Jobs
+      class EmailNotificationJob < ActiveJob::Base
+        def perform(error = nil)
+          # NOOP - testing ActiveJob metric name
+        end
+      end
+    end
+  end
+
   class ActiveJobSubscriberTest < Minitest::Test
     NAME = 'perform.active_job'
     ID = 71741
@@ -97,6 +107,17 @@ module NewRelic::Agent::Instrumentation
           TestJob.perform_now(RetryStopped)
         end
         validate_transaction(txn, 'retry_stopped')
+      end
+    end
+
+    def test_metric_name_namespacing
+      job = MyApp::Jobs::EmailNotificationJob.new
+      in_transaction do |txn|
+        job.perform_now
+        segments = txn.segments.select { |s| s.name.start_with?('Ruby/ActiveJob') }
+        segment = segments.detect { |s| s.name == "Ruby/ActiveJob/EmailNotificationJob/default/perform" }
+
+        assert segment
       end
     end
 
