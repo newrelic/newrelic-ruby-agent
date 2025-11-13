@@ -13,6 +13,9 @@
 - **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
   The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
 
+- **Feature: Add argument validation for the `Agent#record_custom_event` API**
+  The `Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**
