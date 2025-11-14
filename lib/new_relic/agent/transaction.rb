@@ -311,9 +311,13 @@ module NewRelic
       end
 
       def trace_ratio_sampled?(ratio)
-        # this matches the opentelemetry-sdk TraceIdRatioBased sampler algorithm
-        # this algorithm differs from the now spec-compliant PrioritySampler
-        ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < (ratio * (2**64 - 1)).ceil
+        # In the opentelemetry-sdk TraceIdRatioBased sampler, the algorithm
+        # looks like this:
+        # ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < (ratio * (2**64 - 1)).ceil
+        # OTel stores their trace ids as binary strings
+        # ex. Array(trace_id).pack('H*')
+        # Since we don't this way is faster, but still gets the same result
+        ratio == 1.0 || Integer(trace_id[16, 16], 16) < (ratio * (2**64 - 1)).ceil
       end
 
       def trace_id
