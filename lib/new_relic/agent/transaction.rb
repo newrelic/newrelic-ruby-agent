@@ -303,22 +303,14 @@ module NewRelic
             false
           when 'trace_id_ratio_based'
             ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
-            if valid_ratio?(ratio)
-              upper_bound = (ratio * (2**64 - 1)).ceil
-              ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
-            else
-              NewRelic::Agent.instance.adaptive_sampler.sampled?
-            end
+            upper_bound = (ratio * (2**64 - 1)).ceil
+
+            ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
           when 'adaptive'
             NewRelic::Agent.instance.adaptive_sampler.sampled?
           end
         end
         @sampled
-      end
-
-      def valid_ratio?(ratio)
-        # refactor, this should be validated earlier and default already selected
-        ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
       end
 
       def trace_id
