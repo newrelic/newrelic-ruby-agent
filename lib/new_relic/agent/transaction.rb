@@ -302,8 +302,7 @@ module NewRelic
           when 'always_off'
             false
           when 'trace_id_ratio_based'
-            ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
-            trace_ratio_sampled?(ratio)
+            trace_ratio_sampled?(NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'])
           when 'adaptive'
             NewRelic::Agent.instance.adaptive_sampler.sampled?
           end
@@ -312,8 +311,9 @@ module NewRelic
       end
 
       def trace_ratio_sampled?(ratio)
-        upper_bound = (ratio * (2**64 - 1)).ceil
-        ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
+        # if the ratio is 1.0, always sample
+        # otherwise, do math
+        ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < (ratio * (2**64 - 1)).ceil
       end
 
       def trace_id

@@ -13,10 +13,7 @@ module NewRelic
         class << self
           def validate_sampling_ratio(ratio)
             return nil if ratio.nil?
-
-            unless valid_ratio?(ratio)
-              return nil
-            end
+            return nil unless valid_ratio?(ratio)
 
             ratio
           end
@@ -27,9 +24,7 @@ module NewRelic
 
               ratio = NewRelic::Agent.config[ratio_key]
 
-              if valid_ratio?(ratio)
-                next strategy
-              end
+              next strategy if valid_ratio?(ratio)
 
               unless @sampler_strategy_warnings[strategy_key]
                 NewRelic::Agent.logger.warn(
@@ -48,6 +43,7 @@ module NewRelic
             ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
           end
 
+          # used for testing
           def reset_warnings!
             @sampler_strategy_warnings = {}
           end

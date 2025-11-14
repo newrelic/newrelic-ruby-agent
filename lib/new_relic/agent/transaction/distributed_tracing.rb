@@ -161,28 +161,20 @@ module NewRelic
           transaction.parent_span_id = payload.id
 
           unless payload.sampled.nil?
-            if payload.sampled == true
+            if payload.sampled
               set_priority_and_sampled(
                 NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
                 NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
                 payload
               )
-            elsif payload.sampled == false
+            else
               set_priority_and_sampled(
                 NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
                 NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
                 payload
               )
-            else
-              transaction.sampled = payload.sampled
-              transaction.priority = payload.priority if payload.priority
             end
           end
-        end
-
-        def default_sampling(payload)
-          transaction.sampled = payload.sampled
-          transaction.priority = payload.priority if payload.priority
         end
       end
     end
