@@ -3,17 +3,25 @@
 ## dev
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
+
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
 - **Breaking Change: Rename ActiveJob metrics**
+
   ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
     - Old format: `Ruby/ActiveJob/<QueueName>/<Method>`
     - New format: `Ruby/ActiveJob/<ClassName>/<QueueName>/<Method>`
 
 - **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
+
   The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
 
+- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
+
+  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
 - **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
+
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
 
 ## v9.23.0
