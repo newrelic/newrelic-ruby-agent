@@ -343,7 +343,8 @@ module NewRelic
         when 'always_off'
           0
         when 'trace_id_ratio_based'
-          # what's the right priority for trace_id_ratio_based? Is it just whatever the sampled result is? 
+          # what's the right priority for trace_id_ratio_based? Is it just whatever the sampled result is?
+          # TODO: make thie adaptive
           sampled? ? 2.0 : 0
         when 'adaptive'
           adaptive_priority
