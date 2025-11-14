@@ -162,9 +162,17 @@ module NewRelic
 
           unless payload.sampled.nil?
             if payload.sampled == true
-              set_priority_and_sampled_newrelic_header('distributed_tracing.sampler.remote_parent_sampled', payload)
+              set_priority_and_sampled_newrelic_header(
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
+                payload
+              )
             elsif payload.sampled == false
-              set_priority_and_sampled_newrelic_header('distributed_tracing.sampler.remote_parent_not_sampled', payload)
+              set_priority_and_sampled_newrelic_header(
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
+                payload
+              )
             else
               transaction.sampled = payload.sampled
               transaction.priority = payload.priority if payload.priority
@@ -177,8 +185,8 @@ module NewRelic
           transaction.priority = payload.priority if payload.priority
         end
 
-        def set_priority_and_sampled_newrelic_header(config, payload)
-          case NewRelic::Agent.config[config.to_sym]
+        def set_priority_and_sampled_newrelic_header(sampler, ratio, payload)
+          case sampler
           when 'default'
             use_nr_tracestate_sampled(payload)
           when 'always_on'
@@ -188,8 +196,6 @@ module NewRelic
             transaction.sampled = false
             transaction.priority = 0
           when 'trace_id_ratio_based'
-            ratio = NewRelic::Agent.config["#{config}.trace_id_ratio_based.ratio".to_sym]
-
             if ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
               upper_bound = (ratio * (2**64 - 1)).ceil
               sampled = ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound

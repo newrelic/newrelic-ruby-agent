@@ -154,9 +154,17 @@ module NewRelic
 
         def determine_sampling_decision(payload, trace_flags)
           if trace_flags == '01'
-            set_priority_and_sampled('distributed_tracing.sampler.remote_parent_sampled', payload)
+            set_priority_and_sampled(
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
+                payload
+              )
           elsif trace_flags == '00'
-            set_priority_and_sampled('distributed_tracing.sampler.remote_parent_not_sampled', payload)
+            set_priority_and_sampled(
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
+                NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
+                payload
+              )
           else
             use_nr_tracestate_sampled(payload)
           end
@@ -171,8 +179,8 @@ module NewRelic
           end
         end
 
-        def set_priority_and_sampled(config, payload)
-          case NewRelic::Agent.config[config.to_sym]
+        def set_priority_and_sampled(sampler, ratio, payload)
+          case sampler
           when 'default'
             use_nr_tracestate_sampled(payload)
           when 'always_on'
@@ -182,8 +190,6 @@ module NewRelic
             transaction.sampled = false
             transaction.priority = 0
           when 'trace_id_ratio_based'
-            ratio = NewRelic::Agent.config["#{config}.trace_id_ratio_based.ratio".to_sym]
-
             if ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
               upper_bound = (ratio * (2**64 - 1)).ceil
               sampled = ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
