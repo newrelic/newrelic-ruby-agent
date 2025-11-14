@@ -12,6 +12,8 @@ module NewRelic
   class MainAgentTest < Minitest::Test
     include NewRelic::Agent::MethodTracer
 
+    class TesterClass; end
+
     def setup
       NewRelic::Agent.drop_buffered_data
       NewRelic::Agent.reset_config
@@ -121,9 +123,9 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
-    def test_agent_logs_warning_when_not_started
+    def test_agent_logs_debug_when_not_started
       with_unstarted_agent do
-        expects_logging(:warn, includes("hasn't been started"))
+        expects_logging(:debug, includes("hasn't been started"))
         NewRelic::Agent.agent
       end
     end
@@ -698,6 +700,115 @@ module NewRelic
       assert_equal name, NewRelic::Agent.base_name(name)
     end
 
+    def test_add_automatic_method_tracers_short_circuits_with_a_nil_method_list
+      assert_nil NewRelic::Agent.add_automatic_method_tracers(nil)
+    end
+
+    def test_add_automatic_method_tracers_returns_early_when_given_an_empty_method_list
+      arr = []
+
+      assert_equal arr, NewRelic::Agent.add_automatic_method_tracers(arr)
+    end
+
+    # as of 2024-09-12, the agent doesn't natively permit a configuration
+    # parameter to accept either an array (definable only in the YAML file) or
+    # a comma-delimited string (definable in YAML or via an env var), so this
+    # method permits it by handling the `String#split` call itself.
+    def test_add_automatic_method_tracers_handles_a_comma_delimited_string
+      arr = %w[Astarion Gale Shadowheart]
+      # don't actually spawn the thread to add custom instrumentation
+      NewRelic::Agent.stub :add_tracers_once_methods_are_defined, nil do
+        assert_equal arr, NewRelic::Agent.add_automatic_method_tracers(arr.join(','))
+      end
+    end
+
+    # treat the configured list as immutable and operate on a dupe of the list
+    # when iterating over it and removing entries that have been processed
+    def test_add_automatic_method_tracers_processes_a_dupe_of_the_methods_array
+      arr = %w[Andy Barney]
+      dupe_object_id = nil
+      NewRelic::Agent.stub :add_tracers_once_methods_are_defined, proc { |a| dupe_object_id = a.object_id } do
+        result = NewRelic::Agent.add_automatic_method_tracers(arr)
+
+        assert_same arr, result
+        assert dupe_object_id
+        refute_equal arr.object_id, dupe_object_id
+      end
+    end
+
+    def test_prep_tracer_for_handles_a_non_delimited_notation
+      notation = 'StringWithoutADelimiter'
+      result = with_logger_expectation(:error, /Unable to parse out .*#{notation}.* Expected exactly/) do
+        NewRelic::Agent.prep_tracer_for(notation)
+      end
+
+      assert result # `true`, we're not going to try processing this notation again
+    end
+
+    def test_prep_tracer_for_handles_a_missing_namespace
+      notation = '.method_name'
+      result = with_logger_expectation(:error, /Unable to parse out .*#{notation}.* to the left of/) do
+        NewRelic::Agent.prep_tracer_for(notation)
+      end
+
+      assert result # `true`, we're not going to try processing this notation again
+    end
+
+    def test_prep_tracer_for_handles_a_missing_method_name
+      notation = 'namespace#'
+      result = with_logger_expectation(:error, /Unable to parse out .*#{notation}.* to the right of/) do
+        NewRelic::Agent.prep_tracer_for(notation)
+      end
+
+      assert result # `true`, we're not going to try processing this notation again
+    end
+
+    def test_prep_tracer_for_returns_false_if_the_notation_is_find_but_the_method_cannot_be_found_yet
+      notation = 'AGoodModuleNameSpace::AClass#a_method' # good syntax but undefined
+      result = NewRelic::Agent.prep_tracer_for(notation)
+
+      refute result # `false`, we're going to try processing this notation again later
+    end
+
+    def test_prep_tracer_handles_a_failed_tracer_add_attempt
+      skip_unless_minitest5_or_above
+
+      notation = "Monk's.Blend"
+      NewRelic::LanguageSupport.stub :constantize, -> { raise 'kaboom' }, [notation] do
+        result = with_logger_expectation(:error, /Unable to automatically apply .*#{notation}/) do
+          NewRelic::Agent.prep_tracer_for(notation)
+        end
+
+        assert result # `true`, we're not going to try processing this notation again
+      end
+    end
+
+    def test_prep_tracer_for_traces_a_class_method
+      skip_unless_minitest5_or_above
+
+      notation = 'A::Short.hike'
+      NewRelic::LanguageSupport.stub :constantize, TesterClass, [notation] do
+        NewRelic::Agent.stub :add_or_defer_method_tracer, nil, [TesterClass.singleton_class, 'hike', nil, {}] do
+          result = NewRelic::Agent.prep_tracer_for(notation)
+
+          assert result # `true`, we're not going to try processing this notation again
+        end
+      end
+    end
+
+    def test_prep_tracer_for_traces_an_instance_method
+      skip_unless_minitest5_or_above
+
+      notation = 'A::Short#hike'
+      NewRelic::LanguageSupport.stub :constantize, TesterClass, [notation] do
+        NewRelic::Agent.stub :add_or_defer_method_tracer, nil, [TesterClass, 'hike', nil, {}] do
+          result = NewRelic::Agent.prep_tracer_for(notation)
+
+          assert result # `true`, we're not going to try processing this notation again
+        end
+      end
+    end
+
     private
 
     def with_unstarted_agent
@@ -730,6 +841,14 @@ module NewRelic
 
       NewRelic::Control.stubs(:instance).returns(control)
       control
+    end
+
+    def with_logger_expectation(log_level, expected_regex, &block)
+      logger = MiniTest::Mock.new
+      logger.expect log_level, nil, [expected_regex]
+      result = NewRelic::Agent.stub(:logger, logger) { yield }
+      logger.verify
+      result
     end
   end
 end

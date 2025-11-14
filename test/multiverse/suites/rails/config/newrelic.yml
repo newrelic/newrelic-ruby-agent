@@ -2,7 +2,6 @@ common: &default_settings
   license_key: 'bd0e1d52adade840f7ca727d29a86249e89a6f1c'
   ca_bundle_path: ../../../config/test.cert.crt
   host: localhost
-  api_host: localhost
   port: <%= $collector && $collector.port %>
   app_name: Rails multiverse test app
   enabled: true

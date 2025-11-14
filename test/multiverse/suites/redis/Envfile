@@ -14,8 +14,29 @@ def gem_list(redis_version = nil)
   <<~RB
     gem 'rack'
     gem 'redis'#{redis_version}
-    
+
   RB
 end
 
 create_gemfiles(REDIS_VERSIONS)
+
+# We do not spin up a full Redis cluster in the testing environment, which
+# limits our ability to run unit tests on the redis-clustering behavior.
+# Since the testing capability is limited, only test the latest version of the
+# redis-clustering gem, which itself requires Ruby v2.7+.
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7.0')
+  gemfile <<~RB
+    gem 'rack'
+    gem 'redis-clustering'
+  RB
+
+  # regression test for dependency detection bug
+  # https://github.com/newrelic/newrelic-ruby-agent/issues/2814
+  gemfile <<~GEMFILE
+    gem 'rack'
+    gem 'redis-clustering'
+
+    require 'redis'                                                 # non-gem line
+    ::Redis::Cluster.const_set(:Client, 'phony client definition')  # non-gem line
+  GEMFILE
+end

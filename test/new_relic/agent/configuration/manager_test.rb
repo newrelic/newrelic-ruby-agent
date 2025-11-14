@@ -300,7 +300,7 @@ module NewRelic::Agent::Configuration
 
       log_lines = log.array
 
-      refute_match(/DEBUG.*asdf/, log_lines[0])
+      refute_match(/DEBUG.*Config Stack.*asdf/, log_lines[0])
     end
 
     def test_config_is_correctly_initialized
@@ -310,15 +310,6 @@ module NewRelic::Agent::Configuration
       refute_includes @manager.config_classes_for_testing, ServerSource
       refute_includes @manager.config_classes_for_testing, YamlSource
       refute_includes @manager.config_classes_for_testing, HighSecuritySource
-      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
-    end
-
-    def test_high_security_source_addable
-      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
-      security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
-      @manager.replace_or_add_config(security_policy_source)
-
-      assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
     load_cross_agent_test('labels').each do |testcase|
@@ -445,22 +436,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_default_to_value_of
-      with_config(:port => 8888) do
-        result = @manager.fetch(:api_port)
-
-        assert_equal 8888, result
-      end
-    end
-
-    def test_default_to_value_of_only_happens_at_defaults
-      with_config(:port => 8888, :api_port => 3000) do
-        result = @manager.fetch(:api_port)
-
-        assert_equal 3000, result
-      end
-    end
-
     def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
       callable = proc { 'test' }
 
@@ -492,20 +467,22 @@ module NewRelic::Agent::Configuration
     end
 
     def test_auto_determined_values_stay_cached
-      name = :knockbreck_manse
+      with_config(:'security.agent.enabled' => true) do
+        name = :knockbreck_manse
 
-      DependencyDetection.defer do
-        named(name)
-        executes { use_prepend? }
-      end
+        DependencyDetection.defer do
+          named(name)
+          executes { use_prepend? }
+        end
 
-      key = :"instrumentation.#{name}"
-      with_config(key => 'auto') do
-        DependencyDetection.detect!
+        key = :"instrumentation.#{name}"
+        with_config(key => 'auto') do
+          DependencyDetection.detect!
 
-        @manager.replace_or_add_config(ServerSource.new({}))
+          @manager.replace_or_add_config(ServerSource.new({}))
 
-        assert_equal :prepend, @manager.instance_variable_get(:@cache)[key]
+          assert_equal :prepend, @manager.instance_variable_get(:@cache)[key]
+        end
       end
     end
 
@@ -531,10 +508,40 @@ module NewRelic::Agent::Configuration
     end
 
     def test_logger_does_not_receive_excluded_settings
-      log = with_array_logger(:debug) { @manager.log_config('direction', 'source') }.array.join('')
+      log = with_array_logger(:debug) { @manager.log_config('direction', ManualSource.new({})) }.array.join('')
 
-      assert_includes(log, ':app_name')
-      refute_includes(log, ':license_key')
+      assert_includes(log, 'app_name')
+      refute_includes(log, 'license_key')
+    end
+
+    def test_reset_cache_return_early_for_jruby
+      phony_cache = {dup_called: false}
+      def phony_cache.dup; self[:dup_called] = true; self; end
+      @manager.instance_variable_set(:@cache, phony_cache)
+      NewRelic::LanguageSupport.stub :jruby?, true do
+        @manager.reset_cache
+      end
+
+      refute phony_cache[:dup_called], 'Expected the use of JRuby to prevent the Hash#dup call!'
+    ensure
+      @manager.new_cache
+    end
+
+    # https://github.com/newrelic/newrelic-ruby-agent/issues/2919
+    def test_that_boolean_based_params_always_go_through_any_defined_transform_sequence
+      key = :soundwave
+      defaults = {key => {default: false,
+                          public: true,
+                          type: Boolean,
+                          allowed_from_server: false,
+                          transform: proc { |bool| bool.to_s.reverse },
+                          description: 'Param what transforms'}}
+      NewRelic::Agent::Configuration.stub_const(:DEFAULTS, defaults) do
+        mgr = NewRelic::Agent::Configuration::Manager.new
+        value = mgr[key]
+
+        assert_equal 'eslaf', value, 'Expected `false` boolean value to be transformed!'
+      end
     end
 
     private

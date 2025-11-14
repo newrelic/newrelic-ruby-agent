@@ -35,42 +35,11 @@ module NewRelic
       RUBY_ENGINE == 'jruby'
     end
 
-    # TODO: OLD RUBIES - RUBY_VERSION < 2.6
-    #
-    # Ruby 2.6 introduced an improved version of `Object.const_get` that
-    # respects the full namespace of the input and doesn't just grab the first
-    # constant matching the string to the right of the last '::'.
-    # Once we drop support for Ruby 2.5 and below, the only value this custom
-    # method will provide beyond `Object.const_get` itself is to automatically
-    # catch NameError.
-    #
-    # see: https://github.com/rails/rails/commit/7057ccf6565c1cb5354c1906880119276a9d15c0
-    #
-    # With Ruby 2.6+, this method can be defined like so:
-    # def constantize(constant_as_string_or_symbol)
-    #   Object.const_get(constant_as_string_or_symbol)
-    # rescue NameError
-    # end
-    #
     def constantize(const_name)
-      const_name.to_s.sub(/\A::/, '').split('::').inject(Object) do |namespace, name|
-        begin
-          result = namespace.const_get(name)
+      return if const_name.nil?
 
-          # const_get looks up the inheritance chain, so if it's a class
-          # in the constant make sure we found the one in our namespace.
-          #
-          # Can't help if the constant isn't a class...
-          if result.is_a?(Module)
-            expected_name = "#{namespace}::#{name}".gsub(/^Object::/, '')
-            return unless expected_name == result.to_s
-          end
-
-          result
-        rescue NameError
-          nil
-        end
-      end
+      Object.const_get(const_name)
+    rescue NameError
     end
 
     def camelize(string)
@@ -88,7 +57,9 @@ module NewRelic
     end
 
     def bundled_gem?(gem_name)
-      defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?(gem_name)
+      return false unless defined?(Bundler)
+
+      NewRelic::Helper.rubygems_specs.map(&:name).include?(gem_name)
     rescue => e
       ::NewRelic::Agent.logger.info("Could not determine if third party #{gem_name} gem is installed", e)
       false

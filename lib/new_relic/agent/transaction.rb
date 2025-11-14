@@ -215,6 +215,7 @@ module NewRelic
         @nesting_max_depth = 0
         @current_segment_by_thread = {}
         @current_segment_lock = Mutex.new
+        @segment_lock = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -437,7 +438,7 @@ module NewRelic
       end
 
       def initial_segment
-        segments.first
+        segments&.first
       end
 
       def finished?
@@ -816,13 +817,9 @@ module NewRelic
       end
 
       def had_error_affecting_apdex?
-        @exceptions.each do |exception, options|
-          ignored = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
-          expected = options[:expected]
-
-          return true unless ignored || expected
+        @exceptions.each.any? do |exception, options|
+          NewRelic::Agent.instance.error_collector.error_affects_apdex?(exception, options)
         end
-        false
       end
 
       def apdex_bucket(duration, current_apdex_t)

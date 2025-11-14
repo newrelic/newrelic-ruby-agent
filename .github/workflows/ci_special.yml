@@ -1,0 +1,86 @@
+name: URL Test CI
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby 3.4
+        uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
+        with:
+          ruby-version: 3.4
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: 3.4
+
+      - name: Run Unit Tests
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          command:  TEST=test/new_relic/healthy_urls_test bundle exec rake test
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SPECIAL_CI: true
+
+
+  notify_slack_fail:
+    name: Notify slack fail
+    needs: [unit_tests]
+    runs-on: ubuntu-22.04
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+      - uses: ./.github/actions/workflow-conclusion
+      - uses: voxmedia/github-action-slack-notify-build@373da97827332b19e753c84d1e5b7937dbe0fbfa # tag v2
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+        with:
+          channel: ruby-agent-notifications
+          status: FAILED
+          color: danger
+
+
+  notify_slack_success:
+    name: Notify slack success
+    needs: [unit_tests]
+    runs-on: ubuntu-22.04
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+      - uses: ./.github/actions/workflow-conclusion
+      - run: echo ${{ github.event_name }}
+      - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
+        id: last_status
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: voxmedia/github-action-slack-notify-build@373da97827332b19e753c84d1e5b7937dbe0fbfa # tag v2
+        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' && github.event_name != 'workflow_dispatch' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+        with:
+          channel: ruby-agent-notifications
+          status: SUCCESS
+          color: good

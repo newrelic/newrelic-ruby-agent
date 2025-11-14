@@ -36,6 +36,14 @@ class SidekiqWithRedisTest < MiniTest::Test
   def test_redis_client_pipelined_calls_work
     skip 'Testing conducted only using Sidekiq v7.0+ with redis not yet bundled' unless sidekiq_without_redis?
 
+    # With GitHub Actions the use of bundler/inline has repeatedly produced odd
+    # errors related to Bundler being unable to clean up the installed redis
+    # gem given that its directory's permissions are too open (0777). Given that
+    # this test is only useful as a regression test when we are actively
+    # iterating on redis gem instrumentation, it is prohibited from being ran
+    # in an automated CI context and expected to be ran manually by developers.
+    skip if ENV.fetch('CI', nil)
+
     gemfile do
       source 'https://rubygems.org'
 
@@ -70,7 +78,7 @@ class SidekiqWithRedisTest < MiniTest::Test
   # work as expected.
   def sidekiq_without_redis?
     require 'sidekiq'
-    return false unless Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('7.0.0')
+    return false unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
     return false if defined?(RedisClient).nil?
 
     # NOTE: introspection through Bundler/RubyGems methods produces warnings,

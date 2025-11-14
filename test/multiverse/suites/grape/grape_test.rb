@@ -19,6 +19,10 @@ class GrapeTest < Minitest::Test
       Rack::Builder.app { run(GrapeTestApi.new) }
     end
 
+    def test_framework_assignment
+      assert_equal(:grape, NewRelic::Agent.config[:framework])
+    end
+
     def test_nonexistent_route
       get('/not_grape_ape')
 
@@ -32,38 +36,38 @@ class GrapeTest < Minitest::Test
 
       expected_txn_name = 'Controller/Grape/GrapeTestApi/self_destruct (GET)'
 
-      assert_grape_metrics(expected_txn_name)
+      assert_metrics_recorded(expected_txn_name)
       assert_metrics_recorded(["Errors/#{expected_txn_name}"])
     end
 
     def test_getting_a_list_of_grape_apes
       get('/grape_ape')
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape (GET)')
     end
 
     def test_showing_a_grape_ape
       get('/grape_ape/1')
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape/:id (GET)')
     end
 
     def test_creating_a_grape_ape
       post('/grape_ape', {})
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape (POST)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape (POST)')
     end
 
     def test_updating_a_grape_ape
       put('/grape_ape/1', {})
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)')
     end
 
     def test_deleting_a_grape_ape
       delete('/grape_ape/1')
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)')
     end
 
     def test_transaction_renaming
@@ -77,7 +81,7 @@ class GrapeTest < Minitest::Test
       # internal representation of the name and category of a transaction as
       # truly separate entities.
       #
-      assert_grape_metrics('Controller/Rack/RenamedTxn')
+      assert_metrics_recorded('Controller/Rack/RenamedTxn')
     end
 
     def test_params_are_not_captured_with_capture_params_disabled
@@ -218,18 +222,26 @@ class GrapeTest < Minitest::Test
         'request.headers.contentLength' => last_request.content_length.to_i,
         'request.headers.contentType' => last_request.content_type,
         'request.headers.host' => last_request.host,
-        'request.method' => last_request.request_method
+        'request.method' => last_request.request_method,
+        'request.uri' => last_request.path_info
       }
+      actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       # Rack >= 2.1 changes how/when contentLength is computed and Grape >= 1.3 also changes to deal with this.
       # interactions with Rack < 2.1 and >= 2.1 differ on response.headers.contentLength calculations
       # so we remove it when it is zero since its not present in such cases.
+      #
+      # Rack >= 3.1 further changes things, so we also excuse an actual 0 value
+      # when it is in play
       if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('1.3.0')
-        if expected['response.headers.contentLength'] == 0
+        rack31_plus_and_zero = Rack.respond_to?(:release) &&
+          Gem::Version.new(Rack.release) >= Gem::Version.new('3.1.0') &&
+          actual['request.headers.contentLength'] == 0
+
+        if expected['response.headers.contentLength'] == 0 || rack31_plus_and_zero
           expected.delete('response.headers.contentLength')
         end
       end
-      actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       assert_equal(expected, actual)
     end
@@ -248,16 +260,6 @@ class GrapeTest < Minitest::Test
       assert_equal paths.size, names.uniq.size,
         'Expected there to be one unique transaction name per unique full route path'
     end
-
-    def assert_grape_metrics(expected_txn_name)
-      expected_node_name = 'Middleware/Grape/GrapeTestApi/call'
-
-      assert_metrics_recorded([
-        expected_node_name,
-        [expected_node_name, expected_txn_name],
-        expected_txn_name
-      ])
-    end
   end
 end
 
@@ -275,14 +277,7 @@ class GrapeApiInstanceTest < Minitest::Test
     def test_subclass_of_grape_api_instance
       get('/banjaxing')
 
-      expected_node_name = 'Middleware/Grape/GrapeApiInstanceTestApi/call'
-      expected_txn_name = 'Controller/Grape/GrapeApiInstanceTestApi/banjaxing (GET)'
-
-      assert_metrics_recorded([
-        expected_node_name,
-        [expected_node_name, expected_txn_name],
-        expected_txn_name
-      ])
+      assert_metrics_recorded('Controller/Grape/GrapeApiInstanceTestApi/banjaxing (GET)')
     end
   end
 end

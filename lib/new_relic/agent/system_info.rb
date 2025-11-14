@@ -19,6 +19,20 @@ module NewRelic
         RbConfig::CONFIG['target_os']
       end
 
+      def self.os_distribution
+        case
+        when darwin? then :darwin
+        when linux? then :linux
+        when bsd? then :bsd
+        when windows? then :windows
+        else ruby_os_identifier
+        end
+      end
+
+      def self.windows?
+        !!(ruby_os_identifier[/mingw|mswin/i])
+      end
+
       def self.darwin?
         !!(ruby_os_identifier =~ /darwin/i)
       end

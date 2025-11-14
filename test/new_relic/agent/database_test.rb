@@ -52,6 +52,20 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(:postgres, statement.adapter)
   end
 
+  def test_adapter_from_config_string_redshift
+    config = {:adapter => 'redshift'}
+    statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
+    assert_equal(:postgres, statement.adapter)
+  end
+
+  def test_adapter_from_config_trilogy
+    config = {:adapter => 'trilogy'}
+    statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
+    assert_equal(:trilogy, statement.adapter)
+  end
+
   # An ActiveRecord::Result is what you get back when executing a
   # query using exec_query on the connection, which is what we're
   # doing now for explain plans in AR4 instrumentation

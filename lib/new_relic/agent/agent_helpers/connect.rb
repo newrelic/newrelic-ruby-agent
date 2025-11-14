@@ -68,6 +68,7 @@ module NewRelic
         def handle_license_error(error)
           ::NewRelic::Agent.logger.error(error.message,
             'Visit newrelic.com to obtain a valid license key, or to upgrade your account.')
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
           disconnect
         end
 
@@ -191,6 +192,7 @@ module NewRelic
           @connected_pid = $$
           @connect_state = :connected
           signal_connected
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
         rescue NewRelic::Agent::ForceDisconnectException => e
           handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e
@@ -198,6 +200,7 @@ module NewRelic
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
         rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
           retry if retry_from_error?(e, opts)
         rescue Exception => e
           ::NewRelic::Agent.logger.error('Exception of unexpected type during Agent#connect():', e)

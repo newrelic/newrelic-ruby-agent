@@ -66,7 +66,7 @@ module Multiverse
 
     def gems_from_gemfile_body(body, path)
       body.split("\n").each do |line|
-        next if line.empty? || line.match?(/(?:^\s*(?:#|if|else|end))|newrelic_(?:rpm|prepender)/)
+        next if line.empty? || line.match?(/(?:^\s*(?:#|if|else|end))|newrelic_(?:rpm|prepender)|# non-gem line/)
 
         if line =~ /.*gem\s+['"]([^'"]+)['"](?:,\s+['"]([^'"]+)['"])?/
           gem = Regexp.last_match(1)
@@ -80,6 +80,8 @@ module Multiverse
     end
 
     def parse_lockfile(dir)
+      return unless File.exist?(File.join(dir, LOCKFILE))
+
       content = File.read(File.join(dir, LOCKFILE))
       gem_specs = Regexp.last_match(1) if content =~ /\AGEM\n.*\n\s+specs:\n(.*?)\n\n/m
       desired_indentation = nil

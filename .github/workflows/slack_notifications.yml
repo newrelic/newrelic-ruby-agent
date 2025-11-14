@@ -2,56 +2,19 @@ name: Slack Notifications
 
 on:
   schedule:
-    - cron:  '0 10 * * *'
+    - cron:  '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+      - uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
         with:
-          ruby-version: 3.3
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+          ruby-version: 3.4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
       - run: gem install httparty
       - name: Check for outdated gems
-        run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb ${{ env.gems }}
-        env:
-          SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}
-          gems:
-            "activerecord
-            bunny
-            dalli
-            delayed_job
-            elasticsearch
-            excon
-            http
-            httpclient
-            mongo
-            puma
-            rack
-            rails
-            rake
-            redis
-            resque
-            roda
-            ruby-openai
-            sidekiq
-            sinatra
-            stripe
-            tilt
-            unicorn
-            view_component"
-
-  cve_notifications:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
-        with:
-          ruby-version: 3.3
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - run: gem install httparty
-      - run: gem install feedjira
-      - name: Check for CVEs
-        run: ruby .github/workflows/scripts/slack_notifications/cve_notifier.rb
+        run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb
         env:
           SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}

@@ -13,6 +13,7 @@ require 'new_relic/traced_thread'
 require 'new_relic/coerce'
 require 'new_relic/agent/autostart'
 require 'new_relic/agent/harvester'
+require 'new_relic/agent/health_check'
 require 'new_relic/agent/hostname'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
@@ -37,6 +38,7 @@ require 'new_relic/agent/adaptive_sampler'
 require 'new_relic/agent/serverless_handler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
+require 'new_relic/agent/opentelemetry_bridge'
 
 require 'new_relic/agent/agent_helpers/connect'
 require 'new_relic/agent/agent_helpers/harvest'
@@ -88,6 +90,7 @@ module NewRelic
       end
 
       def init_components
+        @health_check = HealthCheck.new
         @service = NewRelicService.new
         @events = EventListener.new
         @stats_engine = StatsEngine.new
@@ -98,6 +101,7 @@ module NewRelic
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
         @serverless_handler = ServerlessHandler.new
+        @opentelemetry_bridge = OpenTelemetryBridge.new
       end
 
       def init_event_handlers
@@ -139,6 +143,8 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
+        # the agent control health check file generator
+        attr_reader :health_check
         # the statistics engine that holds all the timeslice data
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions
@@ -232,8 +238,7 @@ module NewRelic
           return false if !needs_restart ||
             !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            disconnected? ||
-            !control.security_settings_valid?
+            disconnected?
 
           true
         end

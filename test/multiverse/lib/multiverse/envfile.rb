@@ -10,6 +10,13 @@ module Multiverse
     attr_reader :before, :after, :mode, :skip_message, :omit_collector
     attr_reader :instrumentation_permutations
 
+    RUBY34_PLUS_GEMS = <<~NON_BUILTIN_GEMS
+      gem 'base64'
+      gem 'bigdecimal'
+      gem 'mutex_m'
+      gem 'ostruct'
+    NON_BUILTIN_GEMS
+
     def initialize(file_path, options = {})
       self.file_path = file_path
       @instrumentation_permutations = ['chain']
@@ -18,11 +25,6 @@ module Multiverse
       @ignore_ruby_version = options[:ignore_ruby_version] if options.key?(:ignore_ruby_version)
       if File.exist?(file_path)
         @text = File.read(self.file_path)
-        # TODO: Test this behavior against Ruby 3.3.0 when it is out of preview
-        #       to see if this behavior persists. Remove the gsub if not.
-        # With Ruby 3.3.0-preview2, eval() yields '(eval ...' as the String value
-        # when __FILE__ is used so swap out __FILE__ for the known agent root path
-        # Related to Issue #2430
         @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
@@ -61,7 +63,15 @@ module Multiverse
 
     def gemfile(content)
       content = strip_leading_spaces(content)
-      @gemfiles.push(content) unless content.nil? || content.empty?
+      return if content.nil? || content.empty?
+
+      @gemfiles.push(add_ruby34_plus_gems(content))
+    end
+
+    def add_ruby34_plus_gems(content)
+      return content unless RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
+
+      content + RUBY34_PLUS_GEMS
     end
 
     def ruby3_gem_sorted_set
@@ -154,12 +164,12 @@ module Multiverse
       # NOTE: The Rails Edge version is not tested unless the Ruby version in
       #       play is greater than or equal to (>=) the version number at the
       #       end of the unshifted inner array
-      gem_version_array.unshift(["github: 'rails'", 3.1])
+      gem_version_array.unshift(["github: 'rails'", 3.2])
     end
 
     # are we running in a CI context intended for PR approvals?
     def ci_for_pr?
-      ENV.key?('CI_FOR_PR')
+      ENV['CI_FOR_PR'] == 'true'
     end
 
     private

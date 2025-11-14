@@ -1,0 +1,93 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+module Commands
+  def do_work_in_span(span_name:, span_kind:, &block)
+    @tracer.in_span(span_name, kind: span_kind) do
+      yield if block
+    end
+  end
+
+  def do_work_in_span_with_remote_parent(span_name:, span_kind:, &block)
+    context = OpenTelemetry::Context.current
+    span_context = OpenTelemetry::Trace::SpanContext.new(
+      trace_id: 'ba8bc8cc6d062849b0efcf3c169afb5a',
+      span_id: '6d3efb1b173fecfa',
+      trace_flags: '01',
+      remote: true
+    )
+
+    span = OpenTelemetry::Trace.non_recording_span(span_context)
+    parent_context = OpenTelemetry::Trace.context_with_span(span, parent_context: context)
+
+    span = @tracer.start_span(span_name, with_parent: parent_context, kind: span_kind)
+    yield if block
+    span.finish
+  end
+
+  def do_work_in_span_with_inbound_context(span_name:, span_kind:, trace_id_in_header:,
+    span_id_in_header:, sampled_flag_in_header:, &block)
+    sampled = sampled_flag_in_header == '0' ? '00' : '01'
+
+    carrier = {
+      'traceparent' => "00-#{trace_id_in_header}-#{span_id_in_header}-#{sampled}",
+      # 190 is the account ID stubbed in the config during setup
+      # 46954 is the parent app ID stubbed in the config during setup
+      'tracestate' => "190@nr=0-0-1-46954-#{span_id_in_header}-e8b91a159289ff74-#{sampled}-#{sampled}.23456-1518469636035"
+    }
+
+    parent_context = OpenTelemetry.propagation.extract(carrier)
+    span = @tracer.start_span(span_name, with_parent: parent_context, kind: span_kind)
+
+    yield if block
+
+    span.finish
+  end
+
+  def do_work_in_transaction(transaction_name:, &block)
+    in_transaction(transaction_name, category: :web) do |txn|
+      txn.stubs(:sampled?).returns(true)
+      yield if block
+    end
+  end
+
+  def do_work_in_segment(segment_name:, &block)
+    segment = NewRelic::Agent::Tracer.start_segment(name: segment_name)
+    yield if block
+  ensure
+    segment&.finish
+  end
+
+  def add_otel_attribute(name:, value:, &block)
+    OpenTelemetry::Trace.current_span&.set_attribute(name, value)
+    yield if block
+  end
+
+  def record_exception_on_span(error_message:, &block)
+    exception = StandardError.new(error_message)
+    OpenTelemetry::Trace.current_span.record_exception(exception)
+    yield if block
+  end
+
+  def simulate_external_call(url:, &block)
+    # optional key, useful for debugging to see what part of the cross
+    # agent test's JSON is being executed
+    @headers = {url: url}
+    yield if block
+  end
+
+  def o_tel_inject_headers(&block)
+    NewRelic::Agent.instance.stub(:connected?, true) do
+      OpenTelemetry.propagation.inject(@headers)
+      yield if block
+    end
+  end
+
+  def nr_inject_headers(&block)
+    NewRelic::Agent.instance.stub(:connected?, true) do
+      NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(@headers)
+      yield if block
+    end
+  end
+end

@@ -8,31 +8,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers
   setup_and_teardown_agent
 
-  module VersionHelpers
-    def active_record_major_version
-      if defined?(::ActiveRecord::VERSION::MAJOR)
-        ::ActiveRecord::VERSION::MAJOR.to_i
-      else
-        2
-      end
-    end
-
-    def active_record_minor_version
-      if defined?(::ActiveRecord::VERSION::MINOR)
-        ::ActiveRecord::VERSION::MINOR.to_i
-      else
-        1
-      end
-    end
-
-    def active_record_version
-      Gem::Version.new(::ActiveRecord::VERSION::STRING)
-    end
-  end
-
-  include VersionHelpers
-  extend VersionHelpers
-
   def after_setup
     super
     NewRelic::Agent.drop_buffered_data
@@ -47,7 +22,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.sum(:id)
     end
 
-    if active_record_major_version >= 7
+    if active_record_version_at_least?(7)
       assert_activerecord_metrics(Order, 'find')
     else
       assert_activerecord_metrics(Order, 'select', call_count: '>= 5')
@@ -59,7 +34,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.pluck(:id)
     end
 
-    if active_record_major_version >= 7
+    if active_record_version_at_least?(7)
       assert_activerecord_metrics(Order, 'pluck')
     else
       assert_activerecord_metrics(Order, 'select')
@@ -71,12 +46,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.ids
     end
 
-    if active_record_major_version >= 7
-      if active_record_minor_version >= 1
-        assert_activerecord_metrics(Order, 'ids')
-      else
-        assert_activerecord_metrics(Order, 'pluck')
-      end
+    if active_record_version_at_least?(7.1)
+      assert_activerecord_metrics(Order, 'ids')
+    elsif active_record_version_at_least?(7)
+      assert_activerecord_metrics(Order, 'pluck')
     else
       assert_activerecord_metrics(Order, 'select')
     end
@@ -102,11 +75,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_find
     in_web_transaction do
-      if active_record_major_version >= 4
-        Order.where(:name => 'foo').load
-      else
-        Order.find_all_by_name('foo')
-      end
+      Order.where(:name => 'foo').load
     end
 
     assert_activerecord_metrics(Order, 'find')
@@ -124,35 +93,19 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_find_all
     in_web_transaction do
-      if active_record_major_version >= 4
-        Order.all.load
-      else
-        Order.all
-      end
+      Order.all.load
     end
 
     assert_activerecord_metrics(Order, 'find')
   end
 
   def test_metrics_for_find_via_named_scope
-    major_version = active_record_major_version
-    minor_version = active_record_minor_version
     Order.class_eval do
-      if major_version >= 4
-        scope(:jeffs, lambda { where(:name => 'Jeff') })
-      elsif major_version == 3 && minor_version >= 1
-        scope(:jeffs, :conditions => {:name => 'Jeff'})
-      else
-        named_scope(:jeffs, :conditions => {:name => 'Jeff'})
-      end
+      scope(:jeffs, lambda { where(:name => 'Jeff') })
     end
 
     in_web_transaction do
-      if active_record_major_version >= 4
-        Order.jeffs.load
-      else
-        Order.jeffs.find(:all)
-      end
+      Order.jeffs.load
     end
 
     assert_activerecord_metrics(Order, 'find')
@@ -163,7 +116,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.exists?(['name=?', 'jeff'])
     end
 
-    if active_record_major_version >= 6
+    if active_record_version_at_least?(6)
       assert_activerecord_metrics(Order, 'exists?')
     else
       assert_activerecord_metrics(Order, 'find')
@@ -210,7 +163,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       order.delete
     end
 
-    if active_record_major_version >= 7
+    if active_record_version_at_least?(7)
       assert_activerecord_metrics(Order, 'destroy')
     else
       assert_activerecord_metrics(Order, 'delete')
@@ -322,7 +275,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.destroy
     end
 
-    if active_record_major_version >= 7
+    if active_record_version_at_least?(7)
       assert_activerecord_metrics(User, 'destroy')
       assert_activerecord_metrics(Alias, 'destroy')
     else
@@ -331,25 +284,22 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  # update & update! didn't become public until 4.0
-  if active_record_version >= Gem::Version.new('4.0.0')
-    def test_metrics_for_update
-      in_web_transaction do
-        order = Order.create(:name => 'wendy')
-        order.update(:name => 'walter')
-      end
-
-      assert_activerecord_metrics(Order, 'update')
+  def test_metrics_for_update
+    in_web_transaction do
+      order = Order.create(:name => 'wendy')
+      order.update(:name => 'walter')
     end
 
-    def test_metrics_for_update_bang
-      in_web_transaction do
-        order = Order.create(:name => 'wendy')
-        order.update!(:name => 'walter')
-      end
+    assert_activerecord_metrics(Order, 'update')
+  end
 
-      assert_activerecord_metrics(Order, 'update')
+  def test_metrics_for_update_bang
+    in_web_transaction do
+      order = Order.create(:name => 'wendy')
+      order.update!(:name => 'walter')
     end
+
+    assert_activerecord_metrics(Order, 'update')
   end
 
   def test_metrics_for_update_attribute
@@ -398,7 +348,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       order.destroy
     end
 
-    if active_record_major_version >= 7
+    if active_record_version_at_least?(7)
       assert_activerecord_metrics(Order, 'destroy')
     else
       assert_activerecord_metrics(Order, 'delete')
@@ -425,14 +375,15 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_direct_sql_show
-    if supports_show_tables?
-      in_web_transaction do
-        conn = Order.connection
+    skip "Adapter does not support 'show tables'" unless supports_show_tables?
+
+    in_web_transaction do
+      Order.with_connection do |conn|
         conn.execute('show tables')
       end
-
-      assert_generic_rollup_metrics('show')
     end
+
+    assert_generic_rollup_metrics('show')
   end
 
   def test_still_records_metrics_in_error_cases
@@ -504,11 +455,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
       sample.prepare_to_send!
       explanations = sql_node.params[:explain_plan]
-      if supports_explain_plans?
-        refute_nil explanations, "No explains in node: #{sql_node}"
-        assert_equal(2, explanations.size,
-          "No explains in node: #{sql_node}")
-      end
+
+      refute_nil explanations, "No explains in node: #{sql_node}"
+      assert_equal(2, explanations.size,
+        "No explains in node: #{sql_node}")
     end
   end
 
@@ -586,7 +536,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_find_by_sql
-    skip_unless_active_record_7_1_or_above
+    skip unless active_record_version_at_least?(7.1)
 
     in_web_transaction do
       Order.async_find_by_sql('SELECT * FROM orders')
@@ -596,7 +546,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_count_by_sql
-    skip_unless_active_record_7_1_or_above
+    skip unless active_record_version_at_least?(7.1)
 
     in_web_transaction do
       Order.create(:name => 'wendy')
@@ -607,7 +557,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_pluck
-    skip_unless_active_record_7_1_or_above
+    skip unless active_record_version_at_least?(7.1)
 
     in_web_transaction do
       Order.async_pluck(:id)
@@ -617,7 +567,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_calculation_methods
-    skip_unless_active_record_7_1_or_above
+    skip unless active_record_version_at_least?(7.1)
 
     in_web_transaction do
       Order.async_count
@@ -631,6 +581,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   ## helpers
+  private
 
   def adapter
     # ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
@@ -642,11 +593,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def supports_show_tables?
-    [:mysql, :postgres].include?(adapter)
-  end
-
-  def supports_explain_plans?
-    [:mysql, :postgres].include?(adapter)
+    [:mysql, :mysql2, :trilogy].include?(adapter)
   end
 
   def current_product
@@ -654,13 +601,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def operation_for(op)
-    is_greater_than_5_2 = active_record_version >= Gem::Version.new('5.2.0.beta1')
-    is_less_than_7_0 = active_record_version < Gem::Version.new('7.0.0.alpha1')
-
     if op == 'create'
-      !is_greater_than_5_2 ? 'insert' : 'create'
-    elsif op == 'delete' && is_less_than_7_0
-      !is_greater_than_5_2 ? 'delete' : 'destroy'
+      active_record_version_at_least?(5.2) ? 'create' : 'insert'
+    elsif op == 'delete' && !active_record_version_at_least?(7)
+      active_record_version_at_least?(5.2) ? 'destroy' : 'delete'
     else
       op
     end
@@ -685,7 +629,13 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     ])
   end
 
-  def skip_unless_active_record_7_1_or_above
-    skip unless active_record_major_version >= 7 && active_record_minor_version >= 1
+  def active_record_version
+    Gem::Version.new(::ActiveRecord::VERSION::STRING)
+  end
+
+  def active_record_version_at_least?(version_string)
+    version_string = version_string.to_s
+    version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
+    active_record_version >= Gem::Version.new(version_string)
   end
 end

@@ -36,6 +36,9 @@ module NewRelic
         # setting up the worker thread and the exit handler to shut
         # down the agent
         def check_config_and_start_agent
+          # some health statuses, such as invalid license key, are ran before
+          # the agent officially starts
+          @health_check.create_and_run_health_check_loop
           return unless monitoring? && has_correct_license_key?
           return if using_forking_dispatcher?
 
@@ -129,6 +132,7 @@ module NewRelic
           if Agent.config[:monitor_mode]
             true
           else
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::AGENT_DISABLED)
             ::NewRelic::Agent.logger.warn('Agent configured not to send data in this environment.')
             false
           end
@@ -140,6 +144,7 @@ module NewRelic
           if Agent.config[:license_key] && Agent.config[:license_key].length > 0
             true
           else
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::MISSING_LICENSE_KEY)
             ::NewRelic::Agent.logger.warn('No license key found. ' +
               'This often means your newrelic.yml file was not found, or it lacks a section for the running ' \
               "environment, '#{NewRelic::Control.instance.env}'. You may also want to try linting your newrelic.yml " \
@@ -160,6 +165,7 @@ module NewRelic
           if key.length == 40
             true
           else
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
             ::NewRelic::Agent.logger.error("Invalid license key: #{key}")
             false
           end
@@ -180,6 +186,7 @@ module NewRelic
           end
 
           unless app_name_configured?
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::MISSING_APP_NAME)
             NewRelic::Agent.logger.error('No application name configured.',
               'The agent cannot start without at least one. Please check your ',
               'newrelic.yml and ensure that it is valid and has at least one ',

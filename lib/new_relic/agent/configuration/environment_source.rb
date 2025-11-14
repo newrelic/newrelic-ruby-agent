@@ -92,7 +92,11 @@ module NewRelic
           elsif type == Symbol
             self[config_key] = value.to_sym
           elsif type == Array
-            self[config_key] = value.split(/\s*,\s*/)
+            self[config_key] = if DEFAULTS[config_key].key?(:transform)
+              DEFAULTS[config_key][:transform].call(value)
+            else
+              value.split(/\s*,\s*/)
+            end
           elsif type == NewRelic::Agent::Configuration::Boolean
             if /false|off|no/i.match?(value)
               self[config_key] = false

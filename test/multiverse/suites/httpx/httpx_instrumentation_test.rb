@@ -31,9 +31,17 @@ class HTTPXInstrumentationTest < Minitest::Test
 
   def test_finish_with_error
     request = Minitest::Mock.new
-    request.expect :response, :the_response
-    2.times { request.expect :hash, 1138 }
-    responses = {request => ::HTTPX::ErrorResponse.new(request, StandardError.new, {})}
+    2.times { request.expect :response, :the_response }
+    request.expect :hash, 1138
+
+    error = if NewRelic::Helper.version_satisfied?(::HTTPX::VERSION, '>=', '1.3.0')
+      request.expect :options, ::HTTPX::Options.new({})
+      ::HTTPX::ErrorResponse.new(request, StandardError.new)
+    else
+      ::HTTPX::ErrorResponse.new(request, StandardError.new, {})
+    end
+    responses = {request => error}
+
     segment = Minitest::Mock.new
     def segment.notice_error(_error); end
     def segment.process_response_headers(_wrappep); end

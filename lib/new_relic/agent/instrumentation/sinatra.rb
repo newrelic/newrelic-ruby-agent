@@ -17,10 +17,6 @@ DependencyDetection.defer do
   depends_on { Sinatra::Base.private_method_defined?(:route_eval) }
 
   executes do
-    NewRelic::Agent.logger.info('Installing Sinatra instrumentation')
-  end
-
-  executes do
     if use_prepend?
       prepend_instrument Sinatra::Base, NewRelic::Agent::Instrumentation::Sinatra::Prepend
     else
@@ -32,27 +28,15 @@ DependencyDetection.defer do
   end
 
   executes do
+    supportability_name = NewRelic::Agent::Instrumentation::Sinatra::Tracer::INSTRUMENTATION_NAME
     # These requires are inside an executes block because they require rack, and
     # we can't be sure that rack is available when this file is first required.
     require 'new_relic/rack/agent_hooks'
     require 'new_relic/rack/browser_monitoring'
     if use_prepend?
-      prepend_instrument Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::Build::Prepend
+      prepend_instrument Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::Build::Prepend, supportability_name
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Build::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Build::Chain, supportability_name
     end
-  end
-
-  executes do
-    next unless Gem::Version.new(Sinatra::VERSION) < Gem::Version.new('2.0.0')
-
-    deprecation_msg = 'The Ruby agent is dropping support for Sinatra versions below 2.0.0 ' \
-      'in version 9.0.0. Please upgrade your Sinatra version to continue receiving full compatibility. ' \
-
-    NewRelic::Agent.logger.log_once(
-      :warn,
-      :deprecated_sinatra_version,
-      deprecation_msg
-    )
   end
 end

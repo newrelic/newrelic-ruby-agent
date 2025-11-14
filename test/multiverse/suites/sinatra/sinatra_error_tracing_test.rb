@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 class SinatraErrorTracingTestApp < Sinatra::Base
+  set :host_authorization, {permitted_hosts: []}
   configure do
     set :show_exceptions, false
   end

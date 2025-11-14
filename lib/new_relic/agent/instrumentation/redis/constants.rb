@@ -6,12 +6,12 @@ module NewRelic::Agent::Instrumentation::Redis
   class Constants
     PRODUCT_NAME = 'Redis'
     CONNECT = 'connect'
-    UNKNOWN = 'unknown'
+    UNKNOWN = NewRelic::UNKNOWN_LOWER
     LOCALHOST = 'localhost'
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
     HAS_REDIS_CLIENT = defined?(::Redis) &&
-      Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0') &&
+      NewRelic::Helper.version_satisfied?(::Redis::VERSION, '>=', '5.0.0') &&
       !defined?(::RedisClient).nil?
   end
 end

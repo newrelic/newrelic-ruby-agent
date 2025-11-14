@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/license for complete details.
 # frozen_string_literal: true
 
+require 'logger'
+
 Bundler.require
 require 'tasks/newrelic'
 

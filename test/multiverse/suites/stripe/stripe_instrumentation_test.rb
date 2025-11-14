@@ -10,6 +10,7 @@ require 'stripe'
 class StripeInstrumentation < Minitest::Test
   API_KEY = '123456789'
   STRIPE_URL = 'Stripe/v1/customers/get'
+  DummyEvent = Struct.new(:path, :method)
 
   def setup
     Stripe.api_key = API_KEY
@@ -28,7 +29,7 @@ class StripeInstrumentation < Minitest::Test
   end
 
   def test_version_supported
-    assert(Gem::Version.new(Stripe::VERSION) >= Gem::Version.new('5.38.0'))
+    assert(NewRelic::Helper.version_satisfied?(Stripe::VERSION, '>=', '5.38.0'))
   end
 
   def test_subscribed_request_begin
@@ -168,6 +169,27 @@ class StripeInstrumentation < Minitest::Test
     end
   end
 
+  def test_metric_names_are_not_specific_enough_to_cause_a_cardinality_explosion
+    categories = %w[Trzy_kolory The_Apu_Trilogy The_Lord_of_the_Rings]
+    paths = ["/v1/#{categories[0]}/Niebieski",
+      "/v1/#{categories[0]}/Biały",
+      "/v1/#{categories[0]}/Czerwony",
+      "/v1/#{categories[1]}/Pather_Panchali",
+      "/v1/#{categories[1]}/Aparajito",
+      "/v1/#{categories[1]}/The_World_of_Apu",
+      "/v1/#{categories[2]}/The_Fellowship_of_the_Ring",
+      "/v1/#{categories[2]}/The_Two_Towers",
+      "/v1/#{categories[2]}/The_Return_of_the_King"]
+    method = 'get'
+
+    subscriber = NewRelic::Agent::Instrumentation::StripeSubscriber.new
+    expected = categories.map { |c| Array.new(3) { "Stripe/v1/#{c}/#{method}" } }.flatten
+    actual = paths.map { |p| subscriber.send(:metric_name, DummyEvent.new(p, method)) }
+
+    assert_equal expected, actual,
+      "Expected everything after the category in each path to be stripped away. Expected: #{expected} Actual: #{actual}"
+  end
+
   def start_stripe_event
     Stripe::Customer.list({limit: 3})
   end
@@ -177,9 +199,19 @@ class StripeInstrumentation < Minitest::Test
   end
 
   def with_stubbed_connection_manager(&block)
-    Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-      @connection.stub(:execute_request, @response) do
-        yield
+    # Stripe moved StripeClient and requestor logic to APIRequestor in v13.0.0
+    # https://github.com/stripe/stripe-ruby/pull/1458
+    if NewRelic::Helper.version_satisfied?(Stripe::VERSION, '>=', '13.0.0')
+      Stripe::APIRequestor.stub(:default_connection_manager, @connection) do
+        @connection.stub(:execute_request, @response) do
+          yield
+        end
+      end
+    else
+      Stripe::StripeClient.stub(:default_connection_manager, @connection) do
+        @connection.stub(:execute_request, @response) do
+          yield
+        end
       end
     end
   end

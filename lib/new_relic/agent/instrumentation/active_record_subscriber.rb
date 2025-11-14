@@ -70,18 +70,7 @@ module NewRelic
         end
 
         def get_explain_plan(statement)
-          connection = NewRelic::Agent::Database.get_connection(statement.config) do
-            ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
-              statement.config)
-          end
-          # the following line needs else branch coverage
-          if connection && connection.respond_to?(:exec_query) # rubocop:disable Style/SafeNavigation
-            return connection.exec_query("EXPLAIN #{statement.sql}",
-              "Explain #{statement.name}",
-              statement.binds)
-          end
-        rescue => e
-          NewRelic::Agent.logger.debug("Couldn't fetch the explain plan for #{statement} due to #{e}")
+          NewRelic::Agent::Database.explain_this(statement)
         end
 
         def active_record_config(payload)
@@ -127,10 +116,14 @@ module NewRelic
           port_path_or_id = nil
           database = nil
 
-          if ActiveRecordHelper::InstanceIdentification.supported_adapter?(config)
-            host = ActiveRecordHelper::InstanceIdentification.host(config)
-            port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
-            database = config && config[:database]
+          begin
+            if ActiveRecordHelper::InstanceIdentification.supported_adapter?(config)
+              host = ActiveRecordHelper::InstanceIdentification.host(config)
+              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
+              database = config && config[:database]
+            end
+          rescue
+            NewRelic::Agent.logger.debug("Failed to retrieve ActiveRecord host, port, and database details for adapter: #{config && config[:adapter]}")
           end
 
           segment = Tracer.start_datastore_segment(product: product,

@@ -53,4 +53,25 @@ class SidekiqInstrumentationTest < Minitest::Test
     assert_equal 1, noticed.size
     assert_equal exception, noticed.first
   end
+
+  # Sidekiq::Job::Setter#perform_inline is expected to light up all registered
+  # client and server middleware, and the lighting up of NR's server middleware
+  # will produce a segment
+  def test_works_with_perform_inline
+    # Sidekiq version 6.4.2 ends up invoking String#constantize, which is only
+    # delivered by ActiveSupport, which this test suite doesn't currently
+    # include.
+    skip 'This test requires Sidekiq v7+' unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
+
+    in_transaction do |txn|
+      NRDeadEndJob.perform_inline
+      segments = txn.segments.select { |s| s.name.eql?('Nested/OtherTransaction/SidekiqJob/NRDeadEndJob/perform') }
+
+      assert_equal 1, segments.size, "Expected to find a single Sidekiq job segment, found #{segments.size}"
+    end
+  end
+
+  def test_sidekiq_ignore_retry_errors_default_is_false
+    refute NewRelic::Agent.config[:'sidekiq.ignore_retry_errors'], 'Expected default value for sidekiq.ignore_retry_errors to be false'
+  end
 end

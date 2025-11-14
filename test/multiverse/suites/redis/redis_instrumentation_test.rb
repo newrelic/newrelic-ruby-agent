@@ -59,6 +59,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_connect_tt_node_within_call_that_triggered_it
+      skip_for_redis_clustering_gem
+
       in_transaction do
         redis = Redis.new
         redis.get('foo')
@@ -277,6 +279,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
+      skip_for_redis_clustering_gem
+
       redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
@@ -309,6 +313,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
+      skip_for_redis_clustering_gem
+
       redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
@@ -327,6 +333,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
+      skip_for_redis_clustering_gem
+
       redis = Redis.new
       redis.send(client).stubs(:path).raises(StandardError.new)
       in_transaction do
@@ -347,6 +355,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_noticed_error_at_segment_and_txn_on_error
+      skip_for_redis_clustering_gem
+
       txn = nil
       begin
         in_transaction do |redis_txn|
@@ -362,6 +372,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_noticed_error_only_at_segment_on_error
+      skip_for_redis_clustering_gem
+
       txn = nil
       in_transaction do |redis_txn|
         begin
@@ -456,6 +468,20 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
     end
 
+    # regression test for dependency detection bug
+    # https://github.com/newrelic/newrelic-ruby-agent/issues/2814
+    def test_having_a_redis_cluster_client_does_not_cause_an_error
+      skip_unless_minitest5_or_above
+      skip unless defined?(::Redis::Cluster::Client)
+
+      log_data = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+      contains_error = log_data.match?('LocalJumpError')
+
+      refute contains_error, "Expected the agent log to be free of 'LocalJumpError' errors"
+    end
+
+    private
+
     def client
       if Gem::Version.new(Redis::VERSION).segments[0] < 4
         :client
@@ -471,5 +497,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def either_hostname
       [NewRelic::Agent::Hostname.get, 'redis']
     end
+  end
+
+  def skip_for_redis_clustering_gem
+    skip 'Incompatible with redis-clustering' if defined?(Redis::Cluster::Client)
   end
 end

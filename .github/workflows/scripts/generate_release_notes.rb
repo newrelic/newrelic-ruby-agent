@@ -12,19 +12,31 @@ class GenerateReleaseNotes
   <Callout variant="important">
     We recommend updating to the latest agent version as soon as it's available. If you can't upgrade to the latest version, update your agents to a version no more than 90 days old. Read more about [keeping agents up to date](/docs/new-relic-solutions/new-relic-one/install-configure/update-new-relic-agent/).
 
-    See the New Relic Ruby agent [EOL policy](https://docs.newrelic.com/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
+    See the New Relic Ruby agent [EOL policy](/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
   </Callout>
   SUPPORT_STATEMENT
+  MAJOR_VERSION_BANNER = <<~BANNER
+  <Callout variant='important'>
+    **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide [here](/docs/apm/agents/ruby-agent/getting-started/migration-%sx-guide/).
+  </Callout>
+  BANNER
+
+  # pass the filename as an arg to simplify testing
+  def initialize(changelog_filename = 'CHANGELOG.md')
+    changelog = File.read(changelog_filename)
+    @split_changelog = changelog.split('##')
+  end
 
   def build_metadata
-    changelog = File.read('CHANGELOG.md')
-    latest_entry = changelog.split('##')[1].prepend('##')
+    latest_entry = @split_changelog[1].prepend('##')
     titles = latest_entry.scan(/^- \*{2}(.*?)\*{2}$/).flatten # Match strings between sets of '**'
     metadata = Hash.new { |h, k| h[k] = [] }
 
     titles.each do |t|
       category = t.split(':').first
       case category
+      when 'Breaking Change'
+        metadata[:features] << t.delete_prefix('Breaking Change: ')
       when 'Feature'
         metadata[:features] << t.delete_prefix('Feature: ')
       when 'Bugfix'
@@ -49,10 +61,19 @@ class GenerateReleaseNotes
       bugs: #{metadata[:bugs]}
       security: #{metadata[:security]}
       #{DIVIDER}
-
+      #{MAJOR_VERSION_BANNER % NewRelic::VERSION::MAJOR if major_bump?}
       #{SUPPORT_STATEMENT}
       #{latest_entry}
     FRONTMATTER
+  end
+
+  def major_bump?
+    # look for a line that starts with 'v' followed by a version number
+    # then grab the first match (the version number)
+    previous_release_version = @split_changelog[2][/^ v(\d+\.\d+\.\d+)$/, 1]
+    previous_major_version = previous_release_version.split('.')[0].to_i
+
+    NewRelic::VERSION::MAJOR > previous_major_version
   end
 
   def hyphenated_version_string

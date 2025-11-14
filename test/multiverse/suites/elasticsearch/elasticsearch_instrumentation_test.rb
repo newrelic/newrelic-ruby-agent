@@ -2,6 +2,24 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+###
+#
+# NOTE: to locally mirror the hosted CI system, spin up an Elasticsearch v7
+#       Docker container mapped to local port 9200 and an Elasticsearch v8
+#       container mapped to local port 9250.
+#
+#       Step 1: define these shell aliases:
+#
+#         alias elastic9='docker run --rm --name elasticsearch -p 9252:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.enrollment.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:9.0.2'
+#
+#         alias elastic8='docker run --rm --name elasticsearch -p 9250:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.enrollment.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.13.4'
+#
+#         alias elastic7='docker run --rm --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.16.2'
+#
+#       Step 2: run 'elastic7' in one terminal/shell and 'elastic8' in another
+#
+###
+
 require 'elasticsearch'
 require 'socket'
 
@@ -84,6 +102,23 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     search
 
     assert_equal 'docker-cluster', @segment.database_name
+  end
+
+  def test_cluster_name_doesnt_try_again_if_defined_but_nil
+    original = @client.instance_variable_get(:@transport).instance_variable_get(:@nr_cluster_name)
+    @client.instance_variable_get(:@transport).instance_variable_set(:@nr_cluster_name, nil)
+    search
+    @client.instance_variable_get(:@transport).instance_variable_set(:@nr_cluster_name, original)
+
+    assert_nil @segment.database_name
+  end
+
+  def test_capture_cluster_name_config_is_false
+    with_config(:'elasticsearch.capture_cluster_name' => false) do
+      search
+
+      assert_nil @segment.database_name
+    end
   end
 
   def test_nosql_statement_recorded_params_obfuscated
@@ -188,7 +223,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def transport_error_class
-    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
+    if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       ::Elasticsearch::Transport::Transport::Error
     else
       ::Elastic::Transport::Transport::Error
@@ -196,10 +231,12 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
+    if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       9200 # 9200 for elasticsearch 7
-    else
+    elsif ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('9.0.0')
       9250 # 9250 for elasticsearch 8
+    else
+      9252 # 9252 for elasticsearch 9
     end
   end
 end

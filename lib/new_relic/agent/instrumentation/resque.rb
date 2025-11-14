@@ -15,15 +15,17 @@ DependencyDetection.defer do
 
   # Airbrake uses method chaining on Resque::Job on versions < 11.0.3
   conflicts_with_prepend do
-    defined?(Airbrake) && defined?(Airbrake::AIRBRAKE_VERSION) && Gem::Version.create(Airbrake::AIRBRAKE_VERSION) < Gem::Version.create('11.0.3')
+    defined?(Airbrake) && defined?(Airbrake::AIRBRAKE_VERSION) && NewRelic::Helper.version_satisfied?(Airbrake::AIRBRAKE_VERSION, '<', '11.0.3')
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing Resque instrumentation')
-  end
-
-  executes do
-    if NewRelic::Agent.config[:'resque.use_ruby_dns'] && NewRelic::Agent.config[:dispatcher] == :resque
+    if NewRelic::Agent.config[:'resque.use_ruby_dns'] &&
+        NewRelic::Agent.config[:dispatcher] == :resque &&
+        # resolv-replace is no longer part of the language in Ruby 3.4.
+        # we don't believe this lib is still necessary for Ruby 3.4 users.
+        # however, if we receive customer feedback to the contrary, we can find
+        # an alternate approach.
+        NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '3.4')
       NewRelic::Agent.logger.info('Requiring resolv-replace')
       require 'resolv'
       require 'resolv-replace'

@@ -25,12 +25,12 @@ Test cases may also contain the following properties:
 
 The following database documentation may be helpful in understanding these test
 cases:
-* [MySQL String Literals](http://dev.mysql.com/doc/refman/5.5/en/string-literals.html)
-* [PostgreSQL String Constants](http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS)
+* [MySQL String Literals](https://dev.mysql.com/doc/refman/5.5/en/string-literals.html)
+* [PostgreSQL String Constants](https://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS)
 
 SQL Syntax Documentation:
-* [MySQL](http://dev.mysql.com/doc/refman/5.5/en/language-structure.html)
-* [PostgreSQL](http://www.postgresql.org/docs/8.4/static/sql-syntax.html)
-* [Cassandra](http://docs.datastax.com/en/cql/3.1/cql/cql_reference/cql_lexicon_c.html)
-* [Oracle](http://docs.oracle.com/cd/B28359_01/appdev.111/b28370/langelems.htm)
+* [MySQL](https://dev.mysql.com/doc/refman/5.5/en/language-structure.html)
+* [PostgreSQL](https://www.postgresql.org/docs/8.4/static/sql-syntax.html)
+* [Cassandra](https://docs.datastax.com/en/cql/3.1/cql/cql_reference/cql_lexicon_c.html)
+* [Oracle](https://docs.oracle.com/cd/B28359_01/appdev.111/b28370/langelems.htm)
 * [SQLite](https://www.sqlite.org/lang.html)

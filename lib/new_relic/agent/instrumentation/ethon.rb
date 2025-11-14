@@ -18,11 +18,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(Ethon) && Gem::Version.new(Ethon::VERSION) >= Gem::Version.new('0.12.0')
-  end
-
-  executes do
-    NewRelic::Agent.logger.info('Installing ethon instrumentation')
+    defined?(Ethon) && NewRelic::Helper.version_satisfied?(Ethon::VERSION, '>=', '0.12.0')
   end
 
   executes do

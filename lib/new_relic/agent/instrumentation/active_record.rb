@@ -9,18 +9,12 @@ module NewRelic
     module Instrumentation
       module ActiveRecord
         EXPLAINER = lambda do |statement|
-          connection = NewRelic::Agent::Database.get_connection(statement.config) do
-            ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
-              statement.config)
-          end
-          # the following line needs else branch coverage
-          if connection && connection.respond_to?(:execute) # rubocop:disable Style/SafeNavigation
-            return connection.execute("EXPLAIN #{statement.sql}")
-          end
+          NewRelic::Agent::Database.explain_this(statement, true)
         end
 
         def self.insert_instrumentation
-          if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
+          if defined?(::ActiveRecord::VERSION::MAJOR) &&
+              NewRelic::Helper.version_satisfied?(::ActiveRecord::VERSION::MAJOR, '>=', 3)
             if ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
               ::ActiveRecord::Base.prepend(::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
               ::ActiveRecord::Relation.prepend(::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
@@ -44,7 +38,7 @@ module NewRelic
           end
         end
 
-        if RUBY_VERSION < '2.7.0'
+        if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
           def log_with_newrelic_instrumentation(*args, &block)
             state = NewRelic::Agent::Tracer.state
 
@@ -144,7 +138,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
       (!defined?(ActiveRecord::VERSION) ||
-        ActiveRecord::VERSION::MAJOR.to_i <= 3)
+        NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::MAJOR, '<=', 3))
   end
 
   depends_on do
@@ -158,7 +152,8 @@ DependencyDetection.defer do
   executes do
     require 'new_relic/agent/instrumentation/active_record_helper'
 
-    if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR.to_i == 3
+    if defined?(Rails::VERSION::MAJOR) &&
+        NewRelic::Helper.version_satisfied?(Rails::VERSION::MAJOR, '==', 3)
       ActiveSupport.on_load(:active_record) do
         NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end

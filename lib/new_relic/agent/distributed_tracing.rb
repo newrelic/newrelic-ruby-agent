@@ -39,13 +39,14 @@ module NewRelic
       # @return           {Transaction}     The transaction the headers were inserted from,
       #                                     or +nil+ if headers were not inserted.
       #
+      # @!scope class
       # @api public
       #
       def insert_distributed_trace_headers(headers = {})
         record_api_supportability_metric(:insert_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn('Not configured to insert distributed trace headers')
+          NewRelic::Agent.logger.debug('Not configured to insert distributed trace headers')
           return nil
         end
 
@@ -93,13 +94,14 @@ module NewRelic
       #
       # @return {Transaction} if successful, +nil+ otherwise
       #
+      # @!scope class
       # @api public
       #
       def accept_distributed_trace_headers(headers, transport_type = NewRelic::HTTP)
         record_api_supportability_metric(:accept_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn('Not configured to accept distributed trace headers')
+          NewRelic::Agent.logger.debug('Not configured to accept distributed trace headers')
           return nil
         end
 

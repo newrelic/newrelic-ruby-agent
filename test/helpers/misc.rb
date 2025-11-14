@@ -131,6 +131,13 @@ def skip_unless_ci_cron
   skip 'This test only runs as part of the CI cron workflow'
 end
 
+# skip unless operating within the special CI context
+def skip_unless_special_ci
+  return if ENV.fetch('SPECIAL_CI', nil)
+
+  skip 'This test only runs as part of the special CI workflow'
+end
+
 def agent_root
   @agent_root ||= File.expand_path('../../..', __FILE__).freeze
 end
@@ -146,7 +153,7 @@ def newest_ruby
 end
 
 def skip_unless_newest_ruby
-  return if Gem::Version.new(RUBY_VERSION) >= newest_ruby
+  return if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', newest_ruby)
 
   skip 'This test only runs on the latest CI cron Ruby version'
 end

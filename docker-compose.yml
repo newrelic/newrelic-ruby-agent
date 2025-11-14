@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   elasticsearch7:
     image: elasticsearch:7.16.2
@@ -20,6 +19,17 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     mem_limit: 1g
+  # this docker-compose service doesn't always work with "docker compose run opensearch"
+  # the tests consistently work with:
+  # docker run -it -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" --name opensearch-node opensearchproject/opensearch:1.3.18
+  # opensearch:
+  #   image: opensearchproject/opensearch:1.3.18
+  #   environment:
+  #     - discovery.type=single-node
+  #   ports:
+  #     - 9200:9200
+  #     - 9600:9600
+  #   mem_limit: 1g
   mysql:
     image: mysql:5.7
     platform: linux/x86_64
@@ -91,6 +101,7 @@ services:
     depends_on:
       - elasticsearch7
       - elasticsearch8
+      # - opensearch
       - mysql
       - memcached
       - mongodb

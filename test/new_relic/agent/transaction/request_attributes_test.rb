@@ -127,11 +127,40 @@ module NewRelic
           assert_equal 111, attrs.content_length
         end
 
-        def test_sets_content_type_from_request
+        def test_sets_content_type_from_request_content_type_attribute
           request = stub('request', :content_type => 'application/json')
           attrs = RequestAttributes.new(request)
 
           assert_equal 'application/json', attrs.content_type
+        end
+
+        def test_sets_content_type_from_request_media_type_attribute
+          media_type = 'pool-party/alligator'
+          request = stub('request', media_type: media_type)
+          attrs = RequestAttributes.new(request)
+
+          assert_equal media_type, attrs.content_type
+        end
+
+        def test_sets_content_type_to_nil_if_media_type_is_available_with_a_nil_value
+          request = stub('request', media_type: nil)
+          attrs = RequestAttributes.new(request)
+
+          assert_nil attrs.content_type
+        end
+
+        def test_sets_content_type_to_nil_if_content_type_is_available_with_a_nil_value
+          request = stub('request', content_type: nil)
+          attrs = RequestAttributes.new(request)
+
+          assert_nil attrs.content_type
+        end
+
+        def test_sets_content_type_to_nil_if_neither_media_type_or_content_type_are_available
+          request = stub('request')
+          attrs = RequestAttributes.new(request)
+
+          assert_nil attrs.content_type
         end
 
         def test_sets_host_from_request

@@ -1,0 +1,16 @@
+name: Add new issues to project
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@244f685bbc3b7adfa8466e08b698b5577571133e # tag 1.0.2
+        with:
+          project-url: https://github.com/orgs/newrelic/projects/84
+          github-token: ${{ secrets.NEW_RELIC_RUBY_AGENT_BOT_GITHUB_ADD_TO_PROJECT_ACTION }}

@@ -11,7 +11,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Roda) &&
-      Gem::Version.new(Roda::RodaVersion) >= Gem::Version.new('3.19.0') &&
+      NewRelic::Helper.version_satisfied?(Roda::RodaVersion, '>=', '3.19.0') &&
       Roda::RodaPlugins::Base::ClassMethods.private_method_defined?(:build_rack_app) &&
       Roda::RodaPlugins::Base::InstanceMethods.method_defined?(:_roda_handle_main_route)
   end
@@ -20,15 +20,15 @@ DependencyDetection.defer do
     require_relative '../../rack/agent_hooks'
     require_relative '../../rack/browser_monitoring'
 
-    NewRelic::Agent.logger.info('Installing Roda instrumentation')
-
     if use_prepend?
       require_relative 'roda/prepend'
-      prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend
+
+      supportability_name = NewRelic::Agent::Instrumentation::Roda::Tracer::INSTRUMENTATION_NAME
+      prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend, supportability_name
       prepend_instrument Roda, NewRelic::Agent::Instrumentation::Roda::Prepend
     else
       require_relative 'roda/chain'
-      chain_instrument NewRelic::Agent::Instrumentation::Roda::Build::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Roda::Build::Chain, supportability_name
       chain_instrument NewRelic::Agent::Instrumentation::Roda::Chain
     end
     Roda.class_eval { extend NewRelic::Agent::Instrumentation::Roda::Ignorer }

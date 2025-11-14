@@ -28,7 +28,7 @@ module NewRelic
             ) { yield }
           rescue => e
             # The translate_exception_class method got introduced in 4.1
-            if ::ActiveRecord::VERSION::MINOR == 0
+            if NewRelic::Helper.version_satisfied?(::ActiveRecord::VERSION::MINOR, '==', 0)
               raise translate_exception(e, sql)
             else
               raise translate_exception_class(e, sql)
@@ -86,7 +86,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
       defined?(ActiveRecord::VERSION) &&
-      ActiveRecord::VERSION::MAJOR.to_i >= 4
+      NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::MAJOR, '>=', 4)
   end
 
   depends_on do
@@ -113,7 +113,7 @@ DependencyDetection.defer do
 
       # Default to .prepending, unless the ActiveRecord version is <=4
       # **AND** the :prepend_active_record_instrumentation config is false
-      if ActiveRecord::VERSION::MAJOR > 4 \
+      if NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::MAJOR, '>', 4) \
           || NewRelic::Agent.config[:prepend_active_record_instrumentation]
 
         ActiveRecord::Base.send(:prepend,
@@ -131,11 +131,13 @@ DependencyDetection.defer do
       major_version = ActiveRecord::VERSION::MAJOR.to_i
       minor_version = ActiveRecord::VERSION::MINOR.to_i
 
-      activerecord_extension = if major_version == 4
+      activerecord_extension = if NewRelic::Helper.version_satisfied?(major_version, '==', 4)
         NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions4x
-      elsif major_version == 5 && minor_version == 0
+      elsif NewRelic::Helper.version_satisfied?(major_version, '==', 5) &&
+          NewRelic::Helper.version_satisfied?(minor_version, '==', 0)
         NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
-      elsif major_version == 5 && minor_version == 1
+      elsif NewRelic::Helper.version_satisfied?(major_version, '==', 5) &&
+          NewRelic::Helper.version_satisfied?(minor_version, '==', 1)
         NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
       end
 
@@ -146,9 +148,9 @@ DependencyDetection.defer do
   end
 
   executes do
-    if ActiveRecord::VERSION::MAJOR == 5 \
-        && ActiveRecord::VERSION::MINOR.to_i == 1 \
-        && ActiveRecord::VERSION::TINY.to_i >= 6
+    if NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::MAJOR, '==', 5) \
+        && NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::MINOR, '==', 1) \
+        && NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::TINY, '>=', 6)
 
       ActiveRecord::Base.prepend(NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516)
     end

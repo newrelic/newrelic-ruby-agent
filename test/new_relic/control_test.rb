@@ -36,14 +36,6 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
-  def test_api_server_uses_configured_values
-    control.instance_variable_set(:@api_server, nil)
-    with_config(:api_host => 'somewhere', :api_port => 8080) do
-      assert_equal 'somewhere', control.api_server.name
-      assert_equal 8080, control.api_server.port
-    end
-  end
-
   def test_server_from_host_uses_configured_values
     with_config(:host => 'donkeytown', :port => 8080) do
       assert_equal 'donkeytown', control.server_from_host.name
@@ -147,6 +139,22 @@ class NewRelic::ControlTest < Minitest::Test
 
       assert_predicate NewRelic::Agent.instance, :already_started?
       assert_predicate NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers), :any?
+    end
+  end
+
+  def test_init_plugin_records_agent_version_metric
+    reset_agent
+
+    NewRelic::VERSION.stub_const(:STRING, '1.2.3') do
+      with_config(:disable_samplers => true,
+        :disable_harvest_thread => true,
+        :agent_enabled          => true,
+        :monitor_mode           => true,
+        :license_key            => 'a' * 40) do
+        NewRelic::Control.instance.init_plugin
+
+        assert_metrics_recorded('Supportability/AgentVersion/newrelic_rpm/1.2.3')
+      end
     end
   end
 

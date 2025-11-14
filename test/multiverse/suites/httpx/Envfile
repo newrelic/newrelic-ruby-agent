@@ -6,6 +6,7 @@ instrumentation_methods :chain, :prepend
 
 HTTPX_VERSIONS = [
   [nil, 2.7],
+  ['1.4.4', 2.7],
   ['1.0.0', 2.7]
 ]
 

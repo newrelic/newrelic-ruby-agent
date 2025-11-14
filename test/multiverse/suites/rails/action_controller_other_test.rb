@@ -3,10 +3,11 @@
 # frozen_string_literal: true
 
 require './app'
-
 if defined?(ActionController::Live)
 
   class DataController < ApplicationController
+    CACHE_KEY = :the_key
+
     # send_file
     def send_test_file
       send_file(Rails.root + '../../../../README.md')
@@ -35,6 +36,26 @@ if defined?(ActionController::Live)
     def not_allowed
       params.permit(:only_this)
     end
+
+    # exist_fragment?
+    def exist_fragment
+      fragment_exist?(CACHE_KEY)
+    end
+
+    # expire_fragment
+    def expire_test_fragment
+      expire_fragment(CACHE_KEY)
+    end
+
+    # read_fragment
+    def read_test_fragment
+      read_fragment(CACHE_KEY)
+    end
+
+    # write_fragment
+    def write_test_fragment
+      write_fragment(CACHE_KEY, 'fragment')
+    end
   end
 
   class ActionControllerDataTest < ActionDispatch::IntegrationTest
@@ -57,10 +78,11 @@ if defined?(ActionController::Live)
     end
 
     def test_send_stream
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('7.2.0')
+      skip unless rails_version_at_least?('7.2')
+
       get('/data/send_test_stream')
 
-      assert_metrics_recorded(['Controller/data/send_test_stream', 'Ruby/ActionController/send_stream'])
+      assert_metrics_recorded(['Controller/data/send_test_stream'])
     end
 
     def test_halted_callback
@@ -79,7 +101,7 @@ if defined?(ActionController::Live)
       get('/data/do_a_redirect')
 
       # payload does not include the request in rails < 6.1
-      rails61 = Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('6.1.0')
+      rails61 = rails_version_at_least?('6.1')
 
       segment_name = if rails61
         'Ruby/ActionController/data/redirect_to'
@@ -96,14 +118,14 @@ if defined?(ActionController::Live)
     end
 
     def test_unpermitted_parameters
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
       # unpermitted parameters is only available in rails 6.0+
+      skip unless rails_version_at_least?('6')
 
       get('/data/not_allowed', params: {this_is_a_param: 1})
 
       # in Rails < 7 the context key is not present in this payload, so it changes the params and name
       # because we're using context info to create the name
-      rails7 = Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
+      rails7 = NewRelic::Helper.version_satisfied?(Rails::VERSION::STRING, '>=', '7.0.0')
 
       segment_name = if rails7
         'Ruby/ActionController/data/unpermitted_parameters'
@@ -119,6 +141,66 @@ if defined?(ActionController::Live)
       assert_equal('DataController', tt_node.params[:controller]) if rails7
 
       assert_metrics_recorded(['Controller/data/not_allowed', segment_name])
+    end
+
+    def test_exist_fragment?
+      skip unless rails_version_at_least?('6')
+
+      get('/data/exist_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>exist_fragment?<<'
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/exist' : 'ActiveSupport/exist?'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+
+      assert child, 'Could not find a >>Filestore/exist<< child of the ActionController node!'
+      confirm_key_exists_in_params(child)
+    end
+
+    def test_expire_fragment
+      skip unless rails_version_at_least?('6')
+
+      get('/data/expire_test_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>expire_fragment<<'
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/delete' : 'ActiveSupport/delete'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+
+      assert child, 'Could not find a >>Filestore/delete<< child of the ActionController node!'
+      confirm_key_exists_in_params(child)
+    end
+
+    def test_read_fragment
+      skip unless rails_version_at_least?('6')
+
+      get('/data/read_test_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>read_fragment<<'
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/read' : 'ActiveSupport/read'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+
+      assert child, 'Could not find a >>Filestore/read<< child of the ActionController node!'
+      confirm_key_exists_in_params(child)
+    end
+
+    def test_write_fragment
+      skip unless rails_version_at_least?('6')
+
+      get('/data/write_test_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>write_fragment<<'
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/write' : 'ActiveSupport/write'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+
+      assert child, 'Could not find a >>Filestore/write<< child of the ActionController node!'
+      confirm_key_exists_in_params(child)
     end
 
     class TestClassActionController; end
@@ -140,6 +222,19 @@ if defined?(ActionController::Live)
       payloads.each do |payload|
         # make sure no error is raised
         NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber.new.controller_name_for_metric(payload)
+      end
+    end
+
+    private
+
+    def confirm_key_exists_in_params(node)
+      assertion_failure = "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+      # Rails v7.2+ stores the URI string, so look for the key on the end of it
+      if rails_version_at_least?('7.2.0')
+        assert_match(/#{CGI.escape("/#{DataController::CACHE_KEY}")}/, node.params[:key], assertion_failure)
+      # Rails < v7.2 stores the params in an array, so confirm it includes the key
+      else
+        assert_includes node.params[:key], DataController::CACHE_KEY, assertion_failure
       end
     end
   end

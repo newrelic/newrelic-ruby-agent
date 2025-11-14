@@ -12,8 +12,6 @@ DependencyDetection.defer do
   depends_on { defined?(ActiveSupport::BroadcastLogger) }
 
   executes do
-    NewRelic::Agent.logger.info('Installing ActiveSupport::BroadcastLogger instrumentation')
-
     if use_prepend?
       prepend_instrument ActiveSupport::BroadcastLogger, NewRelic::Agent::Instrumentation::ActiveSupportBroadcastLogger::Prepend
     else

@@ -5,6 +5,7 @@
 require_relative 'sidekiq/client'
 require_relative 'sidekiq/server'
 require_relative 'sidekiq/extensions/delayed_class'
+require_relative 'sidekiq/extensions/delay_extensions'
 
 DependencyDetection.defer do
   @name = :sidekiq
@@ -29,30 +30,29 @@ DependencyDetection.defer do
         chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Client)
       end
       config.server_middleware do |chain|
-        chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Server)
+        # We started prepending v chaining NR middleware in 9.18.0 in response to:
+        # https://github.com/newrelic/newrelic-ruby-agent/issues/3037
+        # This way, exceptions resolved by Sidekiq's own middleware are not reported in the agent
+        if chain.respond_to?(:prepend)
+          chain.prepend(NewRelic::Agent::Instrumentation::Sidekiq::Server)
+        else
+          chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Server)
+        end
       end
 
-      if config.respond_to?(:error_handlers)
+      if config.respond_to?(:error_handlers) && !NewRelic::Agent.config[:'sidekiq.ignore_retry_errors']
         # Sidekiq 3.0.0 - 7.1.4 expect error_handlers to have 2 arguments
         # Sidekiq 7.1.5+ expect error_handlers to have 3 arguments
         config.error_handlers << proc do |error, _ctx, *_|
           NewRelic::Agent.notice_error(error)
         end
       end
+
+      if config.respond_to?(:death_handlers) && NewRelic::Agent.config[:'sidekiq.ignore_retry_errors']
+        config.death_handlers << proc do |_, error|
+          NewRelic::Agent.notice_error(error)
+        end
+      end
     end
-  end
-
-  executes do
-    next unless Gem::Version.new(Sidekiq::VERSION) < Gem::Version.new('5.0.0')
-
-    deprecation_msg = 'Instrumentation for Sidekiq versions below 5.0.0 is deprecated ' \
-      'and will be dropped entirely in a future major New Relic Ruby agent release.' \
-      'Please upgrade your Sidekiq version to continue receiving full support. '
-
-    NewRelic::Agent.logger.log_once(
-      :warn,
-      :deprecated_sidekiq_version,
-      deprecation_msg
-    )
   end
 end

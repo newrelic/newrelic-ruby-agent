@@ -15,13 +15,15 @@ module NewRelic
         PRODUCE = 'Produce'.freeze
         QUEUE = 'Queue'.freeze
         PURGE = 'Purge'.freeze
+        STREAM = 'Stream'.freeze
         TEMP = 'Temp'.freeze
         TOPIC = 'Topic'.freeze
-        UNKNOWN = 'Unknown'.freeze
+        UNKNOWN = NewRelic::UNKNOWN
 
         DESTINATION_TYPES = [
           :exchange,
           :queue,
+          :stream,
           :topic,
           :temporary_queue,
           :temporary_topic,
@@ -37,6 +39,7 @@ module NewRelic
         TYPES = {
           exchange: EXCHANGE,
           temporary_queue: QUEUE,
+          stream: STREAM,
           queue: QUEUE,
           temporary_topic: TOPIC,
           topic: TOPIC,

@@ -1,6 +1,6 @@
 <a href="https://opensource.newrelic.com/oss-category/#community-plus"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/dark/Community_Plus.png"><source media="(prefers-color-scheme: light)" srcset="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png"><img alt="New Relic Open Source community plus project banner." src="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png"></picture></a>
 
-# New Relic Ruby Agent
+# New Relic Ruby agent
 
 The New Relic Ruby agent monitors your applications to help you
 [identify and solve performance issues](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/introduction-new-relic-ruby#monitor-performance).
@@ -15,7 +15,7 @@ This code is actively maintained by New Relic engineering teams and delivered he
 
 [![Gem Version](https://badge.fury.io/rb/newrelic_rpm.svg)](https://badge.fury.io/rb/newrelic_rpm)
 
-## Supported Environments
+## Supported environments
 
 An up-to-date list of Ruby versions and frameworks for the latest agent
 can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-frameworks).
@@ -23,14 +23,11 @@ can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-fra
 You can also monitor non-web applications. Refer to the "Other
 Environments" section below.
 
-We offer an AWS Lambda layer for instrumenting your serverless Ruby functions.
-Details can be found on our [getting started guide](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/).
-
-## Installing and Using
+## Installing and using
 
 The latest released gem for the Ruby agent can be found at [RubyGems.org](https://rubygems.org/gems/newrelic_rpm)
 
-### Quick Start
+### Quick start
 
 #### With Bundler
 
@@ -56,7 +53,7 @@ and then require the New Relic Ruby agent in your Ruby start-up sequence:
 require 'newrelic_rpm'
 ```
 
-#### Other Environments
+#### Other environments
 
 Assuming you have installed the agent per above, you may also need to tell the Ruby agent to start for some frameworks and non-framework environments. To do so, add the following to your Ruby start-up sequence start the agent:
 
@@ -64,28 +61,21 @@ Assuming you have installed the agent per above, you may also need to tell the R
 NewRelic::Agent.manual_start
 ```
 
-### Complete Install Instructions
+### Complete install instructions
 
 For complete documentation on installing the New Relic Ruby agent, see the following links:
 
 * [Introduction](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/introduction-new-relic-ruby)
-* [Install the New Relic Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent)
+* [Install the New Relic Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent). See also these docs that cover specific install scenarios:
+  * [Rails plugin installation](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-installation-rails-plugin)
+  * [AWS Lambda](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/)
+  * [GAE Flexible Environment](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent-gae-flexible-environment)
+  * [Pure Rack apps](http://docs.newrelic.com/docs/ruby/rack-middlewares)
+  * [Ruby agent and Heroku](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-heroku)
+  * [Background jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/monitor-ruby-background-processes)
 * [Configure the agent](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration)
 * [Update the agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/update-ruby-agent)
-* [Rails plugin installation](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-installation-rails-plugin)
-* [GAE Flexible Environment](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent-gae-flexible-environment)
-* [Pure Rack Apps](http://docs.newrelic.com/docs/ruby/rack-middlewares)
-* [Ruby agent and Heroku](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-heroku)
-* [Background Jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/monitor-ruby-background-processes)
 * [Uninstall the Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/uninstall-ruby-agent)
-
-### Recording Deploys
-
-The Ruby agent supports recording deployments in New Relic via a command line
-tool or Capistrano recipes. For more information on these features, see
-[our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
-for more information.
-
 
 ## Support
 
@@ -97,11 +87,10 @@ New Relic offers NRDiag, [a client-side diagnostic utility](https://docs.newreli
 
 If the issue has been confirmed as a bug or is a Feature request, please file a GitHub issue.
 
-**Support Channels**
+**Support channels**
 
 * [New Relic Documentation](https://docs.newrelic.com/docs/agents/ruby-agent): Comprehensive guidance for using our platform
 * [New Relic Community](https://forum.newrelic.com): The best place to engage in troubleshooting questions
-* [New Relic Developer](https://developer.newrelic.com/): Resources for building a custom observability applications
 * [New Relic University](https://learn.newrelic.com/): A range of online training for New Relic users of every level
 * [New Relic Technical Support](https://support.newrelic.com/) 24/7/365 ticketed support. Read more about our [Technical Support Offerings](https://docs.newrelic.com/docs/licenses/license-information/general-usage-licenses/support-plan).
 
@@ -135,7 +124,7 @@ As of version 6.12 (released July 16, 2020), the New Relic Ruby agent is license
 
 The New Relic Ruby agent may use source code from third-party libraries. When used, these libraries will be outlined in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-## Thank You
+## Thank you
 
 We always look forward to connecting with the community. We welcome [contributions](https://github.com/newrelic/newrelic-ruby-agent#contributing) to our source code and suggestions for improvements, and would love to hear about what you like and want to see in the future. 
 

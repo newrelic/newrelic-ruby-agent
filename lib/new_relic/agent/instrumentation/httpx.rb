@@ -10,11 +10,7 @@ DependencyDetection.defer do
   named :httpx
 
   depends_on do
-    defined?(HTTPX) && Gem::Version.new(HTTPX::VERSION) >= Gem::Version.new('1.0.0')
-  end
-
-  executes do
-    NewRelic::Agent.logger.info('Installing httpx instrumentation')
+    defined?(HTTPX) && NewRelic::Helper.version_satisfied?(HTTPX::VERSION, '>=', '1.0.0')
   end
 
   executes do

@@ -1,0 +1,641 @@
+[
+  {
+    "testDescription": "Does not create segment without a transaction",
+
+    "operations": [
+      {
+        "command": "DoWorkInSpan",
+        "parameters": {
+          "spanName": "Bar",
+          "spanKind": "Internal"
+        },
+        "assertions": [
+          {
+            "description": "The OpenTelmetry span should not be created",
+            "rule": {
+              "operator": "NotValid",
+              "parameters": {
+                "object": "currentOTelSpan"
+              }
+            }
+          },
+          {
+            "description": "There should be no transaction",
+            "rule": {
+              "operator": "NotValid",
+              "parameters": {
+                "object": "currentTransaction"
+              }
+            }
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [],
+      "spans": []
+    }
+  },
+
+  {
+    "testDescription": "Creates OpenTelemetry segment in a transaction",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "Bar",
+              "spanKind": "Internal"
+            },
+            "assertions": [
+              {
+                "description": "OpenTelemetry API and New Relic API report the same traceId",
+                "rule": {
+                  "operator": "Equals",
+                  "parameters": {
+                    "left": "currentOTelSpan.traceId",
+                    "right": "currentTransaction.traceId"
+                  }
+                }
+              },
+              {
+                "description": "OpenTelemetry API and New Relic API report the same spanId",
+                "rule": {
+                  "operator": "Equals",
+                  "parameters": {
+                    "left": "currentOTelSpan.spanId",
+                    "right": "currentSegment.spanId"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "Bar",
+          "category": "generic",
+          "parentName": "Foo"
+        },
+        {
+          "name": "Foo",
+          "category": "generic",
+          "entryPoint": true
+        }
+      ]
+    }
+  },
+
+  {
+    "testDescription": "Creates New Relic span as child of OpenTelemetry span",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "Bar",
+              "spanKind": "Internal"
+            },
+            "childOperations": [
+              {
+                "command": "DoWorkInSegment",
+                "parameters": {
+                  "segmentName": "Baz"
+                },
+                "assertions": [
+                  {
+                    "description": "OpenTelemetry API and New Relic API report the same traceId",
+                    "rule": {
+                      "operator": "Equals",
+                      "parameters": {
+                        "left": "currentOTelSpan.traceId",
+                        "right": "currentTransaction.traceId"
+                      }
+                    }
+                  },
+                  {
+                    "description": "OpenTelemetry API and New Relic API report the same spanId",
+                    "rule": {
+                      "operator": "Equals",
+                      "parameters": {
+                        "left": "currentOTelSpan.spanId",
+                        "right": "currentSegment.spanId"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "Baz",
+          "category": "generic",
+          "parentName": "Bar"
+        },
+        {
+          "name": "Bar",
+          "category": "generic",
+          "parentName": "Foo"
+        },
+        {
+          "name": "Foo",
+          "category": "generic",
+          "entryPoint": true
+        }
+      ]
+    }
+  },
+
+  {
+    "testDescription": "OpenTelemetry API can add custom attributes to spans",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "Bar",
+              "spanKind": "Internal"
+            },
+            "childOperations": [
+              {
+                "command": "DoWorkInSegment",
+                "parameters": {
+                  "segmentName": "Baz"
+                },
+                "childOperations": [
+                  {
+                    "command": "AddOTelAttribute",
+                    "parameters": {
+                      "name": "spanNumber",
+                      "value": 2
+                    }
+                  }
+                ]
+              },
+              {
+                "command": "AddOTelAttribute",
+                "parameters": {
+                  "name": "spanNumber",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "Baz",
+          "attributes": {
+            "spanNumber": 2
+          }
+        },
+        {
+          "name": "Bar",
+          "attributes": {
+            "spanNumber": 1
+          }
+        }
+      ]
+    }
+  },
+
+  {
+    "testDescription": "OpenTelemetry API can record errors",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "Bar",
+              "spanKind": "Internal"
+            },
+            "childOperations": [
+              {
+                "command": "RecordExceptionOnSpan",
+                "parameters": {
+                  "errorMessage": "Test exception message"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "Bar",
+          "attributes": {
+            "error.message": "Test exception message"
+          }
+        }
+      ]
+    }
+  },
+
+  {
+    "testDescription": "OpenTelemetry API and New Relic API can inject outbound trace context",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "OTelSpan1",
+              "spanKind": "Client"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url1"
+                },
+                "childOperations": [
+                  {
+                    "command": "OTelInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "command": "DoWorkInSegment",
+            "parameters": {
+              "segmentName": "segment1"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url2"
+                },
+                "childOperations": [
+                  {
+                    "command": "OTelInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "OTelSpan2",
+              "spanKind": "Client"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url3"
+                },
+                "childOperations": [
+                  {
+                    "command": "NRInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "command": "DoWorkInSegment",
+            "parameters": {
+              "segmentName": "segment2"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url4"
+                },
+                "childOperations": [
+                  {
+                    "command": "NRInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "OTelSpan1",
+          "parentName": "Foo"
+        },
+        {
+          "name": "segment1",
+          "parentName": "Foo"
+        },
+        {
+          "name": "OTelSpan2",
+          "parentName": "Foo"
+        },
+        {
+          "name": "segment2",
+          "parentName": "Foo"
+        }
+      ]
+    }
+  },
+
+  {
+    "testDescription": "Starting transaction tests",
+
+    "operations": [
+      {
+        "command": "DoWorkInSpan",
+        "parameters": {
+          "spanName": "Foo",
+          "spanKind": "Server"
+        }
+      },
+      {
+        "command": "DoWorkInSpanWithRemoteParent",
+        "parameters": {
+          "spanName": "Bar",
+          "spanKind": "Server"
+        }
+      },
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Baz"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpanWithRemoteParent",
+            "parameters": {
+              "spanName": "EdgeCase",
+              "spanKind": "Server"
+            }
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        },
+        {
+          "name": "Bar"
+        },
+        {
+          "name": "Baz"
+        }
+      ],
+      "spans": [
+        {
+          "name": "EdgeCase",
+          "parentName": "Baz"
+        },
+        {
+          "name": "Baz",
+          "entryPoint": true
+        }
+      ]
+    }
+  },
+
+  {
+    "testDescription": "Inbound distributed tracing tests",
+
+    "operations": [
+      {
+        "command": "DoWorkInSpanWithInboundContext",
+        "parameters": {
+          "spanName": "Foo",
+          "spanKind": "Server",
+          "traceIdInHeader": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "spanIdInHeader": "7d3efb1b173fecfa",
+          "sampledFlagInHeader": "0"
+        },
+        "assertions": [
+          {
+            "description": "Current span has expected traceId",
+            "rule": {
+              "operator": "Matches",
+              "parameters": {
+                "object": "currentOTelSpan.traceId",
+                "value": "da8bc8cc6d062849b0efcf3c169afb5a"
+              }
+            }
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": []
+    }
+  }
+
+]

@@ -1,0 +1,47 @@
+---
+# This file is consumed by lib/tasks/gha.rake
+ruby/setup-ruby:
+  :tag: v1.257.0
+  :sha: 44511735964dcb71245e7e55f72539531f7bc0eb
+actions/checkout:
+  :tag: v4.1.7
+  :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
+actions/cache:
+  :tag: v3.3.1
+  :sha: 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
+nick-fields/retry:
+  :tag: v3.0.0
+  :sha: 7152eba30c6575329ac0576536151aca5a72780e
+voxmedia/github-action-slack-notify-build:
+  :tag: v1.6.0
+  :sha: 3665186a8c1a022b28a1dbe0954e73aa9081ea9e
+Mercymeilya/last-workflow-status:
+  :tag: v0.3.3
+  :sha: 3418710aefe8556d73b6f173a0564d38bcfd9a43
+actions/upload-artifact:
+  :tag: v4.3.4
+  :sha: 0b2256b8c012f0828dc542b3febcab082c67f72b
+actions/download-artifact:
+  :tag: v4.1.8
+  :sha: fa0a91b85d4f404e444e00e005971372dc801d16
+actions/cache:
+  :tag: v4.2.2
+  :sha: d4323d4df104b026a6aa633fdb11d772146be0bf
+actions/github-script:
+  :tag: v7.0.1
+  :sha: 60a0d83039c74a4aee543508d2ffcb1c3799cdea
+adriangl/check-new-commits-action:
+  :tag: v1.0.7
+  :sha: e6471f4fda990ebdb3bf44726371e1ad45ac4d37
+softprops/action-gh-release:
+  :tag: v2.0.8
+  :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191
+aquasecurity/trivy-action:
+  :tag: v0.28.0
+  :sha: 915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2
+github/codeql-action/upload-sarif:
+  :tag: v3.27.0
+  :sha: 662472033e021d55d94146f66f6058822b0b39fd
+actions/add-to-project:
+  :tag: v1.0.2
+  :sha: 244f685bbc3b7adfa8466e08b698b5577571133e

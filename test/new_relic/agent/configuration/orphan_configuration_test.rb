@@ -8,6 +8,17 @@ class OrphanedConfigTest < Minitest::Test
   include NewRelic::TestHelpers::FileSearching
   include NewRelic::TestHelpers::ConfigScanning
 
+  # :automatic_custom_instrumentation_method_list - the tranform proc handles all processing, no other reference exists
+  # :'agent_control.enabled' - the config is set by environment variable in agent control, the symbol config is not used
+  # :'agent_control.health.delivery_location - the config is set by environment variable in agent control, the symbol config is not used
+  # :'agent_control.health.frequency' - the config is set by environment variable in agent control, the symbol config is not used
+  IGNORED_KEYS = %i[
+    automatic_custom_instrumentation_method_list
+    agent_control.enabled
+    agent_control.health.delivery_location
+    agent_control.health.frequency
+  ]
+
   def setup
     @default_keys = ::NewRelic::Agent::Configuration::DEFAULTS.keys
   end
@@ -38,8 +49,16 @@ class OrphanedConfigTest < Minitest::Test
     # This indicates that these keys are referenced and implemented in
     # an external gem, so we don't expect any explicit references to them
     # in the core gem's code.
+    #
+
+    # Remove any of the following types of keys
+    # - "external" keys: these are expected to only be leveraged by "external" code bases (Infinite Tracing, CSEC)
+    # - "deprecated" keys: these are supported for a time and have their values set on new param names used in code
+    # - "ignored" keys: special cased params defined by a constant above
     @default_keys.delete_if do |key_name|
-      NewRelic::Agent::Configuration::DEFAULTS[key_name][:external] || NewRelic::Agent::Configuration::DEFAULTS[key_name][:deprecated]
+      NewRelic::Agent::Configuration::DEFAULTS[key_name][:external] ||
+        NewRelic::Agent::Configuration::DEFAULTS[key_name][:deprecated] ||
+        IGNORED_KEYS.include?(key_name)
     end
 
     assert_empty @default_keys

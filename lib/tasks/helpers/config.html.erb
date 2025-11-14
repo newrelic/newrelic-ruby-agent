@@ -10,6 +10,7 @@ redirects:
   - /docs/ruby/ruby-agent-configuration
   - /docs/agents/ruby-agent/installation-and-configuration/ruby-agent-configuration
   - /docs/agents/ruby-agent/installation-configuration/ruby-agent-configuration
+freshnessValidatedDate: never
 ---
 
 <CONTRIBUTOR_NOTE>
@@ -70,12 +71,12 @@ The Ruby agent looks for the following environment variables, in this order, to 
 
 If the Ruby agent doesn't detect values for any of those environment variables, it will default the application environment to `development` and read from the `development` section of the `newrelic.yml` config file.
 
-When running the Ruby agent in a Rails app, the agent first looks for the `NEW_RELIC_ENV` environment variable to determine the application environment and which section of the `newrelic.yml` to use. If `NEW_RELIC_ENV` is not present, the agent uses the Rails environment (`RAILS_ENV`).
+When running the Ruby agent in a Rails app, the agent first looks for the `NEW_RELIC_ENV` environment variable to find the application environment and which section of the `newrelic.yml` to use. If `NEW_RELIC_ENV` is not present, the agent uses the Rails environment (`RAILS_ENV`).
 
 When you edit the config file, be sure to:
 
 * Indent only with two spaces.
-* Indent only where relevant, in stanzas such as **`error_collector`**.
+* Indent only where relevant, in sections such as **`error_collector`**.
 
 If you do not indent correctly, the agent may throw an `Unable to parse configuration file` error on startup.
 

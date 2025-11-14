@@ -57,4 +57,13 @@ class ViewComponentInstrumentationTest < ActionDispatch::IntegrationTest
       assert_equal(500, get('/view_components'))
     end
   end
+
+  def test_the_metric_name_records_default_name_on_error
+    in_transaction do |txn|
+      FAKE_CLASS.render_in_with_tracing { 11 * 38 }
+      actual_name = txn.segments.last.name
+
+      assert_equal 'View/component', actual_name
+    end
+  end
 end

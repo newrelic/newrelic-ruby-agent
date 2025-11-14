@@ -11,14 +11,13 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Async::HTTP) &&
-      Gem::Version.new(Async::HTTP::VERSION) >= Gem::Version.new('0.59.0') &&
+      NewRelic::Helper.version_satisfied?(Async::HTTP::VERSION, '>=', '0.59.0') &&
       !defined?(Traces::Backend::NewRelic) # defined in the traces-backend-newrelic gem
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing async_http instrumentation')
-
     require 'async/http/internet'
+
     if use_prepend?
       prepend_instrument Async::HTTP::Internet, NewRelic::Agent::Instrumentation::AsyncHttp::Prepend
     else

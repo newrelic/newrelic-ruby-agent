@@ -14,13 +14,13 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-    - name: Install Ruby 3.3
-      uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+    - name: Install Ruby 3.4
+      uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
       with:
-        ruby-version: 3.3
+        ruby-version: 3.4
 
     - name: Checkout code
-      uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
 
     - run: bundle
 
@@ -57,13 +57,13 @@ jobs:
     if: failure()
     steps:
       - name: Checkout agent repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
 
       - name: Checkout docs website repository
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
         with:
-          repository: ${{ env.DESTINATION_REPO }}
           token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          repository: ${{ env.DESTINATION_REPO }}
 
       - name: Build delete command
         run: echo "delete_file=git push origin --delete ${{ env.BRANCH_NAME }} --force" >> $GITHUB_ENV

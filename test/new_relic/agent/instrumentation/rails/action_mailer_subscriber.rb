@@ -167,7 +167,7 @@ module NewRelic::Agent::Instrumentation
         assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", segment.name
         assert_equal TestMailer.name, params[:mailer]
         assert_equal TestMailer::SUBJECT, params[:subject]
-        assert params[:perform_deliveries] if Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('6.0.0') # only exists in rails 6+
+        assert params[:perform_deliveries] if NewRelic::Helper.version_satisfied?(Rails::VERSION::STRING, '>=', '6.0.0') # only exists in rails 6+
       end
     end
   end

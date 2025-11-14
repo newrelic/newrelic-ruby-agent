@@ -10,6 +10,7 @@ require_relative 'redis/chain'
 require_relative 'redis/constants'
 require_relative 'redis/prepend'
 require_relative 'redis/middleware'
+require_relative 'redis/cluster_middleware'
 
 DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
@@ -30,15 +31,20 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing Redis Instrumentation')
     if NewRelic::Agent::Instrumentation::Redis::Constants::HAS_REDIS_CLIENT
       RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
+
+      if defined?(Redis::Cluster::Client)
+        RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::ClusterMiddleware)
+      end
     end
 
-    if use_prepend?
-      prepend_instrument Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
-    else
-      chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
+    unless defined?(Redis::Cluster::Client)
+      if use_prepend?
+        prepend_instrument Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
+      else
+        chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
+      end
     end
   end
 end

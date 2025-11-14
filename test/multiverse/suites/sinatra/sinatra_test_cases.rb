@@ -21,7 +21,7 @@ module SinatraTestCases
       'GET /route/no_match'
     end
 
-    if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
+    if NewRelic::Helper.version_satisfied?(Sinatra::VERSION, '<', '2.0.0')
       # get /\/regex.*/
       def regex_segment
         'GET (?-mix:\/regex.*)'
@@ -128,6 +128,13 @@ module SinatraTestCases
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{regex_segment}"])
   end
 
+  def test_that_the_actively_configured_instrumentation_is_not_marked_as_unsatsfied
+    get('/pass')
+
+    assert_equal 200, last_response.status
+    assert_includes(%w[chain prepend], NewRelic::Agent.config[:'instrumentation.sinatra'].to_s)
+  end
+
   # https://support.newrelic.com/tickets/31061
   def test_precondition_not_over_called
     get('/precondition')
@@ -156,7 +163,7 @@ module SinatraTestCases
 
     get('/pass')
 
-    expected_status = Gem::Version.new(Sinatra::VERSION).segments[0] < 2 ? 200 : 400
+    expected_status = NewRelic::Helper.version_satisfied?(Sinatra::VERSION, '<', '2.0.0') ? 200 : 400
 
     assert_equal expected_status, last_response.status
   end
@@ -190,7 +197,7 @@ module SinatraTestCases
     app.build(@app)
   end
 
-  if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
+  if NewRelic::Helper.version_satisfied?(Sinatra::VERSION, '<', '2.0.0')
     def trigger_error_on_params
       Sinatra::Request.any_instance
         .stubs(:params).returns({})

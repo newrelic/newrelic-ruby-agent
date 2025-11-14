@@ -112,7 +112,14 @@ def assert_log_contains(log, message)
   lines = log.array
 
   assert (lines.any? { |line| line.match(message) }),
-    "Could not find message. Log contained: #{lines.join("\n")}"
+    "Could not find message: '#{message.inspect}'. Log contained: #{lines.join("\n")}"
+end
+
+def refute_log_contains(log, message)
+  lines = log.array
+
+  refute (lines.any? { |line| line.match(message) }),
+    "Found message: '#{message.inspect}'. Log contained: #{lines.join("\n")}"
 end
 
 def assert_audit_log_contains(audit_log_contents, needle)
@@ -228,7 +235,9 @@ def assert_metrics_recorded(expected)
   expected.each do |specish, expected_attrs|
     expected_spec = metric_spec_from_specish(specish)
     actual_stats = NewRelic::Agent.instance.stats_engine.to_h[expected_spec]
-    if !actual_stats
+    if actual_stats
+      assert(actual_stats)
+    else
       all_specs = NewRelic::Agent.instance.stats_engine.to_h.keys.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
       matches.map! { |m| "  #{m.inspect}" }
@@ -1036,4 +1045,17 @@ def first_call_for(subject)
   end
 
   items.first
+end
+
+def ruby_version_float
+  RUBY_VERSION.split('.')[0..1].join('.').to_f
+end
+
+def rails_version
+  @rails_version ||= Gem::Version.new(Rails::VERSION::STRING)
+end
+
+def rails_version_at_least?(version_string)
+  version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
+  rails_version >= Gem::Version.new(version_string)
 end

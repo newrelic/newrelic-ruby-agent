@@ -49,7 +49,7 @@ module NewRelic
 
             alias_method(:delete_all_without_newrelic, :delete_all)
 
-            if RUBY_VERSION < '2.7.0'
+            if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
               def delete_all(*args, &blk)
                 ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                   delete_all_without_newrelic(*args, &blk)
@@ -99,10 +99,7 @@ module NewRelic
         # convert vendor (makara, etc.) wrapper names to their bare names
         # ex: postgresql_makara -> postgresql
         def bare_adapter_name(adapter_name)
-          # TODO: OLD RUBIES - RUBY_VERSION < 2.5
-          # With Ruby 2.5+ we could use #delete_suffix instead of #chomp for a
-          # potential speed boost
-          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name&.end_with?(MAKARA_SUFFIX)
+          return adapter_name.delete_suffix(MAKARA_SUFFIX) if adapter_name&.end_with?(MAKARA_SUFFIX)
 
           adapter_name
         end
@@ -170,6 +167,9 @@ module NewRelic
 
           'sqlite3' => 'SQLite',
 
+          # https://rubygems.org/gems/trilogy
+          'trilogy' => 'MySQL',
+
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           'jdbcmysql' => 'MySQL',
 
@@ -222,7 +222,8 @@ module NewRelic
 
             'postgresql' => :postgres,
             'jdbcpostgresql' => :postgres,
-            'postgis' => :postgres
+            'postgis' => :postgres,
+            'redshift' => :postgres
           }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
@@ -231,7 +232,7 @@ module NewRelic
           }.freeze
 
           DEFAULT = 'default'.freeze
-          UNKNOWN = 'unknown'.freeze
+          UNKNOWN = NewRelic::UNKNOWN_LOWER
           LOCALHOST = 'localhost'.freeze
 
           def adapter_from_config(config)

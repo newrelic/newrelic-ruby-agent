@@ -13,18 +13,18 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
         with:
-          ruby-version: jruby-9.4.5.0
+          ruby-version: jruby-9.4.14.0
 
       - name: Bundle
         run: bundle install
 
       - name: Run Unit Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 30
           max_attempts: 2
@@ -39,25 +39,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, ruby_openai, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
+        suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, hybrid_agent, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, ruby_openai, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
 
       - name: Check out the source code
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
         with:
-          ruby-version: jruby-9.4.5.0
+          ruby-version: jruby-9.4.14.0
 
       - name: Bundle
         run: bundle install
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -71,3 +71,95 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+  jruby_sidekiq:
+    runs-on: ubuntu-22.04
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [sidekiq]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+
+      - name: Check out the source code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: Install JRuby
+        uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
+        with:
+          ruby-version: jruby-9.4.14.0
+
+      - name: Bundle
+        run: bundle install
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: "bundle exec rake test:multiverse[${{ matrix.suite }}]"
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+          JAVA_OPTS: --add-opens java.base/sun.nio.ch=org.jruby.dist --add-opens java.base/java.io=org.jruby.dist -Xmx4g -Xms512m
+          JRUBY_OPTS: --dev
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+  notify_slack_fail:
+    name: Notify slack fail
+    needs: [jruby_unit_tests, jruby_multiverse, jruby_sidekiq]
+    runs-on: ubuntu-22.04
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+      - uses: ./.github/actions/workflow-conclusion
+      - uses: voxmedia/github-action-slack-notify-build@373da97827332b19e753c84d1e5b7937dbe0fbfa # tag v2
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+        with:
+          channel: ruby-agent-notifications
+          status: FAILED
+          color: danger
+
+
+  notify_slack_success:
+    name: Notify slack success
+    needs: [jruby_unit_tests, jruby_multiverse, jruby_sidekiq]
+    runs-on: ubuntu-22.04
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+      - uses: ./.github/actions/workflow-conclusion
+      - run: echo ${{ github.event_name }}
+      - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
+        id: last_status
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: voxmedia/github-action-slack-notify-build@373da97827332b19e753c84d1e5b7937dbe0fbfa # tag v2
+        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' && github.event_name != 'workflow_dispatch' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+        with:
+          channel: ruby-agent-notifications
+          status: SUCCESS
+          color: good

@@ -55,7 +55,8 @@ class GrapeTestApi < Grape::API
 
   resource :grape_ape_fail_rescue do
     rescue_from :all do |e|
-      error_response({message: "rescued from #{e.class.name}"})
+      err = {message: "rescued from #{e.class.name}"}
+      NewRelic::Helper.version_satisfied?(Grape::VERSION, '>=', '2.1.0') ? error!(err) : error_response(err)
     end
 
     post do
@@ -64,7 +65,7 @@ class GrapeTestApi < Grape::API
   end
 end
 
-if Grape::VERSION >= '1.2.0' && Grape::VERSION <= '1.2.4'
+if NewRelic::Helper.version_satisfied?(Grape::VERSION, '>=', '1.2.0') && NewRelic::Helper.version_satisfied?(Grape::VERSION, '<=', '1.2.4')
   class GrapeApiInstanceTestApi < Grape::API::Instance
     namespace :banjaxing do
       get do
@@ -74,7 +75,7 @@ if Grape::VERSION >= '1.2.0' && Grape::VERSION <= '1.2.4'
   end
 end
 
-if Grape::VERSION >= '1.2.5'
+if NewRelic::Helper.version_satisfied?(Grape::VERSION, '>=', '1.2.5')
   class GrapeApiInstanceTestApi < Grape::API
     namespace :banjaxing do
       get do

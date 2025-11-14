@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActiveJobSubscriber < NotificationsSubscriber
-        PAYLOAD_KEYS = %i[adapter db_runtime error job wait]
+        PAYLOAD_KEYS = %i[adapter db_runtime error job wait jobs]
 
         def add_segment_params(segment, payload)
           PAYLOAD_KEYS.each do |key|
@@ -16,10 +16,15 @@ module NewRelic
           end
         end
 
+        # NOTE: For `enqueue_all.active_job`, only the first job is used to determine the queue.
+        # Therefore, this assumes all jobs given as arguments for perform_all_later share the same queue.
         def metric_name(name, payload)
-          queue = payload[:job].queue_name
+          job = payload[:job] || payload[:jobs].first
+
+          queue = job.queue_name
+          job_class = job.class.name.include?('::') ? job.class.name[job.class.name.rindex('::') + 2..-1] : job.class.name
           method = method_from_name(name)
-          "Ruby/ActiveJob/#{queue}/#{method}"
+          "Ruby/ActiveJob/#{job_class}/#{queue}/#{method}"
         end
 
         PATTERN = /\A([^\.]+)\.active_job\z/

@@ -64,6 +64,7 @@ module NewRelic
     require 'new_relic/agent/linking_metadata'
     require 'new_relic/agent/local_log_decorator'
     require 'new_relic/agent/llm'
+    require 'new_relic/agent/aws'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -83,6 +84,10 @@ module NewRelic
 
     # An exception that forces an agent to stop reporting until its mongrel is restarted.
     class ForceDisconnectException < StandardError; end
+
+    # Error handling for the automated custom instrumentation tracer logic
+    class AutomaticTracerParseException < StandardError; end
+    class AutomaticTracerTraceException < StandardError; end
 
     # An exception that forces an agent to restart.
     class ForceRestartException < StandardError
@@ -108,6 +113,12 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
     LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
+    # give the observed app time to load the code that automatic tracers have
+    # been configured for
+    AUTOMATIC_TRACER_MAX_ATTEMPTS = 60 # 60 = try about twice a second for 30 seconds
+
+    # Event types must consist of only alphanumeric characters, '_', ':', or ' '.
+    VALID_CUSTOM_EVENT_TYPE = /\A[\w: ]+\z/
 
     attr_reader :error_group_callback
     attr_reader :llm_token_count_callback
@@ -124,8 +135,8 @@ module NewRelic
     def agent # :nodoc:
       return @agent if @agent
 
-      NewRelic::Agent.logger.warn("Agent unavailable as it hasn't been started.")
-      NewRelic::Agent.logger.warn(caller.join("\n"))
+      NewRelic::Agent.logger.debug("Agent unavailable as it hasn't been started.")
+      NewRelic::Agent.logger.debug(caller.join("\n"))
       nil
     end
 
@@ -162,6 +173,92 @@ module NewRelic
       end
     end
 
+    # @api private
+    def self.add_automatic_method_tracers(arr)
+      return unless arr
+      return arr if arr.respond_to?(:empty?) && arr.empty?
+
+      arr = arr.split(/\s*,\s*/) if arr.is_a?(String)
+
+      add_tracers_once_methods_are_defined(arr.dup)
+
+      arr
+    end
+
+    # spawn a thread that will attempt to establish a tracer for each of the
+    # configured methods. the thread will continue to keep trying with each
+    # tracer until one of the following happens:
+    #   - the tracer is successfully established
+    #   - the configured method string couldn't be parsed
+    #   - establishing a tracer for a successfully parsed string failed
+    #   - the maximum number of attempts has been reached
+    # the thread will only be spawned once per agent initialization, to account
+    # for configuration reloading scenarios.
+    #
+    # @api private
+    def self.add_tracers_once_methods_are_defined(notations)
+      # this class method can be invoked multiple times at agent startup, so
+      # we return asap here instead of using a traditional memoization of
+      # waiting for the method's body to finish being executed
+      if defined?(@add_tracers_once_methods_are_defined)
+        return
+      else
+        @add_tracers_once_methods_are_defined = true
+      end
+
+      Thread.new do
+        AUTOMATIC_TRACER_MAX_ATTEMPTS.times do
+          notations.delete_if { |notation| prep_tracer_for(notation) }
+
+          break if notations.empty?
+
+          sleep 0.5
+        end
+      end
+    end
+
+    # returns `true` if the notation string has either been successfully
+    # processed or raised an error during processing. returns `false` if the
+    # string seems good but the (customer) code to be traced has not yet been
+    # loaded into the Ruby VM
+    #
+    # @api private
+    def self.prep_tracer_for(fully_qualified_method_notation)
+      delimiters = fully_qualified_method_notation.scan(/\.|#/)
+      raise AutomaticTracerParseException.new("Expected exactly one '.' or '#' delimiter.") unless delimiters.size == 1
+
+      delimiter = delimiters.first
+      namespace, method_name = fully_qualified_method_notation.split(delimiter)
+      unless namespace && !namespace.empty?
+        raise AutomaticTracerParseException.new("Nothing found to the left of the #{delimiter} delimiter.")
+      end
+      unless method_name && !method_name.empty?
+        raise AutomaticTracerParseException.new("Nothing found to the right of the #{delimiter} delimiter.")
+      end
+
+      begin
+        klass = ::NewRelic::LanguageSupport.constantize(namespace)
+        return false unless klass
+
+        klass_to_trace = delimiter.eql?('.') ? klass.singleton_class : klass
+        add_or_defer_method_tracer(klass_to_trace, method_name, nil, {})
+      rescue StandardError => e
+        raise AutomaticTracerTraceException.new("#{e.class} - #{e.message}")
+      end
+
+      true
+    rescue AutomaticTracerParseException => e
+      NewRelic::Agent.logger.error('Unable to parse out a usable method name to trace. Expected a valid, fully ' \
+                                   "qualified method notation. Got: '#{fully_qualified_method_notation}'. " \
+                                   "Error: #{e.message}")
+      true
+    rescue AutomaticTracerTraceException => e
+      NewRelic::Agent.logger.error('Unable to automatically apply a tracer to method ' \
+                                   "'#{fully_qualified_method_notation}'. Error: #{e.message}")
+      true
+    end
+
+    # @api private
     def add_deferred_method_tracers_now
       @tracer_lock.synchronize do
         @tracer_queue.each do |receiver, method_name, metric_name, options|
@@ -199,6 +296,7 @@ module NewRelic
     #
     # This method is safe to use from any thread.
     #
+    # @!scope class
     # @api public
     def record_metric(metric_name, value) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:record_metric)
@@ -239,6 +337,7 @@ module NewRelic
     #
     # This method is safe to use from any thread.
     #
+    # @!scope class
     # @api public
     #
     def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
@@ -266,6 +365,7 @@ module NewRelic
     #
     # Return the new block or the existing filter Proc if no block is passed.
     #
+    # @!scope class
     # @api public
     #
     def ignore_error_filter(&block)
@@ -304,6 +404,7 @@ module NewRelic
     # them if you are calling <code>notice_error</code> outside a
     # transaction.
     #
+    # @!scope class
     # @api public
     #
     def notice_error(exception, options = {})
@@ -341,6 +442,7 @@ module NewRelic
     # :'error.expected' => Whether (true) or not (false) the error was expected
     # :options => The options hash passed to `NewRelic::Agent.notice_error`
     #
+    # @!scope class
     # @api public
     #
     def set_error_group_callback(callback_proc)
@@ -380,9 +482,14 @@ module NewRelic
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
+    # @!scope class
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
+      unless event_type.to_s.match?(VALID_CUSTOM_EVENT_TYPE)
+        raise ArgumentError, "Invalid event_type: '#{event_type}'. Event types must consist of only alphanumeric characters, '_', ':', or ' '."
+      end
+
       record_api_supportability_metric(:record_custom_event)
 
       if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
@@ -412,6 +519,7 @@ module NewRelic
     # @param [optional, Hash] Set of key-value pairs to store any other
     #   desired data to submit with the feedback event.
     #
+    # @!scope class
     # @api public
     #
     def record_llm_feedback_event(trace_id:,
@@ -465,6 +573,7 @@ module NewRelic
     # :model => [String] The name of the LLM model
     # :content => [String] The message content or prompt
     #
+    # @!scope class
     # @api public
     #
     def set_llm_token_count_callback(callback_proc)
@@ -497,6 +606,7 @@ module NewRelic
     # file logger.  The setting for the newrelic.yml section to use
     # (ie, RAILS_ENV) can be overridden with an :env argument.
     #
+    # @!scope class
     # @api public
     #
     def manual_start(options = {})
@@ -529,6 +639,7 @@ module NewRelic
     #   connection, this tells me to only try it once so this method returns
     #   quickly if there is some kind of latency with the server.
     #
+    # @!scope class
     # @api public
     #
     def after_fork(options = {})
@@ -542,6 +653,7 @@ module NewRelic
     #
     # @param options [Hash] Unused options Hash, for back compatibility only
     #
+    # @!scope class
     # @api public
     #
     def shutdown(options = {})
@@ -552,6 +664,7 @@ module NewRelic
     # Clear out any data the agent has buffered but has not yet transmitted
     # to the collector.
     #
+    # @!scope class
     # @api public
     def drop_buffered_data
       # the following line needs else branch coverage
@@ -566,6 +679,7 @@ module NewRelic
     # register instrumentation than just loading the files directly,
     # although that probably also works.
     #
+    # @!scope class
     # @api public
     #
     def add_instrumentation(file_pattern)
@@ -575,6 +689,7 @@ module NewRelic
 
     # Require agent testing helper methods
     #
+    # @!scope class
     # @api public
     def require_test_helper
       record_api_supportability_metric(:require_test_helper)
@@ -595,6 +710,7 @@ module NewRelic
     #       my_obfuscator(sql)
     #    end
     #
+    # @!scope class
     # @api public
     #
     def set_sql_obfuscator(type = :replace, &block)
@@ -610,6 +726,7 @@ module NewRelic
     # traced errors, transaction traces, Insights events, slow SQL traces,
     # or RUM injection will happen for this transaction.
     #
+    # @!scope class
     # @api public
     #
     def ignore_transaction
@@ -620,6 +737,7 @@ module NewRelic
     # This method disables the recording of Apdex metrics in the current
     # transaction.
     #
+    # @!scope class
     # @api public
     #
     def ignore_apdex
@@ -630,6 +748,7 @@ module NewRelic
     # This method disables browser monitoring javascript injection in the
     # current transaction.
     #
+    # @!scope class
     # @api public
     #
     def ignore_enduser
@@ -642,6 +761,7 @@ module NewRelic
     # track of the first entry point and turn on tracing again after
     # leaving that block.  This uses the thread local Tracer::State.
     #
+    # @!scope class
     # @api public
     #
     def disable_all_tracing
@@ -666,6 +786,7 @@ module NewRelic
     #     ...
     #   end
     #
+    # @!scope class
     # @api public
     #
     def disable_sql_recording
@@ -704,6 +825,7 @@ module NewRelic
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
+    # @!scope class
     # @api public
     #
     def add_custom_attributes(params) # THREAD_LOCAL_ACCESS
@@ -744,6 +866,7 @@ module NewRelic
     #                           booleans.
     #
     # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
+    # @!scope class
     # @api public
     def add_custom_span_attributes(params)
       record_api_supportability_metric(:add_custom_span_attributes)
@@ -785,6 +908,7 @@ module NewRelic
     #
     #                         Attribute pairs with empty or nil contents
     #                         will be dropped.
+    # @!scope class
     # @api public
     def add_custom_log_attributes(params)
       record_api_supportability_metric(:add_custom_log_attributes)
@@ -800,6 +924,7 @@ module NewRelic
     #
     # @param [String] user_id    The user id to add to the current transaction attributes
     #
+    # @!scope class
     # @api public
     def set_user_id(user_id)
       record_api_supportability_metric(:set_user_id)
@@ -843,6 +968,7 @@ module NewRelic
     #
     # The default category is the same as the running transaction.
     #
+    # @!scope class
     # @api public
     #
     def set_transaction_name(name, options = {})
@@ -853,6 +979,7 @@ module NewRelic
     # Get the name of the current running transaction.  This is useful if you
     # want to modify the default name.
     #
+    # @!scope class
     # @api public
     #
     def get_transaction_name # THREAD_LOCAL_ACCESS
@@ -924,6 +1051,7 @@ module NewRelic
     # * entity.guid - The guid of the current entity.
     # * hostname    - The fully qualified hostname.
     #
+    # @!scope class
     # @api public
     def linking_metadata
       metadata = Hash.new
@@ -950,6 +1078,7 @@ module NewRelic
     #
     # @param [String] nonce The nonce to use in the javascript tag for browser instrumentation
     #
+    # @!scope class
     # @api public
     #
     def browser_timing_header(nonce = nil)

@@ -25,11 +25,9 @@ module DependencyDetection
 
   def detect!
     @items.each do |item|
-      if item.dependencies_satisfied?
-        item.execute
-      else
-        item.configure_as_unsatisfied unless item.disabled_configured?
-      end
+      next if item.executed || item.disabled_configured?
+
+      item.dependencies_satisfied? ? item.execute : item.configure_as_unsatisfied
     end
   end
 
@@ -65,6 +63,13 @@ module DependencyDetection
     end
 
     def configure_as_unsatisfied
+      # TODO: currently using :unsatisfied for Padrino will clobber the value
+      #       already set for Sinatra, so skip Padrino and circle back with a
+      #       new Padrino specific solution in the future.
+      #
+      #       https://github.com/newrelic/newrelic-ruby-agent/issues/2912
+      return if name == :padrino
+
       NewRelic::Agent.config.instance_variable_get(:@cache)[config_key] = :unsatisfied
     end
 
@@ -139,8 +144,6 @@ module DependencyDetection
       !(disabled_configured? || deprecated_disabled_configured?)
     end
 
-    # TODO: MAJOR VERSION
-    # will only return true if a disabled key is found and is truthy
     def deprecated_disabled_configured?
       return false if self.name.nil?
 
@@ -148,12 +151,7 @@ module DependencyDetection
       return false unless ::NewRelic::Agent.config[key] == true
 
       ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
-      ::NewRelic::Agent.logger.debug( \
-        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release. " \
-        "Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
-      )
-
-      return true
+      true
     end
 
     def config_key
@@ -181,7 +179,6 @@ module DependencyDetection
     # logs the resolved value during debug mode.
     def fetch_config_value(key)
       valid_value = valid_config_value(::NewRelic::Agent.config[key].to_s.to_sym)
-      ::NewRelic::Agent.logger.debug("Using #{valid_value} configuration value for #{self.name} to configure instrumentation")
       return valid_value
     end
 

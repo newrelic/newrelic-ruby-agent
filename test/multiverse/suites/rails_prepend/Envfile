@@ -3,7 +3,9 @@
 # frozen_string_literal: true
 
 RAILS_VERSIONS = [
-  [nil, 3.1],
+  [nil, 3.2],
+  ['8.0.0', 3.2],
+  ['7.2.0', 3.1],
   ['7.1.0', 2.7],
   ['7.0.0', 2.7],
   ['6.1.0', 2.5],
@@ -22,12 +24,14 @@ def gem_list(rails_version = nil)
   minitest_version = rails_version && rails_version.include?('4.0') ? '4.2.0' : '5.2.3'
   <<~RB
     gem 'rails'#{rails_version}
-    gem 'haml'
+    gem 'haml', '~> 6.0'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '~> #{minitest_version}'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
     #{thor}
     gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'
+    gem 'drb' if RUBY_VERSION >= '3.4.0'
+    gem 'benchmark' if RUBY_VERSION >= '3.5.0'
   RB
 end
 

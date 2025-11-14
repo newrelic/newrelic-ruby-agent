@@ -8,9 +8,9 @@ require 'new_relic/latest_changes'
 Gem::Specification.new do |s|
   s.name = 'newrelic_rpm'
   s.version = NewRelic::VERSION::STRING
-  s.required_ruby_version = '>= 2.4.0'
+  s.required_ruby_version = '>= 2.6.0'
   s.required_rubygems_version = Gem::Requirement.new('> 1.3.1') if s.respond_to?(:required_rubygems_version=)
-  s.authors = ['Tanna McClure', 'Kayla Reopelle', 'James Bunch', 'Hannah Ramadan']
+  s.authors = ['Tanna McClure', 'Kayla Reopelle', 'Hannah Ramadan']
   s.licenses = ['Apache-2.0']
   s.description = <<~EOS
     New Relic is a performance management system, developed by New Relic,
@@ -50,12 +50,16 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
 
+  s.add_dependency 'logger'
+
   s.add_development_dependency 'bundler'
-  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
+  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI']
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.16'
+  s.add_development_dependency 'mutex_m' # used by Minitest, not included in Rubies above v3.3
+  s.add_development_dependency 'ostruct' # used by Rack, not included in Rubies above v3.4
   s.add_development_dependency 'pry' if ENV['ENABLE_PRY']
   s.add_development_dependency 'rack'
   s.add_development_dependency 'rake', '12.3.3'

@@ -23,10 +23,6 @@ module NewRelic::Agent::Configuration
       assert_equal expected_messages, @source[:'error_collector.expected_messages']
     end
 
-    def test_should_load_given_yaml_file
-      assert_equal '127.0.0.1', @source[:api_host]
-    end
-
     def test_should_apply_erb_transformations
       assert_equal 'heyheyhey', @source[:erb_value]
       assert_equal '', @source[:message]

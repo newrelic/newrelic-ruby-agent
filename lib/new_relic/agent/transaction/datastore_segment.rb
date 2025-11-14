@@ -11,7 +11,7 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-        UNKNOWN = 'unknown'.freeze
+        UNKNOWN = NewRelic::UNKNOWN_LOWER
 
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
         attr_accessor :database_name, :record_sql

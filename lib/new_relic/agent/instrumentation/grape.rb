@@ -19,7 +19,7 @@ DependencyDetection.defer do
 
   depends_on do
     begin
-      if defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?('newrelic-grape')
+      if NewRelic::Helper.rubygems_specs.map(&:name).include?('newrelic-grape')
         NewRelic::Agent.logger.info('Not installing New Relic supported Grape instrumentation because the third party newrelic-grape gem is present')
         false
       else

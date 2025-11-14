@@ -14,10 +14,10 @@ jobs:
     outputs:
       changed: ${{ steps.branch_change_output.outputs.has-new-commits }}
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
       - name: check branch changes
         id: branch_change_output
-        uses: adriangl/check-new-commits-action@6556947ca20c2047ed733894258186619b84d282 # tag v1.0.6
+        uses: adriangl/check-new-commits-action@e6471f4fda990ebdb3bf44726371e1ad45ac4d37 # tag v1.0.7
         with:
           seconds: 604800
           branch: 'dev'
@@ -30,21 +30,21 @@ jobs:
       run:
         working-directory: ./test/performance
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
         with:
           ref: 'main'
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+      - uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
         with:
-          ruby-version: '3.3'
+          ruby-version: 3.4
       - run: bundle
       - run: bundle exec script/runner -B
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
       - run: bundle
       - run: bundle exec script/runner -C -M > performance_results.md
       - name: Save performance results
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # tag v5.0.0
         with:
-          name: performance-test-results
+          name: performance-test-results-${{ matrix.ruby-version }}
           path: ./test/performance/performance_results.md
       - name: Slack results
         uses: adrey/slack-file-upload-action@903be3678c88966c762193f06530c39178b44d68 # tag v1.0.5

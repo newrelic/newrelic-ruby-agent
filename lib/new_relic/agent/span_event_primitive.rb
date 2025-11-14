@@ -40,10 +40,12 @@ module NewRelic
       SERVER_ADDRESS_KEY = 'server.address'
       SERVER_PORT_KEY = 'server.port'
       SPAN_KIND_KEY = 'span.kind'
+      STACKTRACE_KEY = 'code.stacktrace'
       ENTRY_POINT_KEY = 'nr.entryPoint'
       TRUSTED_PARENT_KEY = 'trustedParentId'
       TRACING_VENDORS_KEY = 'tracingVendors'
       TRANSACTION_NAME_KEY = 'transaction.name'
+      THREAD_ID_KEY = 'thread.id'
 
       # Strings for static values of the event structure
       EVENT_TYPE = 'Span'
@@ -51,6 +53,8 @@ module NewRelic
       HTTP_CATEGORY = 'http'
       DATASTORE_CATEGORY = 'datastore'
       CLIENT = 'client'
+
+      DB_STATEMENT_MAX_BYTES = 4096
 
       # Builds a Hash of error attributes as well as the Span ID when
       # an error is present.  Otherwise, returns nil when no error present.
@@ -79,17 +83,13 @@ module NewRelic
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[SERVER_ADDRESS_KEY] = segment.uri.host
         intrinsics[SERVER_PORT_KEY] = segment.uri.port
-        agent_attributes = error_attributes(segment) || {}
+        agent_attributes = {}
 
         if allowed?(HTTP_URL_KEY)
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        if segment.respond_to?(:record_agent_attributes?) && segment.record_agent_attributes?
-          agent_attributes.merge!(agent_attributes(segment))
-        end
-
-        [intrinsics, custom_attributes(segment), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       def for_datastore_segment(segment) # rubocop:disable Metrics/AbcSize
@@ -99,7 +99,7 @@ module NewRelic
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
-        agent_attributes = error_attributes(segment) || {}
+        agent_attributes = {}
 
         if segment.database_name && allowed?(DB_INSTANCE_KEY)
           agent_attributes[DB_INSTANCE_KEY] = truncate(segment.database_name)
@@ -118,12 +118,16 @@ module NewRelic
         agent_attributes[DB_SYSTEM_KEY] = segment.product if allowed?(DB_SYSTEM_KEY)
 
         if segment.sql_statement && allowed?(DB_STATEMENT_KEY)
-          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
+          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, DB_STATEMENT_MAX_BYTES)
         elsif segment.nosql_statement && allowed?(DB_STATEMENT_KEY)
-          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
+          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, DB_STATEMENT_MAX_BYTES)
         end
 
-        [intrinsics, custom_attributes(segment), agent_attributes]
+        if segment.params[:backtrace]
+          agent_attributes[STACKTRACE_KEY] = segment.params[:backtrace]
+        end
+
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       private
@@ -137,7 +141,8 @@ module NewRelic
           PRIORITY_KEY => segment.transaction.priority,
           TIMESTAMP_KEY => milliseconds_since_epoch(segment),
           DURATION_KEY => segment.duration,
-          NAME_KEY => segment.name
+          NAME_KEY => segment.name,
+          THREAD_ID_KEY => segment.thread_id
         }
 
         # with infinite-tracing, transactions may or may not be sampled!

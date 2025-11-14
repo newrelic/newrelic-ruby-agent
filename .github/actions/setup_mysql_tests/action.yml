@@ -1,0 +1,21 @@
+name: 'Set up mysql'
+description: 'set up and cache mysql for tests'
+inputs:
+  ruby-version:  
+    description: 'What ruby version to install'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Wait for/Check Mysql
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+      with:
+        timeout_minutes: 1
+        max_attempts: 20
+        command: |
+          mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'";
+          if [[ $? != 0 ]]; then
+            sleep 1;
+          fi
+

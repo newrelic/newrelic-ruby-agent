@@ -9,11 +9,11 @@ module NewRelic::Agent::Instrumentation
       BINARY_PROTOCOL_SUPPORTED_VERSION = Gem::Version.new('3.0.2')
 
       def supports_datastore_instances?
-        DATASTORE_INSTANCES_SUPPORTED_VERSION <= Gem::Version.new(::Dalli::VERSION)
+        NewRelic::Helper.version_satisfied?(DATASTORE_INSTANCES_SUPPORTED_VERSION, '<=', ::Dalli::VERSION)
       end
 
       def supports_binary_protocol?
-        BINARY_PROTOCOL_SUPPORTED_VERSION <= Gem::Version.new(::Dalli::VERSION)
+        NewRelic::Helper.version_satisfied?(BINARY_PROTOCOL_SUPPORTED_VERSION, '<=', ::Dalli::VERSION)
       end
 
       def client_methods

@@ -45,9 +45,10 @@ module NewRelic::Agent
         end
       end
 
-      def test_does_not_decorate_if_instrumentation_logger_disabled
+      def test_does_not_decorate_if_instrumentation_logger_and_logastasher_disabled
         with_config(
           :'instrumentation.logger' => 'disabled',
+          :'instrumentation.logstasher' => 'disabled',
           :'application_logging.enabled' => true,
           :'application_logging.local_decorating.enabled' => true
         ) do
@@ -76,6 +77,13 @@ module NewRelic::Agent
         assert_equal decorated_message, "#{MESSAGE} #{METADATA_STRING}"
       end
 
+      def test_does_not_decorate_if_message_is_nil
+        metadata_stubs
+        decorated_message = LocalLogDecorator.decorate(nil)
+
+        assert_nil(decorated_message)
+      end
+
       def test_decorate_puts_metadata_at_end_of_first_newline
         metadata_stubs
         message = "This is a test of the Emergency Alert System\n this is only a test...."
@@ -98,6 +106,34 @@ module NewRelic::Agent
 
           assert_includes decorated_message, '||'
         end
+      end
+
+      def test_decorates_json_log_hashes
+        canned_hostname = 'blazkowicz'
+        hash = {'dennis' => 'gnasher'}
+
+        in_transaction do |txn|
+          expected = hash.merge({'entity.name' => @enabled_config[:app_name],
+                                 'entity.type' => 'SERVICE',
+                                 'hostname' => canned_hostname,
+                                 'entity.guid' => @enabled_config[:entity_guid],
+                                 'trace.id' => txn.trace_id,
+                                 'span.id' => txn.segments.first.guid})
+
+          NewRelic::Agent::Hostname.stub(:get, canned_hostname) do
+            LocalLogDecorator.decorate(hash)
+          end
+
+          assert_equal expected, hash, "Expected hash to be decorated. Wanted >>#{expected}<<, got >>#{hash}<<"
+        end
+      end
+
+      def test_returns_early_with_frozen_hashes
+        hash = {'dennis' => 'gnasher'}.freeze
+        expected = hash.dup
+        LocalLogDecorator.decorate(hash)
+
+        assert_equal expected, hash, 'Expected no errors and no hash modifications for a frozen hash'
       end
     end
   end

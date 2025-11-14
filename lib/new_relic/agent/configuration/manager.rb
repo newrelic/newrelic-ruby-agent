@@ -9,7 +9,6 @@ require 'new_relic/agent/configuration/default_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 require 'new_relic/agent/configuration/high_security_source'
-require 'new_relic/agent/configuration/security_policy_source'
 
 module NewRelic
   module Agent
@@ -48,7 +47,6 @@ module NewRelic
 
         def remove_config_type(sym)
           source = case sym
-          when :security_policy then @security_policy_source
           when :high_security then @high_security_source
           when :environment then @environment_source
           when :server then @server_source
@@ -62,7 +60,6 @@ module NewRelic
 
         def remove_config(source)
           case source
-          when SecurityPolicySource then @security_policy_source = nil
           when HighSecuritySource then @high_security_source = nil
           when EnvironmentSource then @environment_source = nil
           when ServerSource then @server_source = nil
@@ -85,7 +82,6 @@ module NewRelic
           invoke_callbacks(:add, source)
 
           case source
-          when SecurityPolicySource then @security_policy_source = source
           when HighSecuritySource then @high_security_source = source
           when EnvironmentSource then @environment_source = source
           when ServerSource then @server_source = source
@@ -142,6 +138,9 @@ module NewRelic
           default = enforce_allowlist(key, evaluated)
           return default if default
 
+          boolean = enforce_boolean(key, value)
+          evaluated = boolean if [true, false].include?(boolean)
+
           apply_transformations(key, evaluated)
         end
 
@@ -161,6 +160,18 @@ module NewRelic
         def enforce_allowlist(key, value)
           return unless allowlist = default_source.allowlist_for(key)
           return if allowlist.include?(value)
+
+          default = default_source.default_for(key)
+          NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
+          default
+        end
+
+        def enforce_boolean(key, value)
+          type = default_source.value_from_defaults(key, :type)
+          return unless type == Boolean
+
+          bool_value = default_source.boolean_for(key, value)
+          return bool_value unless bool_value.nil?
 
           default = default_source.default_for(key)
           NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
@@ -364,9 +375,9 @@ module NewRelic
 
         # Generally only useful during initial construction and tests
         def reset_to_defaults
-          @security_policy_source = nil
           @high_security_source = nil
           @environment_source = EnvironmentSource.new
+          log_config(:add, @environment_source) # this is the only place the EnvironmentSource is ever created, so we should log it
           @server_source = nil
           @manual_source = nil
           @yaml_source = nil
@@ -381,6 +392,14 @@ module NewRelic
         # determined dependency detection values with nil or 'auto'
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
+
+          # Modifying the @cache hash under JRuby - even with a `synchronize do`
+          # block and a `Hash#dup` operation - has been known to cause issues
+          # with JRuby for concurrent access of the hash while it is being
+          # modified. The hash really only needs to be modified for the benefit
+          # of the security agent, so if JRuby is in play and the security agent
+          # is not, don't attempt to modify the hash at all and return early.
+          return new_cache if NewRelic::LanguageSupport.jruby? && !Agent.config[:'security.agent.enabled']
 
           @lock.synchronize do
             preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
@@ -401,13 +420,14 @@ module NewRelic
           # actually going to be logging the message based on our current log
           # level, so use a `do` block.
           NewRelic::Agent.logger.debug do
-            hash = flattened.delete_if { |k, _h| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
-            "Updating config (#{direction}) from #{source.class}. Results: #{hash.inspect}"
+            source_hash = source.dup.to_h.delete_if { |k, _v| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
+            final_hash = flattened.delete_if { |k, _h| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
+
+            "Updating config (#{direction}) from #{source.class} with values: #{source_hash}. \nConfig Stack Results: #{final_hash.inspect}"
           end
         end
 
         def delete_all_configs_for_testing
-          @security_policy_source = nil
           @high_security_source = nil
           @environment_source = nil
           @server_source = nil
@@ -428,8 +448,7 @@ module NewRelic
         private
 
         def config_stack
-          stack = [@security_policy_source,
-            @high_security_source,
+          stack = [@high_security_source,
             @environment_source,
             @server_source,
             @manual_source,

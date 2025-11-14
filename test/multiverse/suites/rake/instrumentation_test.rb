@@ -16,7 +16,7 @@ class RakeInstrumentationTest < Minitest::Test
   class ErrorClass < StandardError; end
 
   def test_invoke_with_newrelic_tracing_happy_path
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     instance = TesterClass.new
     instance_mock = MiniTest::Mock.new
@@ -38,7 +38,7 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_invoke_with_newrelic_tracing_when_tracing_is_disabled
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     instance = TesterClass.new
     NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, false, [instance.name] do
@@ -52,7 +52,7 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_invoke_with_tracing_with_exception
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     instance = TesterClass.new
     NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
@@ -70,7 +70,7 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_we_should_install_if_newrelic_rake_is_absent
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     NewRelic::LanguageSupport.stub :bundled_gem?, false, 'newrelic-rake' do
       assert_predicate NewRelic::Agent::Instrumentation::Rake, :should_install?
@@ -78,7 +78,7 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_we_should_not_install_if_newrelic_rake_is_present
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     NewRelic::LanguageSupport.stub :bundled_gem?, true, 'newrelic-rake' do
       refute_predicate NewRelic::Agent::Instrumentation::Rake, :should_install?
@@ -98,7 +98,7 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_a_task_is_monkeypatched_for_execution_instrumentation
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     name = 'Call the Ships to Port'
     task = OpenStruct.new
@@ -192,7 +192,7 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_record_attributes_without_named_args
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     top_level_tasks = %w[James Meowth]
     named_args = []

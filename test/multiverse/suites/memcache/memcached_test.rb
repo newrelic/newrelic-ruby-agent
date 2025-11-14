@@ -37,7 +37,7 @@ if defined?(Memcached)
     end
 
     def test_get_in_web
-      if Memcached::VERSION >= '1.8.0'
+      if NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
         key = set_key_for_testcase
 
         expected_metrics = expected_web_metrics(:single_get)
@@ -54,7 +54,7 @@ if defined?(Memcached)
     end
 
     def test_get_multi_in_web
-      return unless Memcached::VERSION >= '1.8.0'
+      return unless NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
 
       key = set_key_for_testcase
 
@@ -97,7 +97,7 @@ if defined?(Memcached)
     def test_cas_in_web
       key = set_key_for_testcase(1)
 
-      if Memcached::VERSION >= '1.8.0'
+      if NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
         expected_metrics = (expected_web_metrics(:single_get) + expected_web_metrics(:single_cas)).uniq
         expected_metrics += additional_web_metrics_for(:cas)
       else
@@ -113,7 +113,7 @@ if defined?(Memcached)
     end
 
     def test_get_in_background
-      if Memcached::VERSION >= '1.8.0'
+      if NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
         key = set_key_for_testcase
 
         expected_metrics = expected_bg_metrics(:single_get)
@@ -130,7 +130,7 @@ if defined?(Memcached)
     end
 
     def test_get_multi_in_background
-      return unless Memcached::VERSION >= '1.8.0'
+      return unless NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
 
       key = set_key_for_testcase
 
@@ -172,7 +172,7 @@ if defined?(Memcached)
 
     def test_cas_in_background
       key = set_key_for_testcase(1)
-      if Memcached::VERSION >= '1.8.0'
+      if NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
         expected_metrics = (expected_bg_metrics(:single_get) + expected_bg_metrics(:single_cas)).uniq
         expected_metrics += additional_bg_metrics_for(:cas)
       else

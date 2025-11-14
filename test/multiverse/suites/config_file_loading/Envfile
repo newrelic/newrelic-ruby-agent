@@ -5,19 +5,36 @@
 omit_collector!
 
 PSYCH_VERSIONS = [
-  [nil],
-  ['4.0.0', 2.4],
-  ['3.3.0', 2.4]
+  # TODO: Psych 5.2 supports Ruby 2.5+, but we began to get some Bundler errors
+  # On May 1, 2025 for Ruby 2.5 and 2.6 for Psych 5.2.4.
+  # Until those errors are resolved, limit testing for the newest versions of
+  # Psych to 2.7+
+  # 
+  [nil, 2.7, 3.4],
+  ['5.2.0', 2.7, 3.4],
+  ['5.1.0', 2.4, 3.3],
+  ['5.0.0', 2.4, 3.3],
+  ['4.0.0', 2.4, 3.3],
+  ['3.3.0', 2.4, 3.3]
 ]
+
+def stringio_version
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
+    "gem 'stringio', '~> 3.1.2'"
+  else
+    "gem 'stringio'"
+  end
+end
 
 def gem_list(psych_version = nil)
   <<~RB
+    #{stringio_version}
     # stub file system so we can test that newrelic.yml can be loaded from
     # various places.
     gem 'fakefs', :require => false
 
     gem 'psych'#{psych_version}
-    gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java' 
+    gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java'
 
     # don't start the agent
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

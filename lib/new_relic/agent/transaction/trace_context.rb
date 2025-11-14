@@ -95,7 +95,7 @@ module NewRelic
 
         def create_trace_state_payload
           unless Agent.config[:'distributed_tracing.enabled']
-            NewRelic::Agent.logger.warn('Not configured to create WC3 trace context payload')
+            NewRelic::Agent.logger.warn('Not configured to create W3C trace context payload')
             return
           end
 
@@ -132,20 +132,55 @@ module NewRelic
           transaction.trace_id = header_data.trace_id
           transaction.parent_span_id = header_data.parent_id
 
-          return false unless payload = assign_trace_state_payload
+          trace_flags = header_data.trace_parent['trace_flags']
+          payload = assign_trace_state_payload
+
+          if payload
+            determine_sampling_decision(payload, trace_flags)
+          else
+            determine_sampling_decision(TraceContextPayload::INVALID, trace_flags)
+            return false
+          end
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
 
-          unless payload.sampled.nil?
-            transaction.sampled = payload.sampled
-            transaction.priority = payload.priority if payload.priority
-          end
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
         rescue => e
           NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
           NewRelic::Agent.logger.warn('Failed to accept trace context payload', e)
           false
+        end
+
+        def determine_sampling_decision(payload, trace_flags)
+          if trace_flags == '01'
+            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
+          elsif trace_flags == '00'
+            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
+          else
+            use_nr_tracestate_sampled(payload)
+          end
+        rescue
+          use_nr_tracestate_sampled(payload)
+        end
+
+        def use_nr_tracestate_sampled(payload)
+          unless payload.sampled.nil?
+            transaction.sampled = payload.sampled
+            transaction.priority = payload.priority if payload.priority
+          end
+        end
+
+        def set_priority_and_sampled(config, payload)
+          if config == 'always_on'
+            transaction.sampled = true
+            transaction.priority = 2.0
+          elsif config == 'always_off'
+            transaction.sampled = false
+            transaction.priority = 0
+          else # default
+            use_nr_tracestate_sampled(payload)
+          end
         end
 
         def ignore_trace_context?

@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'singleton'
 require 'new_relic/agent/database/obfuscation_helpers'
 
 module NewRelic

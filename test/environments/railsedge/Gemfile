@@ -11,17 +11,21 @@ gem 'mocha', '~> 1.16', require: false
 
 platforms :ruby, :rbx do
   gem 'mysql2', '>= 0.5.4'
-  gem 'sqlite3', '~> 1.4'
+  gem 'sqlite3', '>= 2.1'
 end
 
 gem 'newrelic_rpm', path: '../../..'
 
-group :development do
-  if ENV['ENABLE_PRY']
-    gem 'pry', '~> 0.9.12'
-    gem 'pry-nav'
-  end
-end
+gem 'pry' if ENV['ENABLE_PRY']
 
 gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
 gem 'warning'
+
+if RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
+  gem 'base64'
+  gem 'bigdecimal'
+  gem 'mutex_m'
+  gem 'ostruct'
+  gem 'benchmark'
+end
+gem 'logger'

@@ -11,7 +11,7 @@ module NewRelic
       private
 
       def configure_high_security
-        if security_settings_valid? && Agent.config[:high_security]
+        if Agent.config[:high_security]
           Agent.logger.info('Installing high security configuration based on local configuration')
           Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
         end
@@ -32,9 +32,7 @@ module NewRelic
       end
 
       def init_instrumentation
-        if !security_settings_valid?
-          handle_invalid_security_settings
-        elsif Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
+        if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
         elsif !Agent.config[:agent_enabled]
@@ -42,6 +40,10 @@ module NewRelic
         else
           DependencyDetection.detect!
         end
+      end
+
+      def init_security_agent
+        SecurityInterface.instance.init_agent
       end
     end
   end

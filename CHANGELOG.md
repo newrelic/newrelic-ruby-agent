@@ -1,5 +1,530 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Breaking Change: Remove support for Ruby 2.4 and 2.5**
+
+  Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
+
+- **Feature: Add `logger` as a dependency**
+  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
+
+- **Breaking Change: Rename ActiveJob metrics**
+
+  ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
+    - Old format: `Ruby/ActiveJob/<QueueName>/<Method>`
+    - New format: `Ruby/ActiveJob/<ClassName>/<QueueName>/<Method>`
+
+- **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
+
+  The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
+
+- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
+
+  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
+- **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
+
+  The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
+
+## v9.23.0
+
+- **Feature: Add sidekiq.ignore_retry_errors configuration option**
+
+  A new configuration option, `sidekiq.ignore_retry_errors`, has been added to control if Sidekiq job retries are captured. Retry errors are captured by default, but now if `sidekiq.ignore_retry_errors` is set to `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails. Thank you [DonGiulio](https://github.com/DonGiulio) for recognizing this improvement and contributing a solution. [PR#3317](https://github.com/newrelic/newrelic-ruby-agent/pull/3317)
+
+- **Feature: Deprecation notice for recording deployments using Capistrano**
+
+  Sending application deployment information using a Capistrano recipe is deprecated and will be removed in agent version 10.0.0. For recording deployments, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
+
+- **Feature: Use remote parent sampling configurations for decisions in more scenarios**
+
+  Previously, the `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` configuration options were used for the sampling decision only when the `traceparent` and `tracestate` headers were present. Now, these configuration options are applied in cases when the `tracestate` header is missing and when only the `newrelic` header is available. This change makes distributed trace sampling more consistent and predictable. [PR#3306](https://github.com/newrelic/newrelic-ruby-agent/pull/3306)
+
+## v9.22.0
+
+- **Feature: One-step instrumentation for Kubernetes**
+
+  The Kubernetes APM auto-attach automatically instruments applications and manages agent upgrades within Kubernetes deployments. This feature has exited preview and is now generally avaliable. Learn more about [Kubernetes auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/). [PR#2635](https://github.com/newrelic/newrelic-ruby-agent/pull/2635) [PR#3287](https://github.com/newrelic/newrelic-ruby-agent/pull/3287)
+
+- **Feature: Deprecation notice for Ruby 2.4 and Ruby 2.5**
+
+  Ruby agent support for Ruby versions 2.4 and 2.5 is deprecated and will be removed in agent version 10.0.0. The new miniumum required Ruby version will become Ruby 2.6 and we will stop testing with Ruby 2.4 and 2.5. [PR#3288](https://github.com/newrelic/newrelic-ruby-agent/pull/3288)
+
+- **Feature: Deprecation notice for the `newrelic deployments` command**
+
+  Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0.
+
+  Going forward, there are a number of automated and manual ways ways to record changes in New Relic. Please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3262](https://github.com/newrelic/newrelic-ruby-agent/pull/3262)
+
+- **Feature: Deprecation reminder for cross application tracing**
+
+  Cross application tracing has been deprecated since major version 8.0.0 of the Ruby agent. We will remove support for it entirely in version 10.0.0 of the agent. [PR#3288](https://github.com/newrelic/newrelic-ruby-agent/pull/3288)
+
+- **Feature: Ensure compatibility with Ruby 3.5 change to Method#source_location**
+
+  Updated the agent to correctly parse the return value of Method#source_location, which is changing in Ruby 3.5 from a two-element to a five-element array. This change maintains support for older Ruby versions while adding support for the future release. [PR#3257](https://github.com/newrelic/newrelic-ruby-agent/pull/3257)
+
+## v9.21.0
+
+- **Feature: In Serverless APM mode, use event source name as transaction name prefix**
+
+  The agent will now use the event source name as a prefix for the transaction name in Serverless APM mode. This will help to better identify the source of the transaction in the New Relic UI. [PR#3245](https://github.com/newrelic/newrelic-ruby-agent/pull/3245)
+
+- **Bugfix: Revert changed logic for how we track the thread the span starts in**
+
+  This change restores the previous behavior of tracking the thread the span starts in, addressing issues that arose from the updated logic. Thank you [@david-zw-liu](https://github.com/david-zw-liu) for bringing this to our attention. [PR#3248](https://github.com/newrelic/newrelic-ruby-agent/pull/3248)
+
+## v9.20.0
+
+- **Feature: Add ECS Docker ID for Fargate**
+
+  Previously, the Ruby agent did not record the Docker ID when running in an AWS ECS Fargate environment. The Docker ID will now be recorded correctly. [PR#3172](https://github.com/newrelic/newrelic-ruby-agent/pull/3172)
+
+- **Feature: Add NewRelic::Helper.version_satisfied?**
+
+  The agent has a new helper method to simplify version comparison. `NewRelic::Helper.version_satisfied?` accepts three arguments: a left-side version number, the comparison operator as a string, and a right-side version number. Our thanks go to [@kekke-n](https://github.com/kekke-n) for this contribution. [PR#3182](https://github.com/newrelic/newrelic-ruby-agent/pull/3182)
+
+- **Feature: Add code.stacktrace attribute on datastore spans when duration exceeds configured threshold**
+
+  The agent will now add the `code.stacktrace` attribute to datastore spans when the duration exceeds the configured threshold. The threshold is configured using the `transaction_tracer.stack_trace_threshold` configuration option. [PR#3220](https://github.com/newrelic/newrelic-ruby-agent/pull/3220)
+
+- **Feature: Consolidate "Unknown" constant values**
+
+  All references to the various capitalization styles for "Unknown" have been consolidated into two constants: `NewRelic::UNKNOWN` and `NewRelic::UNKNOWN_LOWER`. Thank you, [@tsubasa1122](https://github.com/@tsubasa1122), for your contribution! [PR#3185](https://github.com/newrelic/newrelic-ruby-agent/pull/3185)
+
+- **Bugfix: Fix Brewfile source links**
+
+  Previously, the multiverse README's links to the Brewfile were broken. Our thanks go to [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) for submitting a PR to fix them! [PR#3191](https://github.com/newrelic/newrelic-ruby-agent/pull/3191)
+
+- **Bugfix: Fix error when using HTTPX 1.5.0**
+
+  The agent previously encountered an error when using the new HTTPX version 1.5.0. This was due to a change in the way HTTPX stores the response. The agent has been updated to handle this change correctly, and no longer encounters an error when using HTTPX 1.5.0. [PR#3203](https://github.com/newrelic/newrelic-ruby-agent/pull/3203)
+
+- **Bugfix: Bugfixes and improvements to debug level agent logs**
+
+  Improves the information logged at the debug level by the agent when the agent reads in a configuration source. [PR#3221](https://github.com/newrelic/newrelic-ruby-agent/pull/3221)
+
+- **Bugfix: Fix risk of server-side forgery for Slack workflow script**
+
+  Internally, we keep track of gems that are released using a GitHub actions workflow that posts updates on Slack. [@odaysec] identified a way we could reduce the risk of server-side forgery for this workflow. Thank you! [PR#3184](https://github.com/newrelic/newrelic-ruby-agent/pull/3184)
+
+- **Bugfix: Replace JSON.load calls with JSON.parse**
+
+  Generally, JSON.parse is seen as safer than JSON.load. Thank you, [@odaysec](https://github.com/odaysec), for bringing this to our attention! [PR#3183](https://github.com/newrelic/newrelic-ruby-agent/pull/3183) [PR#3230](https://github.com/newrelic/newrelic-ruby-agent/pull/3230)
+
+## v9.19.0
+
+- **Feature: Add Thread ID as attribute to all spans**
+
+  The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
+
+- **Feature: Add support for W3C TraceContext Trace Flag**
+
+  Previously, the agent would not use the trace flag field of the traceparent header for sampling decisions. This could lead to fragmented traces in the UI. While the default behavior remains unchanged, two new configuration options, `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled`, have been introduced to allow more control over the way sampling decisions are made. [PR#3135](https://github.com/newrelic/newrelic-ruby-agent/pull/3135)
+
+- **Bugfix: Include request.uri in Transaction events by default**
+
+  [The New Relic data dictionary expects Transaction events to have the `request.uri` attribute.](https://docs.newrelic.com/attribute-dictionary/?event=Transaction&attribute=request.uri) The Ruby agent now fulfills this expectation. If you would like to exclude `request.uri` from Transaction events, you can do so by setting `transaction_events.attributes.exclude` to `'request.uri'`. [PR#3103](https://github.com/newrelic/newrelic-ruby-agent/pull/3103)
+
+- **Bugfix: Fix error in Active Job instrumentation when using perform_all_later**
+
+  Previously, when Active Job's `perform_all_later` method was called and the agent was running, a `NoMethodError` would be raised with the message `undefined method 'queue_name' for nil`. The error has been fixed and the name of the segment will reflect the first job in the queue. Our thanks goes to [@tan-linx](https://github.com/tan-linx) for bringing this to our attention and providing a fix. [PR#3110](https://github.com/newrelic/newrelic-ruby-agent/pull/3110)
+
+## v9.18.0
+
+- **Feature: Add elasticsearch.capture_cluster_name configuration option**
+
+  A new configuration option, `elasticsearch.capture_cluster_name`, has been added to control capturing Elasticsearch cluster names. Cluster names are captured by default, but can now be disabled as needed. [PR#3038](https://github.com/newrelic/newrelic-ruby-agent/pull/3038)
+
+- **Feature: Add support for sidekiq-delay_extensions**
+
+  Sidekiq delay extensions were removed from Sidekiq in 7.x and are now avaliable through the [sidekiq-delay_extensions](https://rubygems.org/gems/sidekiq-delay_extensions) gem. Thanks to [@sobrinho](https://github.com/sobrinho), the agent now has continued support for delay extensions.[PR#3056](https://github.com/newrelic/newrelic-ruby-agent/pull/3056)
+
+- **Feature: Parallelize calls for vendor metadata**
+
+  Previously, the agent would make calls for vendor metadata in a serial fashion. This could lead to a delay in starting the agent. Now, the agent will make these calls in parallel, reducing the time it takes to start the agent. [PR#3094](https://github.com/newrelic/newrelic-ruby-agent/pull/3094)
+
+- **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
+
+  When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
+
+- **Bugfix: JRuby multithreading improvements**
+
+  Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. Thanks to @NC-piercej for bringing this to our attention [Issue#3021](https://github.com/newrelic/newrelic-ruby-agent/issues/3021) [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
+
+- **Bugfix: Stop reporting rescued Sidekiq::OverLimit exceptions**
+
+  When Sidekiq's concurrent rate limiters encounter an `OverLimit` exception, Sidekiq typically handles this by re-enqueuing the job. Previously, all occurrences of `Sidekiq::OverLimit` were logged as errors in New Relic, even when Sidekiq's middleware resolved the exception. New Relic will no longer report errors that are handled by Sidekiq's own middleware. Thanks to [@97jaz](https://github.com/97jaz) for reporting this issue. [Issue#3037](https://github.com/newrelic/newrelic-ruby-agent/issues/3037) [PR#3047](https://github.com/newrelic/newrelic-ruby-agent/pull/3047)
+
+- **Bugfix: Protect against nil agents or health checks**
+
+  In some cases the agent or health checks may be `nil` when they are called. Safe navigation operators have been added for protection on those occasions. [PR#3049](https://github.com/newrelic/newrelic-ruby-agent/pull/3049)
+
+- **Bugfix: Ignore Solid Queue `ThreadError: queue empty` error message by default**
+
+  When using the solid_queue gem, the agent previously generated excessive warn-level logs when the queue was empty. The agent now ignores `queue empty` error messages of the `ThreadError` class by default. This behavior can be adjusted using the `error_collector.ignore_messages` configuration option. [PR#3060](https://github.com/newrelic/newrelic-ruby-agent/pull/3060)
+
+- **Bugfix: Refactor URI host handling to accommodate downcasing frozen strings**
+
+  When URI host string was frozen, a FrozenError would be raised when the agent attempted to downcase the host as part of its data normalization process. Now, the update is friendly for frozen strings. Thank you [@pedrol3001](https://github.com/pedrol3001) for your contribution! [PR#3097](https://github.com/newrelic/newrelic-ruby-agent/pull/3097)
+
+## v9.17.0
+
+- **Feature: Support Ruby 3.4.0**
+
+  The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
+
+- **Feature: Add instrumentation for aws-sdk-firehose**
+
+  The agent now has instrumentation for the [aws-sdk-firehose](https://rubygems.org/gems/aws-sdk-firehose) gem. [PR#2973](https://github.com/newrelic/newrelic-ruby-agent/pull/2973)
+
+- **Feature: Kubernetes APM auto-attach - new agent version precedent**
+
+  Previously, when a customer installed the Ruby agent via [Kubernetes APM auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/) and also had the Ruby agent listed in their `Gemfile`, the agent version in `Gemfile` would take precedence. Now, the agent version installed by auto-attach takes priority. [PR#3018](https://github.com/newrelic/newrelic-ruby-agent/pull/3018)
+
+- **Feature: Add health checks when the agent runs within Agent Control**
+
+  When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file will be created at the configured file location for every agent process. By default, this location is: '/newrelic/apm/health'. The health check files will be updated at the configured frequency, which defaults to every five seconds. [PR#2995](https://github.com/newrelic/newrelic-ruby-agent/pull/2995)
+
+- **Feature: Add Redshift as recognized ActiveRecord adapter**
+
+  When the agent does not recognize an ActiveRecord adapter, the host, port, and database name information is not added to the datastore span. Redshift will now be treated like PostgreSQL, and the agent will save the host, port, and database name on the span. [PR#3032](https://github.com/newrelic/newrelic-ruby-agent/pull/3032)
+
+- **Feature: Add instrumentation for aws-sdk-kinesis**
+
+  The agent now has instrumentation for the [aws-sdk-kinesis](https://rubygems.org/gems/aws-sdk-kinesis) gem. It will record message broker segments for `get_records`, `put_record`, and `put_records` operations. All other operations will record standard segments. [PR#2974](https://github.com/newrelic/newrelic-ruby-agent/pull/2974)
+
+- **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
+
+  In the previous major release, we dropped support for `disable_<library_name>` configuration options in favor of `instrumentation.<library_name>`. Previously, a DEBUG level log warning appeared whenever `disable_*` options were set to `true`, even for libraries (e.g. Action Dispatch) without equivalent `instrumentation.*` options:
+
+  >DEBUG : [DEPRECATED] configuration disable_<library_name> for <library_name> will be removed in the next major release. Use instrumentation.<library_name> with one of ["auto", "disabled", "prepend", "chain"]
+
+  This inaccurate warning has been removed. If you are disabling instrumentation using `instrumentation.<library_name>: disabled` or `NEW_RELIC_INSTRUMENTATION_<LIBRARY_NAME>=disabled`, please verify the option exists by consulting our [configuration documentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#instrumentation). If the option does not exist, check the ['Disabling' section](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#disabling) to see if there is a related option. We apologize for the confusion. [PR#3005](https://github.com/newrelic/newrelic-ruby-agent/pull/3005)
+
+- **Bugfix: Do not attempt to decorate logs with `nil` messages**
+
+  The agent no longer attempts to add New Relic linking metadata to logs with `nil` messages. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)
+
+- **Bugfix: Stop renaming final Grape segment**
+
+  Previously, the agent renamed the final segment in Grape transactions to `"Middleware/Grape/#{class_name}/call"`. This was a part of an old instrumentation pattern that is no longer relevant. Many thanks to [@seriousdev-gh](https://github.com/seriousdev-gh) for bringing this issue to our attention and along with a great reproduction and suggested fix. [PR#2987](https://github.com/newrelic/newrelic-ruby-agent/pull/2987).
+
+## v9.16.1
+
+- **Bugfix: Add support for Trilogy database adapter**
+
+  The agent now fully supports Trilogy, a client library for MySQL-compatible database servers, and correctly lists MySQL as the corresponding database in the UI. [PR#2966](https://github.com/newrelic/newrelic-ruby-agent/pull/2966).
+
+## v9.16.0
+
+Version 9.16.0 introduces the following features and bug fixes:
+
+- **Feature: Instrumentation for aws-sdk-lambda**
+
+  When the aws-sdk-lambda gem is available and used to invoke remote AWS Lambda functions, the timing and error details of the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926).
+
+- **Feature: Add new configuration options to attach custom tags (labels) to logs**
+
+  The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
+
+- **Feature: Update View Component instrumentation+**
+
+  The `.identifier` method will be formally exposed as part of the View Component public API. The agent will now use this method for building metric names when available, ensuring ongoing compatibility with all View Component versions. [PR#2956](https://github.com/newrelic/newrelic-ruby-agent/pull/2956)
+
+- **Bugfix: Record explain plan traces on Rails 7.2+**
+
+  Rails 7.2 removed adapter-specific connection methods (ex. `ActiveRecord::Base.postgresql_connection`) and replaced them with `ActiveRecord::Base.with_connection`. Our explain plan feature relies on making a connection to the database to create an explain plan trace. Due to a bug in our tests, we missed this regression. Now, the agent uses the new method to fetch explain plans on Rails 7.2+. Thank you, [@gsar](https://github.com/gsar) and [@gstark](https://github.com/gstark) for bringing this to our attention! [Issue#2922](https://github.com/newrelic/newrelic-ruby-agent/issues/2922) [PR#2940](https://github.com/newrelic/newrelic-ruby-agent/pull/2940)
+
+## v9.15.0
+
+Version 9.15.0 updates View Component instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
+
+- **Feature: New configuration option cloud.aws.account_id**
+
+  A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS SDK. For example, relationships between AWS services instrumented with New Relic's CloudWatch Metric Streams will have relationships formed in the service map with APM applications. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
+
+- **Feature: Use default `View/component` metric name for unidentified View Components**
+
+  Previously, when a View Component metric name could not be identified, the agent would set the name as `nil`. Now, the agent defaults to using `View/component` as the metric name when one can not be identified. [PR#2907](https://github.com/newrelic/newrelic-ruby-agent/pull/2907)
+
+- **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
+
+  Due to version differences between the rdkafka gem and karafka-rdkafka gem, the agent could encounter an error when it tried to install rdkafka instrumentation. This has now been resolved. Thank you to @krisdigital for bringing this issue to our attention. [PR#2880](https://github.com/newrelic/newrelic-ruby-agent/pull/2880)
+
+- **Bugfix: Stop calling deprecated all_specs method to check for the presence of newrelic-grape**
+
+  In 9.14.0, we released a fix for calls to the deprecated `Bundler.rubygems.all_specs`, but the fix fell short for the agent's Grape instrumentation and deprecation warnings could still be raised. The condition has been simplified and deprecation warnings should no longer be raised. Thank you, [@excelsior](https://github.com/excelsior) for bringing this to our attention. [Issue#2885](https://github.com/newrelic/newrelic-ruby-agent/issues/2885) [PR#2906](https://github.com/newrelic/newrelic-ruby-agent/pull/2906)
+
+- **Bugfix: Instrumentation errors when using the ruby-kafka gem**
+
+  Kafka::Consumer#each_message takes keyword arguments, while the prepended method is defined with a single splat positional argument. In Ruby >= 3.0, this signature mismatch raises an ArgumentError. Thank you [@patrickarnett](https://github.com/patrickarnett) for providing this bugfix. [PR#2915](https://github.com/newrelic/newrelic-ruby-agent/pull/2915)
+
+- **Bugfix: Restore AWS Lambda layer operational functionality**
+
+  Version 9.14.0 of the agent introduced an optimization related to how the agent handles boolean configuration parameters which inadvertently caused the agent to stop operating properly in an AWS Lambda layer context. [Issue#2919](https://github.com/newrelic/newrelic-ruby-agent/issues/2919)[PR#2920](https://github.com/newrelic/newrelic-ruby-agent/pull/2920)
+
+## v9.14.0
+
+Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for ActionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
+
+- **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
+
+  The agent now has instrumentation for both the rdkafka and ruby-kafka gems. The agent will record transactions and message broker segments for produce and consume calls made using these gems. [PR#2824](https://github.com/newrelic/newrelic-ruby-agent/pull/2824) [PR#2842](https://github.com/newrelic/newrelic-ruby-agent/pull/2842)
+
+- **Feature: Add a configuration option to permit custom method tracers to be defined automatically**
+
+  A new `:automatic_custom_instrumentation_method_list` configuration parameter has been added to permit the user to define a list of fully qualified (namespaced) Ruby methods for the agent to automatically add custom instrumentation for without requiring any code modifications to be made to the classes that define the methods.
+
+  The list should be an array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings.
+
+  Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
+
+  Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
+
+  ```
+  module MyCompany
+    class Image
+      def render_png
+        # code to render a PNG
+      end
+    end
+
+    class User
+      def self.notify
+        # code to notify users
+      end
+    end
+  end
+  ```
+
+  Given that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
+
+  ```
+  automatic_custom_instrumentation_method_list:
+    - MyCompany::Image#render_png
+    - MyCompany::User.notify
+  ```
+
+  That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
+
+  ```
+  automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
+  ```
+
+  Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
+
+  ```
+  export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
+  ```
+
+  [PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
+
+- **Feature: Collect just MIME type for ActionDispatch 7.0+ requests**
+
+  Rails 7.0 [introduced changes](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is) to the behavior of `ActionDispatch::Request#content_type`, adding extra request-related details the agent wasn't expecting to collect. Additionally, the agent's use of `content_type ` was triggering deprecation warnings. The agent now uses `ActionDispatch::Request#media_type` to capture the MIME type. Thanks to [@internethostage](https://github.com/internethostage) for letting us know about this change. [Issue#2500](https://github.com/newrelic/newrelic-ruby-agent/issues/2500) [PR#2855](https://github.com/newrelic/newrelic-ruby-agent/pull/2855)
+
+- **Bugfix: Corrected Boolean coercion for `newrelic.yml` configuration**
+
+  Previously, any String assigned to New Relic configurations expecting a Boolean value were evaluated as `true`. This could lead to unexpected behavior. For example, setting `application_logging.enabled: 'false'` in `newrelic.yml` would incorrectly evaluate to `application_logging.enabled: true` due to the truthy nature of Strings.
+
+  Now, the agent strictly interprets Boolean configuration values. It recognizes both actual Boolean values and certain Strings/Symbols:
+  - `'true'`, `'yes'`, or `'on'` (evaluates to `true`)
+  - `'false'`, `'no'`, or `'off'` (evaluates to `false`)
+
+  Any other inputs will revert to the setting's default configuration value. [PR#2847](https://github.com/newrelic/newrelic-ruby-agent/pull/2847)
+
+- **Bugfix: JRuby not saving configuration values correctly in configuration manager**
+
+  Previously, a change made to fix a different JRuby bug caused the agent to not save configuration values correctly in the configuration manager when running on JRuby. This has been fixed. [PR#2848](https://github.com/newrelic/newrelic-ruby-agent/pull/2848)
+
+- **Bugfix: Update condition to verify Bundler.rubygems.installed_specs is available**
+
+  To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low. Now, rather than check the version, we check for the method using `respond_to?`. [PR#2853](https://github.com/newrelic/newrelic-ruby-agent/pull/2853)
+
+- **Bugfix: Support view_component v3.15.0+**
+
+  Previously the agent had been making use of a private API to obtain a component identifier value. This private API was dropped in v3.15.0 of view_component, resulting in errors from the New Relic Ruby agent's continued attempts to use it. Many thanks to community member [@navidemad](https://github.com/navidemad) for bringing this issue to our attention and supplying a bugfix with [PR#2870](https://github.com/newrelic/newrelic-ruby-agent/pull/2870).
+
+## v9.13.0
+
+Version 9.13.0 enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, silences a Bundler deprecation warning, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby-specific concurrency issue.
+
+- **Feature: Enhance AWS Lambda function instrumentation**
+
+When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layers.newrelic-external.com/), the agent now offers enhanced support for AWS Lambda function instrumentation.
+* The agent's instrumentation for AWS Lambda functions now supports distributed tracing.
+* Web-triggered invocations are now identified as being "web"-based when an API Gateway call is involved, with support for both API Gateway versions 1.0 and 2.0.
+* Web-based calls have the HTTP method, URI, and status code recorded.
+* The agent now recognizes and reports on 12 separate AWS resources that are capable of triggering a Lambda function invocation: ALB, API Gateway V1, API Gateway V2, CloudFront, CloudWatch Scheduler, DynamoStreams, Firehose, Kinesis, S3, SES, SNS, and SQS.
+* The type of the triggering resource and its ARN will be recorded for each resource, and for many of them, extra resource-specific attributes will be recorded as well. For example, Lambda function invocations triggered by S3 bucket activity will now result in the S3 bucket name being recorded.
+[PR#2811](https://github.com/newrelic/newrelic-ruby-agent/pull/2811)
+
+- **Feature: Add experimental OpenSearch instrumentation**
+
+  The agent will now automatically instrument the `opensearch-ruby` gem. We're marking this instrumentation as experimental because more work is needed to fully test it. OpenSearch instrumentation provides telemetry similar to Elasticsearch. Thank you, [@Earlopain](https://github.com/Earlopain) for reporting the issue and [@praveen-ks](https://github.com/praveen-ks) for an initial draft of the instrumentation. [Issue#2228](https://github.com/newrelic/newrelic-ruby-agent/issues/2228) [PR#2796](https://github.com/newrelic/newrelic-ruby-agent/pull/2796)
+
+- **Feature: Improve framework detection accuracy for Grape and Padrino**
+
+  Previously, applications using the Grape framework would set `ruby` as their framework within the Environment Report. Now, Grape applications will be set to `grape`. Similarly, applications using the Padrino framework would be set to `sinatra`. Now, they will be set to `padrino`. This will help the New Relic security agent compatibility checks. Thank you, [@prateeksen](https://github.com/prateeksen) for making this change. [Issue#2777](https://github.com/newrelic/newrelic-ruby-agent/issues/2777) [PR#2789](https://github.com/newrelic/newrelic-ruby-agent/pull/2789)
+
+- **Feature: Silence Bundler `all_specs` deprecation warning**
+
+  `Bundler.rubygems.all_specs` was deprecated in favor of `Bundler.rubygems.installed_specs` in Bundler versions 2+, causing the agent to emit deprecation warnings. The method has been updated when Bundler 2+ is detected and warnings are now silenced. Thanks to [@jcoyne](https://github.com/jcoyne) for reporting this issue. [Issue#2733](https://github.com/newrelic/newrelic-ruby-agent/issues/2733) [PR#2823](https://github.com/newrelic/newrelic-ruby-agent/pull/2823)
+
+- **Bugfix: Fix Falcon dispatcher detection**
+
+  Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename`. Thank you, [@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
+
+- **Bugfix: Fix for a Redis instrumentation error when Redis::Cluster::Client is present**
+
+  The Redis instrumentation previously contained a bug that would cause it to error out when `Redis::Cluster::Client` was present, owing to the use of a Ruby `return` outside of a method. Thanks very much to [@jdelStrother](https://github.com/jdelStrother) for not only reporting this bug but pointing us to the root cause as well. [Issue#2814](https://github.com/newrelic/newrelic-ruby-agent/issues/2814) [PR#2816](https://github.com/newrelic/newrelic-ruby-agent/pull/2816)
+
+- **Bugfix: Address JRuby concurrency issue with config hash accessing**
+
+  The agent's internal configuration class maintains a hash that occassionally gets rebuilt. During the rebuild, certain previously dynamically determined instrumentation values are preserved for the benefit of the [New Relic Ruby security agent](https://github.com/newrelic/csec-ruby-agent). After reports from JRuby customers regarding concurrency issues related to the hash being accessed while being modified, two separate fixes went into the hash rebuild logic previously: a `Hash#dup` operation and a `synchronize do` block. But errors were still reported. We ourselves remain unable to reproduce these concurrency errors despite using the same exact versions of JRuby and all reported software. After confirming that the hash access code in question is only needed for the Ruby security agent (which operates only in non-production dedicated security testing environments), we have introduced a new fix for JRuby customers that will simply skip over the troublesome code when JRuby is in play but the security agent is not. [PR#2798](https://github.com/newrelic/newrelic-ruby-agent/pull/2798)
+
+## v9.12.0
+
+Version 9.12.0 adds support for the `newrelic_security` agent, introduces instrumentation for the LogStasher gem, improves instrumentation for the `redis-clustering` gem, and updates the Elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
+
+- **Feature: Add support for the newrelic_security agent**
+
+  [New Relic Interactive Application Security Testing (IAST)](https://docs.newrelic.com/docs/iast/introduction/) can help you prevent cyberattacks and breaches on your applications by probing your running code for exploitable vulnerabilities.
+
+  The `newrelic_security` gem provides this feature for Ruby. It depends on `newrelic_rpm`. This is the first version of `newrelic_rpm` compatible with `newrelic_security`.
+
+  At this time, the security agent is intended for use only within a dedicated security testing environment with data that can tolerate modification or deletion. The security agent is available as a separate Ruby gem, `newrelic_security`. It is recommended that this separate gem only be introduced to a security testing environment by leveraging Bundler grouping like so:
+
+  ```ruby
+    # Gemfile
+    gem 'newrelic_rpm'               # New Relic APM observability agent
+    gem 'newrelic-infinite_tracing'  # New Relic Infinite Tracing
+
+    group :security do
+      gem 'newrelic_security', require: false        # New Relic security agent
+    end
+  ```
+
+  In order to run the security agent, you need to update your configuration. At a minimum, `security.agent.enabled` and `security.enabled` must be set to `true`. They are `false` by default. Similar to the gem installation, we recommend you set these configurations for a special security testing environment only.
+
+  Here's an example using `newrelic.yml`:
+
+  ```yaml
+    common: &default_settings
+      license_key: <%= ENV['NEW_RELIC_LICENSE_KEY'] %>
+      app_name: "Example app"
+
+    development:
+      <<: *default_settings
+      app_name: <%= app_name %> (Development)
+
+    security:
+      <<: *default_settings
+      security.enabled: true
+      security.agent.enabled: true
+
+    production:
+      <<: *default_settings
+  ```
+
+  The following configuration relate to the `newrelic_security` gem:
+
+  | Configuration name | Default | Behavior |
+  | ------------------ | ------- |----------|
+  | security.agent.enabled | `false` | If `true`, the security agent is loaded (a Ruby 'require' is performed) |
+  | security.enabled | `false` |  If `true`, the security agent is started (the agent runs in its event loop) |
+  | security.mode | `'IAST'` | Defines the mode for the security agent to operate in. Currently only 'IAST' is supported |
+  | security.validator_service_url | `'wss://csec.nr-data.net'` | Defines the endpoint URL for posting security related data |
+  | security.detection.rci.enabled | `true` | If `true`, enables RCI (remote code injection) detection |
+  | security.detection.rxss.enabled | `true` | If `true`, enables RXSS (reflected cross-site scripting) detection |
+  | security.detection.deserialization.enabled | `true` |  If `true`, enables deserialization detection |
+  | security.application_info.port | `nil` | An Integer representing the port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default. |
+
+- **Feature: Add instrumentation for LogStasher**
+
+  The agent will now record logs generated by [LogStasher](https://github.com/shadabahmed/logstasher). Versions 1.0.0 and above of the LogStasher gem are supported. [PR#2559](https://github.com/newrelic/newrelic-ruby-agent/pull/2559)
+
+- **Feature: Add instrumentation for redis-clustering**
+
+  Version 5.x of the `redis` gem moved cluster behavior into a different gem, `redis-clustering`. This gem can access instrumentation registered through `RedisClient::Middleware`. Previously, the agent only instrumented the `call_pipelined` method through this approach, but now users of the `redis-clustering` gem will also have instrumentation registered for `connect` and `call` methods. In addition, the way the `database_name` attribute is set for Redis datastore spans is now compatible with all versions of Redis supported by the New Relic Ruby agent. Thank you, [@praveen-ks](https://github.com/praveen-ks) for bringing this to our attention. [Issue#2444](https://github.com/newrelic/newrelic-ruby-agent/issues/2444) [PR#2720](https://github.com/newrelic/newrelic-ruby-agent/pull/2720)
+
+- **Bugfix: Update Elasticsearch instrumentation to only attempt to get the cluster name once per client**
+
+  Previously, the agent would attempt to get the cluster name every time a call was made if it was not already captured. This could lead to a large number of failures if the cluster name could not be retrieved. Now, the agent will only attempt to get the cluster name once per client, even if it fails. Thank you, [@ascoppa](https://github.com/ascoppa) for bringing this to our attention. [Issue#2730](https://github.com/newrelic/newrelic-ruby-agent/issues/2730) [PR#2743](https://github.com/newrelic/newrelic-ruby-agent/pull/2743)
+
+- **Feature: Produce metrics for 4 additional Action Controller Rails notifications**
+
+  Four additional Action Controller related Rails notifications are now subscribed to by the agent to produce telemetry. These 4 are `exist_fragment?`, `expire_fragment`, `read_fragment`, and `write_fragment`. As with instrumentation for Action Controller itself, these notifications are enabled by default and can be disabled by setting `:disable_action_controller` to `true` in the agent's `newrelic.yml` configuration file. [PR#2745](https://github.com/newrelic/newrelic-ruby-agent/pull/2745)
+
+
+## v9.11.0
+
+Version 9.11.0 introduces instrumentation for the aws-sdk-sqs gem, fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
+
+- **Feature: Add instrumentation for SQS**
+
+    The agent has added instrumentation for the [aws-sdk-sqs gem](https://rubygems.org/gems/aws-sdk-sqs). The agent will now record message broker spans for SQS client calls made with the aws-sdk-sqs gem. [PR#2679](https://github.com/newrelic/newrelic-ruby-agent/pull/2679)
+
+- **Bugfix: HTTP status code based expected errors will now have an "expected" value of "true"**
+
+    Previously when an error was treated as expected by the agent as a result of a matching HTTP status code being found in the :'error_collector.expected_status_codes' configuration setting, the error would not appear with an "expected" attribute value of "true" in the errors in the errors inbox. [PR#2710](https://github.com/newrelic/newrelic-ruby-agent/pull/2710)
+
+- **Bugfix: Stripe metric names will no longer include full request paths to limit the unique name count**
+
+    The Stripe instrumentation introduced in agent version v9.5.0 produced instrumentation metric names that used the full Stripe request path. For any significant Stripe usage, this could quickly lead to very large number of distinct metric names. Now only the API version and the category part of the request path are included in the metric name which still includes the "Stripe" opener and method (ex: "get") closer. Thanks to [@jdelStrother](https://github.com/jdelStrother) and [@jsneedles](https://github.com/jsneedles) for bringing this issue to our attention and providing terrific information explaining the problem and potential paths to resolution. [PR#2716](https://github.com/newrelic/newrelic-ruby-agent/pull/2716)
+
+## v9.10.2
+
+Version 9.10.2 fixes a bug related to the new DynamoDB instrumentation and removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
+
+- **Bugfix: DynamoDB instrumentation logging errors when trying to get account_id**
+
+    When trying to access data needed to add the `account_id` to the DynamoDB span, the agent encountered an error when certain credentials classes were used. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2684](https://github.com/newrelic/newrelic-ruby-agent/pull/2684)
+
+- **Bugfix: Remove Rails::Command::RakeCommand from the default list of autostart.denylisted_constants**
+
+  The default value for the `autostart.denylisted_constants` configuration was changed in 9.10.0 to include `Rails::Command::RunnerCommand` and `Rails::Command::RakeCommand`. The inclusion of `Rails::Command::RakeCommand` prevented the agent from starting automatically when Solid Queue was started using `bin/rails solid_queue:start`. We recognize there are many commands nested within `Rails::Command::RakeCommand` and have decided to remove it from the default list. We encourage users who do not want the agent to run on `Rails::Command::RakeCommand` to add the constant to their configuration. This can be accomplished by adding the following to your `newrelic.yml` file:
+
+  ```yaml
+    autostart.denylisted_constants: "Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole"
+  ```
+
+  Thank you, [@edariedl](https://github.com/edariedl), for reporting this issue. [Issue#2677](https://github.com/newrelic/newrelic-ruby-agent/issues/2677) [PR#2694](https://github.com/newrelic/newrelic-ruby-agent/pull/2694)
+
+## v9.10.1
+
+- **Bugfix: Incompatibility with Bootstrap**
+
+Version 9.10.1 fixes an incompatibility between the agent and the [Bootstrap](https://github.com/twbs/bootstrap-rubygem) gem caused by agent v9.10.0's introduction of a `lib/bootstrap.rb` file. Thank you to [@dorner](https://github.com/dorner) for reporting the bug and identifying the 'bootstrap' name collision as the root cause. [BUG#2675](https://github.com/newrelic/newrelic-ruby-agent/issues/2675) [PR#2676](https://github.com/newrelic/newrelic-ruby-agent/pull/2676)
+
+## v9.10.0
+
+Version 9.10.0 introduces instrumentation for DynamoDB, adds a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
+
+- **Feature: Add instrumentation for DynamoDB**
+
+    The agent has added instrumentation for the aws-sdk-dynamodb gem. The agent will now record datastore spans for DynamoDB client calls made with the aws-sdk-dynamodb gem.  [PR#2642](https://github.com/newrelic/newrelic-ruby-agent/pull/2642)
+
+- **Feature: Automatically apply nonces from the Rails content security policy**
+
+  To auto-inject browser monitoring with the New Relic Ruby agent, you either need to set your content security policy to 'unsafe-inline' or provide a nonce. Previously, the only way to provide a nonce was by using the [`NewRelic::Agent.browser_timing_header`](https://rubydoc.info/gems/newrelic_rpm/NewRelic/Agent#browser_timing_header-instance_method) API. Now, when a Rails application uses [the content security policy configuration to add a nonce](https://guides.rubyonrails.org/security.html#adding-a-nonce), the nonce will be automatically applied to the browser agent. A new configuration option, [`browser_monitoring.content_security_policy_nonce`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#browser_monitoring-content_security_policy_nonce), toggles this feature. It is on by default. Thank you [@baldarn](https://github.com/baldarn) for submitting this feature! [PR#2544](https://github.com/newrelic/newrelic-ruby-agent/pull/2544)
+
+- **Bugfix: Expected errors related to HTTP status code, class, and message won't impact Apdex**
+
+  The agent is supposed to prevent observed application errors from negatively impacting Apdex if the errors are either ignored or expected. There are two ways for the agent to expect an error: via the `notice_error` API receiving an `expected: true` argument or via matches made against user-configured lists for expected HTTP status codes (`:'error_collector.expected_status_codes'`), expected error classes (`:'error_collector.expected_classes'`), or expected error messages (`:'error_collector.expected_messages'`). Previously, only errors expected via the `notice_error` API were correctly prevented from impacting Apdex. Expected errors set by configuration incorrectly impacted Apdex. This behavior has been fixed and now both types of expected errors will correctly not impact Apdex. Thanks very much to [@florianpilz](https://github.com/florianpilz) for bringing this issue to our attention. [PR#2619](https://github.com/newrelic/newrelic-ruby-agent/pull/2619)
+
+- **Bugfix: Do not start the agent automatically when `rails runner` or `rails db` commands are ran**
+
+  [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239) taught the agent how to recognize `bin/rails` based contexts that it should not automatically start up in. But `bin/rails runner` and `bin/rails db` commands would still see the agent start automatically. Those 2 contexts will now no longer see the agent start automatically. Thank you to [@jdelStrother](https://github.com/jdelStrother) for both bringing the `bin/rails` context to our attention and for letting us know about the `bin/rails runner` and `bin/rails db` outliers that still needed fixing. [PR#2623](https://github.com/newrelic/newrelic-ruby-agent/pull/2623)
+
+  Older agent versions that are still supported by New Relic can update to the new list of denylisted constants by having the following line added to the `newrelic.yml` configuration file:
+
+  ```yaml
+    autostart.denylisted_constants: "Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole"
+  ```
+
 ## v9.9.0
 
 Version 9.9.0 introduces support for AWS Lambda serverless function observability, adds support for Elasticsearch 8.13.0, and adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
@@ -290,7 +815,7 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
   | --------------------------- | ------- | ------------------------------------------------------ | ------ |
   | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
 
-  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
+  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb#L6-L17) to determine precedence.
 
 - **Feature: Custom attributes for logs**
 

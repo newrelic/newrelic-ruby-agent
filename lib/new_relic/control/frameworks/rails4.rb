@@ -9,9 +9,7 @@ module NewRelic
     module Frameworks
       class Rails4 < NewRelic::Control::Frameworks::Rails3
         def rails_gem_list
-          Bundler.rubygems.all_specs.map do |gem|
-            "#{gem.name} (#{gem.version})"
-          end
+          NewRelic::Helper.rubygems_specs.map { |gem| "#{gem.name} (#{gem.version})" }
         end
 
         def append_plugin_list

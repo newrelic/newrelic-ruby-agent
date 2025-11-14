@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'boot'
+require 'logger'
 
 require 'rails/all'
 
@@ -13,7 +14,7 @@ Bundler.require(*Rails.groups)
 module RpmTestApp
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults(7.0) # TODO: keep this number up to date (and keep this TODO)
+    config.load_defaults(8.1) # TODO: keep this number up to date (and keep this TODO)
     config.eager_load = false
     config.filter_parameters += [:password]
   end

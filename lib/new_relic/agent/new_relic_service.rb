@@ -7,7 +7,6 @@ require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
 require 'new_relic/agent/new_relic_service/json_marshaller'
-require 'new_relic/agent/new_relic_service/security_policy_settings'
 
 module NewRelic
   module Agent
@@ -87,38 +86,19 @@ module NewRelic
 
       def connect(settings = {})
         @request_headers_map = nil
-        security_policies = nil
-        if response = preconnect
-          if host = response['redirect_host']
-            @collector = NewRelic::Control.instance.server_from_host(host)
-          end
-          if policies = response['security_policies']
-            security_policies = SecurityPolicySettings.preliminary_settings(policies)
-            settings.merge!(security_policies)
-          end
+        if (response = preconnect) && (host = response['redirect_host'])
+          @collector = NewRelic::Control.instance.server_from_host(host)
         end
         response = invoke_remote(:connect, [settings])
         @request_headers_map = response['request_headers_map']
         self.agent_id = response['agent_run_id']
-        response.merge!(security_policies) if security_policies
         response
       end
 
       def preconnect
-        token = Agent.config[:security_policies_token]
+        is_high_security = Agent.config[:high_security] ? true : false
 
-        if token && !token.empty?
-          response = invoke_remote(:preconnect, [{'security_policies_token' => token, 'high_security' => false}])
-
-          validator = SecurityPolicySettings::Validator.new(response)
-          validator.validate_matching_agent_config!
-
-          response
-        elsif Agent.config[:high_security]
-          invoke_remote(:preconnect, [{'high_security' => true}])
-        else
-          invoke_remote(:preconnect, [{'high_security' => false}])
-        end
+        invoke_remote(:preconnect, [{'high_security' => is_high_security}])
       end
 
       def shutdown(time)
@@ -455,6 +435,8 @@ module NewRelic
       end
 
       def handle_error_response(response, endpoint)
+        NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::HTTP_ERROR, [response.code, endpoint])
+
         case response
         when Net::HTTPRequestTimeOut,
              Net::HTTPTooManyRequests,
@@ -637,9 +619,13 @@ module NewRelic
       def send_request(opts)
         request = prep_request(opts)
         response = relay_request(request, opts)
-        return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
 
-        handle_error_response(response, opts[:endpoint])
+        if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
+          response
+        else
+          handle_error_response(response, opts[:endpoint])
+        end
       end
 
       def log_response(response)
