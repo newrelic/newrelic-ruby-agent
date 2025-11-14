@@ -311,8 +311,8 @@ module NewRelic
       end
 
       def trace_ratio_sampled?(ratio)
-        # if the ratio is 1.0, always sample
-        # otherwise, do math
+        # this matches the opentelemetry-sdk TraceIdRatioBased sampler algorithm
+        # this algorithm differs from the now spec-compliant PrioritySampler
         ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < (ratio * (2**64 - 1)).ceil
       end
 
