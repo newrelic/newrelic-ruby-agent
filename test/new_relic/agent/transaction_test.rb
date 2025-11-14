@@ -1587,6 +1587,269 @@ module NewRelic::Agent
       assert_equal 32, txn.trace_id.size
     end
 
+    def test_trace_ratio_sampled_with_ratio_one_always_samples
+      txn = in_transaction {}
+
+      # With ratio 1.0, should always return true regardless of trace_id
+      assert txn.trace_ratio_sampled?(1.0), 'Expected ratio 1.0 to always sample'
+    end
+
+    def test_trace_ratio_sampled_with_ratio_zero_never_samples
+      txn = in_transaction {}
+
+      # With ratio 0.0, should always return false regardless of trace_id
+      refute txn.trace_ratio_sampled?(0.0), 'Expected ratio 0.0 to never sample'
+    end
+
+    def test_trace_ratio_sampled_is_deterministic
+      # Same trace_id should always produce same result for given ratio
+      ratio = 0.5
+
+      txn1 = in_transaction {}
+      trace_id = txn1.trace_id
+      result1 = txn1.trace_ratio_sampled?(ratio)
+
+      # Create new transaction with same trace_id
+      txn2 = in_transaction {}
+      txn2.trace_id = trace_id
+      result2 = txn2.trace_ratio_sampled?(ratio)
+
+      assert_equal result1, result2, 'Expected same trace_id to produce same sampling decision'
+    end
+
+    def test_trace_ratio_sampled_with_various_ratios
+      # Test that different ratios produce expected approximate results
+      # We'll test with a known trace_id that has a specific value
+
+      # Create a trace_id where bytes 8-15 represent a value close to 50% of max
+      # This helps us test boundary conditions
+      mid_value = 2**63 - 1  # Half of the maximum value for unsigned 64-bit int
+      trace_id = '0' * 16 + [mid_value].pack('Q>').unpack1('H*')
+
+      txn = in_transaction do |t|
+        t.trace_id = trace_id
+      end
+
+      # Ratios below 0.5 should not sample this trace_id
+      refute txn.trace_ratio_sampled?(0.4), 'Expected ratio 0.4 to not sample mid-value trace_id'
+
+      # Ratios at or above 0.5 should sample this trace_id
+      assert txn.trace_ratio_sampled?(0.5), 'Expected ratio 0.5 to sample mid-value trace_id'
+      assert txn.trace_ratio_sampled?(0.75), 'Expected ratio 0.75 to sample mid-value trace_id'
+    end
+
+    def test_trace_ratio_sampled_with_high_trace_id_value
+      # Create a trace_id with a very high value in bytes 8-15
+      # This should only be sampled with ratios very close to 1.0
+      high_value = (2**64 - 1) - 100  # Very close to maximum
+      trace_id = '0' * 16 + [high_value].pack('Q>').unpack1('H*')
+
+      txn = in_transaction do |t|
+        t.trace_id = trace_id
+      end
+
+      # Low ratio should not sample
+      refute txn.trace_ratio_sampled?(0.5), 'Expected ratio 0.5 to not sample high-value trace_id'
+
+      # High ratio should not sample
+      refute txn.trace_ratio_sampled?(1.0.prev_float), 'Expected ratio 0.99999 not to sample high-value trace_id'
+    end
+
+    def test_trace_ratio_sampled_with_low_trace_id_value
+      # Create a trace_id with a very low value in bytes 8-15
+      # This should be sampled by even low ratios
+      low_value = 100
+      trace_id = '0' * 16 + [low_value].pack('Q>').unpack1('H*')
+
+      txn = in_transaction do |t|
+        t.trace_id = trace_id
+      end
+
+      # Very low ratio should sample
+      assert txn.trace_ratio_sampled?(0.001), 'Expected ratio 0.001 to sample low-value trace_id'
+      assert txn.trace_ratio_sampled?(0.5), 'Expected ratio 0.5 to sample low-value trace_id'
+    end
+
+    def test_sampled_with_root_sampler_default
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'default') do
+        # Stub adaptive sampler to return false
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+
+        txn = in_transaction {}
+
+        refute txn.sampled?, 'Expected default sampler to use adaptive sampler result (false)'
+      end
+    end
+
+    def test_sampled_with_root_sampler_adaptive
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'adaptive') do
+        # Stub adaptive sampler to return true
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+
+        txn = in_transaction {}
+
+        assert txn.sampled?, 'Expected adaptive sampler to use adaptive sampler result (true)'
+      end
+    end
+
+    def test_sampled_with_root_sampler_always_on
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'always_on') do
+        txn = in_transaction {}
+
+        assert txn.sampled?, 'Expected always_on sampler to always return true'
+      end
+    end
+
+    def test_sampled_with_root_sampler_always_off
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'always_off') do
+        txn = in_transaction {}
+
+        refute txn.sampled?, 'Expected always_off sampler to always return false'
+      end
+    end
+
+    def test_sampled_with_root_sampler_trace_id_ratio_based_with_ratio_one
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0) do
+        txn = in_transaction {}
+
+        assert txn.sampled?, 'Expected trace_id_ratio_based sampler with ratio 1.0 to always sample'
+      end
+    end
+
+    def test_sampled_with_root_sampler_trace_id_ratio_based_with_ratio_zero
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 0.0) do
+        txn = in_transaction {}
+
+        refute txn.sampled?, 'Expected trace_id_ratio_based sampler with ratio 0.0 to never sample'
+      end
+    end
+
+    def test_sampled_with_root_sampler_trace_id_ratio_based_uses_trace_id
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 0.5) do
+        # Create a trace_id that should be sampled at 0.5 ratio
+        low_value = 100
+        trace_id = '0' * 16 + [low_value].pack('Q>').unpack1('H*')
+
+        txn = in_transaction do |t|
+          t.trace_id = trace_id
+        end
+
+        assert txn.sampled?, 'Expected trace_id_ratio_based sampler to sample low-value trace_id'
+      end
+    end
+
+    def test_sampled_returns_false_when_distributed_tracing_disabled
+      with_config(:'distributed_tracing.enabled' => false) do
+        txn = in_transaction {}
+
+        refute txn.sampled?, 'Expected sampled? to return false when distributed tracing is disabled'
+      end
+    end
+
+    def test_priority_with_root_sampler_always_on
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'always_on') do
+        txn = in_transaction {}
+
+        assert_equal 2.0, txn.priority, 'Expected always_on sampler to set priority to 2.0'
+      end
+    end
+
+    def test_priority_with_root_sampler_always_off
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'always_off') do
+        txn = in_transaction {}
+
+        assert_equal 0, txn.priority, 'Expected always_off sampler to set priority to 0'
+      end
+    end
+
+    def test_priority_with_root_sampler_default_uses_adaptive_priority
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'default') do
+        # Stub adaptive sampler to return true (sampled)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+
+        txn = in_transaction {}
+
+        # For sampled transactions, priority should be between 1.0 and 2.0
+        assert txn.priority > 1.0 && txn.priority < 2.0,
+          "Expected priority between 1.0 and 2.0 for sampled transaction, got #{txn.priority}"
+      end
+    end
+
+    def test_priority_with_root_sampler_adaptive_uses_adaptive_priority
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'adaptive') do
+        # Stub adaptive sampler to return false (not sampled)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+
+        txn = in_transaction {}
+
+        # For non-sampled transactions, priority should be between 0.0 and 1.0
+        assert txn.priority >= 0.0 && txn.priority < 1.0,
+          "Expected priority between 0.0 and 1.0 for non-sampled transaction, got #{txn.priority}"
+      end
+    end
+
+    def test_priority_with_root_sampler_trace_id_ratio_based_uses_adaptive_priority
+      with_config(:'distributed_tracing.enabled' => true,
+        :'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0) do
+        txn = in_transaction {}
+
+        # For sampled transactions (ratio 1.0), priority should be between 1.0 and 2.0
+        assert txn.priority > 1.0 && txn.priority < 2.0,
+          "Expected priority between 1.0 and 2.0 for sampled trace_id_ratio_based transaction, got #{txn.priority}"
+      end
+    end
+
+    def test_adaptive_priority_when_sampled
+      with_config(:'distributed_tracing.enabled' => true) do
+        # Stub adaptive sampler to return true (sampled)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+
+        txn = in_transaction {}
+        priority = txn.adaptive_priority
+
+        # For sampled transactions, priority should be between 1.0 and 2.0
+        assert priority > 1.0 && priority <= 2.0,
+          "Expected adaptive priority between 1.0 and 2.0 for sampled transaction, got #{priority}"
+
+        # Check that it's rounded to correct precision
+        assert_equal priority, priority.round(NewRelic::PRIORITY_PRECISION),
+          "Expected priority to be rounded to #{NewRelic::PRIORITY_PRECISION} decimal places"
+      end
+    end
+
+    def test_adaptive_priority_when_not_sampled
+      with_config(:'distributed_tracing.enabled' => true) do
+        # Stub adaptive sampler to return false (not sampled)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+
+        txn = in_transaction {}
+        priority = txn.adaptive_priority
+
+        # For non-sampled transactions, priority should be between 0.0 and 1.0
+        assert priority >= 0.0 && priority < 1.0,
+          "Expected adaptive priority between 0.0 and 1.0 for non-sampled transaction, got #{priority}"
+
+        # Check that it's rounded to correct precision
+        assert_equal priority, priority.round(NewRelic::PRIORITY_PRECISION),
+          "Expected priority to be rounded to #{NewRelic::PRIORITY_PRECISION} decimal places"
+      end
+    end
+
     def test_referer_in_agent_attributes
       request = stub('request', :referer => '/referred', :path => '/')
       txn = in_transaction(:request => request) do
