@@ -36,15 +36,7 @@ module NewRelic
         end
 
         def method_name(name)
-          # TODO: OLD RUBIES - remove the <= 2.4 path once 2.5+ is required
-          if RUBY_VERSION.to_f <= 2.4
-            # String#delete_prefix requires Ruby 2.5+
-            # rubocop:disable Performance/DeleteSuffix
-            EVENT_NAME_TO_METHOD_NAME.fetch(name, name.delete_prefix('cache_').delete_suffix('.active_support'))
-            # rubocop:enable Performance/DeleteSuffix
-          else
-            EVENT_NAME_TO_METHOD_NAME.fetch(name, name.delete_prefix('cache_').delete_suffix('.active_support'))
-          end
+          EVENT_NAME_TO_METHOD_NAME.fetch(name, name.delete_prefix('cache_').delete_suffix('.active_support'))
         end
       end
     end
