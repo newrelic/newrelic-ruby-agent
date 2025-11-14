@@ -576,13 +576,6 @@ module NewRelic
           :exclude_from_reported_settings => true,
           :description => 'Defines a user for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
         },
-        :security_policies_token => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Applies Language Agent Security Policy settings.'
-        },
         :send_data_on_exit => {
           :default => true,
           :public => true,
