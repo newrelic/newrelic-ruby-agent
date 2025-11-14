@@ -190,8 +190,8 @@ module NewRelic
             transaction.sampled = false
             transaction.priority = 0
           when 'trace_id_ratio_based'
-            transaction.sampled = trace_ratio_sampled?(ratio)
-            transaction.priority = adaptive_priority
+            transaction.sampled = transaction.trace_ratio_sampled?(ratio)
+            transaction.priority = transaction.adaptive_priority
           when 'adaptive'
             use_nr_tracestate_sampled(payload)
           end
