@@ -10,13 +10,11 @@ module NewRelic::Agent::Configuration
   class SamplerConfigValidatorTest < Minitest::Test
     def setup
       NewRelic::Agent.config.reset_to_defaults
-      # Reset the warning tracking
       SamplerConfigValidator.reset_warnings!
     end
 
     def teardown
       NewRelic::Agent.config.reset_to_defaults
-      # Reset the warning tracking
       SamplerConfigValidator.reset_warnings!
     end
 
@@ -47,7 +45,6 @@ module NewRelic::Agent::Configuration
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 0.5) do
         config_value = NewRelic::Agent.config[:'distributed_tracing.sampler.root']
 
-        # Manually apply the transform as if we're setting trace_id_ratio_based
         transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
           :'distributed_tracing.sampler.root',
           :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
@@ -87,9 +84,7 @@ module NewRelic::Agent::Configuration
     def test_root_strategy_falls_back_to_default_when_ratio_is_invalid_type
       NewRelic::Agent.logger.stubs(:warn)
 
-      # The transform on the ratio config will convert invalid types to nil
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => '0.5') do
-        # The ratio will be validated and become nil due to the transform
         ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
 
         assert_nil ratio, 'Invalid ratio should be transformed to nil'
@@ -108,7 +103,6 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.5) do
-        # The ratio will be validated and become nil due to the transform
         ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
 
         assert_nil ratio, 'Out of range ratio should be transformed to nil'
@@ -129,7 +123,6 @@ module NewRelic::Agent::Configuration
       with_config(
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => -0.5
       ) do
-        # The ratio will be validated and become nil due to the transform
         ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio']
 
         assert_nil ratio, 'Invalid ratio should be transformed to nil'
@@ -185,7 +178,6 @@ module NewRelic::Agent::Configuration
     end
 
     def test_warning_logged_only_once_per_strategy
-      # Reset warnings to ensure clean state
       SamplerConfigValidator.reset_warnings!
 
       NewRelic::Agent.logger.expects(:warn).with(regexp_matches(/Invalid or missing ratio/)).once
@@ -196,7 +188,7 @@ module NewRelic::Agent::Configuration
           :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
         )
 
-        # Call the transform multiple times to simulate multiple config sources
+        # Simulate multiple config sources
         3.times do
           result = transform.call('trace_id_ratio_based')
 
@@ -206,7 +198,6 @@ module NewRelic::Agent::Configuration
     end
 
     def test_different_strategies_log_separate_warnings
-      # Reset warnings to ensure clean state
       SamplerConfigValidator.reset_warnings!
 
       # Expect two separate warnings, one for each strategy
@@ -217,7 +208,6 @@ module NewRelic::Agent::Configuration
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => nil,
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => nil
       ) do
-        # Test root strategy
         root_transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
           :'distributed_tracing.sampler.root',
           :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
@@ -226,7 +216,6 @@ module NewRelic::Agent::Configuration
 
         assert_equal 'default', root_result
 
-        # Test remote_parent_sampled strategy
         remote_transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
           :'distributed_tracing.sampler.remote_parent_sampled',
           :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'
@@ -244,14 +233,11 @@ module NewRelic::Agent::Configuration
           :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
         )
 
-        # First call should log warning
         NewRelic::Agent.logger.expects(:warn).once
         transform.call('trace_id_ratio_based')
 
-        # Reset warnings
         SamplerConfigValidator.reset_warnings!
 
-        # Next call should log again after reset
         NewRelic::Agent.logger.expects(:warn).once
         transform.call('trace_id_ratio_based')
       end
@@ -261,8 +247,7 @@ module NewRelic::Agent::Configuration
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.5) do
         ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
 
-        # The transform should convert invalid ratio to nil
-        assert_nil ratio
+        assert_nil ratio, 'Expected transform to convert an invalid ratio to nil'
       end
     end
 
@@ -283,8 +268,7 @@ module NewRelic::Agent::Configuration
       ) do
         strategy = NewRelic::Agent.config[:'distributed_tracing.sampler.root']
 
-        # The transform should convert trace_id_ratio_based to default when ratio is invalid
-        assert_equal 'default', strategy
+        assert_equal 'default', strategy, "Expected sampler strategy to be 'default' when ratio is invalid"
       end
     end
   end

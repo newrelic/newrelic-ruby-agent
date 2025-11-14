@@ -688,7 +688,6 @@ module NewRelic
         end
 
         def test_multi_hop_distributed_trace_with_trace_id_ratio_based
-          # Test that trace_id and sampling decisions propagate correctly through multiple hops
           grandparent_trace_id = nil
           parent_sampled = nil
           grandparent_payload = nil
@@ -696,8 +695,7 @@ module NewRelic
 
           with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
             :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0,
-            :'distributed_tracing.sampler.remote_parent_sampled' => 'default'
-            ) do
+            :'distributed_tracing.sampler.remote_parent_sampled' => 'default') do
             # Grandparent transaction (root)
             in_transaction('grandparent_txn') do |grandparent_txn|
               grandparent_trace_id = grandparent_txn.trace_id
@@ -727,22 +725,25 @@ module NewRelic
         end
 
         def test_priority_set_correctly_across_different_sampler_types
-          # Test that always_on sets priority to 2.0
+          # always_on sets priority to 2.0
           with_config(:'distributed_tracing.sampler.root' => 'always_on') do
             txn_always_on = in_transaction('always_on_txn') {}
-            assert_equal 2.0, txn_always_on.priority
+
+            assert_in_delta(2.0, txn_always_on.priority)
           end
 
-          # Test that always_off sets priority to 0
+          # always_off sets priority to 0
           with_config(:'distributed_tracing.sampler.root' => 'always_off') do
             txn_always_off = in_transaction('always_off_txn') {}
+
             assert_equal 0, txn_always_off.priority
           end
 
-          # Test that trace_id_ratio_based with ratio 1.0 uses adaptive priority
+          # trace_id_ratio_based with ratio 1.0 uses adaptive priority
           with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
             :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0) do
             txn_ratio = in_transaction('ratio_txn') {}
+
             assert txn_ratio.priority > 1.0 && txn_ratio.priority < 2.0,
               "Expected adaptive priority, got #{txn_ratio.priority}"
           end
