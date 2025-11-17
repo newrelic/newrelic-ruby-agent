@@ -18,6 +18,11 @@ module NewRelic
           'cache_read_multi.active_support' => 'read_multi',
           'cache_write_multi.active_support' => 'write_multi',
           'cache_delete_multi.active_support' => 'delete_multi',
+          'cache_delete_matched.active_support' => 'delete_matched',
+          'cache_cleanup.active_support' => 'cleanup',
+          'cache_increment.active_support' => 'increment',
+          'cache_decrement.active_support' => 'decrement',
+          'cache_prune.active_support' => 'prune',
           'message_serializer_fallback.active_support' => 'message_serializer_fallback'
         }.freeze
 
