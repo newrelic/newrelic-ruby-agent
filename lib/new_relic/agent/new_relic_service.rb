@@ -204,9 +204,9 @@ module NewRelic
         if data.size >= MIN_BYTE_SIZE_TO_COMPRESS
           encoding = Agent.config[:compressed_content_encoding]
           data = if encoding == 'deflate'
-            Encoders::Compressed::Deflate.encode(data)
+            Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
           else
-            Encoders::Compressed::Gzip.encode(data)
+            Zlib.gzip(data)
           end
         end
         check_post_size(data, endpoint)

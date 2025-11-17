@@ -31,6 +31,10 @@
 
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
 
+- **Feature: Use Ruby's built-in Gzip compression**
+
+  The agent's now uses the built-in `zlib.gzip` method available in the Ruby standard library instead for compression logic, instead of a custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**
