@@ -227,5 +227,3 @@ class APISupportabilityMetricsTest < Minitest::Test
     assert_api_supportability_metric_recorded(:trace_execution_unscoped)
   end
 end
-
-

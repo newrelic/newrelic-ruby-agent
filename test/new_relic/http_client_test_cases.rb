@@ -263,9 +263,6 @@ module HttpClientTestCases
     end
   end
 
-
-
-
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     in_transaction { get_response }
 
@@ -450,7 +447,6 @@ module HttpClientTestCases
       refute_includes server.requests.last.keys, 'HTTP_X_NEWRELIC_SYNTHETICS'
     end
   end
-
 
   # These tests only cover receiving, validating, and passing on the synthetics
   # request header to any outgoing HTTP requests. They do *not* cover attaching
