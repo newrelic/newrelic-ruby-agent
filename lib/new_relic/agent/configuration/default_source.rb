@@ -1127,18 +1127,6 @@ module NewRelic
           :description => "If `true`, the agent will report source code level metrics for traced methods.\n\tSee: " \
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
-        # Cross application tracer
-        :"cross_application_tracer.enabled" => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => true,
-          :deprecated => true,
-          :description => deprecated_description(
-            :'distributed_tracing.enabled',
-            '  If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) when `distributed_tracing.enabled` is set to `false`.'
-          )
-        },
         # Custom attributes
         :'custom_attributes.enabled' => {
           :default => true,

@@ -206,39 +206,6 @@ module NewRelic::Agent
         end
       end
 
-      def test_segment_records_expected_metrics_for_cat_transaction
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
-
-        with_config(cat_config) do
-          in_transaction('test', :category => :controller) do |txn|
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://newrelic.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.process_response_headers(response)
-            segment.finish
-          end
-
-          expected_metrics = [
-            'ExternalTransaction/newrelic.com/1#1884/txn-name',
-            'ExternalApp/newrelic.com/1#1884/all',
-            'External/all',
-            'External/newrelic.com/all',
-            'External/allWeb',
-            ['ExternalTransaction/newrelic.com/1#1884/txn-name', 'test']
-          ]
-
-          if Agent.config[:'distributed_tracing.enabled']
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-          end
-
-          assert_metrics_recorded expected_metrics
-        end
-      end
 
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
         with_config(:'distributed_tracing.enabled' => true,
@@ -329,23 +296,6 @@ module NewRelic::Agent
         end
       end
 
-      def test_segment_writes_outbound_request_headers
-        request = RequestWrapper.new
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.add_request_headers(request)
-            segment.finish
-          end
-        end
-
-        assert request.headers.key?('X-NewRelic-ID'), 'Expected to find X-NewRelic-ID header'
-        assert request.headers.key?('X-NewRelic-Transaction'), 'Expected to find X-NewRelic-Transaction header'
-      end
 
       def test_segment_writes_outbound_request_headers_for_trace_context
         request = RequestWrapper.new
@@ -365,27 +315,6 @@ module NewRelic::Agent
         assert request.headers.key?('tracestate'), 'Expected to find tracestate header'
       end
 
-      def test_segment_writes_synthetics_header_for_synthetics_txn
-        synthetics_info_header = {'version' => '1', 'type' => 'automatedTest', 'initiator' => 'cli', 'attributes' => {'attribute1' => 'one'}}
-        request = RequestWrapper.new
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do |txn|
-            txn.raw_synthetics_header = json_dump_and_encode([1, 42, 100, 200, 300])
-            txn.raw_synthetics_info_header = synthetics_info_header
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.add_request_headers(request)
-            segment.finish
-          end
-        end
-
-        assert request.headers.key?('X-NewRelic-Synthetics'), 'Expected to find X-NewRelic-Synthetics header'
-        assert request.headers.key?('X-NewRelic-Synthetics-Info'), 'Expected to find X-NewRelic-Synthetics-Info header'
-        assert_equal request.headers['X-NewRelic-Synthetics-Info'], synthetics_info_header
-      end
 
       def test_add_request_headers_renames_segment_based_on_host_header
         request = RequestWrapper.new({'host' => 'anotherhost.local'})
@@ -406,28 +335,6 @@ module NewRelic::Agent
         end
       end
 
-      def test_read_response_headers_decodes_valid_appdata
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
-
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do |txn|
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.process_response_headers(response)
-            segment.finish
-
-            assert_predicate segment, :cross_app_request?
-            assert_equal '1#1884', segment.cross_process_id
-            assert_equal 'txn-name', segment.cross_process_transaction_name
-            assert_equal 'BEC1BC64675138B9', segment.transaction_guid
-          end
-        end
-      end
 
       # Can pass :status_code and any HTTP code in headers to alter
       # default 200 (OK) HTTP status code
@@ -447,23 +354,6 @@ module NewRelic::Agent
         return [segment, http_response]
       end
 
-      def test_read_response_headers_ignores_invalid_appdata
-        headers = {
-          'X-NewRelic-App-Data' => 'this#is#not#valid#appdata'
-        }
-        segment_params = {
-          library: 'Net::HTTP',
-          uri: 'http://remotehost.com/blogs/index',
-          procedure: 'GET'
-        }
-        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
-
-        refute_predicate segment, :cross_app_request?
-        assert_equal 200, segment.http_status_code
-        assert_nil segment.cross_process_id
-        assert_nil segment.cross_process_transaction_name
-        assert_nil segment.transaction_guid
-      end
 
       def test_sets_http_status_code_ok
         headers = {
@@ -567,59 +457,9 @@ module NewRelic::Agent
         assert_equal uri, node.params[:uri]
       end
 
-      def test_guid_recorded_as_tt_attribute_for_cat_txn
-        segment = nil
-
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
-
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.process_response_headers(response)
-            segment.finish
-          end
-        end
-
-        sample = last_transaction_trace
-        node = find_node_with_name(sample, segment.name)
-
-        assert_equal TRANSACTION_GUID, node.params[:transaction_guid]
-      end
-
       # --- get_request_metadata
 
-      def test_get_request_metadata
-        with_config(cat_config.merge(:'cross_application_tracer.enabled' => true)) do
-          in_transaction do |txn|
-            rmd = external_request_segment { |s| s.get_request_metadata }
 
-            assert_instance_of String, rmd
-            rmd = @obfuscator.deobfuscate(rmd)
-            rmd = JSON.parse(rmd)
-
-            assert_instance_of Hash, rmd
-
-            assert_equal '269975#22824', rmd['NewRelicID']
-
-            assert_instance_of Array, rmd['NewRelicTransaction']
-            assert_equal txn.guid, rmd['NewRelicTransaction'][0]
-            refute rmd['NewRelicTransaction'][1]
-
-            assert_equal txn.distributed_tracer.cat_trip_id, rmd['NewRelicTransaction'][2]
-            assert_equal txn.distributed_tracer.cat_path_hash, rmd['NewRelicTransaction'][3]
-
-            refute rmd.key?('NewRelicSynthetics')
-
-            assert_predicate txn.distributed_tracer, :is_cross_app_caller?
-          end
-        end
-      end
 
       def test_get_request_metadata_with_cross_app_tracing_disabled
         with_config(cat_config.merge(:'cross_application_tracer.enabled' => false)) do
@@ -627,21 +467,6 @@ module NewRelic::Agent
             rmd = external_request_segment { |s| s.get_request_metadata }
 
             refute rmd, '`get_request_metadata` should return nil with cross app tracing disabled'
-          end
-        end
-      end
-
-      def test_get_request_metadata_with_synthetics_header
-        with_config(cat_config) do
-          in_transaction do |txn|
-            txn.raw_synthetics_header = 'raw_synth'
-
-            rmd = external_request_segment { |s| s.get_request_metadata }
-
-            rmd = @obfuscator.deobfuscate(rmd)
-            rmd = JSON.parse(rmd)
-
-            assert_equal 'raw_synth', rmd['NewRelicSynthetics']
           end
         end
       end

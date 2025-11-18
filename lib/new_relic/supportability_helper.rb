@@ -23,7 +23,6 @@ module NewRelic
       :disable_all_tracing,
       :disable_sql_recording,
       :drop_buffered_data,
-      :get_request_metadata,
       :get_response_metadata,
       :get_transaction_name,
       :ignore_apdex,
