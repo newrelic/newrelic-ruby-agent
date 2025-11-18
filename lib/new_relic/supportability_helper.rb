@@ -38,7 +38,6 @@ module NewRelic
       :notice_sql,
       :notice_statement,
       :perform_action_with_newrelic_trace,
-      :process_request_metadata,
       :process_response_metadata,
       :record_custom_event,
       :record_metric,

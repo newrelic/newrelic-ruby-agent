@@ -6,6 +6,10 @@
 
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
+- **Breaking Change: Removal of Cross Application Tracing (CAT)**
+
+  Removed CAT config, and public api methods NewRelic::Agent::External.process_request_metadata and NewRelic::Agent::External.get_response_metadata
+
 - **Feature: Add `logger` as a dependency**
   The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
 
