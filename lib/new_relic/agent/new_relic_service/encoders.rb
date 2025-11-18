@@ -17,6 +17,14 @@ module NewRelic
           end
         end
 
+        module Compressed
+          module Deflate
+            def self.encode(data, opts = nil)
+              Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
+            end
+          end
+        end
+
         module Base64CompressedJSON
           def self.encode(data, opts = {})
             if !opts[:skip_normalization] && Agent.config[:normalize_json_string_encodings]
