@@ -243,6 +243,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           group: services_kafka
           pr-ci: false
+          number_of_attempts: 4
 
 
   multiverse_services_mysql_pg:
