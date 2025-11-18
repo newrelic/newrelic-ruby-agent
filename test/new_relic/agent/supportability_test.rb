@@ -250,7 +250,6 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
     assert_metrics_recorded(["Supportability/API/#{method_name}"])
   end
 
-
   def test_process_request_metadata_records_supportability_metric
     NewRelic::Agent::External.process_request_metadata('')
 

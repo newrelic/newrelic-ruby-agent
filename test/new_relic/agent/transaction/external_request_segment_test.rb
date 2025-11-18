@@ -206,7 +206,6 @@ module NewRelic::Agent
         end
       end
 
-
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
         with_config(:'distributed_tracing.enabled' => true,
           :trusted_account_key => 'trust_this!') do
@@ -296,7 +295,6 @@ module NewRelic::Agent
         end
       end
 
-
       def test_segment_writes_outbound_request_headers_for_trace_context
         request = RequestWrapper.new
         with_config(trace_context_config) do
@@ -314,7 +312,6 @@ module NewRelic::Agent
         assert request.headers.key?('traceparent'), 'Expected to find traceparent header'
         assert request.headers.key?('tracestate'), 'Expected to find tracestate header'
       end
-
 
       def test_add_request_headers_renames_segment_based_on_host_header
         request = RequestWrapper.new({'host' => 'anotherhost.local'})
@@ -335,7 +332,6 @@ module NewRelic::Agent
         end
       end
 
-
       # Can pass :status_code and any HTTP code in headers to alter
       # default 200 (OK) HTTP status code
       def with_external_segment(headers, config, segment_params)
@@ -353,7 +349,6 @@ module NewRelic::Agent
         end
         return [segment, http_response]
       end
-
 
       def test_sets_http_status_code_ok
         headers = {
@@ -458,8 +453,6 @@ module NewRelic::Agent
       end
 
       # --- get_request_metadata
-
-
 
       def test_get_request_metadata_with_cross_app_tracing_disabled
         with_config(cat_config.merge(:'cross_application_tracer.enabled' => false)) do

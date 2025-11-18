@@ -24,16 +24,6 @@ module NewRelic
 
       # --- process_request_metadata
 
-
-
-
-
-
-
-
-
-
-
       def test_process_request_metadata_cross_app_disabled
         with_config(cat_config.merge(:'cross_application_tracer.enabled' => false)) do
           rmd = @obfuscator.obfuscate(::JSON.dump({
@@ -52,9 +42,6 @@ module NewRelic
       end
 
       # --- get_response_metadata
-
-
-
 
       # ---
 

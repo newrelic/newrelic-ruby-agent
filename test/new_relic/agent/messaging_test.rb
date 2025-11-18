@@ -442,10 +442,6 @@ module NewRelic
         ]
       end
 
-
-
-
-
       def obfuscator
         NewRelic::Agent::CrossAppTracing.obfuscator
       end
