@@ -33,7 +33,7 @@
 
 - **Feature: Use Ruby's built-in Gzip compression**
 
-  The agent's now uses the built-in `zlib.gzip` method available in the Ruby standard library instead for compression logic, instead of a custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)
+  The agent now uses the built-in `Zlib.gzip` method from the Ruby standard library for compression, replacing the previous custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)
 
 ## v9.23.0
 
