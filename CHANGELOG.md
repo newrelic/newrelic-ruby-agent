@@ -8,7 +8,7 @@
 
 - **Breaking Change: Removal of Cross Application Tracing (CAT)**
 
-  Previously, Cross Application Tracing (CAT) was deprecated in favor of Distributed Tracing. CAT functionality has now been removed. The configuration option `cross_application_tracer.enabled` has been removed. Public API methods `NewRelic::Agent::External.process_request_metadata` and `NewRelic::Agent::External.get_response_metadata` have also been removed. [PR#3333](https://github.com/newrelic/newrelic-ruby-agent/pull/3333)
+  Previously, Cross Application Tracing (CAT) was deprecated in favor of Distributed Tracing. CAT functionality has now been removed. The configuration option `cross_application_tracer.enabled` has been removed. Public API methods `NewRelic::Agent::External.process_request_metadata`, `NewRelic::Agent::External.get_response_metadata`, `NewRelic::Agent::Transaction::ExternalRequestSegment#process_response_metadata`, and `NewRelic::Agent::Transaction::ExternalRequestSegment#get_request_metadata` have also been removed. [PR#3333](https://github.com/newrelic/newrelic-ruby-agent/pull/3333)
 
 - **Feature: Add `logger` as a dependency**
   The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
