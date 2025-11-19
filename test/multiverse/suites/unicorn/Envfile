@@ -7,8 +7,8 @@ suite_condition("unicorn not supported for JRuby") do
 end
 
 SUPPORTED_UNICORN_VERSIONS = [
-  [nil, 2.4],
-  ['4.9.0', 2.4]
+  [nil, 2.6],
+  ['4.9.0', 2.6]
 ]
 
 def rack_version

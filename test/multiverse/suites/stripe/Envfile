@@ -7,9 +7,9 @@
 instrumentation_methods :chain
 
 STRIPE_VERSIONS = [
-  [nil, 2.4],
-  ['12.6.0', 2.4],
-  ['5.38.0', 2.4]
+  [nil, 2.6],
+  ['12.6.0', 2.6],
+  ['5.38.0', 2.6]
 ]
 
 def gem_list(stripe_version = nil)
