@@ -8,12 +8,10 @@ instrumentation_methods :chain, :prepend
 # Do not test newer Rails versions on this suite.
 ACTIVE_SUPPORT_VERSIONS = [
   ['7.0.4', 2.7],
-  ['6.1.7', 2.5],
-  ['6.0.6', 2.5, 2.7],
-  ['5.2.8', 2.4, 2.7],
-  ['5.1.7', 2.4, 2.7],
-  ['5.0.7', 2.4, 2.7],
-  ['4.2.11', 2.4, 2.4]
+  ['6.1.7', 2.6],
+  ['6.0.6', 2.6, 2.7],
+  ['5.2.8', 2.6, 2.7],
+  ['5.1.7', 2.6, 2.7]
 ]
 
 def gem_list(activesupport_version = nil)

@@ -7,21 +7,13 @@ instrumentation_methods :chain, :prepend
 def sqlite
   if RUBY_PLATFORM == 'java'
     "gem 'activerecord-jdbcsqlite3-adapter'"
-  elsif RUBY_VERSION >= '2.5.0'
-    "gem 'sqlite3', '~> 1.4.2'"
   else
-    "gem 'sqlite3', '~> 1.3.13'"
+    "gem 'sqlite3', '~> 1.4.2'"
   end
 end
 
 def bigdecimal
-  unless RUBY_PLATFORM == 'java' || RUBY_VERSION < '2.5.0'
-    "gem 'bigdecimal', '~> 3.0.0'"
-  end
-
-  if RUBY_VERSION <= '2.5.0'
-    "gem 'bigdecimal', '~> 1.4.0'"
-  end
+  "gem 'bigdecimal', '~> 3.0.0'" unless RUBY_PLATFORM == 'java'
 end
 
 boilerplate_gems = <<~SQLITE
@@ -69,22 +61,12 @@ gemfile <<~RB
   #{boilerplate_gems}
 RB
 
-if RUBY_VERSION < '2.5.0' && RUBY_PLATFORM != 'java'
+if RUBY_PLATFORM != 'java'
   # delayed_job_active_record 4.1.2 drops support for Rails 3
   gemfile <<~RB
     gem 'delayed_job', '~> 4.1.4'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 5.0.0'
-    gem 'i18n', '~> 0.7.0'
-    #{boilerplate_gems}
-  RB
-end
-
-if RUBY_VERSION < '2.5.0'
-  gemfile <<~RB
-    gem 'delayed_job', '~> 4.1.4'
-    gem 'delayed_job_active_record', '~> 4.1.2'
-    gem 'activerecord', '~> 4.2.0'
     gem 'i18n', '~> 0.7.0'
     #{boilerplate_gems}
   RB
