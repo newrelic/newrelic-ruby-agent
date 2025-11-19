@@ -21,15 +21,11 @@ end
 # We have tests to assert unsupported versions of MongoDB, hence the reason they
 # appear in these lists
 
+# Mongo versions to test with JRuby only
+JRUBY_ONLY_MONGO_VERSIONS = ['2.17.4', '2.18.3']
+
 # Mongo versions to test with Ruby 2.6+
-MONGO_VERSIONS_RUBY26 = ['2.17.4', '2.18.3']
-
-# Mongo versions to test with Ruby 2.5+
-MONGO_VERSIONS_RUBY25 = ['2.15.1', '2.12.0']
-
-# TODO: MAJOR VERSION - Stop testing mongo versions below 2.5.0
-# Mongo versions to test with CRubies below 2.5.0
-MONGO_VERSIONS_OLDER_RUBIES = ['2.9.0', '2.4.0']
+MONGO_VERSIONS_RUBY26_PLUS = ['2.9.0', '2.12.0', '2.15.1']
 
 # The highest Mongo server version to test 1.x gems against
 MAX_SERVER_VERSION_FOR_1X_GEMS = 2.6
@@ -41,20 +37,12 @@ CANNED_MONGO_VERSION = 5.0
 # * Older CRubies use older Mongo gem versions
 def mongo_versions
   versions = []
-  versions += MONGO_VERSIONS_RUBY26 if ruby_gte?('2.6.0')
+  versions += JRUBY_ONLY_MONGO_VERSIONS
   return versions if RUBY_PLATFORM.eql?('java')
 
-  if ruby_gte?('2.5.0')
-    versions += MONGO_VERSIONS_RUBY25
-  else
-    versions += MONGO_VERSIONS_OLDER_RUBIES
-  end
+  versions += MONGO_VERSIONS_RUBY26_PLUS
   
   versions
-end
-
-def ruby_gte?(version)
-  Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version)
 end
 
 def determine_mongo_version
