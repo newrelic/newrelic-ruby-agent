@@ -308,10 +308,8 @@ module Multiverse
     end
 
     # rack v3 moved rack/handler out into a separate rackup gem
-    # rack v3 and rackup require Ruby 2.4+, so assume rack v2 or below
-    # (which doesn't need the separate rackup) for older rubies
     def need_rackup?(gemfile_text)
-      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/ && RUBY_VERSION >= '2.6.0'
+      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/
 
       rack_major_version = Regexp.last_match(1)
       return true if rack_major_version.nil? # no version constraint, latest rack, needs rackup
