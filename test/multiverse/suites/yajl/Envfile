@@ -7,8 +7,8 @@ suite_condition("Yajl not supported for JRuby") do
 end
 
 YAJL_VERSIONS = [
-  [nil, 2.6],
-  ['1.2.1', 2.6]
+  [nil]
+  ['1.2.1']
 ]
 
 def gem_list(yajl_version = nil)

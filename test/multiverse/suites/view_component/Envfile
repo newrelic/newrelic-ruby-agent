@@ -7,7 +7,7 @@ instrumentation_methods :chain, :prepend
 VIEW_COMPONENT_VERSIONS = [
   [nil, 2.7],
   ['3.15.0', 2.7], # 3.15.0 should remain tested due to API differences before and after this version
-  ['2.53.0', 2.6]
+  ['2.53.0']
 ]
 
 def gem_list(view_component_version = nil)

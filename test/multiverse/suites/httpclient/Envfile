@@ -4,8 +4,8 @@
 
 instrumentation_methods :chain, :prepend
 HTTPCLIENT_VERSIONS = [
-  [nil, 2.6],
-  ['2.8.3', 2.6]
+  [nil],
+  ['2.8.3']
 ]
 
 def gem_list(httpclient_version = nil)

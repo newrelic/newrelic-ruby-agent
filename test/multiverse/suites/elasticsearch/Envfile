@@ -6,8 +6,8 @@ instrumentation_methods :chain, :prepend
 
 ELASTICSEARCH_VERSIONS = [
   # only testing 7 and 9 to prevent memory issues in the CI (8 and 9 are the same)
-  [nil, 2.6],
-  ['7.17.1', 2.6]
+  [nil],
+  ['7.17.1']
 ]
 
 def gem_list(elasticsearch_version = nil)

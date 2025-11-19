@@ -6,8 +6,8 @@ instrumentation_methods :chain, :prepend
 
 SINATRA_VERSIONS = [
   [nil, 2.7],
-  ['3.2.0', 2.6],
-  ['2.0.0', 2.6]
+  ['3.2.0'],
+  ['2.0.0']
 ]
 
 def gem_list(sinatra_version = nil)

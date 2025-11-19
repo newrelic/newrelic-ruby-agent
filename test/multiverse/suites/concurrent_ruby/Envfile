@@ -8,8 +8,8 @@ instrumentation_methods :chain, :prepend
 # we reference in our logic to notice errors after 1.1.5
 # 1.1.4 and below do not use these classes.
 CONCURRENT_RUBY_VERSIONS = [
-  [nil, 2.6],
-  ['1.1.5', 2.6]
+  [nil],
+  ['1.1.5']
 ]
 
 def gem_list(concurrent_version = nil)

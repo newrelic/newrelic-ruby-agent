@@ -7,8 +7,8 @@ suite_condition("unicorn not supported for JRuby") do
 end
 
 SUPPORTED_UNICORN_VERSIONS = [
-  [nil, 2.6],
-  ['4.9.0', 2.6]
+  [nil],
+  ['4.9.0']
 ]
 def gem_list(unicorn_version = nil)
   <<~RB

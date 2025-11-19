@@ -9,7 +9,7 @@ instrumentation_methods :chain, :prepend
 # Ruby v3.3.0+ requires Puma v6.4.0+
 # https://github.com/puma/puma/commit/188f5da1920ff99a8689b3e9b46f2f26b7c62d66
 PUMA_VERSIONS = [
-  [nil, 2.6],
+  [nil],
   ['5.6.4', 2.6, 3.2],
   ['4.3.12', 2.6, 3.2],
   ['3.12.6', 2.6, 3.2]
