@@ -277,7 +277,7 @@ module Multiverse
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless /^\s*gem .newrelic_rpm./.match?(gemfile_text)
-        f.puts minitest_line unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
+        f.puts "gem 'minitest', '~> 2.6', :require => false" unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
         f.puts "gem 'rackup', '>=2.0.0'" if need_rackup?(gemfile_text)
@@ -307,27 +307,9 @@ module Multiverse
       line
     end
 
-    def minitest_line
-      "gem 'minitest', '~> #{minitest_version}', :require => false"
-    end
-
-    def minitest_version
-      if RUBY_VERSION >= '2.6'
-        '5.16.2'
-      elsif RUBY_VERSION >= '2.5'
-        '5.15.0'
-      elsif RUBY_VERSION >= '2.4'
-        '5.10.1'
-      else
-        '4.7.5'
-      end
-    end
-
     # rack v3 moved rack/handler out into a separate rackup gem
-    # rack v3 and rackup require Ruby 2.4+, so assume rack v2 or below
-    # (which doesn't need the separate rackup) for older rubies
     def need_rackup?(gemfile_text)
-      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/ && RUBY_VERSION >= '2.4.0'
+      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/
 
       rack_major_version = Regexp.last_match(1)
       return true if rack_major_version.nil? # no version constraint, latest rack, needs rackup
