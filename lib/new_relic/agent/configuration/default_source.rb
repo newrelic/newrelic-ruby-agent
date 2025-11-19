@@ -810,7 +810,6 @@ module NewRelic
           :default => [],
           :public => true,
           :type => Array,
-          :transform => DefaultSource.method(:convert_to_list),
           :allowed_from_server => false,
           :description => 'A case-insensitive array or comma-delimited string containing the labels to exclude from log records.'
         },
@@ -2700,7 +2699,6 @@ module NewRelic
           :type => Array,
           :external => true,
           :allowed_from_server => true,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should find a complete match for the URL without the endpoint. For example, `[".*account.*"], [".*/\api\/v1\/.*?\/login"]`'
         },
         :'security.exclude_from_iast_scan.http_request_parameters.header' => {
@@ -2709,7 +2707,6 @@ module NewRelic
           :type => Array,
           :external => true,
           :allowed_from_server => true,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'An array of HTTP request headers the security agent should ignore in IAST scans. The array should specify a list of patterns matching the headers to ignore.'
         },
         :'security.exclude_from_iast_scan.http_request_parameters.query' => {
@@ -2718,7 +2715,6 @@ module NewRelic
           :type => Array,
           :external => true,
           :allowed_from_server => true,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'An array of HTTP request query parameters the security agent should ignore in IAST scans. The array should specify a list of patterns matching the HTTP request query parameters to ignore.'
         },
         :'security.exclude_from_iast_scan.http_request_parameters.body' => {
@@ -2727,7 +2723,6 @@ module NewRelic
           :type => Array,
           :external => true,
           :allowed_from_server => true,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'An array of HTTP request body keys the security agent should ignore in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.insecure_settings' => {
