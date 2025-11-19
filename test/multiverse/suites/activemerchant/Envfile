@@ -3,8 +3,7 @@
 # frozen_string_literal: true
 
 ACTIVEMERCHANT_VERSIONS = [
-  [nil, 2.6],
-  ['1.65.0', 2.6]
+  [nil, 2.6]
 ]
 
 def gem_list(activemerchant_version = nil)
