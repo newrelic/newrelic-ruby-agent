@@ -12,15 +12,10 @@ def sqlite
   end
 end
 
-def bigdecimal
-  "gem 'bigdecimal', '~> 3.0.0'" unless RUBY_PLATFORM == 'java'
-end
-
 boilerplate_gems = <<~SQLITE
   gem 'rack'
   gem 'benchmark'
   #{sqlite}
-  #{bigdecimal}
 
 SQLITE
 
