@@ -1,5 +1,54 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Breaking Change: Remove support for Ruby 2.4 and 2.5**
+
+  Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
+
+- **Feature: Add `logger` as a dependency**
+  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
+
+- **Breaking Change: Rename ActiveJob metrics**
+
+  ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
+    - Old format: `Ruby/ActiveJob/<QueueName>/<Method>`
+    - New format: `Ruby/ActiveJob/<ClassName>/<QueueName>/<Method>`
+
+- **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
+
+  The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
+
+- **Breaking Change: Remove the `newrelic deployments` CLI command**
+
+    The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+
+- **Breaking Change: Remove the NewRelic::Agent::SqlSampler#notice_sql method**
+
+  Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#]()
+
+- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
+
+  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
+- **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
+
+  The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
+
+## v9.23.0
+
+- **Feature: Add sidekiq.ignore_retry_errors configuration option**
+
+  A new configuration option, `sidekiq.ignore_retry_errors`, has been added to control if Sidekiq job retries are captured. Retry errors are captured by default, but now if `sidekiq.ignore_retry_errors` is set to `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails. Thank you [DonGiulio](https://github.com/DonGiulio) for recognizing this improvement and contributing a solution. [PR#3317](https://github.com/newrelic/newrelic-ruby-agent/pull/3317)
+
+- **Feature: Deprecation notice for recording deployments using Capistrano**
+
+  Sending application deployment information using a Capistrano recipe is deprecated and will be removed in agent version 10.0.0. For recording deployments, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
+
+- **Feature: Use remote parent sampling configurations for decisions in more scenarios**
+
+  Previously, the `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` configuration options were used for the sampling decision only when the `traceparent` and `tracestate` headers were present. Now, these configuration options are applied in cases when the `tracestate` header is missing and when only the `newrelic` header is available. This change makes distributed trace sampling more consistent and predictable. [PR#3306](https://github.com/newrelic/newrelic-ruby-agent/pull/3306)
+
 ## v9.22.0
 
 - **Feature: One-step instrumentation for Kubernetes**
