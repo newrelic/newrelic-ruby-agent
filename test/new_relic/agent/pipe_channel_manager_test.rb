@@ -79,7 +79,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def test_listener_merges_error_traces
-
       sampler = NewRelic::Agent.agent.error_collector
       sampler.notice_error(Exception.new('message'), :uri => '/myurl/',
         :metric => 'path', :referer => 'test_referer',
@@ -131,7 +130,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def test_listener_merges_error_events
-
       error_event_aggregator = NewRelic::Agent.agent.error_collector.error_event_aggregator
       reset_lifetime_counts!(error_event_aggregator)
 
