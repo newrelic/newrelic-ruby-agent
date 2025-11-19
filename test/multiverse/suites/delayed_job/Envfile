@@ -60,14 +60,3 @@ gemfile <<~RB
   gem 'activesupport', '~> 6.0.0' if RUBY_VERSION > '2.6.0'
   #{boilerplate_gems}
 RB
-
-if RUBY_PLATFORM != 'java'
-  # delayed_job_active_record 4.1.2 drops support for Rails 3
-  gemfile <<~RB
-    gem 'delayed_job', '~> 4.1.4'
-    gem 'delayed_job_active_record', '~> 4.1.2'
-    gem 'activerecord', '~> 5.0.0'
-    gem 'i18n', '~> 0.7.0'
-    #{boilerplate_gems}
-  RB
-end
