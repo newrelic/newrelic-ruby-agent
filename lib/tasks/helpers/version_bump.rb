@@ -46,7 +46,7 @@ module VersionBump
   def self.determine_bump_type
     file = read_file('CHANGELOG.md')
     lines = file.split('## ')[1].split('- **')
-    return MAJOR if lines.first.include?('Major version')
+    return MAJOR if lines.any? { |line| line.include?('Breaking Change:') }
     return MINOR if lines.any? { |line| line.include?('Feature:') }
 
     TINY
@@ -56,7 +56,6 @@ module VersionBump
   def self.update_changelog(version)
     file = read_file('CHANGELOG.md')
     file.gsub!('## dev', "## v#{version}")
-    file.gsub!('Version <dev>', "Version #{version}")
     write_file('CHANGELOG.md', file)
   end
 end

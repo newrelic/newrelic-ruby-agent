@@ -7,6 +7,7 @@
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
 - **Feature: Add `logger` as a dependency**
+
   The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
 
 - **Breaking Change: Rename ActiveJob metrics**
@@ -21,11 +22,11 @@
 
 - **Breaking Change: Remove the `newrelic deployments` CLI command**
 
-    The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+  The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
 
 - **Breaking Change: Remove the NewRelic::Agent::SqlSampler#notice_sql method**
 
-  Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#]()
+  Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#3338](https://github.com/newrelic/newrelic-ruby-agent/pull/3338)
 
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 
@@ -34,6 +35,10 @@
 - **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
 
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
+
+- **Breaking Change: Remove support for Puma versions < 3.9.0**
+
+  The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
 
 ## v9.23.0
 

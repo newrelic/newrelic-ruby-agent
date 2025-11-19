@@ -128,6 +128,10 @@ module NewRelic
         end
       end
 
+      def test_INVALID_payload_returns_valid_false
+        refute_predicate NewRelic::Agent::TraceContextPayload::INVALID, :valid?, 'INVALID Payload should be invalid'
+      end
+
       private
 
       def now_ms

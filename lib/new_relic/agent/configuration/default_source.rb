@@ -213,20 +213,6 @@ module NewRelic
           end
         end
 
-        def self.api_host
-          # only used for deployment task
-          proc do
-            api_version = if NewRelic::Agent.config[:api_key].nil? || NewRelic::Agent.config[:api_key].empty?
-              'rpm'
-            else
-              'api'
-            end
-            api_region = 'eu.' if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
-
-            "#{api_version}.#{api_region}newrelic.com"
-          end
-        end
-
         def self.convert_to_regexp_list(raw_value)
           value_list = convert_to_list(raw_value)
           value_list.map do |value|
@@ -422,14 +408,6 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'For agent versions 3.5.0 or higher, [set your Apdex T via the New Relic UI](/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings).'
         },
-        :api_key => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :exclude_from_reported_settings => true,
-          :description => '# DEPRECATED: The `api_key` config setting is now deprecated. Its only use was for the `newrelic deployments` command, which is being removed in agent version 10.0.0.'
-        },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
           :public => true,
@@ -597,13 +575,6 @@ module NewRelic
           :allowed_from_server => false,
           :exclude_from_reported_settings => true,
           :description => 'Defines a user for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
-        },
-        :security_policies_token => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Applies Language Agent Security Policy settings.'
         },
         :send_data_on_exit => {
           :default => true,
@@ -2140,6 +2111,13 @@ module NewRelic
             argument array elements and job argument scalars will be excluded.
           SIDEKIQ_ARGS_EXCLUDE
         },
+        :'sidekiq.ignore_retry_errors' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
+        },
         # Slow SQL
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
@@ -2319,20 +2297,6 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
         },
-        :api_host => {
-          :default => DefaultSource.api_host,
-          :public => false,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'API host for New Relic.'
-        },
-        :api_port => {
-          :default => value_of(:port),
-          :public => false,
-          :type => Integer,
-          :allowed_from_server => false,
-          :description => 'Port for the New Relic API host.'
-        },
         :application_id => {
           :default => '',
           :public => false,
@@ -2510,7 +2474,7 @@ module NewRelic
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
         # TODO: Sync with the other agents to see what the config should be named, how it should be enabled, how it should be described
-        :'opentelemetry_bridge.enabled' => {
+        :'opentelemetry.enabled' => {
           :default => false,
           :public => false,
           :type => Boolean,
