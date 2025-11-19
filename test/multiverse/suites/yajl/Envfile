@@ -7,7 +7,7 @@ suite_condition("Yajl not supported for JRuby") do
 end
 
 YAJL_VERSIONS = [
-  [nil]
+  [nil],
   ['1.2.1']
 ]
 
