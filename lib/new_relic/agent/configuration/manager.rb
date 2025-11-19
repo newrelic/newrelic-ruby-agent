@@ -186,6 +186,7 @@ module NewRelic
           #       in the DEFAULTS hash. then warn here when a key is in play
           #       that is not on that allowlist. for now, just permit any key
           #       and return the value.
+          #.      https://github.com/newrelic/newrelic-ruby-agent/issues/3340
           default_without_warning(key) || value
         end
 
