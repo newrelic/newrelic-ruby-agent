@@ -422,18 +422,18 @@ module NewRelic::Agent::Configuration
     end
 
     def test_default_to_value_of
-      with_config(:'transaction_tracer.explain_threshold' => 8.888) do
-        result = @manager.fetch(:'slow_sql.explain_threshold')
+      with_config(:'transaction_tracer.record_sql' => 'raw') do
+        result = @manager.fetch(:'slow_sql.record_sql')
 
-        assert_equal 8.888, result
+        assert_equal('raw', result)
       end
     end
 
     def test_default_to_value_of_only_happens_at_defaults
-      with_config(:'transaction_tracer.explain_threshold' => 8.888, :'slow_sql.explain_threshold' => 3.0) do
-        result = @manager.fetch(:'slow_sql.explain_threshold')
+      with_config(:'transaction_tracer.record_sql' => 'raw', :'slow_sql.record_sql' => 'none') do
+        result = @manager.fetch(:'slow_sql.record_sql')
 
-        assert_equal 3.0, result
+        assert_equal('none', result)
       end
     end
 
