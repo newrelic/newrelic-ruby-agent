@@ -2,8 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-suite_condition('Requires Ruby v2.5+') { RUBY_VERSION.split('.')[0..1].join('.').to_f >= 2.5 }
-
 instrumentation_methods :chain, :prepend
 
 gemfile <<~RB
