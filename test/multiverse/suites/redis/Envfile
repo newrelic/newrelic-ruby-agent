@@ -5,8 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 REDIS_VERSIONS = [
-  [nil, 2.5],
-  ['4.8.0', 2.4],
+  [nil, 2.6],
+  ['4.8.0', 2.6],
   ['3.3.0']
 ]
 
