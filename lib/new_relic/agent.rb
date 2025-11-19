@@ -332,8 +332,10 @@ module NewRelic
 
     # Increment a simple counter metric.
     #
-    # +metric_name+ should follow a slash separated path convention. Application
-    # specific metrics should begin with "Custom/".
+    # +metric_name+ should be a String that follows a slash separated
+    # path convention. Application specific metrics should begin with
+    # "Custom/".
+    # +amount+ should be a Numeric value to increment
     #
     # This method is safe to use from any thread.
     #
