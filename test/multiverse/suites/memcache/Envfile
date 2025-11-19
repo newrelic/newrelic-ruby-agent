@@ -5,35 +5,14 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
 
 # Dalli
-# TODO: MAJOR VERSION - drop support for versions older than 3.2.1
 DALLI_VERSIONS = [
   [nil, 2.6],
-  ['= 3.1.0', 2.6],
-  ['3.0.2', 2.5],
-  ['= 2.7.11', 2.4],
+  ['= 3.1.0', 2.6]
 ]
 def gem_list(version = nil)
   "gem 'dalli'#{version}"
 end
 create_gemfiles(DALLI_VERSIONS)
-
-# memcache-client
-# TODO: MAJOR VERSION - drop support for memcache-client gem (defunct)
-%w(1.8.5 1.5.0).each do |version|
-  # v 1.5.0 uses `timeout`, which does not exist in Ruby 3.1
-  next if RUBY_VERSION >= '3.1.0' && version == '1.5.0'
-  gemfile <<~RB
-    gem 'memcache-client', '~> #{version}', :require => 'memcache'
-  RB
-end
-
-# memcached
-# TODO: MAJOR VERSION - drop support for memcached gem (defunct)
-unless RUBY_PLATFORM == 'java' || RUBY_VERSION >= '3.2.0'
-  gemfile <<~RB
-    gem 'memcached', '~> 1.8.0'
-  RB
-end
 
 def memcache_running?
   begin
