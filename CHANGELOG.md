@@ -29,7 +29,7 @@
 
 - **Breaking Change: Remove support for Puma versions < 3.9.0**
 
-  The minimum version of puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
+  The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
 
 ## v9.23.0
 
