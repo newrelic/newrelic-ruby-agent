@@ -69,13 +69,6 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
     assert_equal 1, trace.root_node.children.count
   end
 
-  def test_should_not_write_cat_response_headers_for_ignored_transactions
-    get('/ignored/action_to_ignore',
-      headers: {'X-NewRelic-ID' => NewRelic::Base64.encode64('1#234')})
-
-    refute @response.headers['X-NewRelic-App-Data']
-  end
-
   def test_apdex_ignored_if_ignored_in_parent_class
     get('/child/foo')
     get('/child/bar')

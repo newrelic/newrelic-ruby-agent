@@ -655,7 +655,7 @@ module NewRelic::Agent
       assert_includes keys, :synthetics_other_attribute
     end
 
-    def test_synthetics_fields_not_in_finish_event_payload_if_no_cross_app_calls
+    def test_synthetics_fields_not_in_finish_event_payload_if_not_synthetics
       keys = []
       NewRelic::Agent.subscribe(:transaction_finished) do |payload|
         keys = payload.keys

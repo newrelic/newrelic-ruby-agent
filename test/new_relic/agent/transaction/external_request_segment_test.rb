@@ -72,7 +72,7 @@ module NewRelic::Agent
         ]
       end
 
-      def test_segment_records_expected_metrics_for_non_cat_txn
+      def test_segment_records_expected_metrics
         in_transaction('test', :category => :controller) do
           segment = Tracer.start_external_request_segment(
             library: 'Net::HTTP',
@@ -98,11 +98,9 @@ module NewRelic::Agent
         assert_metrics_recorded expected_metrics
       end
 
-      def test_segment_records_noncat_metrics_when_cat_disabled
+      def test_segment_records_metrics_with_response_headers
         request = RequestWrapper.new
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
+        response = {}
 
         in_transaction('test', :category => :controller) do
           segment = Tracer.start_external_request_segment(
@@ -275,7 +273,6 @@ module NewRelic::Agent
 
       def test_sets_http_status_code_ok
         headers = {
-          'X-NewRelic-App-Data' => 'this#is#not#valid#appdata',
           'status_code' => 200
         }
         segment_params = {
@@ -291,7 +288,6 @@ module NewRelic::Agent
 
       def test_sets_http_status_code_not_found
         headers = {
-          'X-NewRelic-App-Data' => 'this#is#not#valid#appdata',
           'status_code' => 404
         }
 
