@@ -17,13 +17,7 @@ module NewRelic
 
       # These include Errno connection errors, and all indicate that the
       # underlying TCP connection may be in a bad state.
-      CONNECTION_ERRORS = [Net::OpenTimeout, Net::ReadTimeout, EOFError, SystemCallError, SocketError]
-      # TODO: MAJOR VERSION - Net::WriteTimeout wasn't defined until Ruby 2.6.
-      #       Once support for Ruby 2.5 is dropped, we should simply include
-      #       Net::WriteTimeout in the connection errors array directly instead
-      #       of with a conditional
-      CONNECTION_ERRORS << Net::WriteTimeout if defined?(Net::WriteTimeout)
-      CONNECTION_ERRORS.freeze
+      CONNECTION_ERRORS = [Net::OpenTimeout, Net::ReadTimeout, EOFError, SystemCallError, SocketError, Net::WriteTimeout].freeze
 
       # The maximum number of times to attempt an HTTP request
       MAX_ATTEMPTS = 2
@@ -316,9 +310,7 @@ module NewRelic
       def setup_connection_timeouts(conn)
         conn.open_timeout = @request_timeout
         conn.read_timeout = @request_timeout
-        # TODO: MAJOR VERSION - #write_timeout= requires Ruby 2.6+, so remove
-        #       the conditional check once support for Ruby 2.5 is dropped
-        conn.write_timeout = @request_timeout if conn.respond_to?(:write_timeout=)
+        conn.write_timeout = @request_timeout
 
         if conn.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
           conn.keep_alive_timeout = NewRelic::Agent.config[:keep_alive_timeout]
@@ -443,6 +435,7 @@ module NewRelic
              Net::HTTPInternalServerError,
              Net::HTTPServiceUnavailable,
              Net::OpenTimeout,
+             Net::WriteTimeout,
              Net::ReadTimeout
           handle_server_connection_exception(response, endpoint)
         when Net::HTTPBadRequest,
@@ -464,20 +457,9 @@ module NewRelic
         when Net::HTTPGone
           handle_gone_response(response, endpoint)
         else
-          # TODO: MAJOR VERSION - Net::WriteTimeout wasn't defined until
-          #       Ruby 2.6, so it can't be included in the case statement
-          #       as a constant and instead needs to be found here. Once
-          #       support for Ruby 2.5 is dropped, we should have
-          #       Net::WriteTimeout sit in the 'when' clause above alongside
-          #       Net::OpenTimeout and Net::ReadTimeout and this entire if/else
-          #       conditional can be removed.
-          if response.respond_to?(:name) && response.name == 'Net::WriteTimeout'
-            handle_server_connection_exception(response, endpoint)
-          else
-            record_endpoint_attempts_supportability_metrics(endpoint)
-            record_error_response_supportability_metrics(response.code)
-            raise UnrecoverableServerException, "#{response.code}: #{response.message}"
-          end
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          record_error_response_supportability_metrics(response.code)
+          raise UnrecoverableServerException, "#{response.code}: #{response.message}"
         end
         response
       end
