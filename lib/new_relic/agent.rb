@@ -55,7 +55,6 @@ module NewRelic
     require 'new_relic/agent/rules_engine'
     require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
-    require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'

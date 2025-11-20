@@ -6,6 +6,10 @@
 
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
+- **Breaking Change: Removal of Cross Application Tracing (CAT)**
+
+  Previously, Cross Application Tracing (CAT) was deprecated in favor of Distributed Tracing. CAT functionality has now been removed. The configuration option `cross_application_tracer.enabled` has been removed. Public API methods `NewRelic::Agent::External.process_request_metadata`, `NewRelic::Agent::External.get_response_metadata`, `NewRelic::Agent::Transaction::ExternalRequestSegment#process_response_metadata`, and `NewRelic::Agent::Transaction::ExternalRequestSegment#get_request_metadata` have also been removed. [PR#3333](https://github.com/newrelic/newrelic-ruby-agent/pull/3333)
+
 - **Feature: Add `logger` as a dependency**
   The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
 
@@ -19,6 +23,10 @@
 
   The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
 
+- **Breaking Change: Remove the `newrelic deployments` CLI command**
+
+    The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 
   The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
@@ -31,6 +39,14 @@
 
   A new configuration option, `instrumentation.active_support_notifications.active_support_events`, allows users to define an allowlist of Active
   Support notifications event names for the agent to subscribe to. By default, the agent subscribes to all [Active Support: Caching](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-caching) and [Active Support: Messages](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-messages) events. [PR#3327](https://github.com/newrelic/newrelic-ruby-agent/pull/3327)
+
+- **Feature: Use Ruby's built-in Gzip compression**
+
+  The agent now uses the built-in `Zlib.gzip` method from the Ruby standard library for compression, replacing the previous custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)
+
+- **Breaking Change: Remove support for Puma versions < 3.9.0**
+
+  The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
 
 ## v9.23.0
 

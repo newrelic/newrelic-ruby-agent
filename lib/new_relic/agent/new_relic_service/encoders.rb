@@ -23,20 +23,6 @@ module NewRelic
               Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
             end
           end
-
-          module Gzip
-            BINARY = 'BINARY'.freeze
-
-            def self.encode(data, opts = nil)
-              output = StringIO.new
-              output.set_encoding(BINARY)
-              gz = Zlib::GzipWriter.new(output, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY)
-              gz.write(data)
-              gz.close
-              output.rewind
-              output.string
-            end
-          end
         end
 
         module Base64CompressedJSON
