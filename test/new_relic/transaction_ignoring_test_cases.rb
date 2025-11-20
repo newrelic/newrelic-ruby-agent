@@ -78,7 +78,6 @@ module TransactionIgnoringTestCases
 
   def test_does_not_record_sql_traces_for_ignored_transactions
     with_config(:'slow_sql.explain_threshold' => 0.0) do
-
       trigger_transaction_with_slow_sql('ignored_transaction')
       trigger_transaction_with_slow_sql('accepted_transaction')
 
