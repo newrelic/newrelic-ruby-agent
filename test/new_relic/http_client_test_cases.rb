@@ -263,54 +263,6 @@ module HttpClientTestCases
     end
   end
 
-  # When an http call is made, the agent should add a request header named
-  # X-NewRelic-ID with a value equal to the encoded cross_app_id.
-
-  def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
-    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction { get_response }
-
-      assert_equal 'VURQV1BZRkZdXUFT', server.requests.last['HTTP_X_NEWRELIC_ID']
-    end
-    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-  end
-
-  def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
-    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
-      in_transaction { get_response }
-
-      assert_equal 'VURQV1BZRkZdXUFT', server.requests.last['HTTP_X_NEWRELIC_ID']
-    end
-    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-  end
-
-  def test_adds_newrelic_transaction_header
-    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
-      guid = nil
-      path_hash = nil
-      in_transaction do |txn|
-        guid = txn.guid
-        path_hash = txn.distributed_tracer.cat_path_hash
-        get_response
-      end
-
-      transaction_data = server.requests.last['HTTP_X_NEWRELIC_TRANSACTION']
-
-      refute_empty(transaction_data)
-
-      decoded = decode_payload(transaction_data)
-
-      assert_equal(guid, decoded[0])
-      refute(decoded[1])
-      assert_equal(guid, decoded[2])
-      assert_equal(path_hash, decoded[3])
-    end
-    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-  end
-
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     in_transaction { get_response }
 
@@ -354,46 +306,6 @@ module HttpClientTestCases
 
     assert_externals_recorded_for('localhost', 'GET')
     assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
-  end
-
-  def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID))
-
-    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction('test') do
-        get_response
-      end
-    end
-
-    perform_last_node_error_assertions([
-      'External/all',
-      'External/allOther',
-      'ExternalApp/localhost/18#1884/all',
-      'ExternalTransaction/localhost/18#1884/txn-name',
-      'External/localhost/all',
-      ['ExternalTransaction/localhost/18#1884/txn-name', 'test']
-    ])
-  end
-
-  def test_crossapp_metrics_allow_valid_utf8_characters
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID))
-
-    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction('test') do
-        get_response
-      end
-    end
-
-    perform_last_node_error_assertions([
-      'External/all',
-      'External/allOther',
-      'ExternalApp/localhost/12#1114/all',
-      'External/localhost/all',
-      'ExternalTransaction/localhost/12#1114/世界線航跡蔵',
-      ['ExternalTransaction/localhost/12#1114/世界線航跡蔵', 'test']
-    ])
   end
 
   def test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
@@ -533,51 +445,6 @@ module HttpClientTestCases
       get_response
 
       refute_includes server.requests.last.keys, 'HTTP_X_NEWRELIC_SYNTHETICS'
-    end
-  end
-
-  load_cross_agent_test('cat_map').each do |test_case|
-    # Test cases that don't involve outgoing calls are done elsewhere
-    if test_case['outboundRequests']
-      define_method("test_#{test_case['name']}") do
-        NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-        config = {
-          :app_name => test_case['appName'],
-          :'cross_application_tracer.enabled' => true,
-          :'distributed_tracing.enabled' => false,
-          :'disable_all_tracing.enabled' => false
-        }
-        with_config(config) do
-          NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
-
-          in_transaction do |txn|
-            txn_info = test_case['inboundPayload']
-            payload = NewRelic::Agent::CrossAppPayload.new('someId', txn, txn_info)
-            txn.distributed_tracer.cross_app_payload = payload
-            stub_transaction_guid(test_case['transactionGuid'])
-            test_case['outboundRequests'].each do |req|
-              set_explicit_transaction_name(req['outboundTxnName'])
-              get_response
-
-              outbound_payload = server.requests.last['HTTP_X_NEWRELIC_TRANSACTION']
-              decoded_outbound_payload = decode_payload(outbound_payload)
-
-              assert_equal(req['expectedOutboundPayload'], decoded_outbound_payload)
-            end
-            set_explicit_transaction_name(test_case['transactionName'])
-          end
-        end
-
-        event = get_last_analytics_event
-
-        assert_event_attributes(
-          event,
-          test_case['name'],
-          test_case['expectedIntrinsicFields'],
-          test_case['nonExpectedIntrinsicFields']
-        )
-        NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-      end
     end
   end
 

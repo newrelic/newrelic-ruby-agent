@@ -77,43 +77,6 @@ module NewRelic
           end
         end
 
-        def test_segment_adds_cat_headers_to_message_properties_for_produce
-          with_config(:"cross_application_tracer.enabled" => true, :"distributed_tracing.enabled" => false, :cross_process_id => '321#123', :encoding_key => 'abc') do
-            in_transaction('test_txn') do
-              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-                action: :produce,
-                library: 'RabbitMQ',
-                destination_type: :exchange,
-                destination_name: 'Default',
-                headers: {}
-              )
-
-              assert segment.headers.key?('NewRelicID'), 'Expected message_properties to contain: NewRelicId'
-              assert segment.headers.key?('NewRelicTransaction'), 'Expected message_properties to contain: NewRelicTransaction'
-              refute segment.headers.key?('NewRelicSynthetics')
-            end
-          end
-        end
-
-        def test_segment_adds_synthetics_and_cat_headers_to_message_properties_for_produce
-          with_config(:"cross_application_tracer.enabled" => true, :"distributed_tracing.enabled" => false, :cross_process_id => '321#123', :encoding_key => 'abc') do
-            in_transaction('test_txn') do |txn|
-              txn.raw_synthetics_header = 'boo'
-              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-                action: :produce,
-                library: 'RabbitMQ',
-                destination_type: :exchange,
-                destination_name: 'Default',
-                headers: {}
-              )
-
-              assert segment.headers.key?('NewRelicID'), 'Expected message_properties to contain: NewRelicId'
-              assert segment.headers.key?('NewRelicTransaction'), 'Expected message_properties to contain: NewRelicTransaction'
-              assert segment.headers.key?('NewRelicSynthetics'), 'Expected message_properties to contain: NewRelicSynthetics'
-            end
-          end
-        end
-
         def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
           NewRelic::Agent.instance.stubs(:connected?).returns(true)
           with_config(:"distributed_tracing.enabled" => true,
