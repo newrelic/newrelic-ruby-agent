@@ -53,12 +53,14 @@ class AuditLogTest < Minitest::Test
   end
 
   def perform_actions
-    state = NewRelic::Agent::Tracer.state
-    NewRelic::Agent.instance.sql_sampler.on_start_transaction(state)
-    NewRelic::Agent.instance.sql_sampler.notice_sql('select * from test',
-      'Database/test/select',
-      nil, 1.5, state)
-    NewRelic::Agent.instance.sql_sampler.on_finishing_transaction(state, 'txn')
+    with_config(:'slow_sql.explain_threshold' => 0.0) do
+      state = NewRelic::Agent::Tracer.state
+      NewRelic::Agent.instance.sql_sampler.on_start_transaction(state)
+      NewRelic::Agent::Datastores.notice_sql('select * from test',
+        'Database/test/select', 1.5)
+      NewRelic::Agent.instance.sql_sampler.on_finishing_transaction(state, 'txn')
+    end
+
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
 
     # We also trigger log event data sending because we shouldn't see any
