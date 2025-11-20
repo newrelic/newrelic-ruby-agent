@@ -5,7 +5,6 @@
 
 require 'net/http'
 require_relative '../../../test_helper'
-require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup

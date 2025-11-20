@@ -1383,20 +1383,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
-
-            \t<Callout variant="important">
-            \t\tCross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
-
-            \t\tTo continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
-
-            \t\t```yaml
-            \t\t\tcross_application_tracer:
-            \t\t\t\tenabled: true
-            \t\t\tdistributed_tracing:
-            \t\t\t\tenabled: false
-            \t\t```
-            \t</Callout>
+            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
           DESCRIPTION
         },
         :disable_view_instrumentation => {
@@ -2349,13 +2336,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => "An array of candidate locations for the agent's configuration file."
         },
-        :cross_process_id => {
-          :default => '',
-          :public => false,
-          :type => String,
-          :allowed_from_server => true,
-          :description => 'Cross process ID for cross-application tracing.'
-        },
         :data_report_period => {
           :default => 60,
           :public => false,
@@ -2397,7 +2377,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Encoding key for cross-application tracing.'
+          :description => 'Encoding key for obfuscating/deobfuscating data sent to/from New Relic.'
         },
         :entity_guid => {
           :default => nil,
@@ -2666,7 +2646,7 @@ module NewRelic
           :public => false,
           :type => Array,
           :allowed_from_server => true,
-          :description => 'List of trusted New Relic account IDs for the purposes of cross-application tracing. Inbound requests from applications including cross-application headers that do not come from an account in this list will be ignored.'
+          :description => 'List of trusted New Relic account IDs for validating Synthetics monitor requests. This is set by the server.'
         },
         :trusted_account_key => {
           :default => nil,

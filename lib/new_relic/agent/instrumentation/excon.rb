@@ -34,7 +34,6 @@ DependencyDetection.defer do
   end
 
   def install_excon_instrumentation(excon_version)
-    require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/excon_wrappers'
 
     install_middleware_excon_instrumentation
@@ -46,7 +45,7 @@ DependencyDetection.defer do
     defaults = Excon.defaults
 
     if defaults[:middlewares]
-      defaults[:middlewares] << Excon::Middleware::NewRelicCrossAppTracing
+      defaults[:middlewares] << Excon::Middleware::NewRelicTracing
     else
       NewRelic::Agent.logger.warn('Did not find :middlewares key in Excon.defaults, skipping Excon instrumentation')
     end

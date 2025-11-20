@@ -22,8 +22,7 @@ module NewRelic
 
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
-            # do not insert CAT headers for gRPC requests https://github.com/newrelic/newrelic-ruby-agent/issues/1730
-            segment.add_request_headers(request_wrapper) unless CrossAppTracing.cross_app_enabled?
+            segment.add_request_headers(request_wrapper)
             metadata.merge!(request_wrapper.instance_variable_get(:@newrelic_metadata))
             grpc_message = nil
             grpc_status = 0

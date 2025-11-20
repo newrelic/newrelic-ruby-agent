@@ -8,7 +8,6 @@ require 'evil_server'
 
 module HttpClientTestCases
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-    NewRelic::Agent::CrossAppTracing,
     MultiverseHelpers
 
   TRANSACTION_GUID = 'BEC1BC64675138B9'

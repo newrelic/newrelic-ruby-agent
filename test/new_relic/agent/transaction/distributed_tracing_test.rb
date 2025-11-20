@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative '../../../test_helper'
-require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 require 'new_relic/agent/transaction'
@@ -218,33 +217,6 @@ module NewRelic
           assert txn_intrinsics['sampled']
         end
 
-        def test_initial_legacy_cat_request_trace_id_overwritten_by_first_distributed_trace_guid
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          transaction = nil
-
-          transaction = in_transaction('test_txn') do |txn|
-            # simulate legacy cat
-            referring_txn_info = [
-              'b854df4feb2b1f06',
-              false,
-              '7e249074f277923d',
-              '5d2957be'
-            ]
-
-            payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-            txn.distributed_tracer.cross_app_payload = payload
-
-            txn.distributed_tracer.create_distributed_trace_payload
-          end
-
-          intrinsics, _, _ = last_transaction_event
-
-          assert_equal transaction.trace_id, intrinsics['traceId']
-
-          transaction.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-
-          assert_equal transaction.trace_id, intrinsics['traceId']
-        end
 
         def test_intrinsics_assigned_to_transaction_event_from_distributed_trace
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)

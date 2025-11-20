@@ -56,7 +56,7 @@ module NewRelic
         end
 
         def reject_messaging_synthetics_header(headers)
-          headers.reject { |k, _| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER }
+          headers.reject { |k, _| k == 'NewRelicSynthetics' }
         end
       end
     end
