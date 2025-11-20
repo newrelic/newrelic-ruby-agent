@@ -518,10 +518,6 @@ module NewRelic::Agent
         }
       end
 
-      def make_app_data_payload(*args)
-        @obfuscator.obfuscate(args.to_json) + "\n"
-      end
-
       def external_request_segment
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: :foo,

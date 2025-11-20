@@ -436,11 +436,6 @@ module HttpClientTestCases
     'HTTP_' + name.upcase.tr('-', '_')
   end
 
-  def make_app_data_payload(*args)
-    obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
-    return obfuscator.obfuscate(args.to_json)
-  end
-
   def decode_payload(payload)
     obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
     ::JSON.load(obfuscator.deobfuscate(payload))
