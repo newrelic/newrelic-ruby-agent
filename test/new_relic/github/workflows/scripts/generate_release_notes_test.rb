@@ -9,7 +9,6 @@ require_relative '../../../../../.github/workflows/scripts/generate_release_note
 module NewRelic
   class GenerateReleaseNotesTest < Minitest::Test
     def setup
-
       @fake_changelog_content = <<~CHANGELOG
         # New Relic Ruby Agent Release Notes
 
