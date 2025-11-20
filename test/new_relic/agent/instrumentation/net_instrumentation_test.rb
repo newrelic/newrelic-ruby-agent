@@ -9,9 +9,7 @@ require_relative '../../../test_helper'
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start(
-      :"cross_application_tracer.enabled" => false,
       :"transaction_tracer.enabled" => true,
-      :cross_process_id => '269975#22824',
       :encoding_key => 'gringletoes'
     )
 
@@ -29,12 +27,10 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def test_scope_stack_integrity_maintained_on_request_failure
     @socket.stubs(:write).raises('fake network error')
     @socket.stubs(:write_nonblock).raises('fake network error')
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction('test') do
-        segment = NewRelic::Agent::Tracer.start_segment(name: 'dummy')
-        Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
-        segment.finish
-      end
+    in_transaction('test') do
+      segment = NewRelic::Agent::Tracer.start_segment(name: 'dummy')
+      Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
+      segment.finish
     end
   end
 end

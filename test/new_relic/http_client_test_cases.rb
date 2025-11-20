@@ -16,7 +16,6 @@ module HttpClientTestCases
   $fake_secure_server = NewRelic::FakeSecureExternalServer.new
 
   setup_and_teardown_agent(
-    :cross_process_id => '269975#22824',
     :encoding_key => 'gringletoes',
     :trusted_account_ids => [269975]
   )
@@ -260,63 +259,6 @@ module HttpClientTestCases
       assert_match %r{<head>}i, body(res)
       assert_externals_recorded_for('localhost', 'GET')
     end
-  end
-
-  def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
-    in_transaction { get_response }
-
-    refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
-  end
-
-  def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
-    with_config(:cross_process_id => '') do
-      in_transaction { get_response }
-
-      refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
-    end
-  end
-
-  def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
-    with_config(:encoding_key => '') do
-      in_transaction { get_response }
-
-      refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
-    end
-  end
-
-  def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
-    $fake_server.override_response_headers('X-NewRelic-App-Data' => '')
-
-    in_transaction('test') do
-      get_response
-    end
-
-    assert_externals_recorded_for('localhost', 'GET')
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
-  end
-
-  def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID))
-
-    in_transaction('test') do
-      get_response
-    end
-
-    assert_externals_recorded_for('localhost', 'GET')
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
-  end
-
-  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID))
-
-    in_transaction('test') do
-      get_response
-    end
-
-    assert_externals_recorded_for('localhost', 'GET')
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
   end
 
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing

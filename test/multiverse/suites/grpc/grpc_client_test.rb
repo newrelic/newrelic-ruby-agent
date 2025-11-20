@@ -130,19 +130,6 @@ class GrpcClientTest < Minitest::Test
     assert_distributed_tracing_payload_created_for_transaction(transaction)
   end
 
-  def test_distributed_tracing_payload_skipped_for_cat
-    metadata = {}
-
-    with_config(:'distributed_tracing.enabled' => false,
-      :'cross_application_tracer.enabled' => true) do
-      transaction = NewRelic::Agent.instance.stub(:connected?, true) do
-        successful_grpc_client_issue_request_with_tracing(metadata)
-      end
-    end
-
-    assert_predicate metadata, :empty?
-  end
-
   def test_span_attributes_added
     successful_grpc_client_issue_request_with_tracing
     spans = harvest_span_events!
