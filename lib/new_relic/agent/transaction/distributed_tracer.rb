@@ -106,7 +106,7 @@ module NewRelic
         end
 
         def consume_message_synthetics_headers(headers)
-          synthetics_header = headers['NewRelicSynthetics']
+          synthetics_header = headers[SyntheticsMonitor::NON_HTTP_SYNTHETICS_HEADER_KEY]
           if synthetics_header
             require 'new_relic/agent/obfuscator'
             obfuscator = ::NewRelic::Agent::Obfuscator.new(Agent.config[:encoding_key])

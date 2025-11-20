@@ -16,6 +16,8 @@ module NewRelic
 
       RABBITMQ_TRANSPORT_TYPE = 'RabbitMQ'
 
+      REJECT_HEADERS = %w[newrelic traceparent tracestate NewRelicID NewRelicTransaction NewRelicSynthetics]
+
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
         AttributeFilter::DST_TRANSACTION_TRACER |
         AttributeFilter::DST_ERROR_COLLECTOR
@@ -364,12 +366,10 @@ module NewRelic
       end
 
       # Filter out internal New Relic headers from message headers
-      # Reject: newrelic, traceparent, tracestate, NewRelicID, NewRelicTransaction, NewRelicSynthetics
       def reject_messaging_internal_headers(headers)
         return headers unless headers
 
-        internal_header_keys = %w[newrelic traceparent tracestate NewRelicID NewRelicTransaction NewRelicSynthetics]
-        headers.reject { |k, _v| internal_header_keys.include?(k.to_s) }
+        headers.reject { |k, _v| REJECT_HEADERS.include?(k.to_s) }
       end
     end
   end
