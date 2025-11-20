@@ -40,9 +40,7 @@ end
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:cross_process_id => 'boo',
-    :encoding_key => "\0",
-    :trusted_account_ids => [1])
+  setup_and_teardown_agent
 
   def after_setup
     # Make sure we've got a blank slate for doing easier metric comparisons
