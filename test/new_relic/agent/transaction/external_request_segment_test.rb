@@ -104,7 +104,7 @@ module NewRelic::Agent
           'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
         }
 
-        with_config(cat_config.merge({:"cross_application_tracer.enabled" => false})) do
+        with_config({}) do
           in_transaction('test', :category => :controller) do
             segment = Tracer.start_external_request_segment(
               library: 'Net::HTTP',
@@ -242,7 +242,7 @@ module NewRelic::Agent
 
       def test_add_request_headers_renames_segment_based_on_host_header
         request = RequestWrapper.new({'host' => 'anotherhost.local'})
-        with_config(cat_config) do
+        with_config({}) do
           in_transaction(:category => :controller) do
             segment = Tracer.start_external_request_segment(
               library: 'Net::HTTP',
@@ -287,7 +287,7 @@ module NewRelic::Agent
           uri: 'http://remotehost.com/blogs/index',
           procedure: 'GET'
         }
-        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, {}, segment_params)
 
         assert_equal 200, segment.http_status_code
         refute_metrics_recorded 'External/remotehost.com/Net::HTTP/GET/Error'
@@ -304,7 +304,7 @@ module NewRelic::Agent
           uri: 'http://remotehost.com/blogs/index',
           procedure: 'GET'
         }
-        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, {}, segment_params)
 
         assert_equal 404, segment.http_status_code
         refute_metrics_recorded 'External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode'
@@ -332,14 +332,13 @@ module NewRelic::Agent
       def test_segment_adds_distributed_trace_header
         distributed_tracing_config = {
           :'distributed_tracing.enabled' => true,
-          :'cross_application_tracer.enabled' => false,
           :account_id => '190',
           :primary_application_id => '46954'
         }
 
         with_config(distributed_tracing_config) do
           request = RequestWrapper.new
-          with_config(cat_config.merge(distributed_tracing_config)) do
+          with_config(distributed_tracing_config) do
             in_transaction(:category => :controller) do |txn|
               segment = Tracer.start_external_request_segment(
                 library: 'Net::HTTP',
@@ -511,19 +510,9 @@ module NewRelic::Agent
         end
       end
 
-      def cat_config
-        {
-          :cross_process_id => '269975#22824',
-          :trusted_account_ids => [1, 269975],
-          :'cross_application_tracer.enabled' => true,
-          :'distributed_tracing.enabled' => false
-        }
-      end
-
       def distributed_tracing_config
         {
           :'distributed_tracing.enabled' => true,
-          :'cross_application_tracer.enabled' => false,
           :'span_events.enabled' => true
         }
       end
@@ -531,7 +520,6 @@ module NewRelic::Agent
       def trace_context_config
         {
           :'distributed_tracing.enabled' => true,
-          :'cross_application_tracer.enabled' => false,
           :account_id => '190',
           :primary_application_id => '46954',
           :trusted_account_key => 'trust_this!'
