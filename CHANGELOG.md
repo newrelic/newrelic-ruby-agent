@@ -35,6 +35,10 @@
 
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
 
+- **Feature: Use Ruby's built-in Gzip compression**
+
+  The agent now uses the built-in `Zlib.gzip` method from the Ruby standard library for compression, replacing the previous custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)
+
 - **Breaking Change: Remove support for Puma versions < 3.9.0**
 
   The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
