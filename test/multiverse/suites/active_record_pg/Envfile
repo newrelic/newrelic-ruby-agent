@@ -64,7 +64,7 @@ create_gemfiles(ACTIVERECORD_VERSIONS)
 #   RB
 # end
 
-# if RUBY_VERSION >= '2.6.0' && RUBY_PLATFORM == 'java'
+# if RUBY_PLATFORM == 'java'
 
 #   gemfile <<~RB
 #     gem 'activerecord', '~> 6.0.0'
