@@ -93,7 +93,7 @@ class CurbTest < Minitest::Test
   end
 
   def test_doesnt_propagate_errors_in_instrumentation
-    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises('Booom')
+    NewRelic::Agent::Tracer.stubs(:start_external_request_segment).raises('Booom')
 
     res = Curl::Easy.http_get(default_url)
 
