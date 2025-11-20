@@ -42,8 +42,6 @@ module NewRelic::Agent
         :request_path => '/request_path',
         :guid => 'a guid',
         :ignore_trace? => false,
-        :cat_trip_id => '',
-        :cat_path_hash => '',
         :is_synthetics_request? => false,
         :filtered_params => {},
         :attributes => attributes)
