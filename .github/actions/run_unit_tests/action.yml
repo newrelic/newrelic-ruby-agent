@@ -13,7 +13,6 @@ runs:
   using: "composite"
   steps:
       # - curl is needed for Curb
-      # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
       # - sasl is needed for memcached
     - name: Install OS packages
       shell: bash
@@ -30,12 +29,6 @@ runs:
         key: ${{ inputs.ruby-version }}
         map: |
           {
-            "2.4.10": {
-              "rails": "norails,rails52,rails51,rails50,rails42,rails41,rails40"
-            },
-            "2.5.9": {
-              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
-            },
             "2.6.10": {
               "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
             },
@@ -49,13 +42,16 @@ runs:
               "rails": "norails,rails61,rails70,rails71,rails72"
             },
             "3.2.8": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "3.3.8": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "3.4.4": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
+            },
+            "3.5.0-preview1": {
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             }
           }
 

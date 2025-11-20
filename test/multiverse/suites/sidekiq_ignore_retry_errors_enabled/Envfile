@@ -1,0 +1,19 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+SIDEKIQ_VERSIONS = [
+  [nil, 3.2],
+  ['7.3.9', 2.7],
+  ['6.4.0', 2.5],
+  ['5.0.3', 2.4, 2.5]
+]
+
+def gem_list(sidekiq_version = nil)
+  <<-RB
+    gem 'sidekiq'#{sidekiq_version}
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+end
+
+create_gemfiles(SIDEKIQ_VERSIONS)

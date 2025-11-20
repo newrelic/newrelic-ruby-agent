@@ -16,7 +16,6 @@ runs:
   using: "composite"
   steps:
       # - curl is needed for Curb
-      # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
       # - sasl is needed for memcached
     - name: Install OS packages
       shell: bash

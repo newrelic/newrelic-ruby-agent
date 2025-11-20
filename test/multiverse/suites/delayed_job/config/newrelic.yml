@@ -9,7 +9,6 @@ development:
       delayed_job: <%= $instrumentation_method %>
   app_name: test
   host: 127.0.0.1
-  api_host: 127.0.0.1
   transaction_trace:
     record_sql: obfuscated
     enabled: true

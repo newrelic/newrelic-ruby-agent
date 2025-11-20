@@ -44,3 +44,6 @@ Brewfile.lock.json
 test/minitest/minitest_time_report
 gem_manifest_*.json
 yarn-error.log
+
+test/perfverse/reports/inputs
+test/perfverse/reports/output
