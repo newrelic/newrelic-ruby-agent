@@ -35,6 +35,11 @@
 
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
 
+- **Feature: Add Active Support notification allowlist configuration option**
+
+  A new configuration option, `instrumentation.active_support_notifications.active_support_events`, allows users to define an allowlist of Active
+  Support notifications event names for the agent to subscribe to. By default, the agent subscribes to all [Active Support: Caching](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-caching) and [Active Support: Messages](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-messages) events. [PR#3327](https://github.com/newrelic/newrelic-ruby-agent/pull/3327)
+
 - **Feature: Use Ruby's built-in Gzip compression**
 
   The agent now uses the built-in `Zlib.gzip` method from the Ruby standard library for compression, replacing the previous custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)

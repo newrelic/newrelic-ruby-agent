@@ -4,6 +4,7 @@
 
 require 'forwardable'
 require_relative '../../constants'
+require_relative '../instrumentation/active_support_subscriber'
 
 module NewRelic
   module Agent
@@ -1495,6 +1496,24 @@ module NewRelic
           :description => 'Configures the TCP/IP port for the trace observer Host'
         },
         # Instrumentation
+        :'instrumentation.active_support_notifications.active_support_events' => {
+          :default => NewRelic::Agent::Instrumentation::ActiveSupportSubscriber::EVENT_NAME_TO_METHOD_NAME.keys,
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => <<~ACTIVE_SUPPORT_EVENTS.chomp.tr("\n", ' ')
+            An allowlist array of Active Support notifications events specific to the Active Support library
+            itself that the agent should subscribe to. The Active Support library specific events focus primarily
+            on caching. Any event name not included in this list will be ignored by the agent. Provide complete event
+            names such as 'cache_fetch_hit.active_support'. Do not provide asterisks or regex patterns, and do not
+            escape any characters with backslashes.
+
+            For a complete list of all possible Active Support event names, see the
+            [list of caching names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-caching)
+            and the [list of messages names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-messages)
+            from the official Rails documentation.
+          ACTIVE_SUPPORT_EVENTS
+        },
         :'instrumentation.active_support_broadcast_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :documentation_default => 'auto',
