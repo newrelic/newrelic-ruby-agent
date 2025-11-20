@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Deprecation reminder for SqlSampler#notice_sql API**
+
+  The `NewRelic::Agent::SqlSampler#notice_sql` method is deprecated and will be removed in a future major version. Instead, users should call `NewRelic::Agent::Datastores.notice_sql`.
+
+- **Feature: Deprecation notice for second and third arguments in Datastores.notice_sql API**
+
+  The second and third arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called.
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**

@@ -145,11 +145,12 @@ module NewRelic
       #   some dialects of SQL (or non-SQL queries) are not guaranteed to be
       #   properly obfuscated by these routines!
       #
-      # @param [String] scoped_metric The most specific metric relating to this
-      #   query. Typically the result of
+      # @param [String] scoped_metric (optional, deprecated) The most specific
+      #   metric relating to this query. Typically the result of
       #   NewRelic::Agent::Datastores::MetricHelper#metrics_for
       #
-      # @param [Float] elapsed the elapsed time during query execution
+      # @param [Float] elapsed (optional, deprecated)  the elapsed time during
+      #   query execution
       #
       # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING QUERY TEXT!
       #   New Relic's Transaction Tracing and Slow SQL features will
@@ -159,7 +160,12 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_sql(query, scoped_metric, elapsed)
+      def self.notice_sql(query, scoped_metric = '', elapsed = 0)
+        NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.notice_sql method is changing. ' \
+          'In a future major version, the scoped_metric and elapsed arguments will be removed. ' \
+          'The scoped_metric and elapsed values are now based on the current segment when the notice_sql method ' \
+          'was called.'
+        )
         NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
         if (txn = Tracer.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
