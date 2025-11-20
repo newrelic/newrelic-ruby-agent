@@ -164,8 +164,7 @@ module NewRelic
         NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.notice_sql method is changing. ' \
           'In a future major version, the scoped_metric and elapsed arguments will be removed. ' \
           'The scoped_metric and elapsed values are now based on the current segment when the notice_sql method ' \
-          'was called.'
-        )
+          'was called.')
         NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
         if (txn = Tracer.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
