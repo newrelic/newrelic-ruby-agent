@@ -10,7 +10,7 @@ PSYCH_VERSIONS = [
   # Until those errors are resolved, limit testing for the newest versions of
   # Psych to 2.7+
   # 
-  [nil],
+  [nil, 2.7, 3.4],
   ['5.2.0', 2.7, 3.4],
   ['5.1.0', 2.6, 3.3],
   ['5.0.0', 2.6, 3.3],
