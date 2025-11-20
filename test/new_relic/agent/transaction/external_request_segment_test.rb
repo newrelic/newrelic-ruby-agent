@@ -104,33 +104,31 @@ module NewRelic::Agent
           'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
         }
 
-        with_config({}) do
-          in_transaction('test', :category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.add_request_headers(request)
-            segment.process_response_headers(response)
-            segment.finish
-          end
-
-          expected_metrics = [
-            'External/remotehost.com/Net::HTTP/GET',
-            'External/all',
-            'External/remotehost.com/all',
-            'External/allWeb',
-            ['External/remotehost.com/Net::HTTP/GET', 'test']
-          ]
-
-          if Agent.config[:'distributed_tracing.enabled']
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-          end
-
-          assert_metrics_recorded expected_metrics
+        in_transaction('test', :category => :controller) do
+          segment = Tracer.start_external_request_segment(
+            library: 'Net::HTTP',
+            uri: 'http://remotehost.com/blogs/index',
+            procedure: 'GET'
+          )
+          segment.add_request_headers(request)
+          segment.process_response_headers(response)
+          segment.finish
         end
+
+        expected_metrics = [
+          'External/remotehost.com/Net::HTTP/GET',
+          'External/all',
+          'External/remotehost.com/all',
+          'External/allWeb',
+          ['External/remotehost.com/Net::HTTP/GET', 'test']
+        ]
+
+        if Agent.config[:'distributed_tracing.enabled']
+          expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
+          expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
+        end
+
+        assert_metrics_recorded expected_metrics
       end
 
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
@@ -242,20 +240,18 @@ module NewRelic::Agent
 
       def test_add_request_headers_renames_segment_based_on_host_header
         request = RequestWrapper.new({'host' => 'anotherhost.local'})
-        with_config({}) do
-          in_transaction(:category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
+        in_transaction(:category => :controller) do
+          segment = Tracer.start_external_request_segment(
+            library: 'Net::HTTP',
+            uri: 'http://remotehost.com/blogs/index',
+            procedure: 'GET'
+          )
 
-            assert_equal 'External/remotehost.com/Net::HTTP/GET', segment.name
-            segment.add_request_headers(request)
+          assert_equal 'External/remotehost.com/Net::HTTP/GET', segment.name
+          segment.add_request_headers(request)
 
-            assert_equal 'External/anotherhost.local/Net::HTTP/GET', segment.name
-            segment.finish
-          end
+          assert_equal 'External/anotherhost.local/Net::HTTP/GET', segment.name
+          segment.finish
         end
       end
 
