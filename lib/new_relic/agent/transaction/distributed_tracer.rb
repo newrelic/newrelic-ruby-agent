@@ -112,8 +112,8 @@ module NewRelic
             obfuscator = ::NewRelic::Agent::Obfuscator.new(Agent.config[:encoding_key])
             incoming_payload = ::JSON.parse(obfuscator.deobfuscate(synthetics_header))
             if SyntheticsMonitor.is_valid_payload?(incoming_payload) &&
-               SyntheticsMonitor.is_supported_version?(incoming_payload) &&
-               SyntheticsMonitor.is_trusted?(incoming_payload)
+                SyntheticsMonitor.is_supported_version?(incoming_payload) &&
+                SyntheticsMonitor.is_trusted?(incoming_payload)
 
               transaction.raw_synthetics_header = synthetics_header
               transaction.synthetics_payload = incoming_payload

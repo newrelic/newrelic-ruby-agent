@@ -193,7 +193,6 @@ module NewRelic
         correlation_id: nil,
         exchange_type: nil)
 
-
         # The following line needs else branch coverage
         original_headers = headers.nil? ? nil : headers.dup # rubocop:disable Style/SafeNavigation
 

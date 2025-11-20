@@ -217,7 +217,6 @@ module NewRelic
           assert txn_intrinsics['sampled']
         end
 
-
         def test_intrinsics_assigned_to_transaction_event_from_distributed_trace
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 

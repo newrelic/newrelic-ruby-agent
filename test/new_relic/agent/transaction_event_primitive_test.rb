@@ -163,7 +163,6 @@ module NewRelic
         assert_equal 'GUID', event_data['nr.guid']
       end
 
-
       def generate_payload(name = 'whatever', options = {})
         {
           :name => "Controller/#{name}",

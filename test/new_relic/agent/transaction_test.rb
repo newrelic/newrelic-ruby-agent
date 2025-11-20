@@ -504,7 +504,6 @@ module NewRelic::Agent
       refute_empty guid
     end
 
-
     def test_end_fires_a_transaction_finished_event_with_apdex_perf_zone
       apdex = nil
       NewRelic::Agent.subscribe(:transaction_finished) do |payload|
@@ -585,7 +584,6 @@ module NewRelic::Agent
 
       assert_includes keys, 'guid'
     end
-
 
     def test_is_not_synthetic_request_without_payload
       in_transaction do |txn|

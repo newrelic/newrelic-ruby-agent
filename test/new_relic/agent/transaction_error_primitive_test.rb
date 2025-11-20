@@ -99,7 +99,6 @@ module NewRelic
         assert_equal 1, intrinsics['externalCallCount']
       end
 
-
       def test_includes_custom_attributes
         attrs = {'user' => 'Wes Mantooth', 'channel' => 9}
 

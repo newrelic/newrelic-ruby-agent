@@ -64,7 +64,6 @@ module NewRelic
           NewRelic::Agent.logger.error('Error in add_request_headers', e)
         end
 
-
         def record_metrics
           add_unscoped_metrics
           super

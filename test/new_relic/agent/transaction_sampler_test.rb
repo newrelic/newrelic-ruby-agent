@@ -317,7 +317,6 @@ module NewRelic::Agent
       assert_in_delta(10.0, intrinsic_attributes_from_last_sample[:gc_time])
     end
 
-
     def test_synthetics_parameters_not_included_if_not_valid_synthetics_request
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
         in_transaction do |txn|
