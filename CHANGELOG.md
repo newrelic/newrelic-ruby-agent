@@ -32,6 +32,14 @@
 
   Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#3338](https://github.com/newrelic/newrelic-ruby-agent/pull/3338)
 
+- **Breaking Change: Remove unused arguments from various NewRelic::Agent::Datastores APIs**
+
+  The following APIs from the `NewRelic::Agent::Datastores` class have had method arguments removed:
+  * `NewRelic::Agent::Datastores.notice_sql`, previously had three positional arguments, `query`, `scoped_metric` and `elapsed`. Now, it only has `query`.
+  * `NewRelic::Agent::Datastores.notice_statement`, previously had two positional arguments `query` and `elapsed`. Now it only has `query`.
+  * `NewRelic::Agent::Datastores.wrap` requires a proc. Previously the proc received three arguments: the result of the yield, the most specific scoped metric name, and the elapsed time of the call. Now, it only receives one: the result of the yield.
+  [PR#3347](https://github.com/newrelic/newrelic-ruby-agent/pull/3347)
+
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 
   The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
