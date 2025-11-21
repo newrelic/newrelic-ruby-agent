@@ -1762,7 +1762,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_priority_with_root_sampler_default_uses_adaptive_priority
+    def test_priority_with_root_sampler_default_uses_default_priority
       with_config(:'distributed_tracing.enabled' => true,
         :'distributed_tracing.sampler.root' => 'default') do
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
@@ -1774,7 +1774,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_priority_with_root_sampler_adaptive_uses_adaptive_priority
+    def test_priority_with_root_sampler_adaptive_uses_default_priority
       with_config(:'distributed_tracing.enabled' => true,
         :'distributed_tracing.sampler.root' => 'adaptive') do
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
@@ -1786,7 +1786,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_priority_with_root_sampler_trace_id_ratio_based_uses_adaptive_priority
+    def test_priority_with_root_sampler_trace_id_ratio_based_uses_default_priority
       with_config(:'distributed_tracing.enabled' => true,
         :'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0) do
@@ -1797,12 +1797,12 @@ module NewRelic::Agent
       end
     end
 
-    def test_adaptive_priority_when_sampled
+    def test_default_priority_when_sampled
       with_config(:'distributed_tracing.enabled' => true) do
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
         txn = in_transaction {}
-        priority = txn.adaptive_priority
+        priority = txn.default_priority
 
         assert priority > 1.0 && priority <= 2.0,
           "Expected adaptive priority between 1.0 and 2.0 for sampled transaction, got #{priority}"
@@ -1812,12 +1812,12 @@ module NewRelic::Agent
       end
     end
 
-    def test_adaptive_priority_when_not_sampled
+    def test_default_priority_when_not_sampled
       with_config(:'distributed_tracing.enabled' => true) do
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
 
         txn = in_transaction {}
-        priority = txn.adaptive_priority
+        priority = txn.default_priority
 
         assert priority >= 0.0 && priority < 1.0,
           "Expected adaptive priority between 0.0 and 1.0 for non-sampled transaction, got #{priority}"

@@ -605,7 +605,7 @@ module NewRelic
 
             # With ratio 1.0, should always be sampled
             assert_predicate txn, :sampled?
-            # Priority should use adaptive_priority (between 1.0 and 2.0)
+            # Priority should use default_priority (between 1.0 and 2.0)
             assert txn.priority > 1.0 && txn.priority < 2.0,
               "Expected priority between 1.0 and 2.0, got #{txn.priority}"
             # trace_id should be present and valid
@@ -658,7 +658,7 @@ module NewRelic
 
             # With ratio 1.0, should always be sampled
             assert_predicate txn, :sampled?
-            # Priority should use adaptive_priority (between 1.0 and 2.0)
+            # Priority should use default_priority (between 1.0 and 2.0)
             assert txn.priority > 1.0 && txn.priority < 2.0,
               "Expected priority between 1.0 and 2.0, got #{txn.priority}"
             # Should inherit trace_id from parent
@@ -679,7 +679,7 @@ module NewRelic
 
             # With ratio 0.0, should never be sampled
             refute_predicate txn, :sampled?
-            # Priority should use adaptive_priority (between 0.0 and 1.0)
+            # Priority should use default_priority (between 0.0 and 1.0)
             assert txn.priority >= 0.0 && txn.priority < 1.0,
               "Expected priority between 0.0 and 1.0, got #{txn.priority}"
             # Should inherit trace_id from parent

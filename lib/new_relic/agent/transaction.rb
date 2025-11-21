@@ -324,7 +324,8 @@ module NewRelic
         # ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < (ratio * (2**64 - 1)).ceil
         # OTel stores their trace ids as binary strings
         # ex. Array(trace_id).pack('H*')
-        # Since we don't this way is faster, but still gets the same result
+        # Since we don't store our trace ids as binary strings, this way is
+        # faster, but still gets the same result.
         ratio == 1.0 || Integer(trace_id[16, 16], 16) < (ratio * (2**64 - 1)).ceil
       end
 
@@ -336,31 +337,18 @@ module NewRelic
         @trace_id = value
       end
 
-      # This may be better in the adaptive sampler?
-      def adaptive_priority
+      def default_priority
         (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
       end
 
       def priority
-        # Ruby evaluates case statements top to bottom. Listing the statements
-        # in the order of most likely to match keeps things performant.
-        # If we put more than one string in a condition, it'll check to see if
-        # the case matches any one of those conditions before moving on to the
-        # next one.
-        #
-        # Even though adaptive behaves the same as default, I hypothesize it
-        # will be used so infrequently, it should just be listed last.
         @priority ||= case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-        when 'default'
-          adaptive_priority
+        when 'default', 'trace_id_ratio_based', 'adaptive'
+          default_priority
         when 'always_on'
           2.0
         when 'always_off'
           0
-        when 'trace_id_ratio_based'
-          adaptive_priority
-        when 'adaptive'
-          adaptive_priority
         end
       end
 
