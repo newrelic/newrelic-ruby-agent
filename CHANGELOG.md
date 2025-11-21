@@ -2,6 +2,14 @@
 
 ## dev
 
+- **Feature: Deprecation reminder for SqlSampler#notice_sql API**
+
+  The `NewRelic::Agent::SqlSampler#notice_sql` method is deprecated and will be removed in a future major version. Instead, users should call `NewRelic::Agent::Datastores.notice_sql`. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+
+- **Feature: Deprecation notice for second and third arguments in Datastores.notice_sql API**
+
+  The second (`scoped_metric`) and third (`elapsed`) arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+
 - **Feature: Add Trace ID Ratio Based sampling options**
 
   The agent can now sample traces using the OpenTelemetry Trace ID Ratio Based sampler algorithm. This samples traces based on a probability between 0.0 and 1.0 based on the trace ID.
@@ -31,14 +39,6 @@
   | `always_on` | Marks 100% of root traces as sampled |
   | `always_off` | Marks 0% of root traces as sampled |
   | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
-
-- **Feature: Deprecation reminder for SqlSampler#notice_sql API**
-
-  The `NewRelic::Agent::SqlSampler#notice_sql` method is deprecated and will be removed in a future major version. Instead, users should call `NewRelic::Agent::Datastores.notice_sql`. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
-
-- **Feature: Deprecation notice for second and third arguments in Datastores.notice_sql API**
-
-  The second (`scoped_metric`) and third (`elapsed`) arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
 
 ## v9.23.0
 
