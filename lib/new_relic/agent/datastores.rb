@@ -160,7 +160,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_sql(query, scoped_metric = '', elapsed = 0)
+      def self.notice_sql(query, scoped_metric = '', elapsed = 0.0)
         NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.notice_sql method is changing. ' \
           'In a future major version, the scoped_metric and elapsed arguments will be removed. ' \
           'The scoped_metric and elapsed values are now based on the current segment when the notice_sql method ' \
@@ -185,7 +185,8 @@ module NewRelic
       #
       # @param [String] statement text of the statement to capture.
       #
-      # @param [Float] elapsed the elapsed time during query execution
+      # @param [Float] elapsed (optional, deprecated) the elapsed time during
+      #   query execution
       #
       # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!
       #   This method will properly ignore statements when the user has turned
@@ -196,7 +197,12 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_statement(statement, elapsed)
+      def self.notice_statement(statement, elapsed = 0.0)
+        NewRelic::Agent.logger.warn('The ' \
+          'NewRelic::Agent::Datastores.notice_statement method is changing. ' \
+          'In a future major version, the elapsed argument will be removed. ' \
+          'The elapsed value is now based on the current segment when the ' \
+          'notice_statement method was called.')
         NewRelic::Agent.record_api_supportability_metric(:notice_statement)
 
         # Settings may change eventually, but for now we follow the same
