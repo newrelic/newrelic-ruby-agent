@@ -11,6 +11,7 @@
   Previously, Cross Application Tracing (CAT) was deprecated in favor of Distributed Tracing. CAT functionality has now been removed. The configuration option `cross_application_tracer.enabled` has been removed. Public API methods `NewRelic::Agent::External.process_request_metadata`, `NewRelic::Agent::External.get_response_metadata`, `NewRelic::Agent::Transaction::ExternalRequestSegment#process_response_metadata`, and `NewRelic::Agent::Transaction::ExternalRequestSegment#get_request_metadata` have also been removed. [PR#3333](https://github.com/newrelic/newrelic-ruby-agent/pull/3333)
 
 - **Feature: Add `logger` as a dependency**
+
   The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
 
 - **Breaking Change: Rename ActiveJob metrics**
@@ -25,7 +26,11 @@
 
 - **Breaking Change: Remove the `newrelic deployments` CLI command**
 
-    The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+  The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+
+- **Breaking Change: Remove the NewRelic::Agent::SqlSampler#notice_sql method**
+
+  Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#3338](https://github.com/newrelic/newrelic-ruby-agent/pull/3338)
 
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 

@@ -16,12 +16,13 @@ class ParameterCaptureController < ApplicationController
   end
 
   def sql
-    NewRelic::Agent.agent.sql_sampler.notice_sql(
+    segment = NewRelic::Agent::Tracer.start_datastore_segment
+    NewRelic::Agent::Datastores.notice_sql(
       'SELECT * FROM table',
       'ActiveRecord/foos/find',
-      {},
       100.0
     )
+    segment.finish
   end
 
   def error
@@ -221,7 +222,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   end
 
   def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_off
-    with_config(:capture_params => false) do
+    with_config(:capture_params => false, :'slow_sql.explain_threshold' => 0.0) do
       get('/parameter_capture/sql?param1=value1&param2=value2')
     end
 
@@ -229,7 +230,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   end
 
   def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_on
-    with_config(:capture_params => true) do
+    with_config(:capture_params => true, :'slow_sql.explain_threshold' => 0.0) do
       get('/parameter_capture/sql?param1=value1&param2=value2')
     end
 

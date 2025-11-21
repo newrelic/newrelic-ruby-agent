@@ -33,9 +33,15 @@ class AgentRunIdHandlingTest < Minitest::Test
   end
 
   def simulate_slow_sql_trace
-    in_transaction do
-      agent.sql_sampler.notice_sql('select * from test', 'Database/test/select', nil, 1.5)
+    with_config(:'slow_sql.explain_threshold' => 0.0) do
+      in_transaction do
+        segment = NewRelic::Agent::Tracer.start_datastore_segment
+        # metric name and elapsed args are ignored
+        NewRelic::Agent::Datastores.notice_sql('select * from test', 'Database/test/select', 1.5)
+        segment.finish
+      end
     end
+
     NewRelic::Agent.agent.send(:harvest_and_send_slowest_sql)
   end
 end
