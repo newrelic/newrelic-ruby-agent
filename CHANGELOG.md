@@ -38,7 +38,8 @@
   * `NewRelic::Agent::Datastores.notice_sql`, previously had three positional arguments, `query`, `scoped_metric` and `elapsed`. Now, it only has `query`.
   * `NewRelic::Agent::Datastores.notice_statement`, previously had two positional arguments `query` and `elapsed`. Now it only has `query`.
   * `NewRelic::Agent::Datastores.wrap` requires a proc. Previously the proc received three arguments: the result of the yield, the most specific scoped metric name, and the elapsed time of the call. Now, it only receives one: the result of the yield.
-  [PR#3347](https://github.com/newrelic/newrelic-ruby-agent/pull/3347)
+
+  The values of the removed arguments are derived from the current segment at the time of the call. [PR#3347](https://github.com/newrelic/newrelic-ruby-agent/pull/3347)
 
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 
