@@ -85,9 +85,11 @@ module NewRelic
       #   statement-level metrics (i.e. table or model name)
       #
       # @param [Proc,#call] callback proc or other callable to invoke after
-      #   running the datastore block. Receives three arguments: result of the
-      #   yield, the most specific (scoped) metric name, and elapsed time of the
-      #   call. An example use is attaching SQL to Transaction Traces at the end
+      #   running the datastore block. Receives three arguments:
+      #     * result of the yield
+      #     * (optional, deprecated) the most specific (scoped) metric name
+      #     * (optional, deprecated) elapsed time of the call
+      #   An example use is attaching SQL to Transaction Traces at the end
       #   of a wrapped datastore call.
       #
       #     callback = Proc.new do |result, metrics, elapsed|
@@ -107,6 +109,11 @@ module NewRelic
       # @api public
       #
       def self.wrap(product, operation, collection = nil, callback = nil)
+        NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.wrap method is changing. ' \
+          'In a future major version, proc will only accept a single argument, the result of the yield. ' \
+          'The scoped metric name and elapsed arguments will be removed, as they are being removed from the ' \
+          'Datastores.notice_sql method. The scoped metric name and elapsed values are derived from the ' \
+          'current segment when the wrap yields.')
         NewRelic::Agent.record_api_supportability_metric(:wrap)
 
         return yield unless operation
@@ -160,7 +167,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_sql(query, scoped_metric = '', elapsed = 0)
+      def self.notice_sql(query, scoped_metric = '', elapsed = 0.0)
         NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.notice_sql method is changing. ' \
           'In a future major version, the scoped_metric and elapsed arguments will be removed. ' \
           'The scoped_metric and elapsed values are now based on the current segment when the notice_sql method ' \
@@ -185,7 +192,8 @@ module NewRelic
       #
       # @param [String] statement text of the statement to capture.
       #
-      # @param [Float] elapsed the elapsed time during query execution
+      # @param [Float] elapsed (optional, deprecated) the elapsed time during
+      #   query execution
       #
       # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!
       #   This method will properly ignore statements when the user has turned
@@ -196,7 +204,12 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_statement(statement, elapsed)
+      def self.notice_statement(statement, elapsed = 0.0)
+        NewRelic::Agent.logger.warn('The ' \
+          'NewRelic::Agent::Datastores.notice_statement method is changing. ' \
+          'In a future major version, the elapsed argument will be removed. ' \
+          'The elapsed value is now based on the current segment when the ' \
+          'notice_statement method was called.')
         NewRelic::Agent.record_api_supportability_metric(:notice_statement)
 
         # Settings may change eventually, but for now we follow the same
