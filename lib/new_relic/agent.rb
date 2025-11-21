@@ -127,6 +127,9 @@ module NewRelic
     @tracer_lock = Mutex.new
     @tracer_queue = []
     @metrics_already_recorded = Set.new
+    @metrics_recorded_lock = Mutex.new
+    # Bound the size of @metrics_already_recorded to prevent memory leaks
+    METRICS_RECORDED_MAX_SIZE = 10_000
 
     # The singleton Agent instance.  Used internally.
     def agent # :nodoc:
@@ -309,9 +312,18 @@ module NewRelic
     end
 
     def record_metric_once(metric_name, value = 0.0)
-      return unless @metrics_already_recorded.add?(metric_name)
+      should_record = false
 
-      record_metric(metric_name, value)
+      @metrics_recorded_lock.synchronize do
+        # Clear the set if it grows too large to prevent memory leaks
+        if @metrics_already_recorded.size >= METRICS_RECORDED_MAX_SIZE
+          @metrics_already_recorded.clear
+        end
+
+        should_record = @metrics_already_recorded.add?(metric_name)
+      end
+
+      record_metric(metric_name, value) if should_record
     end
 
     def record_instrumentation_invocation(library)
@@ -841,9 +853,10 @@ module NewRelic
 
     def add_new_segment_attributes(params, segment)
       # Make sure not to override existing segment-level custom attributes
-      segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
+      # Use Set for O(1) lookups instead of Array#include? which is O(n)
+      segment_custom_keys = Set.new(segment.attributes.custom_attributes.keys.map(&:to_sym))
       segment.add_custom_attributes(params.reject do |k, _v|
-        segment_custom_keys.include?(k.to_sym) if k.respond_to?(:to_sym) # param keys can be integers
+        k.respond_to?(:to_sym) && segment_custom_keys.include?(k.to_sym) # param keys can be integers
       end)
     end
 
@@ -981,7 +994,9 @@ module NewRelic
       txn = Transaction.tl_current
       if txn
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        txn.best_name.sub(Regexp.new("\\A#{Regexp.escape(namer.prefix_for_category(txn))}"), '')
+        prefix = namer.prefix_for_category(txn)
+        # Use delete_prefix for better performance than regexp substitution
+        txn.best_name.delete_prefix(prefix)
       end
     end
 
@@ -1047,7 +1062,7 @@ module NewRelic
     # @!scope class
     # @api public
     def linking_metadata
-      metadata = Hash.new
+      metadata = {}
       LinkingMetadata.append_service_linking_metadata(metadata)
       LinkingMetadata.append_trace_linking_metadata(metadata)
       metadata
