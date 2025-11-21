@@ -9,8 +9,8 @@ end
 instrumentation_methods :chain, :prepend
 
 BUNNY_VERSIONS = [
-  [nil, 2.4],
-  ['2.9.1', 2.4]
+  [nil],
+  ['2.9.1']
 ]
 
 def gem_list(bunny_version = nil)

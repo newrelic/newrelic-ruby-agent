@@ -55,7 +55,6 @@ module NewRelic
     require 'new_relic/agent/rules_engine'
     require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
-    require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
@@ -332,8 +331,10 @@ module NewRelic
 
     # Increment a simple counter metric.
     #
-    # +metric_name+ should follow a slash separated path convention. Application
-    # specific metrics should begin with "Custom/".
+    # +metric_name+ should be a String that follows a slash separated
+    # path convention. Application specific metrics should begin with
+    # "Custom/".
+    # +amount+ (optional) should be a Numeric value to increment. Defaults to 1.
     #
     # This method is safe to use from any thread.
     #
