@@ -110,7 +110,7 @@ module Multiverse
 
       # these need services running in github actions, so they are separated
       'services_1' => %w[mongo bunny],
-      'services_2' => %w[redis sidekiq sidekiq_delay_extensions memcache],
+      'services_2' => %w[redis sidekiq sidekiq_delay_extensions sidekiq_ignore_retry_errors_enabled memcache],
       'services_kafka' => %w[rdkafka ruby_kafka],
       'services_elasticsearch' => %w[elasticsearch],
       'services_mysql_pg' => %w[active_record active_record_pg],

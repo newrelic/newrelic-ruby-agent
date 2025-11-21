@@ -11,6 +11,9 @@ inputs:
     description: 'If this is run on PR'
     required: true
     default: true
+  number_of_attempts:
+    default: 2
+    required: true
 
 runs:
   using: "composite"
@@ -42,7 +45,7 @@ runs:
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
       with:
         timeout_minutes: 60
-        max_attempts: 2
+        max_attempts: ${{ inputs.number_of_attempts }}
         command: bundle exec rake test:multiverse[group="${{ inputs.group }}"]
       env:
         VERBOSE_TEST_OUTPUT: true
