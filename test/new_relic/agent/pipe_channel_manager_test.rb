@@ -227,7 +227,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       state = NewRelic::Agent::Tracer.state
       sampler.on_start_transaction(state)
       statement = NewRelic::Agent::Database::Statement.new('SELECT * FROM table')
-      NewRelic::Agent::Datastores.notice_sql_statement(statement, 'ActiveRecord/Widgets/find', 100)
+      sampler.notice_sql_statement(statement, 'ActiveRecord/Widgets/find', 100)
       sampler.on_finishing_transaction(state, 'noodles')
     end
   end
