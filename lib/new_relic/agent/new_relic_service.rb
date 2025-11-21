@@ -200,7 +200,7 @@ module NewRelic
           data = if encoding == 'deflate'
             Encoders::Compressed::Deflate.encode(data)
           else
-            Encoders::Compressed::Gzip.encode(data)
+            Zlib.gzip(data)
           end
         end
         check_post_size(data, endpoint)

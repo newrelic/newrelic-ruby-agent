@@ -4,15 +4,11 @@
 
 SEQUEL_VERSIONS = [
   [nil],
-  ['5.17.0', 2.4, 2.7]
+  ['5.17.0', 2.6, 2.7]
 ]
 
 def sqlite3_version
-  if RUBY_VERSION < '2.6'
-    "'< 1.5.0', "
-  elsif RUBY_VERSION < '2.7'
-    "'< 1.6.0', "
-  end
+  "'< 1.6.0', " if RUBY_VERSION < '2.7'
 end
 
 def gem_list(sequel_version = nil)

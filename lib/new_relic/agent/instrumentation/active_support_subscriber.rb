@@ -2,12 +2,30 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'new_relic/agent/instrumentation/notifications_subscriber'
+require_relative 'notifications_subscriber'
 
 module NewRelic
   module Agent
     module Instrumentation
       class ActiveSupportSubscriber < NotificationsSubscriber
+        EVENT_NAME_TO_METHOD_NAME = {
+          'cache_fetch_hit.active_support' => 'fetch_hit',
+          'cache_generate.active_support' => 'generate',
+          'cache_read.active_support' => 'read',
+          'cache_write.active_support' => 'write',
+          'cache_delete.active_support' => 'delete',
+          'cache_exist?.active_support' => 'exist?',
+          'cache_read_multi.active_support' => 'read_multi',
+          'cache_write_multi.active_support' => 'write_multi',
+          'cache_delete_multi.active_support' => 'delete_multi',
+          'cache_delete_matched.active_support' => 'delete_matched',
+          'cache_cleanup.active_support' => 'cleanup',
+          'cache_increment.active_support' => 'increment',
+          'cache_decrement.active_support' => 'decrement',
+          'cache_prune.active_support' => 'prune',
+          'message_serializer_fallback.active_support' => 'message_serializer_fallback'
+        }.freeze
+
         def add_segment_params(segment, payload)
           segment.params[:key] = payload[:key]
           segment.params[:store] = payload[:store]
@@ -18,22 +36,12 @@ module NewRelic
 
         def metric_name(name, payload)
           store = payload[:store]
-          method = method_from_name(name)
+          method = method_name(name)
           "Ruby/ActiveSupport#{"/#{store}" if store}/#{method}"
         end
 
-        PATTERN = /\Acache_([^\.]*)\.active_support\z/
-
-        METHOD_NAME_MAPPING = Hash.new do |h, k|
-          if PATTERN =~ k
-            h[k] = $1
-          else
-            h[k] = NewRelic::UNKNOWN
-          end
-        end
-
-        def method_from_name(name)
-          METHOD_NAME_MAPPING[name]
+        def method_name(name)
+          EVENT_NAME_TO_METHOD_NAME.fetch(name, name.delete_prefix('cache_').delete_suffix('.active_support'))
         end
       end
     end
