@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Configuration
-      # Handles validation for the distributed tracing sampler configs
+      # Handles validation for the `distributed_tracing.sampler.*` configs
       # Focuses on validating the trace id ratio based ratios
       module SamplerConfigValidator
         @sampler_strategy_warnings = {}
