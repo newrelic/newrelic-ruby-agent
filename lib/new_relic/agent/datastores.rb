@@ -85,9 +85,11 @@ module NewRelic
       #   statement-level metrics (i.e. table or model name)
       #
       # @param [Proc,#call] callback proc or other callable to invoke after
-      #   running the datastore block. Receives three arguments: result of the
-      #   yield, the most specific (scoped) metric name, and elapsed time of the
-      #   call. An example use is attaching SQL to Transaction Traces at the end
+      #   running the datastore block. Receives three arguments:
+      #     * result of the yield
+      #     * (optional, deprecated) the most specific (scoped) metric name
+      #     * (optional, deprecated) elapsed time of the call
+      #   An example use is attaching SQL to Transaction Traces at the end
       #   of a wrapped datastore call.
       #
       #     callback = Proc.new do |result, metrics, elapsed|
@@ -107,6 +109,11 @@ module NewRelic
       # @api public
       #
       def self.wrap(product, operation, collection = nil, callback = nil)
+        NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.wrap method is changing. ' \
+          'In a future major version, proc will only accept a single argument, the result of the yield. ' \
+          'The scoped metric name and elapsed arguments will be removed, as they are being removed from the ' \
+          'Datastores.notice_sql method. The scoped metric name and elapsed values are derived from the ' \
+          'current segment when the wrap yields.')
         NewRelic::Agent.record_api_supportability_metric(:wrap)
 
         return yield unless operation
