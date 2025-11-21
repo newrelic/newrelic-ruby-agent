@@ -10,6 +10,36 @@
 
   The second (`scoped_metric`) and third (`elapsed`) arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
 
+- **Feature: Add Trace ID Ratio Based sampling options**
+
+  The agent can now sample traces using the OpenTelemetry Trace ID Ratio Based sampler algorithm. This samples traces based on a probability between 0.0 and 1.0 based on the trace ID.
+
+  To use this option, you must first set your distributed tracing sampler configuration to `trace_id_ratio_based` and then set the corresponding `distributed_tracing.sampler.*.trace_id_ratio_based.ratio` sampler to a Float between 0.0 and 1.0.
+
+  For example:
+  ```yaml
+    distributed_tracing.sampler.remote_parent_sampled: 'trace_id_ratio_based'
+    distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio': 0.5
+  ```
+  This configuration would sample approximately 50% of your traces for all traces where the remote parent is sampled.
+
+  This option is available for:
+  * `distributed_tracing.sampler.root`
+  * `distributed_tracing.sampler.remote_parent_sampled`
+  * `distributed_tracing.sampler.remote_parent_not_sampled`
+
+- **Feature: Add root sampling configuration options**
+
+  You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. There are four modes available:
+
+  | Mode | Description |
+  | ------ | ----------- |
+  | `default` | Uses the existing adaptive sampler algorithm |
+  | `adaptive` | Uses the existing adaptive sampler algorithm |
+  | `always_on` | Marks 100% of root traces as sampled |
+  | `always_off` | Marks 0% of root traces as sampled |
+  | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**
