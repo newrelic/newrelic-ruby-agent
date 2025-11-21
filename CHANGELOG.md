@@ -8,7 +8,7 @@
 
 - **Feature: Deprecation notice for second and third arguments in Datastores.notice_sql API**
 
-  The second and third arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+  The second (`scoped_metric`) and third (`elapsed`) arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
 
 ## v9.23.0
 
