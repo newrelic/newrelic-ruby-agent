@@ -72,7 +72,7 @@ class MarshalingTest < Minitest::Test
     with_config(:'slow_sql.explain_threshold' => 0.0) do
       in_transaction do
         segment = NewRelic::Agent::Tracer.start_datastore_segment
-        NewRelic::Agent::Datastores.notice_sql('select * from test', 'Database/test/select', 1.5)
+        NewRelic::Agent::Datastores.notice_sql('select * from test')
         segment.finish
       end
 
