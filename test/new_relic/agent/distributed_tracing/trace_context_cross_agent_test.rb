@@ -51,9 +51,17 @@ module NewRelic
                 :'transaction_events.enabled' => test_case.fetch('transaction_events_enabled', true),
                 :trusted_account_key => test_case['trusted_account_key'],
                 :'span_events.enabled' => test_case.fetch('span_events_enabled', true),
+                :'distributed_tracing.sampler.root' => test_case.fetch('root', 'default'),
                 :'distributed_tracing.sampler.remote_parent_sampled' => test_case.fetch('remote_parent_sampled', 'default'),
                 :'distributed_tracing.sampler.remote_parent_not_sampled' => test_case.fetch('remote_parent_not_sampled', 'default')
               }
+
+              if test_case.key?('ratio')
+                strategies = %w[root remote_parent_sampled remote_parent_not_sampled]
+                key = strategies.find { |f| test_case[f] == 'trace_id_ratio_based' }
+                config["distributed_tracing.sampler.#{key}.trace_id_ratio_based.ratio".to_sym] = test_case['ratio']
+              end
+
               with_server_source(config) do
                 run_test_case(test_case)
               end
