@@ -15,4 +15,4 @@ development:
     stack_trace_threshold: 0.5
     transaction_threshold: 1.0
   capture_params: false
-  opentelemetry_bridge.enabled: true
+  opentelemetry.enabled: true

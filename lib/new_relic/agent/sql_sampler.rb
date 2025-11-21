@@ -140,6 +140,9 @@ module NewRelic
       # @deprecated Use {Datastores.notice_sql} instead.
       #
       def notice_sql(sql, metric_name, config, duration, state = nil, explainer = nil, binds = nil, name = nil) # THREAD_LOCAL_ACCESS sometimes
+        NewRelic::Agent.logger.warn(
+          'The SqlSampler#notice_sql method is deprecated. Please use Datastores.notice_sql instead.'
+        )
         state ||= Tracer.state
         data = state.sql_sampler_transaction_data
         return unless data

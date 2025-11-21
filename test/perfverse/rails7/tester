@@ -1,0 +1,48 @@
+#!/bin/bash
+
+logfile="log/tester.log"
+
+languages="
+Rust
+Lisp
+Lua
+Haskell
+Nim
+Swift
+C++
+D
+Crystal
+Kotlin
+Clojure
+Julia
+Perl
+Raku
+Scala
+TypeScript
+"
+
+echo "Running automated CRUD tests..." >> $logfile
+
+while true; do
+  for language in $languages; do
+    # agents/create
+    id=$(curl --silent -L -H "Content-Type: application/json" -H "Accept: application/json" -d "{\"language\": \"$language\"}" http://localhost:3000/agents|jq '.id')
+    if [ -z $id ]; then
+      echo "ERROR: failed to obtain an id for $language!" >> $logfile
+      continue
+    fi
+
+    # agents/show
+    curl --silent http://localhost:3000/agents/$id >/dev/null
+
+    # agents/destroy
+    curl --silent -X DELETE http://localhost:3000/agents/$id >/dev/null
+    echo "Completed a full set of operations." >> $logfile
+
+    # admin/index
+    curl --silent http://localhost:3000/admin >/dev/null
+
+    # go too fast and the agent starts sampling
+    sleep 3
+  done
+done

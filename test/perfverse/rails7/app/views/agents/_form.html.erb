@@ -1,0 +1,42 @@
+<%= form_with(model: agent) do |form| %>
+  <% if agent.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(agent.errors.count, "error") %> prohibited this agent from being saved:</h2>
+
+      <ul>
+        <% agent.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name, style: "display: block" %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.label :repository, style: "display: block" %>
+    <%= form.text_field :repository %>
+  </div>
+
+  <div>
+    <%= form.label :language, style: "display: block" %>
+    <%= form.text_field :language %>
+  </div>
+
+  <div>
+    <%= form.label :stars, style: "display: block" %>
+    <%= form.number_field :stars %>
+  </div>
+
+  <div>
+    <%= form.label :forks, style: "display: block" %>
+    <%= form.number_field :forks %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
