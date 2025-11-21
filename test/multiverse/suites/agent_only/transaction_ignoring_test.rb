@@ -21,9 +21,7 @@ class TransactionIgnoringTest < Minitest::Test
   def trigger_transaction_with_slow_sql(txn_name)
     TestWidget.new.run_transaction(txn_name) do
       segment = NewRelic::Agent::Tracer.start_datastore_segment
-      NewRelic::Agent::Datastores.notice_sql('select * from test',
-        'Database/test/select',
-        1.5)
+      NewRelic::Agent::Datastores.notice_sql('select * from test')
       segment.finish
     end
   end

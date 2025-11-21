@@ -12,8 +12,7 @@ class TransactionIgnorerController < ApplicationController
     NewRelic::Agent.notice_error(params[:error_msg]) if params[:error_msg]
     if params[:slow_sql]
       segment = NewRelic::Agent::Tracer.start_datastore_segment
-      NewRelic::Agent::Datastores.notice_sql('select * from test',
-        'Database/test/select', 1.5)
+      NewRelic::Agent::Datastores.notice_sql('select * from test')
       segment.finish
     end
     render(body: 'some stuff')

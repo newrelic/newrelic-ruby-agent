@@ -17,11 +17,7 @@ class ParameterCaptureController < ApplicationController
 
   def sql
     segment = NewRelic::Agent::Tracer.start_datastore_segment
-    NewRelic::Agent::Datastores.notice_sql(
-      'SELECT * FROM table',
-      'ActiveRecord/foos/find',
-      100.0
-    )
+    NewRelic::Agent::Datastores.notice_sql('SELECT * FROM table')
     segment.finish
   end
 

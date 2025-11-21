@@ -37,7 +37,7 @@ class AgentRunIdHandlingTest < Minitest::Test
       in_transaction do
         segment = NewRelic::Agent::Tracer.start_datastore_segment
         # metric name and elapsed args are ignored
-        NewRelic::Agent::Datastores.notice_sql('select * from test', 'Database/test/select', 1.5)
+        NewRelic::Agent::Datastores.notice_sql('select * from test')
         segment.finish
       end
     end
