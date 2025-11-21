@@ -77,23 +77,25 @@ module TransactionIgnoringTestCases
   end
 
   def test_does_not_record_sql_traces_for_ignored_transactions
-    trigger_transaction_with_slow_sql('ignored_transaction')
-    trigger_transaction_with_slow_sql('accepted_transaction')
+    with_config(:'slow_sql.explain_threshold' => 0.0) do
+      trigger_transaction_with_slow_sql('ignored_transaction')
+      trigger_transaction_with_slow_sql('accepted_transaction')
 
-    NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
+      NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
 
-    post = first_call_for('sql_trace_data')
+      post = first_call_for('sql_trace_data')
 
-    traces = post.traces
+      traces = post.traces
 
-    assert_equal(1, traces.size)
+      assert_equal(1, traces.size)
 
-    trace = traces.first
+      trace = traces.first
 
-    # From SqlTrace#to_collector_array
-    # 0 -> path
-    # 5 -> call_count
-    assert_equal(TXN_PREFIX + 'accepted_transaction', trace[0])
-    assert_equal(1, trace[5])
+      # From SqlTrace#to_collector_array
+      # 0 -> path
+      # 5 -> call_count
+      assert_equal(TXN_PREFIX + 'accepted_transaction', trace[0])
+      assert_equal(1, trace[5])
+    end
   end
 end

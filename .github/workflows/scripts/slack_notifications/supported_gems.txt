@@ -7,7 +7,6 @@ aws-sdk-kinesis
 aws-sdk-lambda
 aws-sdk-sqs
 bunny
-capistrano
 concurrent-ruby
 curb
 dalli

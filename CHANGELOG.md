@@ -2,17 +2,43 @@
 
 ## dev
 
-- **Feature: Deprecation reminder for SqlSampler#notice_sql API**
+- **Breaking Change: Remove support for Ruby 2.4 and 2.5**
 
-  The `NewRelic::Agent::SqlSampler#notice_sql` method is deprecated and will be removed in a future major version. Instead, users should call `NewRelic::Agent::Datastores.notice_sql`. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+  Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
-- **Feature: Deprecation notice for second and third arguments in Datastores.notice_sql API**
+- **Feature: Add `logger` as a dependency**
 
-  The second (`scoped_metric`) and third (`elapsed`) arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
 
-- **Feature: Deprecation notice for second argument in Datastores.notice_statement API**
+- **Breaking Change: Rename ActiveJob metrics**
 
-  The second (`elapsed`) argument in the `NewRelic::Agent::Datastores.notice_statement` method is deprecated. It has not been used by the method for some time. Instead, this value will be set based on the current segment when the API is called. [PR#3346](https://github.com/newrelic/newrelic-ruby-agent/pull/3346)
+  ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
+    - Old format: `Ruby/ActiveJob/<QueueName>/<Method>`
+    - New format: `Ruby/ActiveJob/<ClassName>/<QueueName>/<Method>`
+
+- **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
+
+  The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
+
+- **Breaking Change: Remove the `newrelic deployments` CLI command**
+
+  The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+
+- **Breaking Change: Remove the NewRelic::Agent::SqlSampler#notice_sql method**
+
+  Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#3338](https://github.com/newrelic/newrelic-ruby-agent/pull/3338)
+
+- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
+
+  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
+- **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
+
+  The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
+
+- **Breaking Change: Remove support for Puma versions < 3.9.0**
+
+  The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
 
 ## v9.23.0
 

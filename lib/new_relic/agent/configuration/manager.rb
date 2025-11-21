@@ -9,7 +9,6 @@ require 'new_relic/agent/configuration/default_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 require 'new_relic/agent/configuration/high_security_source'
-require 'new_relic/agent/configuration/security_policy_source'
 
 module NewRelic
   module Agent
@@ -48,7 +47,6 @@ module NewRelic
 
         def remove_config_type(sym)
           source = case sym
-          when :security_policy then @security_policy_source
           when :high_security then @high_security_source
           when :environment then @environment_source
           when :server then @server_source
@@ -62,7 +60,6 @@ module NewRelic
 
         def remove_config(source)
           case source
-          when SecurityPolicySource then @security_policy_source = nil
           when HighSecuritySource then @high_security_source = nil
           when EnvironmentSource then @environment_source = nil
           when ServerSource then @server_source = nil
@@ -85,7 +82,6 @@ module NewRelic
           invoke_callbacks(:add, source)
 
           case source
-          when SecurityPolicySource then @security_policy_source = source
           when HighSecuritySource then @high_security_source = source
           when EnvironmentSource then @environment_source = source
           when ServerSource then @server_source = source
@@ -379,7 +375,6 @@ module NewRelic
 
         # Generally only useful during initial construction and tests
         def reset_to_defaults
-          @security_policy_source = nil
           @high_security_source = nil
           @environment_source = EnvironmentSource.new
           log_config(:add, @environment_source) # this is the only place the EnvironmentSource is ever created, so we should log it
@@ -433,7 +428,6 @@ module NewRelic
         end
 
         def delete_all_configs_for_testing
-          @security_policy_source = nil
           @high_security_source = nil
           @environment_source = nil
           @server_source = nil
@@ -454,8 +448,7 @@ module NewRelic
         private
 
         def config_stack
-          stack = [@security_policy_source,
-            @high_security_source,
+          stack = [@high_security_source,
             @environment_source,
             @server_source,
             @manual_source,
