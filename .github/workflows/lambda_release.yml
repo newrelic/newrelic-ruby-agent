@@ -22,7 +22,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - run: bundle
+    - run: bundle install
 
     - name: Set agent version
       run: echo "agent_version=$(bundle exec rake newrelic:version:current)" >> $GITHUB_ENV
