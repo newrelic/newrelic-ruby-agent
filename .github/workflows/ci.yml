@@ -139,7 +139,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 3.4.4, 4.0.0-preview2]
+        # TODO: Add Ruby 4.0.0 testing; redis-clustering gem not currently compatible
+        ruby-version: [2.6.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -287,7 +288,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.4.4, 4.0.0-preview2]
+        # TODO: Add Ruby 4.0.0 testing; grpc gem not currently compatible
+        ruby-version: [2.7.8, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
