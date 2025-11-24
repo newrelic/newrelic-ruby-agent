@@ -118,13 +118,10 @@ module NewRelic::Agent
           'External/all',
           'External/remotehost.com/all',
           'External/allWeb',
-          ['External/remotehost.com/Net::HTTP/GET', 'test']
+          ['External/remotehost.com/Net::HTTP/GET', 'test'],
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
         ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
-          expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-        end
 
         assert_metrics_recorded expected_metrics
       end
