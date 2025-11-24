@@ -6,7 +6,7 @@
 # error raised running 8T with Ruby 4.0 on version 1.76.0 on 21/11/26
 # undefined symbol: ruby_abi_version - ruby_abi_version (LoadError)
 suite_condition('The grpc gem is not compatible with Ruby 4.0') do
-  RUBY_VERSION >= '4.0.0'
+  RUBY_VERSION < '4.0.0'
 end
 
 # gRPC's Ruby mainainers have broken the 'grpc' gem's compatibility with

@@ -8,7 +8,7 @@ instrumentation_methods :chain, :prepend
 # Error in the redis-clustering gem
 # Gem Load Error is: Proc's self is not shareable: #<Proc:0x00007f3adcd46840 (lambda)>
 suite_condition('The redis-clustering gem is not compatible with Ruby 4.0') do
-  RUBY_VERSION >= '4.0.0'
+  RUBY_VERSION < '4.0.0'
 end
 
 REDIS_VERSIONS = [
