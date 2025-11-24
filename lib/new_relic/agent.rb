@@ -127,9 +127,6 @@ module NewRelic
     @tracer_lock = Mutex.new
     @tracer_queue = []
     @metrics_already_recorded = Set.new
-    @metrics_recorded_lock = Mutex.new
-    # Bound the size of @metrics_already_recorded to prevent memory leaks
-    METRICS_RECORDED_MAX_SIZE = 10_000
 
     # The singleton Agent instance.  Used internally.
     def agent # :nodoc:
@@ -311,19 +308,11 @@ module NewRelic
       agent.stats_engine.tl_record_unscoped_metrics(metric_name, value)
     end
 
+    # @api private
     def record_metric_once(metric_name, value = 0.0)
-      should_record = false
+      return unless @metrics_already_recorded.add?(metric_name)
 
-      @metrics_recorded_lock.synchronize do
-        # Clear the set if it grows too large to prevent memory leaks
-        if @metrics_already_recorded.size >= METRICS_RECORDED_MAX_SIZE
-          @metrics_already_recorded.clear
-        end
-
-        should_record = @metrics_already_recorded.add?(metric_name)
-      end
-
-      record_metric(metric_name, value) if should_record
+      record_metric(metric_name, value)
     end
 
     def record_instrumentation_invocation(library)
@@ -853,7 +842,6 @@ module NewRelic
 
     def add_new_segment_attributes(params, segment)
       # Make sure not to override existing segment-level custom attributes
-      # Use Set for O(1) lookups instead of Array#include? which is O(n)
       segment_custom_keys = Set.new(segment.attributes.custom_attributes.keys.map(&:to_sym))
       segment.add_custom_attributes(params.reject do |k, _v|
         k.respond_to?(:to_sym) && segment_custom_keys.include?(k.to_sym) # param keys can be integers
@@ -995,7 +983,7 @@ module NewRelic
       if txn
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer
         prefix = namer.prefix_for_category(txn)
-        # Use delete_prefix for better performance than regexp substitution
+
         txn.best_name.delete_prefix(prefix)
       end
     end
