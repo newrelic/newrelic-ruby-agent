@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/transaction/segment'
-require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
 module NewRelic
   module Agent
@@ -89,7 +88,6 @@ module NewRelic
         def transaction_assigned
           if headers && transaction && action == :produce && record_metrics?
             transaction.distributed_tracer.insert_distributed_trace_header(headers)
-            transaction.distributed_tracer.insert_cat_headers(headers)
             transaction.distributed_tracer.log_request_headers(headers)
           end
         rescue => e

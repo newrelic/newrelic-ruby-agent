@@ -64,48 +64,6 @@ module NewRelic
           NewRelic::Agent.logger.error('Error in add_request_headers', e)
         end
 
-        # This method extracts app data from an external response if present. If
-        # a valid cross-app ID is found, the name of the segment is updated to
-        # reflect the cross-process ID and transaction name.
-        #
-        # @param [Hash] response a hash of response headers
-        #
-        # @api public
-        def read_response_headers(response)
-          return unless record_metrics? && CrossAppTracing.cross_app_enabled?
-          return unless CrossAppTracing.response_has_crossapp_header?(response)
-
-          unless data = CrossAppTracing.extract_appdata(response)
-            NewRelic::Agent.logger.debug("Couldn't extract_appdata from external segment response")
-            return
-          end
-
-          if CrossAppTracing.valid_cross_app_id?(data[0])
-            @app_data = data
-            update_segment_name
-          else
-            NewRelic::Agent.logger.debug('External segment response has invalid cross_app_id')
-          end
-        rescue => e
-          NewRelic::Agent.logger.error('Error in read_response_headers', e)
-        end
-
-        def cross_app_request? # :nodoc:
-          !!@app_data
-        end
-
-        def cross_process_id # :nodoc:
-          @app_data && @app_data[0]
-        end
-
-        def transaction_guid # :nodoc:
-          @app_data && @app_data[5]
-        end
-
-        def cross_process_transaction_name # :nodoc:
-          @app_data && @app_data[1]
-        end
-
         def record_metrics
           add_unscoped_metrics
           super
@@ -113,7 +71,6 @@ module NewRelic
 
         def process_response_headers(response) # :nodoc:
           set_http_status_code(response)
-          read_response_headers(response)
         end
 
         private
@@ -135,10 +92,6 @@ module NewRelic
 
         def segment_complete
           params[:uri] = uri.to_s
-          if cross_app_request?
-            params[:transaction_guid] = transaction_guid
-          end
-
           super
         end
 
@@ -152,10 +105,6 @@ module NewRelic
           @unscoped_metrics = [EXTERNAL_ALL,
             "External/#{host}/all",
             suffixed_rollup_metric]
-
-          if cross_app_request?
-            @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
-          end
         end
 
         def suffixed_rollup_metric
@@ -167,15 +116,7 @@ module NewRelic
         end
 
         def update_segment_name
-          if @app_data
-            @name = "ExternalTransaction/#{host}/#{cross_process_id}/#{cross_process_transaction_name}"
-          else
-            @name = "External/#{host}/#{library}/#{procedure}"
-          end
-        end
-
-        def obfuscator
-          CrossAppTracing.obfuscator
+          @name = "External/#{host}/#{library}/#{procedure}"
         end
 
         def record_span_event

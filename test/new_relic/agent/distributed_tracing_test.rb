@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative '../../test_helper'
-require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 require 'new_relic/agent/transaction'

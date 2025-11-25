@@ -2,9 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'distributed_tracing/cross_app_payload'
-require_relative 'distributed_tracing/cross_app_tracing'
-
 require_relative 'distributed_tracing/distributed_trace_transport_type'
 require_relative 'distributed_tracing/distributed_trace_payload'
 

@@ -441,10 +441,6 @@ module NewRelic
           'MessageBroker/RabbitMQ/Exchange/Consume/Named/Default'
         ]
       end
-
-      def obfuscator
-        NewRelic::Agent::CrossAppTracing.obfuscator
-      end
     end
   end
 end

@@ -26,8 +26,6 @@ module NewRelic
       NAME_KEY = 'transactionName'
       DURATION_KEY = 'duration'
       SAMPLED_KEY = 'sampled'
-      CAT_GUID_KEY = 'nr.transactionGuid'
-      CAT_REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
       SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'
       SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'
       SYNTHETICS_MONITOR_ID_KEY = 'nr.syntheticsMonitorId'
@@ -69,7 +67,6 @@ module NewRelic
           attrs[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)
           attrs[PRIORITY_KEY] = payload[:priority]
           append_synthetics(payload, attrs)
-          append_cat(payload, attrs)
           DistributedTraceAttributes.copy_to_hash(payload, attrs)
           PayloadMetricMapping.append_mapped_metrics(payload[:metrics], attrs)
         else
@@ -94,11 +91,6 @@ module NewRelic
           new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.to_s.gsub('synthetics_', ''))
           sample[new_key] = v
         end
-      end
-
-      def append_cat(payload, sample)
-        sample[CAT_GUID_KEY] = payload[:guid] if payload[:guid]
-        sample[CAT_REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
       end
     end
   end

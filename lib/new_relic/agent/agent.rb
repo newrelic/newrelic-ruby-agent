@@ -156,8 +156,6 @@ module NewRelic
         attr_reader :record_sql
         # builder for JS agent scripts to inject
         attr_reader :javascript_instrumentor
-        # cross application tracing ids and encoding
-        attr_reader :cross_process_id
         # service for communicating with collector
         attr_reader :service
         # Global events dispatcher. This will provides our primary mechanism

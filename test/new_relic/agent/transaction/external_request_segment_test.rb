@@ -39,8 +39,6 @@ module NewRelic::Agent
         @obfuscator = NewRelic::Agent::Obfuscator.new('jotorotoes')
         NewRelic::Agent.agent.stubs(:connected?).returns(true)
 
-        NewRelic::Agent::CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
-        NewRelic::Agent::CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
         nr_freeze_process_time
       end
@@ -74,7 +72,7 @@ module NewRelic::Agent
         ]
       end
 
-      def test_segment_records_expected_metrics_for_non_cat_txn
+      def test_segment_records_expected_metrics
         in_transaction('test', :category => :controller) do
           segment = Tracer.start_external_request_segment(
             library: 'Net::HTTP',
@@ -100,110 +98,32 @@ module NewRelic::Agent
         assert_metrics_recorded expected_metrics
       end
 
-      def test_segment_records_noncat_metrics_when_cat_disabled
+      def test_segment_records_metrics_with_response_headers
         request = RequestWrapper.new
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
+        response = {}
 
-        with_config(cat_config.merge({:"cross_application_tracer.enabled" => false})) do
-          in_transaction('test', :category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.add_request_headers(request)
-            segment.process_response_headers(response)
-            segment.finish
-          end
-
-          expected_metrics = [
-            'External/remotehost.com/Net::HTTP/GET',
-            'External/all',
-            'External/remotehost.com/all',
-            'External/allWeb',
-            ['External/remotehost.com/Net::HTTP/GET', 'test']
-          ]
-
-          if Agent.config[:'distributed_tracing.enabled']
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-          end
-
-          assert_metrics_recorded expected_metrics
+        in_transaction('test', :category => :controller) do
+          segment = Tracer.start_external_request_segment(
+            library: 'Net::HTTP',
+            uri: 'http://remotehost.com/blogs/index',
+            procedure: 'GET'
+          )
+          segment.add_request_headers(request)
+          segment.process_response_headers(response)
+          segment.finish
         end
-      end
 
-      def test_segment_records_noncat_metrics_without_valid_cross_process_id
-        request = RequestWrapper.new
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
+        expected_metrics = [
+          'External/remotehost.com/Net::HTTP/GET',
+          'External/all',
+          'External/remotehost.com/all',
+          'External/allWeb',
+          ['External/remotehost.com/Net::HTTP/GET', 'test'],
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
+        ]
 
-        with_config(cat_config.merge({:cross_process_id => ''})) do
-          in_transaction('test', :category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.add_request_headers(request)
-            segment.process_response_headers(response)
-            segment.finish
-          end
-
-          expected_metrics = [
-            'External/remotehost.com/Net::HTTP/GET',
-            'External/all',
-            'External/remotehost.com/all',
-            'External/allWeb',
-            ['External/remotehost.com/Net::HTTP/GET', 'test']
-          ]
-
-          if Agent.config[:'distributed_tracing.enabled']
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-          end
-
-          assert_metrics_recorded expected_metrics
-        end
-      end
-
-      def test_segment_records_noncat_metrics_without_valid_encoding_key
-        CrossAppTracing.unstub(:valid_encoding_key?)
-        request = RequestWrapper.new
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
-
-        with_config(cat_config.merge({:encoding_key => ''})) do
-          in_transaction('test', :category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.add_request_headers(request)
-            segment.process_response_headers(response)
-            segment.finish
-          end
-
-          expected_metrics = [
-            'External/remotehost.com/Net::HTTP/GET',
-            'External/all',
-            'External/remotehost.com/all',
-            'External/allWeb',
-            ['External/remotehost.com/Net::HTTP/GET', 'test']
-          ]
-
-          if Agent.config[:'distributed_tracing.enabled']
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all'
-            expected_metrics << 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-          end
-
-          assert_metrics_recorded expected_metrics
-        end
+        assert_metrics_recorded expected_metrics
       end
 
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
@@ -315,20 +235,18 @@ module NewRelic::Agent
 
       def test_add_request_headers_renames_segment_based_on_host_header
         request = RequestWrapper.new({'host' => 'anotherhost.local'})
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
+        in_transaction(:category => :controller) do
+          segment = Tracer.start_external_request_segment(
+            library: 'Net::HTTP',
+            uri: 'http://remotehost.com/blogs/index',
+            procedure: 'GET'
+          )
 
-            assert_equal 'External/remotehost.com/Net::HTTP/GET', segment.name
-            segment.add_request_headers(request)
+          assert_equal 'External/remotehost.com/Net::HTTP/GET', segment.name
+          segment.add_request_headers(request)
 
-            assert_equal 'External/anotherhost.local/Net::HTTP/GET', segment.name
-            segment.finish
-          end
+          assert_equal 'External/anotherhost.local/Net::HTTP/GET', segment.name
+          segment.finish
         end
       end
 
@@ -352,7 +270,6 @@ module NewRelic::Agent
 
       def test_sets_http_status_code_ok
         headers = {
-          'X-NewRelic-App-Data' => 'this#is#not#valid#appdata',
           'status_code' => 200
         }
         segment_params = {
@@ -360,42 +277,14 @@ module NewRelic::Agent
           uri: 'http://remotehost.com/blogs/index',
           procedure: 'GET'
         }
-        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, {}, segment_params)
 
         assert_equal 200, segment.http_status_code
         refute_metrics_recorded 'External/remotehost.com/Net::HTTP/GET/Error'
       end
 
-      def test_unknown_response_records_supportability_metric
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('1#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
-        with_config(trace_context_config) do
-          in_transaction(:category => :controller) do |txn|
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.process_response_headers(response)
-            segment.finish
-
-            refute_predicate segment, :cross_app_request?
-            refute segment.http_status_code, 'No http_status_code expected!'
-          end
-        end
-        expected_metrics = [
-          'External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode',
-          'External/remotehost.com/Net::HTTP/GET',
-          'External/allWeb'
-        ]
-
-        assert_metrics_recorded expected_metrics
-      end
-
       def test_sets_http_status_code_not_found
         headers = {
-          'X-NewRelic-App-Data' => 'this#is#not#valid#appdata',
           'status_code' => 404
         }
 
@@ -404,33 +293,10 @@ module NewRelic::Agent
           uri: 'http://remotehost.com/blogs/index',
           procedure: 'GET'
         }
-        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, {}, segment_params)
 
         assert_equal 404, segment.http_status_code
         refute_metrics_recorded 'External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode'
-      end
-
-      def test_read_response_headers_ignores_invalid_cross_app_id
-        response = {
-          'X-NewRelic-App-Data' => make_app_data_payload('not_an_ID', 'txn-name', 2, 8, 0, TRANSACTION_GUID)
-        }
-
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do |txn|
-            segment = Tracer.start_external_request_segment(
-              library: 'Net::HTTP',
-              uri: 'http://remotehost.com/blogs/index',
-              procedure: 'GET'
-            )
-            segment.process_response_headers(response)
-            segment.finish
-
-            refute_predicate segment, :cross_app_request?
-            assert_nil segment.cross_process_id
-            assert_nil segment.cross_process_transaction_name
-            assert_nil segment.transaction_guid
-          end
-        end
       end
 
       def test_uri_recorded_as_tt_attribute
@@ -455,14 +321,13 @@ module NewRelic::Agent
       def test_segment_adds_distributed_trace_header
         distributed_tracing_config = {
           :'distributed_tracing.enabled' => true,
-          :'cross_application_tracer.enabled' => false,
           :account_id => '190',
           :primary_application_id => '46954'
         }
 
         with_config(distributed_tracing_config) do
           request = RequestWrapper.new
-          with_config(cat_config.merge(distributed_tracing_config)) do
+          with_config(distributed_tracing_config) do
             in_transaction(:category => :controller) do |txn|
               segment = Tracer.start_external_request_segment(
                 library: 'Net::HTTP',
@@ -634,19 +499,9 @@ module NewRelic::Agent
         end
       end
 
-      def cat_config
-        {
-          :cross_process_id => '269975#22824',
-          :trusted_account_ids => [1, 269975],
-          :'cross_application_tracer.enabled' => true,
-          :'distributed_tracing.enabled' => false
-        }
-      end
-
       def distributed_tracing_config
         {
           :'distributed_tracing.enabled' => true,
-          :'cross_application_tracer.enabled' => false,
           :'span_events.enabled' => true
         }
       end
@@ -654,15 +509,10 @@ module NewRelic::Agent
       def trace_context_config
         {
           :'distributed_tracing.enabled' => true,
-          :'cross_application_tracer.enabled' => false,
           :account_id => '190',
           :primary_application_id => '46954',
           :trusted_account_key => 'trust_this!'
         }
-      end
-
-      def make_app_data_payload(*args)
-        @obfuscator.obfuscate(args.to_json) + "\n"
       end
 
       def external_request_segment

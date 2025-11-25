@@ -18,7 +18,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/typhoeus_wrappers'
   end
 

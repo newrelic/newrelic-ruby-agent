@@ -689,7 +689,7 @@ module NewRelic
       end
 
       def include_guid?
-        distributed_tracer.is_cross_app? || is_synthetics_request?
+        is_synthetics_request?
       end
 
       def is_synthetics_request?

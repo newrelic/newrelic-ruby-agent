@@ -30,10 +30,6 @@ module NewRelic
       SAMPLED_KEY = 'sampled'
       PRIORITY_KEY = 'priority'
       GUID_KEY = 'nr.guid'
-      REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
-      CAT_PATH_HASH_KEY = 'nr.pathHash'
-      CAT_REFERRING_PATH_HASH_KEY = 'nr.referringPathHash'
-      CAT_ALTERNATE_PATH_HASHES_KEY = 'nr.alternatePathHashes'
       APDEX_PERF_ZONE_KEY = 'nr.apdexPerfZone'
       SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'
       SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'
@@ -69,9 +65,6 @@ module NewRelic
 
       def append_optional_attributes(sample, payload)
         optionally_append(GUID_KEY, :guid, sample, payload)
-        optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
-        optionally_append(CAT_PATH_HASH_KEY, :cat_path_hash, sample, payload)
-        optionally_append(CAT_REFERRING_PATH_HASH_KEY, :cat_referring_path_hash, sample, payload)
         optionally_append(APDEX_PERF_ZONE_KEY, :apdex_perf_zone, sample, payload)
         optionally_append(SYNTHETICS_RESOURCE_ID_KEY, :synthetics_resource_id, sample, payload)
         optionally_append(SYNTHETICS_JOB_ID_KEY, :synthetics_job_id, sample, payload)
@@ -79,7 +72,6 @@ module NewRelic
         optionally_append(SYNTHETICS_TYPE_KEY, :synthetics_type, sample, payload)
         optionally_append(SYNTHETICS_INITIATOR_KEY, :synthetics_initiator, sample, payload)
         append_synthetics_info_attributes(sample, payload)
-        append_cat_alternate_path_hashes(sample, payload)
       end
 
       def append_synthetics_info_attributes(sample, payload)
@@ -90,12 +82,6 @@ module NewRelic
 
           new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.to_s.gsub('synthetics_', ''))
           sample[new_key] = v.to_s
-        end
-      end
-
-      def append_cat_alternate_path_hashes(sample, payload)
-        if payload.include?(:cat_alternate_path_hashes)
-          sample[CAT_ALTERNATE_PATH_HASHES_KEY] = payload[:cat_alternate_path_hashes].sort.join(COMMA)
         end
       end
 

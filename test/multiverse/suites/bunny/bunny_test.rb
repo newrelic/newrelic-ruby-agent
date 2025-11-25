@@ -49,32 +49,6 @@ class BunnyTest < Minitest::Test
     end
   end
 
-  def test_cat_headers_not_read_for_pop_by_default
-    cross_process_id = '321#123'
-
-    with_queue do |queue|
-      with_config(:"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => 'abc') do
-        in_transaction('first_txn') do
-          queue.publish('test_msg')
-        end
-
-        in_transaction('test_txn') do
-          queue.pop
-        end
-
-        event = last_transaction_event
-
-        refute event[0].has_key?('nr.guid'), "Event should not have key 'nr.guid'"
-        refute event[0].has_key?('nr.referringTransactionGuid'), "Event should not have key 'nr.referringTransactionGuid'"
-        refute event[0].has_key?('nr.tripId'), "Event should not have key 'nr.tripId'"
-        refute event[0].has_key?('nr.pathHash'), "Event should not have key 'nr.pathHash'"
-        refute event[0].has_key?('nr.referringPathHash'), "Event should not have key 'nr.referringPathHash'"
-
-        assert_metrics_not_recorded ["ClientApplication/#{cross_process_id}/all"]
-      end
-    end
-  end
-
   def test_metrics_recorded_for_produce_to_a_named_exchange
     x = Bunny::Exchange.new(@chan, :fanout, 'activity.events')
     in_transaction('test_txn') do

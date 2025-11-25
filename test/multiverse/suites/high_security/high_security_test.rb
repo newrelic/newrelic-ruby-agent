@@ -205,38 +205,29 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_block_intrinsic_attributes_on_transaction_traces
-    with_config(:'distributed_tracing.enabled' => false) do
-      in_transaction do |txn|
-        txn.distributed_tracer.is_cross_app_caller = true
-      end
-
-      run_harvest
-
-      intrinsic_attributes = single_transaction_trace_posted.intrinsic_attributes
-
-      refute_nil intrinsic_attributes['cpu_time']
-      refute_nil intrinsic_attributes['trip_id']
-      refute_nil intrinsic_attributes['path_hash']
+    in_transaction do |txn|
+      # Just run a transaction to generate intrinsic attributes
     end
+
+    run_harvest
+
+    intrinsic_attributes = single_transaction_trace_posted.intrinsic_attributes
+
+    refute_nil intrinsic_attributes['cpu_time']
   end
 
   def test_doesnt_block_intrinsic_attributes_on_errors
-    with_config(:'distributed_tracing.enabled' => false) do
-      assert_raises(RuntimeError) do
-        in_transaction do |txn|
-          txn.distributed_tracer.is_cross_app_caller = true
-          raise 'O_o'
-        end
+    assert_raises(RuntimeError) do
+      in_transaction do |txn|
+        raise 'O_o'
       end
-
-      run_harvest
-
-      intrinsic_attributes = single_error_posted.intrinsic_attributes
-
-      refute_nil intrinsic_attributes['cpu_time']
-      refute_nil intrinsic_attributes['trip_id']
-      refute_nil intrinsic_attributes['path_hash']
     end
+
+    run_harvest
+
+    intrinsic_attributes = single_error_posted.intrinsic_attributes
+
+    refute_nil intrinsic_attributes['cpu_time']
   end
 
   def test_blocks_log_capture

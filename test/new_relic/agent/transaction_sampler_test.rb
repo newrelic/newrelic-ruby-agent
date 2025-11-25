@@ -42,8 +42,6 @@ module NewRelic::Agent
         :request_path => '/request_path',
         :guid => 'a guid',
         :ignore_trace? => false,
-        :cat_trip_id => '',
-        :cat_path_hash => '',
         :is_synthetics_request? => false,
         :filtered_params => {},
         :attributes => attributes)
@@ -315,46 +313,6 @@ module NewRelic::Agent
       end
 
       assert_in_delta(10.0, intrinsic_attributes_from_last_sample[:gc_time])
-    end
-
-    def test_custom_params_include_tripid
-      DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
-
-      with_config(:'transaction_tracer.transaction_threshold' => 0.0, :'distributed_tracing.enabled' => false) do
-        in_transaction do |transaction|
-          txn_info = [transaction.guid, true, 'PDX-NRT']
-          payload = CrossAppPayload.new('1#666', transaction, txn_info)
-          transaction.distributed_tracer.cross_app_payload = payload
-          transaction.distributed_tracer.is_cross_app_caller = true
-        end
-      end
-
-      assert_equal 'PDX-NRT', intrinsic_attributes_from_last_sample[:trip_id]
-    end
-
-    def test_custom_params_dont_include_tripid_if_not_cross_app_transaction
-      DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
-
-      with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-        in_transaction do |transaction|
-          transaction.distributed_tracer.is_cross_app_caller = false
-        end
-      end
-
-      assert_nil intrinsic_attributes_from_last_sample[:trip_id]
-    end
-
-    def test_custom_params_include_path_hash
-      path_hash = nil
-
-      with_config(:'transaction_tracer.transaction_threshold' => 0.0, :'distributed_tracing.enabled' => false) do
-        in_transaction do |transaction|
-          transaction.distributed_tracer.is_cross_app_caller = true
-          path_hash = transaction.distributed_tracer.cat_path_hash
-        end
-      end
-
-      assert_equal path_hash, intrinsic_attributes_from_last_sample[:path_hash]
     end
 
     def test_synthetics_parameters_not_included_if_not_valid_synthetics_request
