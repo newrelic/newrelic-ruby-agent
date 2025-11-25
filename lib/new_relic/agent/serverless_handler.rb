@@ -144,7 +144,7 @@ module NewRelic
       def payload_v1 # New Relic serverless payload v1
         payload_hash = {'metadata' => metadata, 'data' => @payloads}
         json = NewRelic::Agent.agent.service.marshaller.dump(payload_hash)
-        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
+        gzipped = Zlib.gzip(json)
         base64_encoded = NewRelic::Base64.strict_encode64(gzipped)
         array = [PAYLOAD_VERSION, LAMBDA_MARKER, base64_encoded]
         ::JSON.dump(array)
@@ -152,7 +152,7 @@ module NewRelic
 
       def payload_v2 # New Relic serverless payload v2
         json = NewRelic::Agent.agent.service.marshaller.dump(@payloads)
-        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
+        gzipped = Zlib.gzip(json)
         base64_encoded = NewRelic::Base64.strict_encode64(gzipped)
         array = [PAYLOAD_VERSION, LAMBDA_MARKER, metadata, base64_encoded]
         ::JSON.dump(array)

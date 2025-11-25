@@ -21,8 +21,7 @@ Gem::Specification.new do |s|
     https://github.com/newrelic/newrelic-ruby-agent/
   EOS
   s.email = 'support@newrelic.com'
-  # TODO: MAJOR VERSION - remove newrelic, deprecated since version xxx.
-  s.executables = %w[newrelic_rpm newrelic nrdebug]
+  s.executables = %w[newrelic_rpm nrdebug]
   s.extra_rdoc_files = [
     'CHANGELOG.md',
     'LICENSE',

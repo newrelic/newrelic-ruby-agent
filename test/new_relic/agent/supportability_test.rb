@@ -162,13 +162,13 @@ class APISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_notice_sql_records_supportability_metric
-    NewRelic::Agent::Datastores.notice_sql('SELECT * FROM users', 'Foo/Bar', 0.05)
+    NewRelic::Agent::Datastores.notice_sql('SELECT * FROM users')
 
     assert_api_supportability_metric_recorded(:notice_sql)
   end
 
   def test_notice_statement_records_supportability_metric
-    NewRelic::Agent::Datastores.notice_statement('key', 0.05)
+    NewRelic::Agent::Datastores.notice_statement('key')
 
     assert_api_supportability_metric_recorded(:notice_statement)
   end

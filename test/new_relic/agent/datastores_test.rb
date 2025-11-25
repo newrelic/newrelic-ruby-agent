@@ -139,7 +139,6 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def test_notice_sql
     query = 'SELECT * FROM SomeThings'
-    metric = 'Datastore/statement/MyFirstDatabase/SomeThing/find'
     elapsed = 1.0
 
     in_transaction do |txn|
@@ -149,7 +148,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
         operation: 'find',
         collection: 'SomeThing'
       )
-      NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
+      NewRelic::Agent::Datastores.notice_sql(query)
       advance_process_time(elapsed)
 
       assert_equal segment, txn.current_segment
@@ -172,7 +171,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
         operation: 'get',
         collection: 'key'
       )
-      NewRelic::Agent::Datastores.notice_statement(query, elapsed)
+      NewRelic::Agent::Datastores.notice_statement(query)
       advance_process_time(elapsed)
 
       assert_equal segment, txn.current_segment
@@ -192,7 +191,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     agent.transaction_sampler.expects(:notice_nosql_statement).never
 
     with_config(:'transaction_tracer.record_sql' => 'none') do
-      NewRelic::Agent::Datastores.notice_statement(query, elapsed)
+      NewRelic::Agent::Datastores.notice_statement(query)
     end
   end
 
