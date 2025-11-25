@@ -10,10 +10,20 @@ module NewRelic
     class OpenTelemetryBridgeTest < Minitest::Test
       class BridgeInstallationError < StandardError; end
 
+      def setup
+        @config = {
+          :'opentelemetry.enabled' => true,
+          :'opentelemetry.traces.enabled' => true
+        }
+        NewRelic::Agent.config.add_config_for_testing(@config)
+      end
+
+      def teardown
+        NewRelic::Agent.config.reset_to_defaults
+      end
+
       def test_does_not_run_requires_without_opentelemetry_api_gem
-        with_config(:'opentelemetry.enabled' => true) do
-          assert NewRelic::Agent::OpenTelemetryBridge.new
-        end
+        assert NewRelic::Agent::OpenTelemetryBridge.new
       end
 
       def test_does_not_run_requires_without_config
@@ -25,12 +35,28 @@ module NewRelic
       end
 
       def test_installs_bridge_when_configured
-        with_config(:'opentelemetry.enabled' => true) do
-          Object.stub_const(:OpenTelemetry, nil) do
-            NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
-              assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
-            end
+        Object.stub_const(:OpenTelemetry, nil) do
+          NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
+            assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
           end
+        end
+      end
+
+      def test_adds_supportability_metric_when_opentelemetry_enabled
+        Object.stub_const(:OpenTelemetry, true) do
+          NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { nil }) do
+            NewRelic::Agent::OpenTelemetryBridge.new
+
+            assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/enabled')
+          end
+        end
+      end
+
+      def test_adds_supportability_metric_when_opentelemetry_disabled
+        with_config(:'opentelemetry.enabled' => false) do
+          NewRelic::Agent::OpenTelemetryBridge.new
+
+          assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled')
         end
       end
     end

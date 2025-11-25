@@ -6,11 +6,14 @@ module NewRelic
   module Agent
     class OpenTelemetryBridge
       def initialize
-        # no-op without OpenTelemetry API & config
-        return unless defined?(OpenTelemetry) &&
-          NewRelic::Agent.config[:'opentelemetry.enabled']
-
-        OpenTelemetryBridge.install
+        # currently, we only have support for traces
+        # this method should change when we add support for metrics and logs.
+        if defined?(OpenTelemetry) && Agent.config[:'opentelemetry.enabled'] && Agent.config[:'opentelemetry.traces.enabled']
+          OpenTelemetryBridge.install
+          NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/enabled', 0.0)
+        else
+          NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled', 0.0)
+        end
       end
 
       private
