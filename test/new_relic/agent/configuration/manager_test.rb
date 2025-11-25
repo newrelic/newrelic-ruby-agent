@@ -405,21 +405,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_fetch_skips_the_config_layer_if_transformation_raises_error
-      bomb = proc do |value|
-        if value == 'boom'
-          raise StandardError.new
-        else
-          value
-        end
-      end
-      @manager.stubs(:transform_from_default).returns(bomb)
-
-      with_config(:'rules.ignore_url_regexes' => 'boom') do
-        assert_empty(@manager.fetch(:'rules.ignore_url_regexes'))
-      end
-    end
-
     def test_prepend_key_absent_to_instrumentation_value_of
       with_config({}) do
         result = @manager.fetch(:'instrumentation.net_http')
@@ -436,34 +421,31 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
-      callable = proc { 'test' }
+    def test_default_to_value_of
+      with_config(:'transaction_tracer.record_sql' => 'raw') do
+        result = @manager.fetch(:'slow_sql.record_sql')
 
-      assert_equal 'test', @manager.evaluate_procs(callable)
-    end
-
-    def test_evaluate_procs_returns_original_value_if_it_does_not_respond_to_call
-      assert_equal 'test', @manager.evaluate_procs('test')
-    end
-
-    def test_apply_transformations_logs_error_if_transformation_fails
-      bomb = proc { raise StandardError.new }
-      @manager.stubs(:transform_from_default).returns(bomb)
-
-      expects_logging(:error, includes('Error applying transformation'), any_parameters)
-
-      assert_raises StandardError do
-        @manager.apply_transformations(:test_key, 'test_value')
+        assert_equal('raw', result)
       end
     end
 
-    def test_apply_transformations_reraises_errors
-      bomb = proc { raise StandardError.new }
-      @manager.stubs(:transform_from_default).returns(bomb)
+    def test_default_to_value_of_only_happens_at_defaults
+      with_config(:'transaction_tracer.record_sql' => 'raw', :'slow_sql.record_sql' => 'none') do
+        result = @manager.fetch(:'slow_sql.record_sql')
 
-      assert_raises StandardError do
-        @manager.apply_transformations(:test_key, 'test_value')
+        assert_equal('none', result)
       end
+    end
+
+    def test_apply_transformations_logs_warning_if_transformation_fails
+      key = :test_key
+      bomb = proc { raise 'kaboom' }
+      ds = Minitest::Mock.new
+      ds.expect :transform_for, bomb, [key]
+      @manager.stubs(:default_source).returns(ds)
+      expects_logging(:warn, includes('Error encountered while applying transformation'), any_parameters)
+      @manager.apply_transformations(key, 'test_value')
+      ds.verify
     end
 
     def test_auto_determined_values_stay_cached
@@ -541,6 +523,222 @@ module NewRelic::Agent::Configuration
         value = mgr[key]
 
         assert_equal 'eslaf', value, 'Expected `false` boolean value to be transformed!'
+      end
+    end
+
+    def test_type_coercion_of_an_integer_from_a_string
+      key = :max_chocolate_chips
+      defaults = {key => {default: 0, type: Integer}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, '1138', :manual)
+
+        assert_equal 1138, value
+      end
+    end
+
+    def test_type_coercion_of_a_float_from_a_string
+      key = :slice_dice_ratio
+      defaults = {key => {default: 0.0, type: Float}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, '867.5309', :manual)
+
+        assert_equal 867.5309, value # rubocop:disable Minitest/AssertInDelta
+      end
+    end
+
+    def test_type_coercion_of_a_string_from_a_symbol
+      key = :alert_highlight_color
+      defaults = {key => {default: 'beige', type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, :'forest green', :manual)
+
+        assert_equal 'forest green', value
+      end
+    end
+
+    def test_type_coercion_of_a_symbol_from_a_string
+      key = :sampling_direction
+      defaults = {key => {default: :forwards, type: Symbol}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'backwards', :manual)
+
+        assert_equal :backwards, value
+      end
+    end
+
+    def test_type_coercion_of_an_array_from_a_string
+      key = :allowlisted_job_params
+      defaults = {key => {default: [], type: Array}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'beans, rice, cheese', :manual)
+
+        assert_equal %w[beans rice cheese], value
+      end
+    end
+
+    def test_type_coercion_of_a_hash_from_a_string
+      key = :id_map
+      defaults = {key => {default: {}, type: Hash}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, '19 = 81, Blind = Chance', :manual)
+
+        assert_equal({'19' => '81', 'Blind' => 'Chance'}, value)
+      end
+    end
+
+    def test_type_coercion_of_a_boolean_from_a_string
+      key = :vm_performance_analysis
+      defaults = {key => {default: false, type: NewRelic::Agent::Configuration::Boolean}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'on', :manual)
+
+        assert_equal true, value # rubocop:disable Minitest/AssertTruthy
+      end
+    end
+
+    def test_type_coercion_of_an_integer_from_a_float
+      key = :applied_jigawatts
+      defaults = {key => {default: 0, type: Integer}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 1.21, :manual)
+
+        assert_equal 1, value
+      end
+    end
+
+    def test_type_coercion_of_a_float_from_an_int
+      key = :refresh_sampling_ratio
+      defaults = {key => {default: 12.5, type: Float}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 25, :manual)
+
+        assert_equal 25.0, value # rubocop:disable Minitest/AssertInDelta
+      end
+    end
+
+    def test_type_coercion_rejects_invalid_input_and_falls_back_to_the_default
+      key = :error_rate_threshold
+      default = 50
+      defaults = {key => {default: default, type: Integer}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        expects_logging(:warn, includes('Expected to receive a value of type Integer matching pattern '))
+
+        value = @manager.type_coerce(key, 'seventy-five', :manual)
+
+        assert_equal default, value
+      end
+    end
+
+    def test_type_coercion_anticipates_an_invalid_type_without_a_proc_defined
+      key = :unexpected
+      input = 'original'
+      defaults = {key => {default: nil, type: Class}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, input, :manual)
+
+        assert_equal input, value
+      end
+    end
+
+    def test_add_config_for_testing_enforces_an_input_class_allowlist
+      error = assert_raises RuntimeError do
+        @manager.add_config_for_testing(nil)
+      end
+
+      assert_equal 'Invalid config type for testing', error.message
+    end
+
+    def test_validate_nil_expects_nils_from_tests
+      expects_no_logging(:warn)
+
+      refute @manager.validate_nil(:a_key, :test)
+    end
+
+    def test_validates_nil_allows_nil_if_the_config_param_has_allow_nil_set
+      key = :optional_tolerance
+      defaults = {key => {default: '', type: String, allow_nil: true}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        expects_no_logging(:warn)
+
+        refute @manager.validate_nil(key, :nr)
+      end
+    end
+
+    def test_validate_nil_warns_users
+      key = :required_tolerance
+      default = 1138
+      defaults = {key => {default: default, type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        expects_logging(:warn, includes('Nil values are not permitted'))
+
+        value = @manager.validate_nil(key, :user)
+
+        assert_equal default, value
+      end
+    end
+
+    def test_validate_nil_does_not_warn_for_nr_internal_category
+      key = :required_tolerance
+      default = 1138
+      defaults = {key => {default: default, type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        expects_no_logging(:warn)
+
+        value = @manager.validate_nil(key, :nr)
+
+        assert_equal default, value
+      end
+    end
+
+    def test_enforce_allowlist_only_operates_on_params_with_allowlists
+      key = :unguarded
+
+      default_source = Object.new
+      default_source.stubs(:allowlist_for).returns(nil)
+      @manager.stubs(:default_source).returns(default_source)
+
+      expects_no_logging(:warn)
+
+      value = @manager.enforce_allowlist(key, 9)
+
+      assert_equal 9, value
+    end
+
+    def test_enforce_allowlist_does_not_warn_if_the_input_value_is_on_the_allowlist
+      key = :guarded
+      default = 1138
+      allowlist = [default, 11, 38]
+      defaults = {key => {default: default, allowlist: allowlist}}
+
+      default_source = Object.new
+      default_source.stubs(:allowlist_for).returns(allowlist)
+      @manager.stubs(:default_source).returns(default_source)
+
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        expects_no_logging(:warn)
+
+        value = @manager.enforce_allowlist(key, 11)
+
+        assert_equal 11, value
+      end
+    end
+
+    def test_enforce_allowlist_warns_if_the_input_value_is_not_on_the_allowlist
+      key = :guarded
+      default = 1138
+      allowlist = [default, 11, 38]
+      defaults = {key => {default: default, allowlist: allowlist}}
+
+      default_source = Object.new
+      default_source.stubs(:allowlist_for).returns(allowlist)
+      @manager.stubs(:default_source).returns(default_source)
+
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        expects_logging(:warn, includes('Expected to receive a value found on the following list'))
+
+        value = @manager.enforce_allowlist(key, 9)
+
+        assert_equal default, value
       end
     end
 

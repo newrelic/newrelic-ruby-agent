@@ -41,10 +41,6 @@
 
   The values of the removed arguments are derived from the current segment at the time of the call. [PR#3347](https://github.com/newrelic/newrelic-ruby-agent/pull/3347)
 
-- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
-
-  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
-
 - **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
 
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
@@ -61,6 +57,20 @@
 - **Breaking Change: Remove support for Puma versions < 3.9.0**
 
   The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
+
+- **Breaking Change: Improve configuration validation and coercion**
+
+  The internals used to coerce and validate the values provided for agent configuration are now more performant and more accurate.
+    * Warning messages will now be logged to the newrelic_agent.log file when nil is provided as a config value for a setting that does not support it.
+    * Integer values are permitted for Float configuration types
+    * Float values are permitted for Integer configuration types
+    * Fatal interruptions are prevented when a default value can be found to replace an invalid input value
+  [PR#3341](https://github.com/newrelic/newrelic-ruby-agent/pull/3341)
+
+- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
+
+  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
 
 ## v9.23.0
 
