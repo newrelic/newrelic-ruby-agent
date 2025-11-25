@@ -51,7 +51,7 @@ module NewRelic
       end
 
       def test_installs_bridge_when_configured
-        Object.stub_const(:OpenTelemetry, nil) do  # pretend like the opentelemetry-api gem is installed
+        Object.stub_const(:OpenTelemetry, nil) do # pretend like the opentelemetry-api gem is installed
           NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
             assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
           end
@@ -59,7 +59,7 @@ module NewRelic
       end
 
       def test_adds_supportability_metric_when_opentelemetry_enabled
-        Object.stub_const(:OpenTelemetry, nil) do  # pretend like the opentelemetry-api gem is installed
+        Object.stub_const(:OpenTelemetry, nil) do # pretend like the opentelemetry-api gem is installed
           NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { nil }) do
             NewRelic::Agent::OpenTelemetryBridge.new
 
