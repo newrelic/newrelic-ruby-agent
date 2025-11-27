@@ -8,6 +8,12 @@ module NewRelic
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
           attr_accessor :finishable
+          attr_reader :status
+
+          def initialize(span_context: nil)
+            @status = ::OpenTelemetry::Trace::Status.unset
+            super
+          end
 
           def finish(end_timestamp: nil)
             finishable&.finish
@@ -23,6 +29,30 @@ module NewRelic
 
           def record_exception(exception, attributes: nil)
             NewRelic::Agent.notice_error(exception, attributes: attributes)
+          end
+
+          def recording?
+            !finishable&.finished?
+          end
+
+          def name=(name)
+            if recording?
+              if finishable.is_a?(NewRelic::Agent::Transaction)
+                finishable.overridden_name = name
+              elsif finishable.is_a?(NewRelic::Agent::Transaction::Segment)
+                finishable.instance_variable_set(:@name, name)
+              end
+            else
+              NewRelic::Agent.logger.warn('Calling name= on an ended OpenTelemetry Span') unless recording?
+            end
+          end
+
+          def status=(new_status)
+            @status = new_status
+            attrs = {'status.code' => new_status.code}
+            attrs['status.description'] = new_status.description unless new_status.description.empty?
+
+            NewRelic::Agent.add_custom_span_attributes(attrs)
           end
         end
       end
