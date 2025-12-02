@@ -75,14 +75,16 @@ module NewRelic
             refute_predicate span, :recording?
           end
 
-          # # passing, but uneven detach
           def test_recording_works_with_finishable_segments_when_finished
-            segment = NewRelic::Agent::Transaction::Segment.new
-            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
-            span.finishable = segment
-            span.finish
+            in_transaction do
+              span = @tracer.start_span('hehe')
 
-            refute_predicate span, :recording?
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+
+              span.finish
+
+              refute_predicate span, :recording?
+            end
           end
 
           def test_recording_works_with_finishable_transactions_when_not_finished
