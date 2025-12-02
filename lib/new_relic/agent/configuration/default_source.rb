@@ -1456,7 +1456,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.root' => {
           :default => 'default',
-          :public => true,
+          :public => false,
           :type => String,
           :allowed_from_server => false,
           :allowlist => %w[default adaptive always_on always_off trace_id_ratio_based],
@@ -1476,7 +1476,7 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_sampled',
             :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'
           ),
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`. At this time `default` and `adaptive` are the same.'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `default`, `always_on`, and `always_off`.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled' => {
           :default => 'default',
@@ -1488,11 +1488,11 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_not_sampled',
             :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'
           ),
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`. At this time `default` and `adaptive` are the same.'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are `default`, `always_on`, and `always_off`.'
         },
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => true,
+          :public => false,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
@@ -1501,7 +1501,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => true,
+          :public => false,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
@@ -1510,7 +1510,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => true,
+          :public => false,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
