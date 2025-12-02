@@ -1,5 +1,23 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.24.0
+
+- **Feature: Deprecation reminder for SqlSampler#notice_sql API**
+
+  The `NewRelic::Agent::SqlSampler#notice_sql` method is deprecated and will be removed in a future major version. Instead, users should call `NewRelic::Agent::Datastores.notice_sql`. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+
+- **Feature: Deprecation notice for second and third arguments in Datastores.notice_sql API**
+
+  The second (`scoped_metric`) and third (`elapsed`) arguments in the `NewRelic::Agent::Datastores.notice_sql` method are deprecated. They have not been used by the method for some time. Instead, these values will be set based on the current segment when the API is called. [PR#3345](https://github.com/newrelic/newrelic-ruby-agent/pull/3345)
+
+- **Feature: Deprecation notice for second argument in Datastores.notice_statement API**
+
+  The second (`elapsed`) argument in the `NewRelic::Agent::Datastores.notice_statement` method is deprecated. It has not been used by the method for some time. Instead, this value will be set based on the current segment when the API is called. [PR#3346](https://github.com/newrelic/newrelic-ruby-agent/pull/3346)
+
+- **Feature: Deprecation notice for proc's second and third arguments in Datastores.wrap API**
+
+  The `NewRelic::Agent::Datastores.wrap` method is changing. In a future major version, proc will only accept a single argument, the result of the yield. The scoped metric name and elapsed arguments will be removed, as they are being removed from the `Datastores.notice_sql` method. The scoped metric name and elapsed values are derived from the current segment when the wrap yields. [PR#3346](https://github.com/newrelic/newrelic-ruby-agent/pull/3346)
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**

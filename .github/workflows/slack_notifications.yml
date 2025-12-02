@@ -9,10 +9,10 @@ jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
+      - uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # tag v1.268.0
         with:
           ruby-version: 3.4
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
       - run: gem install httparty
       - name: Check for outdated gems
         run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb

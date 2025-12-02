@@ -11,12 +11,12 @@ jobs:
       pull-requests: write
     steps:
     - name: Install Ruby 3.4
-      uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
+      uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # tag v1.268.0
       with:
         ruby-version: 3.4
 
     - name: Checkout code
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
 
     - run: bundle
 
@@ -45,7 +45,7 @@ jobs:
         LABEL: prerelease
 
     - name: Create pre release tag
-      uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # tag v2.4.1
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # tag v2.5.0
       with:
         tag_name: ${{ env.prerelease_tag }}
         name: ${{ env.prerelease_tag }}
