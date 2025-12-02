@@ -294,16 +294,8 @@ module NewRelic
         return false unless Agent.config[:'distributed_tracing.enabled']
 
         if @sampled.nil?
-          # Ruby evaluates case statements top to bottom. Listing the statements
-          # in the order of most likely to match keeps things performant.
-          # If we put more than one string in a condition, it'll check to see if
-          # the case matches any one of those conditions before moving on to the
-          # next one.
-          #
-          # Even though adaptive behaves the same as default, I hypothesize it
-          # will be used so infrequently, it should just be listed last.
           @sampled = case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-          when 'default'
+          when 'adaptive'
             NewRelic::Agent.instance.adaptive_sampler.sampled?
           when 'always_on'
             true
@@ -311,8 +303,6 @@ module NewRelic
             false
           when 'trace_id_ratio_based'
             trace_ratio_sampled?(NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'])
-          when 'adaptive'
-            NewRelic::Agent.instance.adaptive_sampler.sampled?
           end
         end
         @sampled
@@ -343,7 +333,7 @@ module NewRelic
 
       def priority
         @priority ||= case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-        when 'default', 'trace_id_ratio_based', 'adaptive'
+        when 'adaptive', 'trace_id_ratio_based'
           default_priority
         when 'always_on'
           2.0
