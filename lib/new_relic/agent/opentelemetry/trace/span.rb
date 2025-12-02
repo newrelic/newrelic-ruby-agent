@@ -43,7 +43,7 @@ module NewRelic
                 finishable.instance_variable_set(:@name, name)
               end
             else
-              NewRelic::Agent.logger.warn('Calling name= on an ended OpenTelemetry Span') unless recording?
+              NewRelic::Agent.logger.warn('Calling name= on a finished OpenTelemetry Span') unless recording?
             end
           end
 
