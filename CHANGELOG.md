@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.24.0
 
 - **Feature: Deprecation reminder for SqlSampler#notice_sql API**
 
