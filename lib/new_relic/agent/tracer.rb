@@ -112,7 +112,7 @@ module NewRelic
           end
         end
 
-        def potato_experiment(name: nil, partial_name: nil, category:, options: {})
+        def start_and_end_txn_experiment(name: nil, partial_name: nil, category:, options: {})
           current_transaction&.finish
 
           if name
