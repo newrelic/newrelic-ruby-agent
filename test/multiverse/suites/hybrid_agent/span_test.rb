@@ -187,6 +187,11 @@ module NewRelic
             assert_equal(1, span.status.code)
 
             span.finish
+
+            expected = {'status.code' => 1}
+
+            # unset is status code 1
+            assert_equal expected, last_span_event[1]
           end
         end
       end
