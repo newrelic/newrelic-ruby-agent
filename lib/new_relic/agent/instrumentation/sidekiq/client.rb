@@ -10,8 +10,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
 
     def call(_worker_class, job, *_)
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
-      # if we're going to force a new transactrion for the server, should we record the method call here?
-      # called in the rails server side of things
+
       job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
       yield
     end
