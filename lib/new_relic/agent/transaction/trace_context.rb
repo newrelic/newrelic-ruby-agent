@@ -154,9 +154,17 @@ module NewRelic
 
         def determine_sampling_decision(payload, trace_flags)
           if trace_flags == '01'
-            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
+            set_priority_and_sampled(
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
+              payload
+            )
           elsif trace_flags == '00'
-            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
+            set_priority_and_sampled(
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
+              payload
+            )
           else
             use_nr_tracestate_sampled(payload)
           end
@@ -171,15 +179,19 @@ module NewRelic
           end
         end
 
-        def set_priority_and_sampled(config, payload)
-          if config == 'always_on'
+        def set_priority_and_sampled(sampler, ratio, payload)
+          case sampler
+          when 'adaptive'
+            use_nr_tracestate_sampled(payload)
+          when 'always_on'
             transaction.sampled = true
             transaction.priority = 2.0
-          elsif config == 'always_off'
+          when 'always_off'
             transaction.sampled = false
             transaction.priority = 0
-          else # default
-            use_nr_tracestate_sampled(payload)
+          when 'trace_id_ratio_based'
+            transaction.sampled = transaction.trace_ratio_sampled?(ratio)
+            transaction.priority = transaction.default_priority
           end
         end
 

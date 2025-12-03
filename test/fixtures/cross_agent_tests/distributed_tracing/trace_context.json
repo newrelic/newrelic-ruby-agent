@@ -263,7 +263,7 @@
     }
   },
   {
-    "test_name": "skip_no_headers_root_always_off",
+    "test_name": "no_headers_root_always_off",
     "comment": "Traces originating from current service are never sampled",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -290,7 +290,34 @@
     }
   },
   {
-    "test_name": "skip_no_headers_root_uses_ratio_sampler",
+    "test_name": "no_headers_root_always_on",
+    "comment": "Traces originating from current service are always sampled",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "always_on",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {}
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "priority": 2.0,
+          "sampled": true
+        },
+        "expected": [ "guid", "traceId" ]
+      }
+    }
+  },
+  {
+    "test_name": "no_headers_root_uses_ratio_sampler",
     "comment": "Traces originating from current service are always sampled (because ratio=1.0)",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -319,7 +346,7 @@
     }
   },
   {
-    "test_name": "skip_no_headers_root_uses_adaptive_sampler_when_no_ratio",
+    "test_name": "no_headers_root_uses_adaptive_sampler_when_no_ratio",
     "comment": "Traces originating from current service use adaptive sampler when no ratio is configured",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -349,7 +376,7 @@
     }
   },
   {
-    "test_name": "skip_w3c_remote_parent_sampled_uses_ratio_sampler_w3c_trace_id",
+    "test_name": "w3c_remote_parent_sampled_uses_ratio_sampler_w3c_trace_id",
     "comment": "W3C parent header determines parent is sampled and W3C trace id is passed to ratio sampler",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -381,7 +408,7 @@
     }
   },
   {
-    "test_name": "skip_newrelic_remote_parent_sampled_uses_ratio_sampler_newrelic_trace_id",
+    "test_name": "newrelic_remote_parent_sampled_uses_ratio_sampler_newrelic_trace_id",
     "comment": "New Relic parent header determines parent is sampled and New Relic trace id is passed to ratio sampler",
     "trusted_account_key": "33",
     "account_id": "33",

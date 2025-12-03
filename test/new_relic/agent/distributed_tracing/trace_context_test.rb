@@ -436,6 +436,169 @@ module NewRelic::Agent::DistributedTracing
       end
     end
 
+    def test_traceparent_sampled_config_trace_id_ratio_based_with_ratio_one
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => 1.0) do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          # With ratio 1.0, should always sample
+          assert_predicate txn, :sampled?
+          # Priority should be adaptive (between 1.0 and 2.0)
+          assert txn.priority > 1.0 && txn.priority < 2.0,
+            "Expected priority between 1.0 and 2.0, got #{txn.priority}"
+        end
+      end
+    end
+
+    def test_traceparent_sampled_config_trace_id_ratio_based_with_ratio_zero
+      payload = make_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => 0.0) do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = true
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          # With ratio 0.0, should never sample
+          refute_predicate txn, :sampled?
+          # Priority should be adaptive (between 0.0 and 1.0)
+          assert txn.priority >= 0.0 && txn.priority < 1.0,
+            "Expected priority between 0.0 and 1.0, got #{txn.priority}"
+        end
+      end
+    end
+
+    def test_traceparent_sampled_config_trace_id_ratio_based_deterministic
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      ratio = 0.5
+      trace_id = nil
+      result1 = nil
+
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => ratio) do
+        in_transaction('accepting_txn') do |txn|
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+          trace_id = txn.trace_id
+          result1 = txn.sampled?
+        end
+
+        # Create another transaction with the same trace_id
+        in_transaction('accepting_txn2') do |txn|
+          txn.trace_id = trace_id
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+          result2 = txn.sampled?
+
+          # Same trace_id should produce same sampling decision
+          assert_equal result1, result2,
+            'Expected same trace_id to produce same sampling decision'
+        end
+      end
+    end
+
+    def test_traceparent_unsampled_config_trace_id_ratio_based_with_ratio_one
+      payload = make_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-00',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => 1.0) do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          # With ratio 1.0, should always sample
+          assert_predicate txn, :sampled?
+          # Priority should be adaptive (between 1.0 and 2.0)
+          assert txn.priority > 1.0 && txn.priority < 2.0,
+            "Expected priority between 1.0 and 2.0, got #{txn.priority}"
+        end
+      end
+    end
+
+    def test_traceparent_unsampled_config_trace_id_ratio_based_with_ratio_zero
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-00',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'trace_id_ratio_based',
+        :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => 0.0) do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = true
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          # With ratio 0.0, should never sample
+          refute_predicate txn, :sampled?
+          # Priority should be adaptive (between 0.0 and 1.0)
+          assert txn.priority >= 0.0 && txn.priority < 1.0,
+            "Expected priority between 0.0 and 1.0, got #{txn.priority}"
+        end
+      end
+    end
+
+    def test_traceparent_sampled_config_adaptive
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'adaptive') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = true
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          # Adaptive should fall back to using nr tracestate sampled flag
+          refute_predicate txn, :sampled?
+        end
+      end
+    end
+
+    def test_traceparent_unsampled_config_adaptive
+      payload = make_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-00',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'adaptive') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          # Adaptive should fall back to using nr tracestate sampled flag
+          assert_predicate txn, :sampled?
+        end
+      end
+    end
+
     def make_inbound_carrier(options = {})
       {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',

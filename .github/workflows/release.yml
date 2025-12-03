@@ -12,7 +12,7 @@ jobs:
       contents: write
       repository-projects: write
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
       with:
         fetch-depth: 0
 
@@ -42,7 +42,7 @@ jobs:
         echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
 
     - name: Create github release
-      uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # tag v2.4.1
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # tag v2.5.0
       if: $(git tag -l ${{ env.VERSION }}) == false
       with:
         tag_name: ${{ env.VERSION }}
