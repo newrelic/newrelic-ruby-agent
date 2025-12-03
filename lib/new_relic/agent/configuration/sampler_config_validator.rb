@@ -29,13 +29,13 @@ module NewRelic
               unless @sampler_strategy_warnings[strategy_key]
                 NewRelic::Agent.logger.warn(
                   "Invalid or missing ratio for #{ratio_key} (value: #{ratio.inspect}). " \
-                  "Falling back to 'default' for #{strategy_key}."
+                  "Falling back to 'adaptive' for #{strategy_key}."
                 )
 
                 @sampler_strategy_warnings[strategy_key] = true
               end
 
-              'default'
+              'adaptive'
             end
           end
 

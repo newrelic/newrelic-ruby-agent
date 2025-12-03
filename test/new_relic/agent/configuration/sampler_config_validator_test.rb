@@ -67,7 +67,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_root_strategy_falls_back_to_default_when_ratio_is_nil
+    def test_root_strategy_falls_back_to_adaptive_default_when_ratio_is_nil
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => nil) do
@@ -99,7 +99,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_remote_parent_sampled_strategy_falls_back_to_default_when_ratio_is_invalid
+    def test_remote_parent_sampled_strategy_falls_back_to_adaptive_default_when_ratio_is_invalid
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(
