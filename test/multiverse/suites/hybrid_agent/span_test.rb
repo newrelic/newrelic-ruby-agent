@@ -61,6 +61,9 @@ module NewRelic
             spans = harvest_span_events![1]
             span_attributes = spans[0][1]
 
+            # We check to see only if these attributes are included
+            # because the span status should also set attributes that
+            # aren't applied using the add_attributes method.
             assert_includes span_attributes.keys, 'yosemite'
             assert_includes span_attributes.keys, 'yellowstone'
           end
