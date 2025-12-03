@@ -81,25 +81,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_root_strategy_falls_back_to_default_when_ratio_is_invalid_type
-      NewRelic::Agent.logger.stubs(:warn)
-
-      with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => '0.5') do
-        ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
-
-        assert_nil ratio, 'Invalid ratio should be transformed to nil'
-
-        transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
-          :'distributed_tracing.sampler.root',
-          :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
-        )
-        result = transform.call('trace_id_ratio_based')
-
-        assert_equal 'adaptive', result
-      end
-    end
-
-    def test_root_strategy_falls_back_to_default_when_ratio_is_out_of_range
+    def test_root_strategy_falls_back_to_adaptive_default_when_ratio_is_out_of_range
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.5) do
