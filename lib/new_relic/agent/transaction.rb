@@ -117,7 +117,6 @@ module NewRelic
       end
 
       def self.start_new_transaction(state, category, options)
-        # binding.irb if options[:transaction_name] == 'Hannah'
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.start(options)
@@ -563,7 +562,6 @@ module NewRelic
       end
 
       def finish
-        # binding.irb
         return unless state.is_execution_traced? && initial_segment
 
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
