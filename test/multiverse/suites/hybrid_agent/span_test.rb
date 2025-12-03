@@ -7,9 +7,9 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class SpanTest < Minitest::Test
-          # Tests in this file can easily become flaky and influence other files
-          # Best practice is to use @tracer.start_span to create Spans
-          # and to finish all the spans that you start
+          # Tests in this file can easily become flaky and influence
+          # other files. Best practice is to use @tracer.start_span
+          # to create Spans and to finish all the spans you start.
 
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
