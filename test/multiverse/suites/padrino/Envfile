@@ -4,15 +4,23 @@
 
 instrumentation_methods :chain, :prepend
 
-# Sinatra 3+
+# sinatra 4
 gemfile <<~RB
   gem 'activesupport'
-  gem 'padrino', '0.15.3'
+  gem 'padrino'
   gem 'rack-test'
-  gem 'sinatra', '< 4'
+  gem 'sinatra', '~> 4'
 RB
 
-# Sinatra <3
+# Sinatra 3
+gemfile <<~RB
+  gem 'activesupport'
+  gem 'padrino'
+  gem 'rack-test'
+  gem 'sinatra', '~> 3'
+RB
+
+# Sinatra 2
 gemfile <<~RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '0.15.1'
