@@ -24,16 +24,16 @@ module NewRelic::Agent::Instrumentation::Sidekiq
       end
       trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
 
-      perform_action_with_newrelic_trace(trace_args) do
+      NewRelic::Agent::Tracer.start_and_end_txn_experiment(name: trace_args[:name], category: trace_args[:category], options: trace_args) do
         NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
           NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
           ATTRIBUTE_JOB_NAMESPACE,
           NewRelic::Agent::AttributeFilter::DST_NONE
         )
 
-        if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
-          ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
-        end
+        # if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
+        #   ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
+        # end
 
         yield
       end
