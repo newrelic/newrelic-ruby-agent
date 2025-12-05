@@ -13,6 +13,7 @@ def gem_list(sidekiq_version = nil)
   <<-RB
     gem 'sidekiq'#{sidekiq_version}
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+    gem 'connection_pool', '< 3.0.0'
   RB
 end
 
