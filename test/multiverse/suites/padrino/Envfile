@@ -5,12 +5,14 @@
 instrumentation_methods :chain, :prepend
 
 # sinatra 4
-gemfile <<~RB
-  gem 'activesupport'
-  gem 'padrino'
-  gem 'rack-test'
-  gem 'sinatra', '~> 4'
-RB
+if RUBY_VERSION > '3.0'
+  gemfile <<~RB
+    gem 'activesupport'
+    gem 'padrino'
+    gem 'rack-test'
+    gem 'sinatra', '~> 4'
+  RB
+end
 
 # Sinatra 3
 gemfile <<~RB
