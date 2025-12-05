@@ -31,9 +31,9 @@ module NewRelic::Agent::Instrumentation::Sidekiq
           NewRelic::Agent::AttributeFilter::DST_NONE
         )
 
-        if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
-          ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
-        end
+        # if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
+        #   ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
+        # end
 
         yield
       end
