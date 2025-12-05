@@ -7,7 +7,7 @@ instrumentation_methods :chain, :prepend
 # Sinatra 3+
 gemfile <<~RB
   gem 'activesupport'
-  gem 'padrino'
+  gem 'padrino', '0.15.3'
   gem 'rack-test'
   gem 'sinatra', '< 4'
 RB
