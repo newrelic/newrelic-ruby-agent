@@ -16,6 +16,7 @@ module NewRelic
           end
 
           def teardown
+            mocha_teardown
             NewRelic::Agent.instance.transaction_event_aggregator.reset!
             NewRelic::Agent.instance.span_event_aggregator.reset!
           end
@@ -51,13 +52,14 @@ module NewRelic
               'yosemite' => 'california',
               'yellowstone' => 'wyoming'
             }
+
             in_transaction do |txn|
-              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
-                otel_span = @tracer.start_span('test_span')
-                otel_span.add_attributes(attributes)
-                otel_span.finish
-              end
+              txn.stubs(:sampled?).returns(true)
+              otel_span = @tracer.start_span('test_span')
+              otel_span.add_attributes(attributes)
+              otel_span.finish
             end
+
             spans = harvest_span_events![1]
             span_attributes = spans[0][1]
 
@@ -161,6 +163,7 @@ module NewRelic
           def test_status_works_with_description
             span = @tracer.start_span('oops')
             span.status = ::OpenTelemetry::Trace::Status.error('Something went wrong')
+            span.finishable.stubs(:sampled?).returns(true)
             span.finish
 
             # error is code 2
@@ -172,6 +175,7 @@ module NewRelic
           def test_status_works_without_description
             span = @tracer.start_span('sleepy puppy')
             span.status = ::OpenTelemetry::Trace::Status.ok
+            span.finishable.stubs(:sampled?).returns(true)
             span.finish
 
             # ok is status code 0
@@ -182,15 +186,14 @@ module NewRelic
 
           def test_default_status_is_unset
             span = @tracer.start_span('advil')
-
             assert_instance_of(::OpenTelemetry::Trace::Status, span.status)
+            # unset is status code 1
             assert_equal(1, span.status.code)
 
             span.finish
 
             expected = {'status.code' => 1}
 
-            # unset is status code 1
             assert_equal expected, last_span_event[1]
           end
         end
