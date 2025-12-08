@@ -106,6 +106,11 @@ module NewRelic
       # @api public
       #
       def self.wrap(product, operation, collection = nil, callback = nil)
+        NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.wrap method is changing. ' \
+          'In a future major version, proc will only accept a single argument, the result of the yield. ' \
+          'The scoped metric name and elapsed arguments will be removed, as they are being removed from the ' \
+          'Datastores.notice_sql method. The scoped metric name and elapsed values are derived from the ' \
+          'current segment when the wrap yields.')
         NewRelic::Agent.record_api_supportability_metric(:wrap)
 
         return yield unless operation

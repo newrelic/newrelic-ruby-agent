@@ -349,13 +349,12 @@ common: &default_settings
   # distributed_tracing.enabled: true
 
   # This setting controls the behavior of transaction sampling when a remote
-  # parent is not sampled and the trace flag is not set in the traceparent.
-  # Available values are default, always_on, and always_off.
+  # parent is not sampled. Available values are default, always_on, and
+  # always_off.
   # distributed_tracing.sampler.remote_parent_not_sampled: default
 
   # This setting controls the behavior of transaction sampling when a remote
-  # parent is sampled and the trace flag is set in the traceparent. Available
-  # values are default, always_on, and always_off.
+  # parent is sampled. Available values are default, always_on, and always_off.
   # distributed_tracing.sampler.remote_parent_sampled: default
 
   # If true, the agent captures the Elasticsearch cluster name in transaction

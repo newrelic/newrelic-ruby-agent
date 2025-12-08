@@ -569,6 +569,157 @@ module NewRelic
           assert_equal 20, adaptive_sampler.stats[:seen]
         end
 
+        def test_root_transaction_with_trace_id_ratio_based_sampler
+          with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+            :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0) do
+            txn = in_transaction('test_txn') {}
+
+            # With ratio 1.0, should always be sampled
+            assert_predicate txn, :sampled?
+            # Priority should use default_priority (between 1.0 and 2.0)
+            assert txn.priority > 1.0 && txn.priority < 2.0,
+              "Expected priority between 1.0 and 2.0, got #{txn.priority}"
+            # trace_id should be present and valid
+            refute_nil txn.trace_id
+            assert_equal 32, txn.trace_id.size
+          end
+        end
+
+        def test_trace_id_remains_consistent_across_distributed_trace_with_ratio_sampler
+          parent_trace_id = nil
+          parent_priority = nil
+          parent_payload = nil
+
+          with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+            :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 0.5) do
+            # Create parent transaction
+            in_transaction('parent_txn') do |parent_txn|
+              parent_trace_id = parent_txn.trace_id
+              parent_priority = parent_txn.priority
+              parent_payload = parent_txn.distributed_tracer.create_distributed_trace_payload
+            end
+
+            # Create child transaction that accepts parent's payload
+            with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'default') do
+              in_transaction('child_txn') do |child_txn|
+                child_txn.distributed_tracer.accept_distributed_trace_payload(parent_payload.text)
+
+                # Child should have same trace_id as parent
+                assert_equal parent_trace_id, child_txn.trace_id,
+                  'Expected child transaction to inherit parent trace_id'
+
+                # If parent was sampled, child should inherit that decision
+                assert_equal parent_payload.sampled, child_txn.sampled?,
+                  'Expected child transaction to inherit parent sampling decision'
+              end
+            end
+          end
+        end
+
+        def test_trace_id_ratio_based_remote_parent_sampled
+          # Create parent that is sampled
+          payload = create_distributed_trace_payload(sampled: true)
+
+          with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'trace_id_ratio_based',
+            :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => 1.0) do
+            txn = in_transaction('child_txn') do |txn|
+              txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
+              txn
+            end
+
+            # With ratio 1.0, should always be sampled
+            assert_predicate txn, :sampled?
+            # Priority should use default_priority (between 1.0 and 2.0)
+            assert txn.priority > 1.0 && txn.priority < 2.0,
+              "Expected priority between 1.0 and 2.0, got #{txn.priority}"
+            # Should inherit trace_id from parent
+            assert_equal payload.trace_id, txn.trace_id
+          end
+        end
+
+        def test_trace_id_ratio_based_remote_parent_not_sampled
+          # Create parent that is not sampled
+          payload = create_distributed_trace_payload(sampled: false)
+
+          with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'trace_id_ratio_based',
+            :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => 0.0) do
+            txn = in_transaction('child_txn') do |txn|
+              txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
+              txn
+            end
+
+            # With ratio 0.0, should never be sampled
+            refute_predicate txn, :sampled?
+            # Priority should use default_priority (between 0.0 and 1.0)
+            assert txn.priority >= 0.0 && txn.priority < 1.0,
+              "Expected priority between 0.0 and 1.0, got #{txn.priority}"
+            # Should inherit trace_id from parent
+            assert_equal payload.trace_id, txn.trace_id
+          end
+        end
+
+        def test_multi_hop_distributed_trace_with_trace_id_ratio_based
+          grandparent_trace_id = nil
+          parent_sampled = nil
+          grandparent_payload = nil
+          parent_payload = nil
+
+          with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+            :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0,
+            :'distributed_tracing.sampler.remote_parent_sampled' => 'default') do
+            # Grandparent transaction (root)
+            in_transaction('grandparent_txn') do |grandparent_txn|
+              grandparent_trace_id = grandparent_txn.trace_id
+              grandparent_payload = grandparent_txn.distributed_tracer.create_distributed_trace_payload
+            end
+
+            # Parent transaction accepts grandparent payload
+            in_transaction('parent_txn') do |parent_txn|
+              parent_txn.distributed_tracer.accept_distributed_trace_payload(grandparent_payload.text)
+              parent_sampled = parent_txn.sampled?
+              parent_payload = parent_txn.distributed_tracer.create_distributed_trace_payload
+            end
+
+            # Child transaction accepts parent payload
+            in_transaction('child_txn') do |child_txn|
+              child_txn.distributed_tracer.accept_distributed_trace_payload(parent_payload.text)
+
+              # All three should have same trace_id
+              assert_equal grandparent_trace_id, child_txn.trace_id,
+                'Expected trace_id to propagate through entire chain'
+
+              # All should be sampled since grandparent ratio was 1.0
+              assert_predicate child_txn, :sampled?,
+                'Expected sampling decision to propagate through chain'
+            end
+          end
+        end
+
+        def test_priority_set_correctly_across_different_sampler_types
+          # always_on sets priority to 2.0
+          with_config(:'distributed_tracing.sampler.root' => 'always_on') do
+            txn_always_on = in_transaction('always_on_txn') {}
+
+            assert_in_delta(2.0, txn_always_on.priority)
+          end
+
+          # always_off sets priority to 0
+          with_config(:'distributed_tracing.sampler.root' => 'always_off') do
+            txn_always_off = in_transaction('always_off_txn') {}
+
+            assert_equal 0, txn_always_off.priority
+          end
+
+          # trace_id_ratio_based with ratio 1.0 uses adaptive priority
+          with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
+            :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.0) do
+            txn_ratio = in_transaction('ratio_txn') {}
+
+            assert txn_ratio.priority > 1.0 && txn_ratio.priority < 2.0,
+              "Expected adaptive priority, got #{txn_ratio.priority}"
+          end
+        end
+
         private
 
         def create_distributed_trace_payload(sampled: nil)

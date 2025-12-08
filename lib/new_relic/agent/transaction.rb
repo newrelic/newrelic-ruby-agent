@@ -294,9 +294,39 @@ module NewRelic
         return false unless Agent.config[:'distributed_tracing.enabled']
 
         if @sampled.nil?
-          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
+          # Ruby evaluates case statements top to bottom. Listing the statements
+          # in the order of most likely to match keeps things performant.
+          # If we put more than one string in a condition, it'll check to see if
+          # the case matches any one of those conditions before moving on to the
+          # next one.
+          #
+          # Even though adaptive behaves the same as default, I hypothesize it
+          # will be used so infrequently, it should just be listed last.
+          @sampled = case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
+          when 'default'
+            NewRelic::Agent.instance.adaptive_sampler.sampled?
+          when 'always_on'
+            true
+          when 'always_off'
+            false
+          when 'trace_id_ratio_based'
+            trace_ratio_sampled?(NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'])
+          when 'adaptive'
+            NewRelic::Agent.instance.adaptive_sampler.sampled?
+          end
         end
         @sampled
+      end
+
+      def trace_ratio_sampled?(ratio)
+        # In the opentelemetry-sdk TraceIdRatioBased sampler, the algorithm
+        # looks like this:
+        # ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < (ratio * (2**64 - 1)).ceil
+        # OTel stores their trace ids as binary strings
+        # ex. Array(trace_id).pack('H*')
+        # Since we don't store our trace ids as binary strings, this way is
+        # faster, but still gets the same result.
+        ratio == 1.0 || Integer(trace_id[16, 16], 16) < (ratio * (2**64 - 1)).ceil
       end
 
       def trace_id
@@ -307,8 +337,19 @@ module NewRelic
         @trace_id = value
       end
 
+      def default_priority
+        (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
+      end
+
       def priority
-        @priority ||= (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
+        @priority ||= case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
+        when 'default', 'trace_id_ratio_based', 'adaptive'
+          default_priority
+        when 'always_on'
+          2.0
+        when 'always_off'
+          0
+        end
       end
 
       def referer
