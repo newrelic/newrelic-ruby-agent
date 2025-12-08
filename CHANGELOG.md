@@ -102,9 +102,9 @@
   | `always_on` | Marks 100% of root traces as sampled |
   | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
 
-- **Feature: Replace 'default' option with 'adaptive' for distributed tracing remote parent samplers**
+- **Breaking Change: Replace 'default' option with 'adaptive' for distributed tracing remote parent samplers**
 
-  Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `'default'`, which used the pre-existing adaptive sampler. The 'default' option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
+  Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `'default'`, which used the pre-existing adaptive sampler. The `'default'` option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
 
  ## v9.24.0
 
