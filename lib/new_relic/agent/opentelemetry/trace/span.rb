@@ -10,11 +10,6 @@ module NewRelic
           attr_accessor :finishable
           attr_reader :status
 
-          def initialize(span_context: nil)
-            @status = ::OpenTelemetry::Trace::Status.unset
-            super
-          end
-
           def finish(end_timestamp: nil)
             finishable&.finish
           end
