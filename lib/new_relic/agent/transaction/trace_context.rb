@@ -157,29 +157,38 @@ module NewRelic
             set_priority_and_sampled(
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
-              payload
+              payload,
+              trace_flags
             )
           elsif trace_flags == '00'
             set_priority_and_sampled(
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
-              payload
+              payload,
+              trace_flags
             )
           else
-            use_nr_tracestate_sampled(payload)
+            use_nr_tracestate_sampled(payload, trace_flags)
           end
         rescue
-          use_nr_tracestate_sampled(payload)
+          use_nr_tracestate_sampled(payload, trace_flags)
         end
 
-        def use_nr_tracestate_sampled(payload)
-          unless payload.sampled.nil?
+        def use_nr_tracestate_sampled(payload, trace_flags)
+          if payload.sampled.nil?
+            if trace_flags == '01'
+              transaction.sampled = true
+              transaction.priority = transaction.priority + 1
+            elsif trace_flags == '00'
+              transaction.sampled = false
+            end
+          else
             transaction.sampled = payload.sampled
             transaction.priority = payload.priority if payload.priority
           end
         end
 
-        def set_priority_and_sampled(sampler, ratio, payload)
+        def set_priority_and_sampled(sampler, ratio, payload, trace_flags = nil)
           # Ruby evaluates case statements top to bottom. Listing the statements
           # in the order of most likely to match keeps things performant.
           # If we put more than one string in a condition, it'll check to see if
@@ -190,7 +199,7 @@ module NewRelic
           # will be used so infrequently, it should just be listed last.
           case sampler
           when 'default'
-            use_nr_tracestate_sampled(payload)
+            use_nr_tracestate_sampled(payload, trace_flags)
           when 'always_on'
             transaction.sampled = true
             transaction.priority = 2.0
@@ -201,7 +210,7 @@ module NewRelic
             transaction.sampled = transaction.trace_ratio_sampled?(ratio)
             transaction.priority = transaction.default_priority
           when 'adaptive'
-            use_nr_tracestate_sampled(payload)
+            use_nr_tracestate_sampled(payload, trace_flags)
           end
         end
 
