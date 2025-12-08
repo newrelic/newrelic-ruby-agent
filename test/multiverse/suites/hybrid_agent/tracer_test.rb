@@ -23,7 +23,8 @@ module NewRelic
               @tracer.in_span('fruit', kind: :internal) { 'seeds' }
             end
 
-            assert_includes(txn.segments.map(&:name), 'fruit') end
+            assert_includes(txn.segments.map(&:name), 'fruit')
+          end
 
           def test_in_span_captures_error_when_span_kind_internal
             txn = nil
@@ -181,8 +182,7 @@ module NewRelic
             spans = harvest_span_events![1]
             span_attributes = spans[0][1]
 
-
-            assert_equal span_attributes['strawberry'], 'red'
+            assert_equal('red', span_attributes['strawberry'])
           end
 
           private

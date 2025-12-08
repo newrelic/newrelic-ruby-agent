@@ -186,6 +186,7 @@ module NewRelic
 
           def test_default_status_is_unset
             span = @tracer.start_span('advil')
+
             assert_instance_of(::OpenTelemetry::Trace::Status, span.status)
             # unset is status code 1
             assert_equal(1, span.status.code)
