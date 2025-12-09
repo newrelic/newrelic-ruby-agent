@@ -60,9 +60,6 @@ if Rails::VERSION::STRING >= '4.2.0'
       end
     end
 
-    ENQUEUE_PREFIX = 'ActiveJob/Inline/Queue/Produce/Named'
-    PERFORM_PREFIX = 'ActiveJob/Inline/Queue/Consume/Named'
-
     PERFORM_TRANSACTION_NAME = 'OtherTransaction/ActiveJob::Inline/MyJob/execute'
     PERFORM_TRANSACTION_ROLLUP = 'OtherTransaction/ActiveJob::Inline/all'
 
@@ -71,7 +68,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         MyJob.perform_later
       end
 
-      assert_metrics_recorded("#{ENQUEUE_PREFIX}/default")
+      assert_metrics_recorded('ActiveJob/Inline/MyJob/Queue/Consume/Named/default')
     end
 
     def test_code_information_recorded_in_web_transaction
@@ -120,7 +117,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         MyJobWithAlternateQueue.perform_later
       end
 
-      assert_metrics_recorded("#{ENQUEUE_PREFIX}/my_jobs")
+      assert_metrics_recorded('ActiveJob/Inline/MyJobWithAlternateQueue/Queue/Consume/Named/my_jobs')
     end
 
     def test_record_perform_metrics_in_web
@@ -128,7 +125,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         MyJob.perform_later
       end
 
-      assert_metrics_recorded("#{PERFORM_PREFIX}/default")
+      assert_metrics_recorded('ActiveJob/Inline/MyJob/Queue/Consume/Named/default')
     end
 
     def test_record_perform_all_later_metrics_in_web
@@ -138,7 +135,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         ActiveJob.perform_all_later(MyJob.new, MyJob.new, MyJob.new)
       end
 
-      assert_metrics_recorded("#{PERFORM_PREFIX}/default")
+      assert_metrics_recorded('ActiveJob/Inline/MyJob/Queue/Consume/Named/default')
     end
 
     def test_record_perform_metrics_with_alternate_queue_in_web
@@ -146,7 +143,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         MyJobWithAlternateQueue.perform_later
       end
 
-      assert_metrics_recorded("#{PERFORM_PREFIX}/my_jobs")
+      assert_metrics_recorded('ActiveJob/Inline/MyJobWithAlternateQueue/Queue/Consume/Named/my_jobs')
     end
 
     def test_doesnt_record_perform_metrics_from_background
@@ -154,7 +151,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         MyJob.perform_later
       end
 
-      assert_metrics_not_recorded("#{PERFORM_PREFIX}/default")
+      assert_metrics_not_recorded('ActiveJob/Inline/MyJob/Queue/Consume/Named/default')
     end
 
     def test_starts_transaction_if_there_isnt_one
