@@ -7,14 +7,16 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class SpanTest < Minitest::Test
-          Segment = Struct.new(:guid, :transaction)
-          Transaction = Struct.new(:trace_id)
+          # Tests in this file can easily become flaky and influence
+          # other files. Best practice is to use @tracer.start_span
+          # to create Spans and to finish all the spans you start.
 
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
           end
 
           def teardown
+            mocha_teardown
             NewRelic::Agent.instance.transaction_event_aggregator.reset!
             NewRelic::Agent.instance.span_event_aggregator.reset!
           end
@@ -27,9 +29,8 @@ module NewRelic
           end
 
           def test_finishable_can_finish_transactions
-            txn = NewRelic::Agent::Tracer.start_transaction_or_segment(category: :web, name: 'test')
-            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
-            span.finishable = txn
+            span = @tracer.start_span('test')
+            txn = span.finishable
             span.finish
 
             assert_predicate span.finishable, :finished?
@@ -51,17 +52,147 @@ module NewRelic
               'yosemite' => 'california',
               'yellowstone' => 'wyoming'
             }
+
             in_transaction do |txn|
-              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
-                otel_span = @tracer.start_span('test_span')
-                otel_span.add_attributes(attributes)
-                otel_span.finish
-              end
+              txn.stubs(:sampled?).returns(true)
+              otel_span = @tracer.start_span('test_span')
+              otel_span.add_attributes(attributes)
+              otel_span.finish
             end
+
             spans = harvest_span_events![1]
             span_attributes = spans[0][1]
 
-            assert_equal span_attributes, attributes
+            assert_equal('california', span_attributes['yosemite'])
+            assert_equal('wyoming', span_attributes['yellowstone'])
+          end
+
+          def test_recording_works_with_finishable_transactions_when_finished
+            span = @tracer.start_span('test_span')
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+
+            span.finish
+
+            refute_predicate span, :recording?
+          end
+
+          def test_recording_works_with_finishable_segments_when_finished
+            in_transaction do
+              span = @tracer.start_span('hehe')
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+
+              span.finish
+
+              refute_predicate span, :recording?
+            end
+          end
+
+          def test_recording_works_with_finishable_transactions_when_not_finished
+            span = @tracer.start_span('drip drop')
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+            assert_predicate span, :recording?
+
+            span.finish
+          end
+
+          def test_recording_works_with_finishable_segments_when_not_finished
+            segment = NewRelic::Agent::Transaction::Segment.new
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+            span.finishable = segment
+
+            assert_predicate span, :recording?
+
+            span.finish
+          end
+
+          def test_name_works_with_finishable_transaction
+            name = 'initial_name'
+            updated_name = 'updated_name'
+            span = @tracer.start_span(name)
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+
+            transaction = span.finishable
+            span.name = updated_name
+
+            assert_equal updated_name, transaction.best_name
+
+            span.finish
+          end
+
+          def test_name_works_with_finishable_segment
+            in_transaction do
+              name = 'initial_name'
+              updated_name = 'updated_name'
+
+              span = @tracer.start_span(name)
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+
+              span.name = updated_name
+              segment = span.finishable
+
+              assert_equal updated_name, segment.name
+
+              span.finish
+            end
+          end
+
+          def test_message_logged_when_name_called_but_span_is_finished
+            log = with_array_logger do
+              NewRelic::Agent.manual_start
+
+              name = 'initial_name'
+              updated_name = 'updated_name'
+              span = @tracer.start_span(name)
+
+              span.finish
+
+              span.name = updated_name
+            end
+
+            assert_log_contains(log, /WARN.*Calling name=/)
+          end
+
+          def test_status_works_with_description
+            span = @tracer.start_span('oops')
+            span.status = ::OpenTelemetry::Trace::Status.error('Something went wrong')
+            span.finishable.stubs(:sampled?).returns(true)
+            span.finish
+
+            # error is code 2
+            expected = {'status.code' => 2, 'status.description' => 'Something went wrong'}
+
+            assert_equal expected, last_span_event[1]
+          end
+
+          def test_status_works_without_description
+            span = @tracer.start_span('sleepy puppy')
+            span.status = ::OpenTelemetry::Trace::Status.ok
+            span.finishable.stubs(:sampled?).returns(true)
+            span.finish
+
+            # ok is status code 0
+            expected = {'status.code' => 0}
+
+            assert_equal expected, last_span_event[1]
+          end
+
+          def test_default_status_is_unset
+            span = @tracer.start_span('advil')
+
+            assert_instance_of(::OpenTelemetry::Trace::Status, span.status)
+            # unset is status code 1
+            assert_equal(1, span.status.code)
+
+            span.finish
+
+            expected = {'status.code' => 1}
+
+            assert_equal expected, last_span_event[1]
           end
         end
       end
