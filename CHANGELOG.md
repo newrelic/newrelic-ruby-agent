@@ -71,7 +71,42 @@
 
   The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
 
-## v9.24.0
+- **Feature: Add Trace ID Ratio Based sampling options**
+
+  The agent can now sample traces using the OpenTelemetry Trace ID Ratio Based sampler algorithm. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330) This samples traces based on a probability between 0.0 and 1.0 based on the trace ID.
+
+  To use this option, you must first set your distributed tracing sampler configuration to `trace_id_ratio_based` and then set the corresponding `distributed_tracing.sampler.*.trace_id_ratio_based.ratio` sampler to a Float between 0.0 and 1.0.
+
+  For example:
+  ```yaml
+    distributed_tracing.sampler.remote_parent_sampled: 'trace_id_ratio_based'
+    distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio': 0.5
+  ```
+  This configuration would sample approximately 50% of your traces for all traces where the remote parent is sampled.
+
+  This option is available for:
+  * `distributed_tracing.sampler.root`
+  * `distributed_tracing.sampler.remote_parent_sampled`
+  * `distributed_tracing.sampler.remote_parent_not_sampled`
+
+- **Feature: Add root sampling configuration options**
+
+  You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330)
+
+  There are four modes available:
+
+  | Mode | Description |
+  | ------ | ----------- |
+  | `adaptive` | Uses the existing adaptive sampler algorithm |
+  | `always_off` | Marks 0% of root traces as sampled |
+  | `always_on` | Marks 100% of root traces as sampled |
+  | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
+
+- **Breaking Change: Replace 'default' option with 'adaptive' for distributed tracing remote parent samplers**
+
+  Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `'default'`, which used the pre-existing adaptive sampler. The `'default'` option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
+
+ ## v9.24.0
 
 - **Feature: Deprecation reminder for SqlSampler#notice_sql API**
 

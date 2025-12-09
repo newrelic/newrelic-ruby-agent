@@ -1526,17 +1526,6 @@ module NewRelic::Agent
       assert txn.trace_ratio_sampled?(0.5), 'Expected ratio 0.5 to sample low-value trace_id'
     end
 
-    def test_sampled_with_root_sampler_default
-      with_config(:'distributed_tracing.enabled' => true,
-        :'distributed_tracing.sampler.root' => 'default') do
-        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-
-        txn = in_transaction {}
-
-        refute_predicate txn, :sampled?, 'Expected default sampler to use adaptive sampler result (false)'
-      end
-    end
-
     def test_sampled_with_root_sampler_adaptive
       with_config(:'distributed_tracing.enabled' => true,
         :'distributed_tracing.sampler.root' => 'adaptive') do
@@ -1625,18 +1614,6 @@ module NewRelic::Agent
         txn = in_transaction {}
 
         assert_equal 0, txn.priority, 'Expected always_off sampler to set priority to 0'
-      end
-    end
-
-    def test_priority_with_root_sampler_default_uses_default_priority
-      with_config(:'distributed_tracing.enabled' => true,
-        :'distributed_tracing.sampler.root' => 'default') do
-        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-
-        txn = in_transaction {}
-
-        assert txn.priority > 1.0 && txn.priority < 2.0,
-          "Expected priority between 1.0 and 2.0 for sampled transaction, got #{txn.priority}"
       end
     end
 
