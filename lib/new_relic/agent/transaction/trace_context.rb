@@ -180,16 +180,8 @@ module NewRelic
         end
 
         def set_priority_and_sampled(sampler, ratio, payload)
-          # Ruby evaluates case statements top to bottom. Listing the statements
-          # in the order of most likely to match keeps things performant.
-          # If we put more than one string in a condition, it'll check to see if
-          # the case matches any one of those conditions before moving on to the
-          # next one.
-          #
-          # Even though adaptive behaves the same as default, I hypothesize it
-          # will be used so infrequently, it should just be listed last.
           case sampler
-          when 'default'
+          when 'adaptive'
             use_nr_tracestate_sampled(payload)
           when 'always_on'
             transaction.sampled = true
@@ -200,8 +192,6 @@ module NewRelic
           when 'trace_id_ratio_based'
             transaction.sampled = transaction.trace_ratio_sampled?(ratio)
             transaction.priority = transaction.default_priority
-          when 'adaptive'
-            use_nr_tracestate_sampled(payload)
           end
         end
 
