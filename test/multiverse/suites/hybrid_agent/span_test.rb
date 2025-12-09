@@ -63,8 +63,8 @@ module NewRelic
             spans = harvest_span_events![1]
             span_attributes = spans[0][1]
 
-            assert_equal span_attributes['yosemite'], 'california'
-            assert_equal span_attributes['yellowstone'], 'wyoming'
+            assert_equal('california', span_attributes['yosemite'])
+            assert_equal('wyoming', span_attributes['yellowstone'])
           end
 
           def test_recording_works_with_finishable_transactions_when_finished
