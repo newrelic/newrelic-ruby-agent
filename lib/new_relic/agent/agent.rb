@@ -101,6 +101,7 @@ module NewRelic
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
         # TODO: update the configs used here to match new sampler-specific options
+        # TODO: Consider refactoring to only create the sampler if 'adaptive' is the sampler's setting
         @adaptive_sampler_remote_parent_sampled = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
         @adaptive_sampler_remote_parent_not_sampled = AdaptiveSampler.new(Agent.config[:sampling_target],
