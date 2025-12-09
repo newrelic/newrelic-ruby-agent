@@ -177,11 +177,12 @@ module NewRelic
         def use_nr_tracestate_sampled(payload, trace_flags)
           if payload.sampled.nil?
             if trace_flags == '01'
-              transaction.sampled = true
-              transaction.priority = transaction.priority + 1
+              transaction.sampled = NewRelic::Agent.instance.adaptive_sampler_remote_parent_sampled.sampled?
             elsif trace_flags == '00'
-              transaction.sampled = false
+              transaction.sampled = NewRelic::Agent.instance.adaptive_sampler_remote_parent_not_sampled.sampled?
             end
+
+            transaction.priority = transaction.default_priority
           else
             transaction.sampled = payload.sampled
             transaction.priority = payload.priority if payload.priority
