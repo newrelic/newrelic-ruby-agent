@@ -123,7 +123,8 @@ module NewRelic
           end
 
           def test_set_otel_tracestate_without_newrelic_entry
-            skip 'need to make some trace context changes that are bigger than this PR'
+            # TODO: Need to address trace context work for setting empty tracestate
+            skip 'need to make trace context changes to support this'
 
             with_config(:account_id => '190', primary_application_id: '46954') do
               carrier = {
