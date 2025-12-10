@@ -93,6 +93,7 @@ module NewRelic
 
       def contents
         <<~CONTENTS
+          entity_guid: #{NewRelic::Agent.config[:entity_guid]}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
           start_time_unix_nano: #{@start_time}

@@ -111,6 +111,43 @@ class NewRelicHealthCheckTest < Minitest::Test
     assert_equal 5, health_check.instance_variable_get(:@frequency)
   end
 
+  def test_yaml_file_has_entity_guid_field
+    Dir.mkdir('health')
+    entity_guid = 'AhIForGotMyK3ys'
+    with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
+      with_config(:entity_guid => entity_guid) do
+        NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
+          health_check = NewRelic::Agent::HealthCheck.new
+          health_check.send(:write_file)
+
+          health_file = File.readlines('health/health-abc123.yml')
+
+          assert_predicate health_file.grep(/entity_guid:/), :any?
+          assert_equal "entity_guid: #{entity_guid}\n", health_file[0]
+        end
+      end
+    end
+  ensure
+    FileUtils.rm_rf('health')
+  end
+
+  def test_yaml_file_has_entity_guid_field_even_when_guid_unavailable
+    Dir.mkdir('health')
+    with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
+      NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
+        health_check = NewRelic::Agent::HealthCheck.new
+        health_check.send(:write_file)
+
+        health_file = File.readlines('health/health-abc123.yml')
+
+        assert_predicate health_file.grep(/entity_guid:/), :any?
+        assert_equal "entity_guid: \n", health_file[0]
+      end
+    end
+  ensure
+    FileUtils.rm_rf('health')
+  end
+
   def test_yaml_file_has_healthy_field
     Dir.mkdir('health')
 
@@ -225,10 +262,10 @@ class NewRelicHealthCheckTest < Minitest::Test
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, '1') do
         health_check = NewRelic::Agent::HealthCheck.new
         health_check.send(:write_file)
-        # on a healthy file, the third index/fourth line should hold the status_time_unix_nano data
-        first_status_time = File.readlines('health/health-1.yml')[3]
+        # on a healthy file, the fourth index/fifth line should hold the status_time_unix_nano data
+        first_status_time = File.readlines('health/health-1.yml')[4]
         health_check.send(:write_file)
-        second_status_time = File.readlines('health/health-1.yml')[3]
+        second_status_time = File.readlines('health/health-1.yml')[4]
 
         refute_equal(first_status_time, second_status_time)
       end

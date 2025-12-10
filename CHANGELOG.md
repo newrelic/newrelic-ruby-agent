@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add Entity GUID to Agent Control health check files**
+
+  When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file is created at the configured file location for every agent process. This file now includes the guid of the entity related to the agent when available. [PR#3371](https://github.com/newrelic/newrelic-ruby-agent/pull/3371)
+
 ## v9.24.0
 
 - **Feature: Deprecation reminder for SqlSampler#notice_sql API**
