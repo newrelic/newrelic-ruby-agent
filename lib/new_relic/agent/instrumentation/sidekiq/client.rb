@@ -11,7 +11,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
     def call(_worker_class, job, *_)
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
-      # job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
+      job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
       yield
     end
 
