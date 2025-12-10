@@ -115,7 +115,7 @@ module NewRelic::Agent::Instrumentation
       in_transaction do |txn|
         job.perform_now
         segments = txn.segments.select { |s| s.name.start_with?('Ruby/ActiveJob') }
-        segment = segments.detect { |s| s.name == 'Ruby/ActiveJob/EmailNotificationJob/default/perform' }
+        segment = segments.detect { |s| s.name == 'Ruby/ActiveJob/default/EmailNotificationJob/perform' }
 
         assert segment
       end
