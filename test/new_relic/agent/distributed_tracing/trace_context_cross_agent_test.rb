@@ -43,6 +43,8 @@ module NewRelic
 
             define_method("test_#{test_case['test_name']}") do
               NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case['force_adaptive_sampled_true'])
+              NewRelic::Agent.instance.adaptive_sampler_remote_parent_sampled.stubs(:sampled?).returns(test_case['force_adaptive_sampled_true'])
+              NewRelic::Agent.instance.adaptive_sampler_remote_parent_not_sampled.stubs(:sampled?).returns(test_case['force_adaptive_sampled_true'])
 
               config = {
                 :'distributed_tracing.enabled' => true,
