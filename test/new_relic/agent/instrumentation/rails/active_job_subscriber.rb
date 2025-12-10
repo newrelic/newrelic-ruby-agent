@@ -41,12 +41,12 @@ module NewRelic::Agent::Instrumentation
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActiveJobSubscriber.new
 
     def test_segment_naming_with_unknown_method
-      assert_equal 'Ruby/ActiveJob/TestJob/default/Unknown',
+      assert_equal 'Ruby/ActiveJob/default/TestJob/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {job: TestJob.new})
     end
 
     def test_segment_naming_multiple_jobs
-      assert_equal 'Ruby/ActiveJob/TestJob/default/Unknown',
+      assert_equal 'Ruby/ActiveJob/default/TestJob/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {jobs: [TestJob.new, TestJob.new]})
     end
 
@@ -130,7 +130,7 @@ module NewRelic::Agent::Instrumentation
       refute_empty segments
 
       methods.each do |method|
-        segment = segments.detect { |s| s.name == "Ruby/ActiveJob/TestJob/default/#{method}" }
+        segment = segments.detect { |s| s.name == "Ruby/ActiveJob/default/TestJob/#{method}" }
 
         assert segment
 

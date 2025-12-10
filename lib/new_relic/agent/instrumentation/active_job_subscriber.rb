@@ -24,7 +24,7 @@ module NewRelic
           queue = job.queue_name
           job_class = job.class.name.include?('::') ? job.class.name[job.class.name.rindex('::') + 2..-1] : job.class.name
           method = method_from_name(name)
-          "Ruby/ActiveJob/#{job_class}/#{queue}/#{method}"
+          "Ruby/ActiveJob/#{queue}/#{job_class}/#{method}"
         end
 
         PATTERN = /\A([^\.]+)\.active_job\z/

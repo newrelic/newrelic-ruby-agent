@@ -16,11 +16,11 @@
 
 - **Breaking Change: Rename ActiveJob metrics and segments**
 
-  ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
+  ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3370](https://github.com/newrelic/newrelic-ruby-agent/pull/3370) [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
     - Old format: `Ruby/ActiveJob/<QueueName>/<Method>`
-    - New format: `Ruby/ActiveJob/<ClassName>/<QueueName>/<Method>`
+    - New format: `Ruby/ActiveJob/<QueueName>/<ClassName>/<Method>`
 
-  In addition, segments created for Active Job enqueuing actions now include the job class. [PR#3370](https://github.com/newrelic/newrelic-ruby-agent/pull/3370)
+  In addition, segments created for Active Job enqueuing actions now include the job class.
     - Old format: `ActiveJob/<QueueAdapter>/Queue/<Event>/Named/<QueueName>`
     - New format: `ActiveJob/<QueueAdapter>/Queue/<Event>/Named/<QueueName>/<ClassName>`
 
