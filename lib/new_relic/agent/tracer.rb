@@ -112,6 +112,25 @@ module NewRelic
           end
         end
 
+        def start_and_end_txn_experiment(name: nil, partial_name: nil, category:, options: {})
+          current_transaction&.finish
+
+          if name
+            options[:transaction_name] = name
+          else
+            options[:transaction_name] = Transaction.name_from_partial(
+              partial_name,
+              category
+            )
+          end
+
+          txn = NewRelic::Agent::Transaction.start_new_transaction(Tracer.state, category, options)
+
+          yield
+
+          txn.finish
+        end
+
         # Starts a segment on the current transaction (if one exists)
         # or starts a new transaction otherwise.
         #
