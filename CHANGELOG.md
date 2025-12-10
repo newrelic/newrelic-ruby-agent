@@ -2,6 +2,7 @@
 
 ## dev
 
+
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
 
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
@@ -106,7 +107,11 @@
 
   Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `'default'`, which used the pre-existing adaptive sampler. The `'default'` option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
 
- ## v9.24.0
+- **Feature: Add Entity GUID to Agent Control health check files**
+
+  When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file is created at the configured file location for every agent process. This file now includes the guid of the entity related to the agent when available. [PR#3371](https://github.com/newrelic/newrelic-ruby-agent/pull/3371)
+
+## v9.24.0
 
 - **Feature: Deprecation reminder for SqlSampler#notice_sql API**
 
