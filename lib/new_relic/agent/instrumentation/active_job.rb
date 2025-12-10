@@ -71,7 +71,7 @@ module NewRelic
         end
 
         def self.run_in_trace(job, block, event)
-          trace_execution_scoped("ActiveJob/#{adapter.sub(/^ActiveJob::/, '')}/#{job.class}/Queue/#{event}/Named/#{job.queue_name}",
+          trace_execution_scoped("ActiveJob/#{adapter.sub(/^ActiveJob::/, '')}/Queue/#{event}/Named/#{job.queue_name}/#{job.class}",
             code_information: code_information_for_job(job)) do
             block.call
           end

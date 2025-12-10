@@ -21,8 +21,8 @@
     - New format: `Ruby/ActiveJob/<ClassName>/<QueueName>/<Method>`
 
   In addition, segments created for Active Job enqueuing actions now include the job class. [PR#3370](https://github.com/newrelic/newrelic-ruby-agent/pull/3370)
-    - Old format: `ActiveJob/Inline/Queue/Produce/Named`
-    - New format: `ActiveJob/Inline/MyJob/Queue/Produce/Named`
+    - Old format: `ActiveJob/<QueueAdapter>/Queue/<Event>/Named/<QueueName>`
+    - New format: `ActiveJob/<QueueAdapter>/Queue/<Event>/Named/<QueueName>/<ClassName>`
 
 - **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
 
