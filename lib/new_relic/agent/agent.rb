@@ -100,6 +100,12 @@ module NewRelic
         @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
+        # TODO: update the configs used here to match new sampler-specific options
+        # TODO: Consider refactoring to only create the sampler if 'adaptive' is the sampler's setting
+        @adaptive_sampler_remote_parent_sampled = AdaptiveSampler.new(Agent.config[:sampling_target],
+          Agent.config[:sampling_target_period_in_seconds])
+        @adaptive_sampler_remote_parent_not_sampled = AdaptiveSampler.new(Agent.config[:sampling_target],
+          Agent.config[:sampling_target_period_in_seconds])
         @serverless_handler = ServerlessHandler.new
         @opentelemetry_bridge = OpenTelemetryBridge.new
       end
@@ -178,6 +184,8 @@ module NewRelic
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
+        attr_reader :adaptive_sampler_remote_parent_sampled
+        attr_reader :adaptive_sampler_remote_parent_not_sampled
         attr_reader :serverless_handler
 
         def transaction_event_aggregator
