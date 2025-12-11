@@ -60,7 +60,7 @@
 
 - **Breaking Change: Replace 'default' option with 'adaptive' for distributed tracing remote parent samplers**
 
-  Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `'default'`, which used the pre-existing adaptive sampler. The `'default'` option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
+  Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `default`, which used the pre-existing adaptive sampler. The `default` option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
 
 - **Feature: Add `logger` as a dependency**
 
@@ -79,6 +79,19 @@
 
   The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
 
+- **Feature: Add root sampling configuration options**
+
+  You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330)
+
+  There are four modes available:
+
+  | Mode | Description |
+  | ------ | ----------- |
+  | `adaptive` | Uses the existing adaptive sampler algorithm |
+  | `always_off` | Marks 0% of root traces as sampled |
+  | `always_on` | Marks 100% of root traces as sampled |
+  | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
+
 - **Feature: Add Trace ID Ratio Based sampling options**
 
   The agent can now sample traces using the OpenTelemetry Trace ID Ratio Based sampler algorithm. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330) This samples traces based on a probability between 0.0 and 1.0 based on the trace ID.
@@ -96,19 +109,6 @@
   * `distributed_tracing.sampler.root`
   * `distributed_tracing.sampler.remote_parent_sampled`
   * `distributed_tracing.sampler.remote_parent_not_sampled`
-
-- **Feature: Add root sampling configuration options**
-
-  You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330)
-
-  There are four modes available:
-
-  | Mode | Description |
-  | ------ | ----------- |
-  | `adaptive` | Uses the existing adaptive sampler algorithm |
-  | `always_off` | Marks 0% of root traces as sampled |
-  | `always_on` | Marks 100% of root traces as sampled |
-  | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
 
 - **Feature: Add Entity GUID to Agent Control health check files**
 
