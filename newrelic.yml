@@ -837,7 +837,7 @@ common: &default_settings
   # Specify a list of exceptions you do not want the agent to strip when
   # strip_exception_messages is true. Separate exceptions with a comma. For
   # example, "ImportantException,PreserveMessageException".
-  # strip_exception_messages.allowed_classes: []
+  # strip_exception_messages.allowed_classes: ""
 
   # If true, the agent strips messages from all exceptions except those in the
   # allowed classes list. Enabled automatically in high security mode.
