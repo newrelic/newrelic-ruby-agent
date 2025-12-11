@@ -10,7 +10,7 @@ module NewRelic
       result = NewRelic::LatestChanges.read
 
       assert_match(/# New Relic Ruby Agent Release Notes/, result)
-      assert_match(/## v\d\.\d{1,2}\.\d{1,2}/, result)
+      assert_match(/## v\d{2}\.\d{1,2}\.\d{1,2}/, result)
     end
 
     def test_latest_changes_from_fakechangelog
