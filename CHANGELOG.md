@@ -45,6 +45,10 @@
 
   The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
 
+- **Breaking Change: Remove support for Puma versions < 3.9.0**
+
+  The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
+
 - **Breaking Change: Improve configuration validation and coercion**
 
   The internals used to coerce and validate the values provided for agent configuration are now more performant and more accurate.
@@ -74,7 +78,6 @@
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 
   The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
-
 - **Feature: Add root sampling configuration options**
 
   You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330)
