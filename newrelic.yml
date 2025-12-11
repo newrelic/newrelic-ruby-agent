@@ -52,11 +52,6 @@ common: &default_settings
   # If true, enables capture of all HTTP request headers for all destinations.
   # allow_all_headers: false
 
-  # # DEPRECATED: The api_key config setting is now deprecated. Its only use was
-  # for the newrelic deployments command, which is being removed in agent version
-  # 10.0.0.
-  # api_key: ""
-
   # If true, enables log decoration and the collection of log events and metrics.
   # application_logging.enabled: true
 
@@ -349,13 +344,20 @@ common: &default_settings
   # distributed_tracing.enabled: true
 
   # This setting controls the behavior of transaction sampling when a remote
-  # parent is not sampled. Available values are default, always_on, and
-  # always_off.
-  # distributed_tracing.sampler.remote_parent_not_sampled: default
+  # parent is not sampled. Available values are adaptive (the default), always_on,
+  # always_off, and trace_id_ratio_based.
+  # distributed_tracing.sampler.remote_parent_not_sampled: adaptive
 
   # This setting controls the behavior of transaction sampling when a remote
-  # parent is sampled. Available values are default, always_on, and always_off.
-  # distributed_tracing.sampler.remote_parent_sampled: default
+  # parent is sampled. Available values are adaptive (the default), always_on,
+  # always_off, and trace_id_ratio_based..
+  # distributed_tracing.sampler.remote_parent_sampled: adaptive
+
+  # This setting controls the behavior of transaction sampling for transactions
+  # without a remote parent, traces that originate within this instance of the New
+  # Relic agent. Available values are adaptive (the default), always_on,
+  # always_off, and trace_id_ratio_based.
+  # distributed_tracing.sampler.root: adaptive
 
   # If true, the agent captures the Elasticsearch cluster name in transaction
   # traces.
@@ -473,6 +475,17 @@ common: &default_settings
   # Controls auto-instrumentation of ActiveSupport::Logger at start up. May be one
   # of: auto, prepend, chain, disabled. Used in Rails versions below 7.1.
   # instrumentation.active_support_logger: auto
+
+  # An allowlist array of Active Support notifications events specific to the
+  # Active Support library itself that the agent should subscribe to. The Active
+  # Support library specific events focus primarily on caching. Any event name not
+  # included in this list will be ignored by the agent. Provide complete event
+  # names such as 'cache_fetch_hit.active_support'. Do not provide asterisks or
+  # regex patterns, and do not escape any characters with backslashes.  For a
+  # complete list of all possible Active Support event names, see the list of
+  # caching names and the list of messages names from the official Rails
+  # documentation.
+  # instrumentation.active_support_notifications.active_support_events: ["cache_fetch_hit.active_support", "cache_generate.active_support", "cache_read.active_support", "cache_write.active_support", "cache_delete.active_support", "cache_exist?.active_support", "cache_read_multi.active_support", "cache_write_multi.active_support", "cache_delete_multi.active_support", "cache_delete_matched.active_support", "cache_cleanup.active_support", "cache_increment.active_support", "cache_decrement.active_support", "cache_prune.active_support", "message_serializer_fallback.active_support"]
 
   # Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto,
   # prepend, chain, disabled.

@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.0.0
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
 
