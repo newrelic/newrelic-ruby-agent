@@ -171,26 +171,6 @@ class DependencyDetectionTest < Minitest::Test
     end
   end
 
-  # TODO: MAJOR VERSION - Deprecated!
-  def test_config_disabling_with_disable_testing
-    executed = false
-
-    dd = DependencyDetection.defer do
-      named(:testing)
-      executes { executed = true }
-    end
-
-    with_config(:disable_testing => true) do
-      executed = false
-      DependencyDetection.detect!
-
-      refute_predicate dd, :disabled_configured?
-      assert_predicate dd, :deprecated_disabled_configured?
-      refute_predicate dd, :allowed_by_config?
-      refute executed
-    end
-  end
-
   def test_config_enabling_with_enabled
     executed = false
 

@@ -36,7 +36,7 @@ jobs:
       - uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # tag v1.268.0
         with:
           ruby-version: 3.4
-      - run: bundle
+      - run: bundle install
       - run: bundle exec script/runner -B
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
       - run: bundle

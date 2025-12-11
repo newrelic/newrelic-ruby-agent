@@ -10,7 +10,7 @@ class RakeInstrumentationTest < Minitest::Test
     include NewRelic::Agent::Instrumentation::Rake::Tracer
 
     def name; 'Snake'; end
-    def timeout; 140.85; end
+    def timeout; 140; end
   end
 
   class ErrorClass < StandardError; end

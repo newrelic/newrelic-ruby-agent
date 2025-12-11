@@ -492,73 +492,16 @@ module NewRelic::Agent
     def test_end_fires_a_transaction_finished_event_with_transaction_guid
       guid = nil
       NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        guid = payload[:guid]
+        guid = payload['guid']
       end
 
       in_transaction do |txn|
-        txn.distributed_tracer.is_cross_app_caller = true
+        # Simulate a synthetics request to generate a GUID
+        txn.raw_synthetics_header = 'test'
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
       end
 
       refute_empty guid
-    end
-
-    def test_end_fires_a_transaction_finished_event_without_transaction_guid_if_not_cross_app
-      found_guid = :untouched
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        found_guid = payload.key?(:guid)
-      end
-
-      in_transaction do |txn|
-        txn.distributed_tracer.is_cross_app_caller = false
-      end
-
-      refute found_guid
-    end
-
-    def test_end_fires_a_transaction_finished_event_with_guid_if_referring_transaction
-      guid = nil
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        guid = payload[:guid]
-      end
-
-      with_config(:apdex_t => 2.0) do
-        in_transaction do |txn|
-          referring_txn_info = ['another']
-          cross_app_payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-          txn.distributed_tracer.cross_app_payload = cross_app_payload
-        end
-      end
-
-      refute_empty guid
-    end
-
-    def test_end_fires_a_transaction_finished_event_with_referring_transaction_guid
-      referring_guid = nil
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        referring_guid = payload[:referring_transaction_guid]
-      end
-
-      in_transaction do |txn|
-        referring_txn_info = ['GUID']
-        payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-        txn.distributed_tracer.cross_app_payload = payload
-      end
-
-      assert_equal 'GUID', referring_guid
-    end
-
-    def test_end_fires_a_transaction_finished_event_without_referring_guid_if_not_present
-      found_referring_guid = :untouched
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        found_referring_guid = payload.key?(:referring_transaction_guid)
-      end
-
-      in_transaction do |txn|
-        # Make sure we don't have referring transaction state floating around
-        txn.distributed_tracer.cross_app_payload = nil
-      end
-
-      refute found_referring_guid
     end
 
     def test_end_fires_a_transaction_finished_event_with_apdex_perf_zone
@@ -639,39 +582,7 @@ module NewRelic::Agent
         txn.synthetics_payload = synthetics_payload
       end
 
-      assert_includes keys, :guid
-    end
-
-    def test_cross_app_fields_in_finish_event_payload
-      keys = []
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        keys = payload.keys
-      end
-
-      in_transaction do |txn|
-        txn.distributed_tracer.is_cross_app_caller = true
-      end
-
-      assert_includes keys, :cat_trip_id
-      assert_includes keys, :cat_path_hash
-    end
-
-    def test_cross_app_fields_not_in_finish_event_payload_if_no_cross_app_calls
-      keys = []
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-        keys = payload.keys
-      end
-
-      nr_freeze_process_time
-
-      in_transaction do |txn|
-        advance_process_time(10)
-
-        txn.distributed_tracer.is_cross_app_caller = false
-      end
-
-      refute_includes keys, :cat_trip_id
-      refute_includes keys, :cat_path_hash
+      assert_includes keys, 'guid'
     end
 
     def test_is_not_synthetic_request_without_payload
@@ -744,7 +655,7 @@ module NewRelic::Agent
       assert_includes keys, :synthetics_other_attribute
     end
 
-    def test_synthetics_fields_not_in_finish_event_payload_if_no_cross_app_calls
+    def test_synthetics_fields_not_in_finish_event_payload_if_not_synthetics
       keys = []
       NewRelic::Agent.subscribe(:transaction_finished) do |payload|
         keys = payload.keys
@@ -1451,24 +1362,6 @@ module NewRelic::Agent
       assert_in_delta(10.0, result[:gc_time])
     end
 
-    def test_intrinsic_attributes_include_tripid
-      with_config(:'distributed_tracing.enabled' => false) do
-        DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
-
-        txn = in_transaction do |t|
-          txn_info = [t.guid, true, 'PDX-NRT']
-          payload = CrossAppPayload.new('1#666', t, txn_info)
-          t.distributed_tracer.cross_app_payload = payload
-
-          t.distributed_tracer.is_cross_app_caller = true
-        end
-
-        result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-
-        assert_equal 'PDX-NRT', result[:trip_id]
-      end
-    end
-
     def test_intrinsic_attributes_include_priority
       priority = nil
 
@@ -1479,33 +1372,6 @@ module NewRelic::Agent
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
       assert_equal priority, result[:priority]
-    end
-
-    def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
-      DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
-
-      txn = in_transaction do |t|
-        t.distributed_tracer.is_cross_app_caller = false
-      end
-
-      result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-
-      assert_nil result[:trip_id]
-    end
-
-    def test_intrinsic_attributes_include_path_hash
-      with_config(:'distributed_tracing.enabled' => false) do
-        path_hash = nil
-
-        txn = in_transaction do |t|
-          t.distributed_tracer.is_cross_app_caller = true
-          path_hash = t.distributed_tracer.cat_path_hash
-        end
-
-        result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-
-        assert_equal path_hash, result[:path_hash]
-      end
     end
 
     def test_synthetics_attributes_not_included_if_not_valid_synthetics_request
@@ -1660,17 +1526,6 @@ module NewRelic::Agent
       assert txn.trace_ratio_sampled?(0.5), 'Expected ratio 0.5 to sample low-value trace_id'
     end
 
-    def test_sampled_with_root_sampler_default
-      with_config(:'distributed_tracing.enabled' => true,
-        :'distributed_tracing.sampler.root' => 'default') do
-        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-
-        txn = in_transaction {}
-
-        refute_predicate txn, :sampled?, 'Expected default sampler to use adaptive sampler result (false)'
-      end
-    end
-
     def test_sampled_with_root_sampler_adaptive
       with_config(:'distributed_tracing.enabled' => true,
         :'distributed_tracing.sampler.root' => 'adaptive') do
@@ -1759,18 +1614,6 @@ module NewRelic::Agent
         txn = in_transaction {}
 
         assert_equal 0, txn.priority, 'Expected always_off sampler to set priority to 0'
-      end
-    end
-
-    def test_priority_with_root_sampler_default_uses_default_priority
-      with_config(:'distributed_tracing.enabled' => true,
-        :'distributed_tracing.sampler.root' => 'default') do
-        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-
-        txn = in_transaction {}
-
-        assert txn.priority > 1.0 && txn.priority < 2.0,
-          "Expected priority between 1.0 and 2.0 for sampled transaction, got #{txn.priority}"
       end
     end
 

@@ -9,8 +9,6 @@ require_relative '../../../../../.github/workflows/scripts/generate_release_note
 module NewRelic
   class GenerateReleaseNotesTest < Minitest::Test
     def setup
-      skip unless NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.5.0')
-
       @fake_changelog_content = <<~CHANGELOG
         # New Relic Ruby Agent Release Notes
 

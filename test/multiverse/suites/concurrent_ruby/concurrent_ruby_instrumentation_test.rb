@@ -68,13 +68,9 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
 
   def test_promises_future_captures_segment_error
     txn = in_transaction do
-      # TODO: OLD RUBIES - RUBY_VERSION 2.4
-      # specific "begin" in block can be removed once we drop support for 2.4
-      begin
-        simulate_error
-      rescue StandardError => e
-        # NOOP -- allowing span to notice error
-      end
+      simulate_error
+    rescue StandardError => e
+      # NOOP -- allowing span to notice error
     end
 
     assert_segment_noticed_simulated_error(txn)

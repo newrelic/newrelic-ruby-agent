@@ -25,36 +25,18 @@ module NewRelic::Agent
 
       def distributed_tracing_enabled
         {
-          :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled' => true
-        }
-      end
-
-      def cat_and_distributed_tracing_enabled
-        {
-          :'cross_application_tracer.enabled' => true,
           :'distributed_tracing.enabled' => true
         }
       end
 
       def distributed_tracing_disabled
         {
-          :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => false
         }
       end
 
       def test_invokes_accept_incoming_request
         with_notify_after_config(distributed_tracing_enabled) do
-          in_transaction('receiving_txn') do |receiving_txn|
-            receiving_txn.distributed_tracer.expects(:accept_incoming_request).at_least_once
-            @events.notify(:before_call, {})
-          end
-        end
-      end
-
-      def test_invokes_accept_incoming_request_when_cat_enabled_too
-        with_notify_after_config(cat_and_distributed_tracing_enabled) do
           in_transaction('receiving_txn') do |receiving_txn|
             receiving_txn.distributed_tracer.expects(:accept_incoming_request).at_least_once
             @events.notify(:before_call, {})

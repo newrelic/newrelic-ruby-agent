@@ -11,7 +11,6 @@ module NewRelic
         @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
-          :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key => "\0",
           :account_id => '190',

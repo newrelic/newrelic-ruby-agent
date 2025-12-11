@@ -22,7 +22,6 @@ Metrics/AbcSize:
   Exclude:
     - 'lib/new_relic/agent/configuration/default_source.rb'
     - infinite_tracing/test/**/*
-    - lib/new_relic/cli/commands/deployments.rb
     - test/**/*
 
 Metrics/CollectionLiteralLength:
@@ -34,7 +33,6 @@ Minitest/AssertRaisesCompoundBody:
   Exclude:
     - 'test/new_relic/agent/collector_response_code_test.rb'
     - 'test/new_relic/agent/new_relic_service_test.rb'
-    - 'test/new_relic/cli/commands/deployments_test.rb'
 
 # Offense count: 4
 Minitest/DuplicateTestRun:

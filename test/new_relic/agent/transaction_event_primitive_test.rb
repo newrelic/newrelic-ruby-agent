@@ -163,12 +163,6 @@ module NewRelic
         assert_equal 'GUID', event_data['nr.guid']
       end
 
-      def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
-        event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :referring_transaction_guid => 'REFER'))
-
-        assert_equal 'REFER', event_data['nr.referringTransactionGuid']
-      end
-
       def generate_payload(name = 'whatever', options = {})
         {
           :name => "Controller/#{name}",

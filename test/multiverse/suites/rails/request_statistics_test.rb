@@ -12,11 +12,6 @@ class RequestStatsController < ApplicationController
     render(body: 'some stuff')
   end
 
-  def cross_app_action
-    ::NewRelic::Agent::Transaction.tl_current.distributed_tracer.is_cross_app_caller = true
-    render(body: 'some stuff')
-  end
-
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
     render(body: 'some stuff')
@@ -71,56 +66,6 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
       refute sample['nr.guid']
       refute sample['nr.referringTransactionGuid']
-    end
-  end
-
-  def test_request_should_include_guid_if_cross_app
-    with_config(:'analytics_events.enabled' => true) do
-      5.times { get('/request_stats/cross_app_action') }
-
-      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-
-      post = $collector.calls_for('analytic_event_data').first
-
-      refute_nil post
-      assert_kind_of Array, post.events
-      assert_kind_of Array, post.events.first
-
-      sample = post.events.first.first
-
-      assert_kind_of Hash, sample
-
-      assert_kind_of String, sample['nr.guid']
-    end
-  end
-
-  def test_request_should_include_referring_guid_if_needed
-    with_config(:'cross_application_tracer.enabled' => true,
-      :'distributed_tracing.enabled' => false,
-      :'analytics_events.enabled' => true,
-      :'cross_process_id' => 'boo',
-      :'encoding_key' => "\0",
-      :'trusted_account_ids' => [1]) do
-      rack_env = {
-        'HTTP_X_NEWRELIC_ID' => NewRelic::Base64.encode64('1#234'),
-        'HTTP_X_NEWRELIC_TRANSACTION' => NewRelic::Base64.encode64('["8badf00d",1]')
-      }
-
-      get('/request_stats/cross_app_action', headers: rack_env)
-
-      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-
-      post = $collector.calls_for('analytic_event_data').first
-
-      refute_nil(post)
-      assert_kind_of Array, post.events
-      assert_kind_of Array, post.events.first
-
-      sample = post.events.first.first
-
-      assert_kind_of Hash, sample
-      assert_kind_of String, sample['nr.guid']
-      assert_equal('8badf00d', sample['nr.referringTransactionGuid'])
     end
   end
 

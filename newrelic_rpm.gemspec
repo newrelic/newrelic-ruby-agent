@@ -8,7 +8,7 @@ require 'new_relic/latest_changes'
 Gem::Specification.new do |s|
   s.name = 'newrelic_rpm'
   s.version = NewRelic::VERSION::STRING
-  s.required_ruby_version = '>= 2.4.0'
+  s.required_ruby_version = '>= 2.6.0'
   s.required_rubygems_version = Gem::Requirement.new('> 1.3.1') if s.respond_to?(:required_rubygems_version=)
   s.authors = ['Tanna McClure', 'Kayla Reopelle', 'Hannah Ramadan']
   s.licenses = ['Apache-2.0']
@@ -21,8 +21,7 @@ Gem::Specification.new do |s|
     https://github.com/newrelic/newrelic-ruby-agent/
   EOS
   s.email = 'support@newrelic.com'
-  # TODO: MAJOR VERSION - remove newrelic, deprecated since version xxx.
-  s.executables = %w[newrelic_rpm newrelic nrdebug]
+  s.executables = %w[newrelic_rpm nrdebug]
   s.extra_rdoc_files = [
     'CHANGELOG.md',
     'LICENSE',
@@ -50,8 +49,10 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
 
+  s.add_dependency 'logger'
+
   s.add_development_dependency 'bundler'
-  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
+  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI']
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   s.add_development_dependency 'minitest-stub-const', '0.6'

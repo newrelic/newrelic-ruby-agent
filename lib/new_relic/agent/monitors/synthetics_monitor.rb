@@ -7,6 +7,7 @@ module NewRelic
     class SyntheticsMonitor < InboundRequestMonitor
       SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'
       SYNTHETICS_INFO_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS_INFO'
+      NON_HTTP_SYNTHETICS_HEADER_KEY = 'NewRelicSynthetics'
 
       SUPPORTED_VERSION = 1
       EXPECTED_PAYLOAD_LENGTH = 5
@@ -56,7 +57,7 @@ module NewRelic
         end
 
         def reject_messaging_synthetics_header(headers)
-          headers.reject { |k, _| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER }
+          headers.reject { |k, _| k == NON_HTTP_SYNTHETICS_HEADER_KEY }
         end
       end
     end

@@ -4,13 +4,11 @@
 
 require 'new_relic/agent/transaction/trace_context'
 require 'new_relic/agent/transaction/distributed_tracing'
-require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
 module NewRelic
   module Agent
     class Transaction
       class DistributedTracer
-        include NewRelic::Agent::CrossAppTracing
         include DistributedTracing
         include TraceContext
 
@@ -55,12 +53,10 @@ module NewRelic
         end
 
         def record_metrics
-          record_cross_app_metrics
           DistributedTraceMetrics.record_metrics_for_transaction(transaction)
         end
 
         def append_payload(payload)
-          append_cat_info(payload)
           DistributedTraceAttributes.copy_from_transaction( \
             transaction,
             trace_state_payload || distributed_trace_payload,
@@ -78,14 +74,12 @@ module NewRelic
 
           insert_trace_context_header(headers)
           insert_distributed_trace_header(headers)
-          insert_cross_app_header(headers)
           log_request_headers(headers)
         end
 
         def consume_message_headers(headers, tracer_state, transport_type)
           log_request_headers(headers, 'INCOMING')
           consume_message_distributed_tracing_headers(headers, transport_type)
-          consume_message_cross_app_tracing_headers(headers, tracer_state)
           consume_message_synthetics_headers(headers)
         rescue => e
           NewRelic::Agent.logger.error('Error in consume_message_headers', e)
@@ -94,8 +88,6 @@ module NewRelic
         def assign_intrinsics
           if dt_enabled?
             DistributedTraceAttributes.copy_to_attributes(transaction.payload, transaction.attributes)
-          elsif is_cross_app?
-            assign_cross_app_intrinsics
           end
         end
 
@@ -107,17 +99,6 @@ module NewRelic
           headers[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
         end
 
-        def insert_cat_headers(headers)
-          return unless CrossAppTracing.cross_app_enabled?
-
-          @is_cross_app_caller = true
-          insert_message_headers(headers,
-            transaction.guid,
-            cat_trip_id,
-            cat_path_hash,
-            transaction.raw_synthetics_header)
-        end
-
         private
 
         def dt_enabled?
@@ -125,15 +106,18 @@ module NewRelic
         end
 
         def consume_message_synthetics_headers(headers)
-          synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
-          if synthetics_header and
-              incoming_payload = ::JSON.parse(deobfuscate(synthetics_header)) and
-              SyntheticsMonitor.is_valid_payload?(incoming_payload) and
-              SyntheticsMonitor.is_supported_version?(incoming_payload) and
-              SyntheticsMonitor.is_trusted?(incoming_payload)
+          synthetics_header = headers[SyntheticsMonitor::NON_HTTP_SYNTHETICS_HEADER_KEY]
+          if synthetics_header
+            require 'new_relic/agent/obfuscator'
+            obfuscator = ::NewRelic::Agent::Obfuscator.new(Agent.config[:encoding_key])
+            incoming_payload = ::JSON.parse(obfuscator.deobfuscate(synthetics_header))
+            if SyntheticsMonitor.is_valid_payload?(incoming_payload) &&
+                SyntheticsMonitor.is_supported_version?(incoming_payload) &&
+                SyntheticsMonitor.is_trusted?(incoming_payload)
 
-            transaction.raw_synthetics_header = synthetics_header
-            transaction.synthetics_payload = incoming_payload
+              transaction.raw_synthetics_header = synthetics_header
+              transaction.synthetics_payload = incoming_payload
+            end
           end
         rescue => e
           NewRelic::Agent.logger.error('Error in consume_message_synthetics_header', e)
@@ -150,34 +134,6 @@ module NewRelic
           return unless newrelic_trace_key && (payload = headers[newrelic_trace_key])
 
           accept_distributed_trace_payload(payload)
-        end
-
-        def consume_message_cross_app_tracing_headers(headers, tracer_state)
-          return unless CrossAppTracing.cross_app_enabled?
-          return unless CrossAppTracing.message_has_crossapp_request_header?(headers)
-
-          accept_cross_app_payload(headers, tracer_state)
-          CrossAppTracing.assign_intrinsic_transaction_attributes(tracer_state)
-        end
-
-        def accept_cross_app_payload(headers, tracer_state)
-          encoded_id = headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER]
-          decoded_id = encoded_id.nil? ? EMPTY_STRING : deobfuscate(encoded_id)
-
-          return unless CrossAppTracing.trusted_valid_cross_app_id?(decoded_id)
-
-          txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
-          txn_info = ::JSON.parse(deobfuscate(txn_header))
-          payload = CrossAppPayload.new(decoded_id, transaction, txn_info)
-
-          @cross_app_payload = payload
-        rescue => e
-          NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
-          nil
-        end
-
-        def deobfuscate(message)
-          CrossAppTracing.obfuscator.deobfuscate(message)
         end
       end
     end

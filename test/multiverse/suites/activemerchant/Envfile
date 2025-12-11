@@ -3,8 +3,7 @@
 # frozen_string_literal: true
 
 ACTIVEMERCHANT_VERSIONS = [
-  [nil, 2.5],
-  ['1.65.0', 2.4, 2.4]
+  [nil]
 ]
 
 def gem_list(activemerchant_version = nil)
@@ -16,6 +15,7 @@ def gem_list(activemerchant_version = nil)
     gem 'activesupport'
     gem 'nokogiri'
     gem 'minitest', '~> 5.1.0'
+    gem 'benchmark'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

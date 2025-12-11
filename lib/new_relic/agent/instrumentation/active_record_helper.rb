@@ -99,10 +99,7 @@ module NewRelic
         # convert vendor (makara, etc.) wrapper names to their bare names
         # ex: postgresql_makara -> postgresql
         def bare_adapter_name(adapter_name)
-          # TODO: OLD RUBIES - RUBY_VERSION < 2.5
-          # With Ruby 2.5+ we could use #delete_suffix instead of #chomp for a
-          # potential speed boost
-          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name&.end_with?(MAKARA_SUFFIX)
+          return adapter_name.delete_suffix(MAKARA_SUFFIX) if adapter_name&.end_with?(MAKARA_SUFFIX)
 
           adapter_name
         end

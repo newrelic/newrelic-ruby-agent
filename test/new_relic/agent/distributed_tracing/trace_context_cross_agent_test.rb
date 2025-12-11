@@ -51,9 +51,9 @@ module NewRelic
                 :'transaction_events.enabled' => test_case.fetch('transaction_events_enabled', true),
                 :trusted_account_key => test_case['trusted_account_key'],
                 :'span_events.enabled' => test_case.fetch('span_events_enabled', true),
-                :'distributed_tracing.sampler.root' => test_case.fetch('root', 'default'),
-                :'distributed_tracing.sampler.remote_parent_sampled' => test_case.fetch('remote_parent_sampled', 'default'),
-                :'distributed_tracing.sampler.remote_parent_not_sampled' => test_case.fetch('remote_parent_not_sampled', 'default')
+                :'distributed_tracing.sampler.root' => test_case.fetch('root', 'adaptive'),
+                :'distributed_tracing.sampler.remote_parent_sampled' => test_case.fetch('remote_parent_sampled', 'adaptive'),
+                :'distributed_tracing.sampler.remote_parent_not_sampled' => test_case.fetch('remote_parent_not_sampled', 'adaptive')
               }
 
               if test_case.key?('ratio')

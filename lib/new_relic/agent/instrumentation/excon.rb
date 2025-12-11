@@ -17,7 +17,7 @@ DependencyDetection.defer do
   # so we could safely subscribe and not be clobbered by future subscribers,
   # but alas, it does not yet.
 
-  # TODO: MAJOR VERSION - update min version to 0.56.0
+  # We support and test 0.56.0 and above, but the instrumentation can still be installed and used with earlier versions.
   EXCON_MIN_VERSION = Gem::Version.new('0.19.0')
 
   depends_on do
@@ -34,7 +34,6 @@ DependencyDetection.defer do
   end
 
   def install_excon_instrumentation(excon_version)
-    require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/excon_wrappers'
 
     install_middleware_excon_instrumentation
@@ -46,7 +45,7 @@ DependencyDetection.defer do
     defaults = Excon.defaults
 
     if defaults[:middlewares]
-      defaults[:middlewares] << Excon::Middleware::NewRelicCrossAppTracing
+      defaults[:middlewares] << Excon::Middleware::NewRelicTracing
     else
       NewRelic::Agent.logger.warn('Did not find :middlewares key in Excon.defaults, skipping Excon instrumentation')
     end

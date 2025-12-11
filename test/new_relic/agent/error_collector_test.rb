@@ -732,8 +732,7 @@ module NewRelic::Agent
 
       private
 
-      # Segment errors utilize the error_collector's filtering for LASP
-      # but should not otherwise trigger queuing for harvesting and count metrics
+      # Segment errors should not trigger queueing for harvesting and count metrics
       def assert_nothing_harvested_for_segment_errors
         traces = harvest_error_traces
         events = harvest_error_events
