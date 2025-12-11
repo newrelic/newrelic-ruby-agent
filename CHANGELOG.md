@@ -78,6 +78,7 @@
 - **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
 
   The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
 - **Feature: Add root sampling configuration options**
 
   You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330)
