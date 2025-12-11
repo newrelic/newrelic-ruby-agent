@@ -1357,7 +1357,7 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_sampled',
             :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'
           ),
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `adaptive` (the default), `always_on`, `always_off`, and `trace_id_ratio_based`..'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `adaptive` (the default), `always_on`, `always_off`, and `trace_id_ratio_based`.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled' => {
           :default => 'adaptive',
