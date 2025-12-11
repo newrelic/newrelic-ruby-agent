@@ -2,9 +2,16 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+# TODO: Check for grpc gem compatibility with Ruby 4.0
+# error raised running 8T with Ruby 4.0 on version 1.76.0 on 21/11/26
+# undefined symbol: ruby_abi_version - ruby_abi_version (LoadError)
+suite_condition('The grpc gem is not compatible with Ruby 4.0') do
+  RUBY_VERSION < '4.0.0'
+end
+
 # gRPC's Ruby mainainers have broken the 'grpc' gem's compatibility with
-# Ruby 2.5 by updating (grpc dependency) 'google-protobuf' with a Ruby 2.7+
-# requirement. So for Ruby 2.5 and 2.6, use a known-to-work older 'grpc' gem
+# Ruby 2.6 by updating (grpc dependency) 'google-protobuf' with a Ruby 2.7+
+# requirement. So for Ruby 2.6, use a known-to-work older 'grpc' gem
 # version. For Rubies >= 2.7, use '' (no version constraint - permit Bundler to
 # grab the latest stable version).
 def grpc_version

@@ -18,7 +18,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
 
-    - run: bundle
+    - run: bundle install
 
     - name: Update files with new version
       run: bundle exec rake newrelic:version:bump

@@ -55,7 +55,6 @@ module NewRelic
     require 'new_relic/agent/rules_engine'
     require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
-    require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
@@ -116,6 +115,9 @@ module NewRelic
     # give the observed app time to load the code that automatic tracers have
     # been configured for
     AUTOMATIC_TRACER_MAX_ATTEMPTS = 60 # 60 = try about twice a second for 30 seconds
+
+    # Event types must consist of only alphanumeric characters, '_', ':', or ' '.
+    VALID_CUSTOM_EVENT_TYPE = /\A[\w: ]+\z/
 
     attr_reader :error_group_callback
     attr_reader :llm_token_count_callback
@@ -329,8 +331,10 @@ module NewRelic
 
     # Increment a simple counter metric.
     #
-    # +metric_name+ should follow a slash separated path convention. Application
-    # specific metrics should begin with "Custom/".
+    # +metric_name+ should be a String that follows a slash separated
+    # path convention. Application specific metrics should begin with
+    # "Custom/".
+    # +amount+ (optional) should be a Numeric value to increment. Defaults to 1.
     #
     # This method is safe to use from any thread.
     #
@@ -483,6 +487,10 @@ module NewRelic
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
+      unless event_type.to_s.match?(VALID_CUSTOM_EVENT_TYPE)
+        raise ArgumentError, "Invalid event_type: '#{event_type}'. Event types must consist of only alphanumeric characters, '_', ':', or ' '."
+      end
+
       record_api_supportability_metric(:record_custom_event)
 
       if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']

@@ -43,11 +43,10 @@ class DatastoresPerfTest < Performance::TestCase
   end
 
   SQL = 'select * from users'.freeze
-  METRIC_NAME = 'Datastore/statement/MySQL/users/select'.freeze
 
   def test_notice_sql
     measure(ITERATIONS) do
-      NewRelic::Agent::Datastores.notice_sql(SQL, METRIC_NAME, 3.0)
+      NewRelic::Agent::Datastores.notice_sql(SQL)
     end
   end
 

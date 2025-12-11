@@ -5,23 +5,23 @@ inputs:
     description: 'What agent version to install'
     required: true
   agent_env_vars:
-    description: '' 
+    description: ''
     required: false
-  run_time: 
-    description: '' 
+  run_time:
+    description: ''
     required: true
-  nr_license_key: 
-    description: '' 
+  nr_license_key:
+    description: ''
     required: true
-  test_tag: 
-    description: '' 
+  test_tag:
+    description: ''
     required: true
-  docker_monitor_output_dir: 
-    description: '' 
+  docker_monitor_output_dir:
+    description: ''
     required: true
     default: docker_monitor_output
   run_label:
-    description: '' 
+    description: ''
     required: true
   iterations:
     description: ''
@@ -32,7 +32,7 @@ runs:
   using: "composite"
   steps:
     - name: Install Ruby
-      uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # tag v1.257.0
+      uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # tag v1.268.0
       with:
         ruby-version: 3.4
 
@@ -40,7 +40,7 @@ runs:
       shell: bash
       run: |
         ruby ./.github/workflows/scripts/run_perf_tests.rb
-      env: 
+      env:
         AGENT_TAG: ${{ inputs.agent_tag }}
         TEST_TAG: ${{ inputs.test_tag }}
         RUN_TIME: ${{ inputs.run_time }}

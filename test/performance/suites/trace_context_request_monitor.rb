@@ -15,7 +15,6 @@ class TraceContextRequestMonitor < Performance::TestCase
 
   ITERATIONS = 20_000
   CONFIG = {
-    :'cross_application_tracer.enabled' => false,
     :'distributed_tracing.enabled' => true,
     :encoding_key => "\0",
     :account_id => '190',

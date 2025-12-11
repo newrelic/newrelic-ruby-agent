@@ -18,7 +18,6 @@ module NewRelic
           'browser_monitoring.debug',
           'browser_monitoring.loader',
           'browser_monitoring.loader_version',
-          'cross_process_id',
           'data_report_period',
           'encoding_key',
           'entity_guid',

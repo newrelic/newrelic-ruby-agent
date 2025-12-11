@@ -3,8 +3,7 @@
 # frozen_string_literal: true
 
 # This class serves as the base for objects wanting to monitor and respond to
-# incoming web requests. Examples include cross application tracing and
-# synthetics.
+# incoming web requests. Examples include distributed tracing and synthetics.
 #
 # Subclasses are expected to define on_finished_configuring(events) which will
 # be called when the agent is fully configured. That method is expected to

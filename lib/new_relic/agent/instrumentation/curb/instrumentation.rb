@@ -70,7 +70,7 @@ module NewRelic
 
           INSTRUMENTATION_NAME = 'Curb'
 
-          # Add CAT with callbacks if the request is serial
+          # Add tracing with callbacks if the request is serial
           def add_with_tracing(curl)
             if curl.respond_to?(:_nr_serial) && curl._nr_serial
               hook_pending_request(curl) if NewRelic::Agent::Tracer.tracing_enabled?
@@ -91,7 +91,7 @@ module NewRelic
           end
 
           # Instrument the specified +request+ (a Curl::Easy object)
-          # and set up cross-application tracing if it's enabled.
+          # and set up distributed tracing headers.
           def hook_pending_request(request)
             wrapped_request, wrapped_response = wrap_request(request)
 
@@ -124,7 +124,6 @@ module NewRelic
           end
 
           # Install a callback that will record the response headers
-          # to enable CAT linking
           def install_header_callback(request, wrapped_response)
             original_callback = request.on_header
             request._nr_original_on_header = original_callback

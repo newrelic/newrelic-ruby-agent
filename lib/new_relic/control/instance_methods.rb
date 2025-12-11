@@ -99,26 +99,13 @@ module NewRelic
         manual = Agent::Configuration::ManualSource.new(options)
         Agent.config.replace_or_add_config(manual)
 
-        # if manual config sees serverless mode enabled, then the proc
-        # must have returned 'true'. don't bother with YAML and high security
-        # in a serverless context
-        return if Agent.config[:'serverless_mode.enabled']
+        # don't bother with YAML and high security in a serverless context
+        return if Agent.config[:'serverless_mode.enabled'] || env == 'serverless'
 
         yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
         log_yaml_source_failures(yaml_source) if yaml_source.failed?
         Agent.config.replace_or_add_config(yaml_source)
         configure_high_security
-      end
-
-      def security_settings_valid?
-        !Agent.config[:high_security] || Agent.config[:security_policies_token].empty?
-      end
-
-      def handle_invalid_security_settings
-        NewRelic::Agent.logger.error('Security Policies and High Security Mode cannot both be present in the agent ' \
-          'configuration. If Security Policies have been set for your account, please ensure the ' \
-          'security_policies_token is set but high_security is disabled (default).')
-        install_shim
       end
 
       # Install the real agent into the Agent module, and issue the start command.

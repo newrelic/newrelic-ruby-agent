@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/stats_engine/gc_profiler'
 require 'new_relic/agent/stats_engine/stats_hash'
+require 'new_relic/agent/tracer'
 require 'new_relic/language_support'
 
 module NewRelic

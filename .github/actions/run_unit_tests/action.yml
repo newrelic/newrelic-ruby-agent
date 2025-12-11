@@ -13,14 +13,13 @@ runs:
   using: "composite"
   steps:
       # - curl is needed for Curb
-      # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
       # - sasl is needed for memcached
     - name: Install OS packages
       shell: bash
       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
     - name: Install Ruby ${{ inputs.ruby-version }}
-      uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # tag v1.257.0
+      uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # tag v1.268.0
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
@@ -30,12 +29,6 @@ runs:
         key: ${{ inputs.ruby-version }}
         map: |
           {
-            "2.4.10": {
-              "rails": "norails,rails52,rails51,rails50,rails42,rails41,rails40"
-            },
-            "2.5.9": {
-              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
-            },
             "2.6.10": {
               "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
             },
@@ -55,6 +48,9 @@ runs:
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "3.4.4": {
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
+            },
+            "4.0.0-preview2": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             }
           }

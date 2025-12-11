@@ -55,10 +55,10 @@ class AuditLogTest < Minitest::Test
   def perform_actions
     state = NewRelic::Agent::Tracer.state
     NewRelic::Agent.instance.sql_sampler.on_start_transaction(state)
-    NewRelic::Agent.instance.sql_sampler.notice_sql('select * from test',
-      'Database/test/select',
-      nil, 1.5, state)
+    statement = NewRelic::Agent::Database::Statement.new('select * from test')
+    agent.sql_sampler.notice_sql_statement(statement, 'Database/test/select', 1.5)
     NewRelic::Agent.instance.sql_sampler.on_finishing_transaction(state, 'txn')
+
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
 
     # We also trigger log event data sending because we shouldn't see any

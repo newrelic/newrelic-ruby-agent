@@ -2,8 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-suite_condition('grpc gem requires CRuby (no other Rubies), at version 2.5+') do
-  RUBY_VERSION >= '2.5.0' && RUBY_PLATFORM != 'java'
+suite_condition('grpc gem requires CRuby (no other Rubies)') do
+  RUBY_PLATFORM != 'java'
 end
 
 instrumentation_methods(:chain, :prepend)
@@ -11,13 +11,12 @@ instrumentation_methods(:chain, :prepend)
 # TODO: permit testing of the nil (latest) version against Ruby 3.3+
 GRPC_VERSIONS = [
   [nil, 2.6, 3.2],
-  ['1.48.0', 2.5, 3.1]
+  ['1.48.0', 2.6, 3.1]
 ]
 
 def gem_list(grpc_version = nil)
   <<~RB
     gem 'grpc'#{grpc_version}
-    gem 'google-protobuf', '3.21.12' if RUBY_VERSION <= '2.5.9'
   RB
 end
 

@@ -1,5 +1,120 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+
+- **Breaking Change: Remove support for Ruby 2.4 and 2.5**
+
+  Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
+
+- **Breaking Change: Removal of Cross Application Tracing (CAT)**
+
+  Previously, Cross Application Tracing (CAT) was deprecated in favor of Distributed Tracing. CAT functionality has now been removed. The configuration option `cross_application_tracer.enabled` has been removed. Public API methods `NewRelic::Agent::External.process_request_metadata`, `NewRelic::Agent::External.get_response_metadata`, `NewRelic::Agent::Transaction::ExternalRequestSegment#process_response_metadata`, `NewRelic::Agent::Transaction::ExternalRequestSegment#get_request_metadata`, and `NewRelic::Agent::Transaction::ExternalRequestSegment#read_response_headers` have also been removed. [PR#3333](https://github.com/newrelic/newrelic-ruby-agent/pull/3333)
+
+- **Feature: Add `logger` as a dependency**
+
+  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 4.0.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
+
+- **Breaking Change: Rename ActiveJob metrics and segments**
+
+  ActiveJob metrics have been updated to include the job's class name for more specific reporting. This is a breaking change and may require updating custom dashboards or alerts. [PR#3370](https://github.com/newrelic/newrelic-ruby-agent/pull/3370) [PR#3320](https://github.com/newrelic/newrelic-ruby-agent/pull/3320)
+    - Old format: `Ruby/ActiveJob/<QueueName>/<Method>`
+    - New format: `Ruby/ActiveJob/<QueueName>/<ClassName>/<Method>`
+
+  In addition, segments created for Active Job enqueuing actions now include the job class.
+    - Old format: `ActiveJob/<QueueAdapter>/Queue/<Event>/Named/<QueueName>`
+    - New format: `ActiveJob/<QueueAdapter>/Queue/<Event>/Named/<QueueName>/<ClassName>`
+
+- **Breaking Change: Rename `bin/newrelic` command to `bin/newrelic_rpm`**
+
+  The executable file for the agent's CLI has been renamed from `bin/newrelic` to `bin/newrelic_rpm`. This change resolves a name collision with the standalone New Relic CLI tool. [PR#3323](https://github.com/newrelic/newrelic-ruby-agent/pull/3323)
+
+- **Breaking Change: Remove the `newrelic deployments` CLI command**
+
+  The deprecated `newrelic deployments` CLI command has been removed. To track changes and deployments in New Relic, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3299](https://github.com/newrelic/newrelic-ruby-agent/pull/3299)
+
+- **Breaking Change: Remove the NewRelic::Agent::SqlSampler#notice_sql method**
+
+  Users should call `NewRelic::Agent::Datastores.notice_sql` instead. [PR#3338](https://github.com/newrelic/newrelic-ruby-agent/pull/3338)
+
+- **Breaking Change: Remove unused arguments from various NewRelic::Agent::Datastores APIs**
+
+  The following APIs from the `NewRelic::Agent::Datastores` class have had method arguments removed:
+  * `NewRelic::Agent::Datastores.notice_sql`, previously had three positional arguments, `query`, `scoped_metric` and `elapsed`. Now, it only has `query`.
+  * `NewRelic::Agent::Datastores.notice_statement`, previously had two positional arguments `query` and `elapsed`. Now it only has `query`.
+  * `NewRelic::Agent::Datastores.wrap` requires a proc. Previously the proc received three arguments: the result of the yield, the most specific scoped metric name, and the elapsed time of the call. Now, it only receives one: the result of the yield.
+
+  The values of the removed arguments are derived from the current segment at the time of the call. [PR#3347](https://github.com/newrelic/newrelic-ruby-agent/pull/3347)
+
+- **Breaking Change: Remove experimental feature Configurable Security Policies (CSP)**
+
+  The experimental feature, Configurable Security Policies (CSP), is no longer supported and has been removed. [PR#3292](https://github.com/newrelic/newrelic-ruby-agent/pull/3292)
+
+- **Feature: Add Active Support notification allowlist configuration option**
+
+  A new configuration option, `instrumentation.active_support_notifications.active_support_events`, allows users to define an allowlist of Active
+  Support notifications event names for the agent to subscribe to. By default, the agent subscribes to all [Active Support: Caching](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-caching) and [Active Support: Messages](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-messages) events. [PR#3327](https://github.com/newrelic/newrelic-ruby-agent/pull/3327)
+
+- **Feature: Use Ruby's built-in Gzip compression**
+
+  The agent now uses the built-in `Zlib.gzip` method from the Ruby standard library for compression, replacing the previous custom implementation. [PR#3332](https://github.com/newrelic/newrelic-ruby-agent/pull/3332)
+
+- **Breaking Change: Remove support for Puma versions < 3.9.0**
+
+  The minimum version of Puma now supported is 3.9.0 or higher. [PR#3326](https://github.com/newrelic/newrelic-ruby-agent/pull/3326)
+
+- **Breaking Change: Improve configuration validation and coercion**
+
+  The internals used to coerce and validate the values provided for agent configuration are now more performant and more accurate.
+    * Warning messages will now be logged to the newrelic_agent.log file when nil is provided as a config value for a setting that does not support it.
+    * Integer values are permitted for Float configuration types
+    * Float values are permitted for Integer configuration types
+    * Fatal interruptions are prevented when a default value can be found to replace an invalid input value
+  [PR#3341](https://github.com/newrelic/newrelic-ruby-agent/pull/3341)
+
+- **Feature: Add argument validation for the `NewRelic::Agent#record_custom_event` API**
+
+  The `NewRelic::Agent#record_custom_event` API now raises an `ArgumentError` when an invalid `event_type` is provided. A valid event type must consist only of alphanumeric characters, underscores (`_`), colons (`:`), or spaces (` `). [PR#3319](https://github.com/newrelic/newrelic-ruby-agent/pull/3319)
+
+- **Feature: Add Trace ID Ratio Based sampling options**
+
+  The agent can now sample traces using the OpenTelemetry Trace ID Ratio Based sampler algorithm. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330) This samples traces based on a probability between 0.0 and 1.0 based on the trace ID.
+
+  To use this option, you must first set your distributed tracing sampler configuration to `trace_id_ratio_based` and then set the corresponding `distributed_tracing.sampler.*.trace_id_ratio_based.ratio` sampler to a Float between 0.0 and 1.0.
+
+  For example:
+  ```yaml
+    distributed_tracing.sampler.remote_parent_sampled: 'trace_id_ratio_based'
+    distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio': 0.5
+  ```
+  This configuration would sample approximately 50% of your traces for all traces where the remote parent is sampled.
+
+  This option is available for:
+  * `distributed_tracing.sampler.root`
+  * `distributed_tracing.sampler.remote_parent_sampled`
+  * `distributed_tracing.sampler.remote_parent_not_sampled`
+
+- **Feature: Add root sampling configuration options**
+
+  You can now configure the sampling behavior for traces that originate within the current service using `distributed_tracing.sampler.root`. [PR#3330](https://github.com/newrelic/newrelic-ruby-agent/pull/3330)
+
+  There are four modes available:
+
+  | Mode | Description |
+  | ------ | ----------- |
+  | `adaptive` | Uses the existing adaptive sampler algorithm |
+  | `always_off` | Marks 0% of root traces as sampled |
+  | `always_on` | Marks 100% of root traces as sampled |
+  | `trace_id_ratio_based` | Samples traces based on a ratio set in `distributed_tracing.sampler.root.trace_id_ratio_based.ratio`. The ratio must be float between 0.0 and 1.0 |
+
+- **Breaking Change: Replace 'default' option with 'adaptive' for distributed tracing remote parent samplers**
+
+  Previously, the default option for `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` was `'default'`, which used the pre-existing adaptive sampler. The `'default'` option has been renamed to `adaptive`. [PR#3363](https://github.com/newrelic/newrelic-ruby-agent/pull/3363)
+
+- **Feature: Add Entity GUID to Agent Control health check files**
+
+  When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file is created at the configured file location for every agent process. This file now includes the guid of the entity related to the agent when available. [PR#3371](https://github.com/newrelic/newrelic-ruby-agent/pull/3371)
+
 ## v9.24.0
 
 - **Feature: Deprecation reminder for SqlSampler#notice_sql API**
