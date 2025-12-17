@@ -711,7 +711,9 @@ module NewRelic::Agent::Configuration
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(allowlist)
+      # Be specific about which key gets which allowlist to avoid JRuby mock pollution
+      default_source.stubs(:allowlist_for).returns(nil)
+      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
@@ -730,7 +732,9 @@ module NewRelic::Agent::Configuration
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(allowlist)
+      # Be specific about which key gets which allowlist to avoid JRuby mock pollution
+      default_source.stubs(:allowlist_for).returns(nil)
+      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
