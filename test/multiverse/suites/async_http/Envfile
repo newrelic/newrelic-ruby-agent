@@ -17,6 +17,7 @@ def gem_list(async_http_version = nil)
   <<~GEM_LIST
     gem 'async-http'#{async_http_version}
     gem 'rack'
+    gem 'protocol-http', '< 0.56.0'
   GEM_LIST
 end
 
