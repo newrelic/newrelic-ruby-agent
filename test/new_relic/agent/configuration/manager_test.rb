@@ -694,7 +694,8 @@ module NewRelic::Agent::Configuration
       key = :unguarded
 
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(nil)
+      # Use block to ensure reliable stubbing - always return nil
+      default_source.stubs(:allowlist_for) { |_k| nil }
       @manager.stubs(:default_source).returns(default_source)
 
       expects_no_logging(:warn)
@@ -711,9 +712,8 @@ module NewRelic::Agent::Configuration
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
-      # Be specific about which key gets which allowlist to avoid JRuby mock pollution
-      default_source.stubs(:allowlist_for).returns(nil)
-      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
+      # Use block to ensure reliable stubbing - return allowlist only for test key
+      default_source.stubs(:allowlist_for) { |k| k == key ? allowlist : nil }
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
@@ -732,8 +732,8 @@ module NewRelic::Agent::Configuration
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
-      # Be specific about which key gets which allowlist to avoid JRuby mock pollution
-      default_source.stubs(:allowlist_for).returns(nil)
+      # Prevent JRuby mock pollution by being specific about which key gets which allowlist
+      default_source.stubs(:allowlist_for).returns(nil)  # Return nil for other keys like security.agent.enabled
       default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
