@@ -717,8 +717,6 @@ module NewRelic::Agent::Configuration
       NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
 
       default_source = Object.new
-      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
-      default_source.stubs(:allowlist_for).returns(nil)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
@@ -736,12 +734,7 @@ module NewRelic::Agent::Configuration
       allowlist = [default, 11, 38]
       defaults = {key => {default: default, allowlist: allowlist}}
 
-      # Prevent JRuby-specific code path that accesses security.agent.enabled during reset_cache
-      NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
-
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(nil)  # Return nil for other keys
-      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
