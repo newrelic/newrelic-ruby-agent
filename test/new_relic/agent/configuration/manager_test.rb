@@ -693,11 +693,9 @@ module NewRelic::Agent::Configuration
     def test_enforce_allowlist_only_operates_on_params_with_allowlists
       key = :unguarded
 
-      # Prevent JRuby-specific code path that accesses security.agent.enabled during reset_cache
-      NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
-
       default_source = Object.new
       default_source.stubs(:allowlist_for).returns(nil)
+      default_source.stubs(:allowlist_for).with(:'security.agent.enabled').returns(nil)
       @manager.stubs(:default_source).returns(default_source)
 
       expects_no_logging(:warn)
@@ -713,10 +711,10 @@ module NewRelic::Agent::Configuration
       allowlist = [default, 11, 38]
       defaults = {key => {default: default, allowlist: allowlist}}
 
-      # Prevent JRuby-specific code path that accesses security.agent.enabled during reset_cache
-      NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
-
       default_source = Object.new
+      default_source.stubs(:allowlist_for).returns(nil)
+      default_source.stubs(:allowlist_for).with(:'security.agent.enabled').returns(nil)
+      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
@@ -735,6 +733,9 @@ module NewRelic::Agent::Configuration
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
+      default_source.stubs(:allowlist_for).returns(nil)
+      default_source.stubs(:allowlist_for).with(:'security.agent.enabled').returns(nil)
+      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
