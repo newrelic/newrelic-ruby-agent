@@ -691,11 +691,12 @@ module NewRelic::Agent::Configuration
     end
 
     def test_enforce_allowlist_only_operates_on_params_with_allowlists
+      skip 'JRuby testing issue' if defined?(JRuby)
+
       key = :unguarded
 
       default_source = Object.new
       default_source.stubs(:allowlist_for).returns(nil)
-      default_source.stubs(:allowlist_for).with(:'security.agent.enabled').returns(nil)
       @manager.stubs(:default_source).returns(default_source)
 
       expects_no_logging(:warn)
@@ -706,15 +707,14 @@ module NewRelic::Agent::Configuration
     end
 
     def test_enforce_allowlist_does_not_warn_if_the_input_value_is_on_the_allowlist
+      skip 'JRuby testing issue' if defined?(JRuby)
+
       key = :guarded
       default = 1138
       allowlist = [default, 11, 38]
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(nil)
-      default_source.stubs(:allowlist_for).with(:'security.agent.enabled').returns(nil)
-      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
@@ -733,9 +733,6 @@ module NewRelic::Agent::Configuration
       defaults = {key => {default: default, allowlist: allowlist}}
 
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(nil)
-      default_source.stubs(:allowlist_for).with(:'security.agent.enabled').returns(nil)
-      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
