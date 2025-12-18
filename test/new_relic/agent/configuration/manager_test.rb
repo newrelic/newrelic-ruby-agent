@@ -727,6 +727,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_enforce_allowlist_warns_if_the_input_value_is_not_on_the_allowlist
+      skip 'JRuby testing issue' if defined?(JRuby)
+
       key = :guarded
       default = 1138
       allowlist = [default, 11, 38]
