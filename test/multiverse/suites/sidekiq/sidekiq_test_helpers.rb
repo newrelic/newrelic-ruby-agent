@@ -47,11 +47,13 @@ module SidekiqTestHelpers
     NRDeadEndJob.class_variable_set(NRDeadEndJob::COMPLETION_VAR, false)
     base_config = cli.instance_variable_defined?(:@config) ? cli.instance_variable_get(:@config) : Sidekiq.options
 
-    config = base_config.dup # Create a mutable copy of the config to avoid FrozenError
-
     if defined?(JRuby)
-      config[:concurrency] = 1 # Reduce concurrency for JRuby
-      config[:timeout] = 30 # Increase timeout for slower JRuby processing
+      config = base_config.merge(
+        concurrency: 1,  # Reduce concurrency for JRuby stability
+        timeout: 30      # Increase timeout for slower JRuby processing
+      )
+    else
+      config = base_config
     end
 
     # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
