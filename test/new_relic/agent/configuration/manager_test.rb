@@ -693,8 +693,19 @@ module NewRelic::Agent::Configuration
     def test_enforce_allowlist_only_operates_on_params_with_allowlists
       key = :unguarded
 
+      # stubbing it weirdly bc jruby
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(nil)
+      default_source.define_singleton_method(:allowlist_for) do |k|
+        if k == key
+          nil
+        else
+          NewRelic::Agent::Configuration::DefaultSource.allowlist_for(k)
+        end
+      end
+      # jruby needs this also
+      default_source.define_singleton_method(:transform_for) do |k|
+        NewRelic::Agent::Configuration::DefaultSource.transform_for(k)
+      end
       @manager.stubs(:default_source).returns(default_source)
 
       expects_no_logging(:warn)
@@ -710,8 +721,19 @@ module NewRelic::Agent::Configuration
       allowlist = [default, 11, 38]
       defaults = {key => {default: default, allowlist: allowlist}}
 
+      # stubbing it weirdly bc jruby
       default_source = Object.new
-      default_source.stubs(:allowlist_for).returns(allowlist)
+      default_source.define_singleton_method(:allowlist_for) do |k|
+        if k == key
+          allowlist
+        else
+          NewRelic::Agent::Configuration::DefaultSource.allowlist_for(k)
+        end
+      end
+      # jruby needs this also
+      default_source.define_singleton_method(:transform_for) do |k|
+        NewRelic::Agent::Configuration::DefaultSource.transform_for(k)
+      end
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
