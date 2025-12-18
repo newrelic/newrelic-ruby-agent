@@ -47,13 +47,21 @@ module SidekiqTestHelpers
     NRDeadEndJob.class_variable_set(NRDeadEndJob::COMPLETION_VAR, false)
     config = cli.instance_variable_defined?(:@config) ? cli.instance_variable_get(:@config) : Sidekiq.options
 
+    if defined?(JRuby)
+      config[:concurrency] = 1 # Reduce concurrency for JRuby 
+      config[:timeout] = 30 # Increase timeout for slower JRuby processing
+    end
+
     # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
     require 'sidekiq/launcher' if Sidekiq::VERSION.split('.').first.to_i < 6
 
     launcher = Sidekiq::Launcher.new(config)
     launcher.run
-    Timeout.timeout(5) do
-      sleep 0.01 until NRDeadEndJob.class_variable_get(NRDeadEndJob::COMPLETION_VAR)
+    
+    timeout_duration = defined?(JRuby) ? 30 : 5 # JRuby needs more time due to different threading model
+    sleep_interval = defined?(JRuby) ? 0.1 : 0.01 # Longer sleep intervals for JRuby
+    Timeout.timeout(timeout_duration) do
+      sleep sleep_interval until NRDeadEndJob.class_variable_get(NRDeadEndJob::COMPLETION_VAR)
     end
 
     # TODO: MAJOR VERSION - Sidekiq v7 is fine with launcher.stop, but v5 and v6
