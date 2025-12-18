@@ -693,9 +693,11 @@ module NewRelic::Agent::Configuration
     def test_enforce_allowlist_only_operates_on_params_with_allowlists
       key = :unguarded
 
+      # Prevent JRuby-specific code path that accesses security.agent.enabled during reset_cache
+      NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
+
       default_source = Object.new
-      # Use block to ensure reliable stubbing - always return nil
-      default_source.stubs(:allowlist_for) { |_k| nil }
+      default_source.stubs(:allowlist_for).returns(nil)
       @manager.stubs(:default_source).returns(default_source)
 
       expects_no_logging(:warn)
@@ -711,9 +713,12 @@ module NewRelic::Agent::Configuration
       allowlist = [default, 11, 38]
       defaults = {key => {default: default, allowlist: allowlist}}
 
+      # Prevent JRuby-specific code path that accesses security.agent.enabled during reset_cache
+      NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
+
       default_source = Object.new
-      # Use block to ensure reliable stubbing - return allowlist only for test key
-      default_source.stubs(:allowlist_for) { |k| k == key ? allowlist : nil }
+      default_source.stubs(:allowlist_for).with(key).returns(allowlist)
+      default_source.stubs(:allowlist_for).returns(nil)
       @manager.stubs(:default_source).returns(default_source)
 
       NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
@@ -731,9 +736,11 @@ module NewRelic::Agent::Configuration
       allowlist = [default, 11, 38]
       defaults = {key => {default: default, allowlist: allowlist}}
 
+      # Prevent JRuby-specific code path that accesses security.agent.enabled during reset_cache
+      NewRelic::LanguageSupport.stubs(:jruby?).returns(false)
+
       default_source = Object.new
-      # Prevent JRuby mock pollution by being specific about which key gets which allowlist
-      default_source.stubs(:allowlist_for).returns(nil)  # Return nil for other keys like security.agent.enabled
+      default_source.stubs(:allowlist_for).returns(nil)  # Return nil for other keys
       default_source.stubs(:allowlist_for).with(key).returns(allowlist)
       @manager.stubs(:default_source).returns(default_source)
 
