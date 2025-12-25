@@ -121,6 +121,94 @@ class HelperTest < Minitest::Test
     assert(NewRelic::Helper.version_satisfied?(1.3, '>=', '1.2'))
   end
 
+
+  def test_version_satisfied_with_nil_inputs
+    assert(NewRelic::Helper.version_satisfied?(nil, '<', '1.0'))
+    assert(NewRelic::Helper.version_satisfied?('1.0', '>', nil))
+    assert(NewRelic::Helper.version_satisfied?(nil, '==', nil))
+    assert(NewRelic::Helper.version_satisfied?(nil, '==', ''))
+    assert(NewRelic::Helper.version_satisfied?(nil, '<=', '1.0'))
+  end
+
+  #
+  # normalize_version
+  #
+  def test_normalize_version_with_nil
+    result = NewRelic::Helper.normalize_version(nil)
+
+    assert_equal Gem::Version.new('0'), result
+  end
+
+  def test_normalize_version_with_empty_string
+    result = NewRelic::Helper.normalize_version('')
+
+    assert_equal Gem::Version.new('0'), result
+  end
+
+  def test_normalize_version_with_string
+    result = NewRelic::Helper.normalize_version('1.2.3')
+
+    assert_equal Gem::Version.new('1.2.3'), result
+  end
+
+  def test_normalize_version_with_integer
+    result = NewRelic::Helper.normalize_version(1)
+
+    assert_equal Gem::Version.new('1'), result
+  end
+
+  def test_normalize_version_with_float
+    result = NewRelic::Helper.normalize_version(1.5)
+
+    assert_equal Gem::Version.new('1.5'), result
+  end
+
+  def test_normalize_version_with_gem_version
+    version = Gem::Version.new('1.2.3')
+    result = NewRelic::Helper.normalize_version(version)
+
+    assert_equal version, result
+  end
+
+  #
+  # version_greater_than?
+  #
+  def test_version_greater_than
+    assert(NewRelic::Helper.version_greater_than?('1.2.3', '1.2.2'))
+    assert_false(NewRelic::Helper.version_greater_than?('1.2.3', '1.2.3'))
+    assert_false(NewRelic::Helper.version_greater_than?('1.2.3', '1.2.4'))
+    assert(NewRelic::Helper.version_greater_than?(2, 1))
+    assert(NewRelic::Helper.version_greater_than?(1.5, 1.4))
+    assert(NewRelic::Helper.version_greater_than?('1.0', nil))
+    assert_false(NewRelic::Helper.version_greater_than?(nil, '1.0'))
+  end
+
+  #
+  # version_less_than?
+  #
+  def test_version_less_than
+    assert(NewRelic::Helper.version_less_than?('1.2.2', '1.2.3'))
+    assert_false(NewRelic::Helper.version_less_than?('1.2.3', '1.2.3'))
+    assert_false(NewRelic::Helper.version_less_than?('1.2.4', '1.2.3'))
+    assert(NewRelic::Helper.version_less_than?(1, 2))
+    assert(NewRelic::Helper.version_less_than?(1.4, 1.5))
+    assert(NewRelic::Helper.version_less_than?(nil, '1.0'))
+    assert_false(NewRelic::Helper.version_less_than?('1.0', nil))
+  end
+
+  #
+  # version_equals?
+  #
+  def test_version_equals
+    assert(NewRelic::Helper.version_equals?('1.2.3', '1.2.3'))
+    assert_false(NewRelic::Helper.version_equals?('1.2.3', '1.2.4'))
+    assert(NewRelic::Helper.version_equals?(1, 1))
+    assert(NewRelic::Helper.version_equals?(1.5, 1.5))
+    assert(NewRelic::Helper.version_equals?(nil, nil))
+    assert(NewRelic::Helper.version_equals?(nil, ''))
+    assert(NewRelic::Helper.version_equals?('', nil))
+  end
+
   #
   # rubygems_specs
   #
