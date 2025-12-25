@@ -185,7 +185,6 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def test_dont_notice_statement_based_on_record_sql_setting
     query = 'key'
-    elapsed = 1.0
 
     agent = NewRelic::Agent.instance
     agent.transaction_sampler.expects(:notice_nosql_statement).never

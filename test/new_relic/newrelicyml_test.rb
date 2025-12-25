@@ -112,7 +112,7 @@ class NewRelicYMLTest < Minitest::Test
   }
 
   def final_config_hash
-    config_hash = [
+    [
       {
         :begonia => {
           :description => '  # If true, green with white polka dots.',

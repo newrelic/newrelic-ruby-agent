@@ -43,8 +43,6 @@ module NewRelic::Agent::Configuration
 
     def test_root_strategy_with_valid_ratio_returns_trace_id_ratio_based
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 0.5) do
-        config_value = NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-
         transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
           :'distributed_tracing.sampler.root',
           :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
