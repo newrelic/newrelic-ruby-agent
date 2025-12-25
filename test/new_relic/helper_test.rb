@@ -134,6 +134,8 @@ class HelperTest < Minitest::Test
   end
 
   def test_rubygems_specs_works_with_all_specs_when_installed_specs_is_absent
+    skip 'all_specs has been removed in Bundler 4.0+' if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new('4.0.0')
+
     Bundler.rubygems.stub(:respond_to?, nil) do
       assert_equal Bundler.rubygems.all_specs, NewRelic::Helper.rubygems_specs
     end
