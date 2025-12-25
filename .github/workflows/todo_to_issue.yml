@@ -1,0 +1,23 @@
+name: TODO to Issue
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+jobs:
+  todo-to-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
+      - uses: alstr/todo-to-issue-action@c45b007d85c8edf3365b139a9d4c65793e7c674f # tag v5.1.13
+        with:
+          CLOSE_ISSUES: true
+          EXCLUDE: |
+            .github/actions/**/dist/**
+            .github/actions/**/lib/**
+            test/fixtures/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
