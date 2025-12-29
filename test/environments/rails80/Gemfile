@@ -21,10 +21,6 @@ gem 'pry' if ENV['ENABLE_PRY']
 gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
 gem 'warning'
 
-if RUBY_VERSION >= '4.0.0'
-  gem 'nokogiri', '~> 1.18.10'
-end
-
 if RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
   gem 'base64'
   gem 'bigdecimal'
