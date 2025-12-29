@@ -36,7 +36,7 @@ def gem_list(activerecord_version = nil)
     gem 'pg'
 
     gem 'rack'
-    gem 'minitest', '~> 5.26.1'
+    gem 'minitest', '~> 5.2.3'
     gem 'benchmark' if RUBY_VERSION >= '4.0.0'
   RB
 end
