@@ -14,7 +14,7 @@ def gem_list(activemerchant_version = nil)
     
     gem 'activesupport'
     gem 'nokogiri'
-    gem 'minitest', '~> 5.26.1'
+    gem 'minitest', '~> 5.1.0'
     gem 'benchmark'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
