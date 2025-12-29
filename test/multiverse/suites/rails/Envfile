@@ -33,7 +33,7 @@ def minitest_rails_version(rails_version = nil)
   if rails_version && rails_version.include?('4.0.13')
     '4.2.0'
   else
-    '5.2.3'
+    '5.26.1'
   end
 end
 

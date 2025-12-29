@@ -53,5 +53,5 @@ gemfile <<~RB
   gem 'rake'
   
   gem 'rails'
-  gem 'minitest', '5.2.3'
+  gem 'minitest', '5.26.1'
 RB
