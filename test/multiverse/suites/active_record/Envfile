@@ -40,7 +40,7 @@ def minitest_activerecord_version(activerecord_version)
   if activerecord_version.delete('^0-9', '^.').start_with?('4.0')
     add_version('4.2.0')
   else
-    add_version('5.26.1')
+    add_version('5.2.3')
   end
 end
 
