@@ -277,7 +277,7 @@ module Multiverse
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless /^\s*gem .newrelic_rpm./.match?(gemfile_text)
-        f.puts "gem 'minitest', '~> 5.16.2', :require => false" unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
+        f.puts "gem 'minitest', '~> 5.3.3', :require => false" unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
         f.puts "gem 'rackup', '>=2.0.0'" if need_rackup?(gemfile_text)
