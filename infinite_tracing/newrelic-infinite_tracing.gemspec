@@ -78,7 +78,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify'
   s.add_development_dependency 'listen'
-  s.add_development_dependency 'minitest', '~> 5.15'
+  s.add_development_dependency 'minitest', '~> 5.12'
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.9.0'
   s.add_development_dependency 'pry-nav', '~> 0.3.0' if ENV['ENABLE_PRY']

@@ -19,7 +19,7 @@ class MongoServerTest < Test::Unit::TestCase
   end
 
   def test_new_server_has_a_locked_port
-    assert File.exist?(@server.port_lock_path), "Expected #{@server.port_lock_path} to exist"
+    assert_path_exists(@server.port_lock_path)
   end
 
   def test_creating_a_new_server_after_locking_port_uses_the_next_port
@@ -44,10 +44,10 @@ class MongoServerTest < Test::Unit::TestCase
   def test_release_port_deletes_the_port_lock_file
     path = @server.port_lock_path
 
-    assert File.exist?(path), "Expected lock file to exist before release"
+    assert_path_exists(path)
     @server.release_port
 
-    refute File.exist?(path), "Expected lock file to be deleted after release"
+    refute_path_exists(path)
   end
 
   def test_all_port_lock_files_returns_all_file_names
@@ -86,19 +86,19 @@ class MongoServerTest < Test::Unit::TestCase
   def test_stop_releases_port
     @server.start
 
-    assert File.exist?(@server.port_lock_path), "Lock file should be created when server starts"
+    assert_path_exists(@server.port_lock_path)
     @server.stop
 
-    refute File.exist?(@server.port_lock_path), "Lock file should be deleted when server stops"
+    refute_path_exists(@server.port_lock_path)
   end
 
   def test_stop_deletes_pid_file
     @server.start
 
-    assert File.exist?(@server.pid_path), "PID file was not created at #{@server.pid_path}"
+    assert_path_exists(@server.pid_path)
     @server.stop
 
-    refute File.exist?(@server.pid_path), "PID file was not deleted at #{@server.pid_path}"
+    refute_path_exists(@server.pid_path)
   end
 
   def test_pingable_returns_true_if_ping_is_ok
