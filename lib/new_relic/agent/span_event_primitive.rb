@@ -92,7 +92,7 @@ module NewRelic
         [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
-      def for_datastore_segment(segment) # rubocop:disable Metrics/AbcSize
+      def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY] = segment.product
