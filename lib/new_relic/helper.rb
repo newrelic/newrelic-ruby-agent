@@ -84,10 +84,29 @@ module NewRelic
     end
 
     def version_satisfied?(left, operator, right)
-      left = Gem::Version.new(left) unless left.is_a?(Gem::Version)
-      right = Gem::Version.new(right) unless right.is_a?(Gem::Version)
+      left = normalize_version(left)
+      right = normalize_version(right)
 
       left.public_send(operator, right)
+    end
+
+    def normalize_version(version)
+      return Gem::Version.new('0') if version.nil? || version.to_s.empty?
+      return version if version.is_a?(Gem::Version)
+
+      Gem::Version.new(version.to_s)
+    end
+
+    def version_greater_than?(left, right)
+      version_satisfied?(left, :>, right)
+    end
+
+    def version_less_than?(left, right)
+      version_satisfied?(left, :<, right)
+    end
+
+    def version_equals?(left, right)
+      version_satisfied?(left, :==, right)
     end
 
     # Bundler version 2.5.12 deprecated all_specs and added installed_specs.
