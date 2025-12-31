@@ -474,7 +474,7 @@ class DependencyDetectionTest < Minitest::Test
     unexecuted.expect :executed, false
     unexecuted.expect :dependencies_satisfied?, true
     unexecuted.expect :disabled_configured?, false
-    unexecuted.expect :execute, -> { execution_took_place = true }
+    unexecuted.expect :execute, -> {}
     executed = Minitest::Mock.new
     executed.expect :executed, true
     unexecuted.expect :disabled_configured?, false

@@ -310,7 +310,6 @@ module NewRelic::Agent::Configuration
 
     def test_enforce_boolean_logs_warning_on_invalid_value
       key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       with_config(key => 'yikes!') do
         NewRelic::Agent::Configuration::Manager.stub_const(:USER_CONFIG_CLASSES, [DottedHash]) do
