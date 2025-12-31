@@ -121,7 +121,6 @@ class HelperTest < Minitest::Test
     assert(NewRelic::Helper.version_satisfied?(1.3, '>=', '1.2'))
   end
 
-
   def test_version_satisfied_with_nil_inputs
     assert(NewRelic::Helper.version_satisfied?(nil, '<', '1.0'))
     assert(NewRelic::Helper.version_satisfied?('1.0', '>', nil))
