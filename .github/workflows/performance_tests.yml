@@ -39,7 +39,7 @@ jobs:
       - run: bundle
       - run: bundle exec script/runner -C -M > performance_results.md
       - name: Save performance results
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # tag v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # tag v6.0.0
         with:
           name: performance-test-results-${{ matrix.ruby-version }}
           path: ./test/performance/performance_results.md
