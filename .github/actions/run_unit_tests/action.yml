@@ -47,7 +47,7 @@ runs:
             "3.3.8": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
-            "3.4.4": {
+            "3.4.7": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "4.0.0": {
