@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4, 4.0.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
