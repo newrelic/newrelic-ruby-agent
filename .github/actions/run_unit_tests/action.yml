@@ -23,7 +23,6 @@ runs:
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
-    # TODO: Add Rails Edge back to the matrix. Issue #3305.
     - name: Set up mini-envs for ruby version
       uses: ./.github/actions/variable-mapper
       with:
