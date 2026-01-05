@@ -91,7 +91,7 @@ module NewRelic
         end
 
         def test_trim_leading_handles_empty_string
-          assert_equal nil, @vendor.trim_leading('')
+          assert_nil(@vendor.trim_leading(''))
         end
 
         def test_trim_leading_handles_strings_ending_with_slash
