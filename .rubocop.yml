@@ -1,6 +1,6 @@
 inherit_from: .rubocop_todo.yml
 
-require:
+plugins:
   # Default minitest configurations: https://github.com/rubocop/rubocop-minitest/blob/master/config/default.yml
   - rubocop-minitest
   # Default performance configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
@@ -861,7 +861,7 @@ Naming/MethodName:
 Naming/MethodParameterName:
   Enabled: false
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Enabled: false
 
 Naming/RescuedExceptionsVariableName:
