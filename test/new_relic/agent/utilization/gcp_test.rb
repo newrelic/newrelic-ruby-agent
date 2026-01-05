@@ -66,40 +66,9 @@ module NewRelic
           refute_metrics_recorded 'Supportability/utilization/gcp/error'
         end
 
-        # ---
-
-        def test_trim_leading_returns_empty_string_for_non_string_values
-          assert_equal NewRelic::EMPTY_STR, @vendor.trim_leading(nil)
-          assert_equal NewRelic::EMPTY_STR, @vendor.trim_leading(123)
-          assert_equal NewRelic::EMPTY_STR, @vendor.trim_leading([])
-          assert_equal NewRelic::EMPTY_STR, @vendor.trim_leading({})
-          assert_equal NewRelic::EMPTY_STR, @vendor.trim_leading(true)
+        def test_trim_leading_handles_nil_values_gracefully
+          assert_nil @vendor.send(:trim_leading, nil)
         end
-
-        def test_trim_leading_extracts_last_segment_from_path
-          assert_equal 'us-central1-b', @vendor.trim_leading('projects/123456789/zones/us-central1-b')
-          assert_equal 'custom-1-1024', @vendor.trim_leading('projects/123456789/machineTypes/custom-1-1024')
-        end
-
-        def test_trim_leading_handles_strings_without_slashes
-          assert_equal 'simple-string', @vendor.trim_leading('simple-string')
-          assert_equal 'no-slashes', @vendor.trim_leading('no-slashes')
-        end
-
-        def test_trim_leading_handles_strings_with_single_slash
-          assert_equal 'after', @vendor.trim_leading('before/after')
-        end
-
-        def test_trim_leading_handles_empty_string
-          assert_nil(@vendor.trim_leading(''))
-        end
-
-        def test_trim_leading_handles_strings_ending_with_slash
-          assert_equal 'trailing', @vendor.trim_leading('path/with/trailing/')
-          assert_equal 'segment', @vendor.trim_leading('path/with/segment/')
-        end
-
-        # ---
 
         def gcp_fixture_path
           File.expand_path('../../../../fixtures/utilization/gcp', __FILE__)

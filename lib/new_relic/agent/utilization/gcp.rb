@@ -25,9 +25,7 @@ module NewRelic
         end
 
         def trim_leading(value)
-          return NewRelic::EMPTY_STR unless value.is_a?(String)
-
-          value.split(NewRelic::SLASH).last
+          value&.split(NewRelic::SLASH)&.last
         end
       end
     end
