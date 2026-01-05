@@ -12,7 +12,7 @@ jobs:
       - uses: ruby/setup-ruby@ae195bbe749a7cef685ac729197124a48305c1cb # tag v1.276.0
         with:
           ruby-version: 3.4
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # tag v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
       - run: gem install httparty
       - name: Check for outdated gems
         run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb
