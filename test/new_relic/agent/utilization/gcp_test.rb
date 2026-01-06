@@ -71,7 +71,7 @@ module NewRelic
           assert_nil @vendor.send(:trim_leading, nil)
           assert_nil @vendor.send(:trim_leading, [])
           assert_nil @vendor.send(:trim_leading, {})
-          assert_nil @vendor.send(:trim_leading, "")
+          assert_nil @vendor.send(:trim_leading, '')
         end
 
         def gcp_fixture_path
