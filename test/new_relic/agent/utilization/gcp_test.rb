@@ -66,7 +66,13 @@ module NewRelic
           refute_metrics_recorded 'Supportability/utilization/gcp/error'
         end
 
-        # ---
+        def test_trim_leading_returns_nil_for_non_string_and_empty_values
+          assert_nil @vendor.send(:trim_leading, 123)
+          assert_nil @vendor.send(:trim_leading, nil)
+          assert_nil @vendor.send(:trim_leading, [])
+          assert_nil @vendor.send(:trim_leading, {})
+          assert_nil @vendor.send(:trim_leading, '')
+        end
 
         def gcp_fixture_path
           File.expand_path('../../../../fixtures/utilization/gcp', __FILE__)
