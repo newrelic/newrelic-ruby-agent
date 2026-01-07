@@ -84,13 +84,13 @@ module NewRelic::Agent::Instrumentation::Sidekiq
 
         begin
           yield
-        rescue => e
+        rescue
           # Don't report errors when ignore_retry_errors is enabled
           # death_handlers will handle final failures
           raise
         end
       ensure
-        finishable.finish if finishable
+        finishable&.finish
       end
     end
 
