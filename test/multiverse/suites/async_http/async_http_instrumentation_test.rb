@@ -116,7 +116,7 @@ class AsyncHttpInstrumentationTest < Minitest::Test
     in_transaction do
       NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'
 
-      get_response(default_url, ::Protocol::HTTP::Headers[%w[itsaheader itsavalue]])
+      get_response(default_url, ::Protocol::HTTP::Headers[[%w[itsaheader itsavalue]]])
 
       assert_equal 'boo', server.requests.last['HTTP_X_NEWRELIC_SYNTHETICS']
     end
