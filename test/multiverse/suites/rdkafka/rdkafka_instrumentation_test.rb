@@ -7,9 +7,16 @@ class RdkafkaInstrumentationTest < Minitest::Test
     @topic = 'ruby-test-topic' + Time.now.to_i.to_s + rand(1000).to_s
     Rdkafka::Config.logger = Logger.new(STDOUT, level: :error)
     @stats_engine = NewRelic::Agent.instance.stats_engine
+    @consumers = []
   end
 
   def teardown
+    # Close all consumers to prevent segfaults during process cleanup
+    @consumers.each do |consumer|
+      consumer.close rescue nil
+    end
+    @consumers.clear
+
     harvest_span_events!
     harvest_transaction_events!
     NewRelic::Agent.instance.stats_engine.clear_stats
@@ -34,6 +41,7 @@ class RdkafkaInstrumentationTest < Minitest::Test
     harvest_span_events!
 
     consumer = config.consumer
+    @consumers << consumer
     consumer.subscribe(@topic)
     consumer.each do |message|
       # get 1 message and leave
@@ -67,6 +75,7 @@ class RdkafkaInstrumentationTest < Minitest::Test
     harvest_span_events!
 
     consumer = config('metadata.broker.list').consumer
+    @consumers << consumer
     consumer.subscribe(@topic)
     consumer.each do |message|
       # get 1 message and leave
@@ -91,6 +100,7 @@ class RdkafkaInstrumentationTest < Minitest::Test
       first_txn = harvest_transaction_events![1]
 
       consumer = config.consumer
+      @consumers << consumer
       consumer.subscribe(@topic)
       consumer.each do |message|
         # get 1 message and leave
