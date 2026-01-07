@@ -82,13 +82,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
           options: txn_options
         )
 
-        begin
-          yield
-        rescue
-          # Don't report errors when ignore_retry_errors is enabled
-          # death_handlers will handle final failures
-          raise
-        end
+        yield
       ensure
         finishable&.finish
       end
