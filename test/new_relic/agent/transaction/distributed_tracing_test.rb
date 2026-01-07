@@ -587,7 +587,6 @@ module NewRelic
 
         def test_trace_id_remains_consistent_across_distributed_trace_with_ratio_sampler
           parent_trace_id = nil
-          parent_priority = nil
           parent_payload = nil
 
           with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
@@ -595,7 +594,6 @@ module NewRelic
             # Create parent transaction
             in_transaction('parent_txn') do |parent_txn|
               parent_trace_id = parent_txn.trace_id
-              parent_priority = parent_txn.priority
               parent_payload = parent_txn.distributed_tracer.create_distributed_trace_payload
             end
 
@@ -660,7 +658,6 @@ module NewRelic
 
         def test_multi_hop_distributed_trace_with_trace_id_ratio_based
           grandparent_trace_id = nil
-          parent_sampled = nil
           grandparent_payload = nil
           parent_payload = nil
 
@@ -676,7 +673,6 @@ module NewRelic
             # Parent transaction accepts grandparent payload
             in_transaction('parent_txn') do |parent_txn|
               parent_txn.distributed_tracer.accept_distributed_trace_payload(grandparent_payload.text)
-              parent_sampled = parent_txn.sampled?
               parent_payload = parent_txn.distributed_tracer.create_distributed_trace_payload
             end
 

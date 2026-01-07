@@ -19,7 +19,7 @@ runs:
       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
     - name: Install Ruby ${{ inputs.ruby-version }}
-      uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # tag v1.268.0
+      uses: ruby/setup-ruby@ae195bbe749a7cef685ac729197124a48305c1cb # tag v1.276.0
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
@@ -47,10 +47,10 @@ runs:
             "3.3.8": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
-            "3.4.4": {
+            "3.4.8": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
-            "4.0.0-preview2": {
+            "4.0.0": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             }
           }

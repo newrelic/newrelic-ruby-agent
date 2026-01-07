@@ -50,7 +50,7 @@ gemfile <<~RB
     gem 'minitest', '~> 4.7.5' # required for Rails < 4.1
     gem 'activesupport', '~> 3.2.22'
   else
-    gem 'minitest', '5.18.1'
+    gem 'minitest', '5.12.0'
   end
   gem 'activesupport', '~> 6.0.0' if RUBY_VERSION > '2.6.0'
   #{boilerplate_gems}
