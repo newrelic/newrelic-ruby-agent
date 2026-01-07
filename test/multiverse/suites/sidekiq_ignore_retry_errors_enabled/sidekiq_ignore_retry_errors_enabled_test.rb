@@ -58,6 +58,24 @@ class SidekiqIgnoreRetryErrorEnabledTest < Minitest::Test
       'Expected NewRelic death_handler to be registered when sidekiq.ignore_retry_errors is true'
   end
 
+  def test_middleware_does_not_report_errors_when_sidekiq_ignore_retry_errors_is_true
+    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
+    skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
+
+    noticed_errors = []
+
+    NewRelic::Agent.stub :notice_error, proc { |error| noticed_errors.push(error) } do
+      begin
+        run_job('raise_error' => true)
+      rescue => error
+        assert_equal NRDeadEndJob::ERROR_MESSAGE, error.message
+      end
+    end
+
+    assert_empty noticed_errors,
+      'Expected middleware to NOT report errors when sidekiq.ignore_retry_errors is true'
+  end
+
   def test_basic_job_execution_still_works
     segment = run_job
 
