@@ -68,13 +68,13 @@ module NewRelic
         end
       end
 
-      def test_adds_supportability_metric_when_opentelemetry_disabled
-        with_config(:'opentelemetry.enabled' => false) do
-          NewRelic::Agent::OpenTelemetryBridge.new
+      # def test_adds_supportability_metric_when_opentelemetry_disabled
+      #   with_config(:'opentelemetry.enabled' => false) do
+      #     NewRelic::Agent::OpenTelemetryBridge.new
 
-          assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled')
-        end
-      end
+      #     assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled')
+      #   end
+      # end
     end
   end
 end

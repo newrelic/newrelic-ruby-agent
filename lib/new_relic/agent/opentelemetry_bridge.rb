@@ -11,8 +11,9 @@ module NewRelic
         if defined?(OpenTelemetry) && Agent.config[:'opentelemetry.enabled'] && Agent.config[:'opentelemetry.traces.enabled']
           OpenTelemetryBridge.install
           NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/enabled', 0.0)
-        else
-          NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled', 0.0)
+          # else
+          # This record metric calls happen before the agent is fully started, which causes us to log warnings every single time the agent runs.
+          # NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled', 0.0)
         end
       end
 
