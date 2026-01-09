@@ -64,7 +64,6 @@ module NewRelic
           end
 
           def test_span_with_remote_parent_makes_other_transaction_when_kind_unspecified
-            skip 'have yet to implement'
             otel_span = @tracer.start_span('name', with_parent: remote_context)
 
             assert_instance_of NewRelic::Agent::Transaction, otel_span.finishable

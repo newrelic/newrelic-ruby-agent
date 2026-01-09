@@ -7,7 +7,7 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class Tracer < ::OpenTelemetry::Trace::Tracer
-          VALID_KINDS = %i[server client consumer producer internal].freeze
+          VALID_KINDS = [:server, :client, :consumer, :producer, :internal, nil].freeze
           KINDS_THAT_START_TRANSACTIONS = %i[server consumer].freeze
           KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT = [:client, :producer, :internal, nil].freeze
 
@@ -61,7 +61,7 @@ module NewRelic
             case kind
             when :server, :client
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
-            when :consumer, :producer, :internal
+            when :consumer, :producer, :internal, nil
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
 
