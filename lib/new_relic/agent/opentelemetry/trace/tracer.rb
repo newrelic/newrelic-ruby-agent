@@ -7,6 +7,10 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class Tracer < ::OpenTelemetry::Trace::Tracer
+          VALID_KINDS = %i[server client consumer producer internal].freeze
+          KINDS_THAT_START_TRANSACTIONS = %i[server consumer].freeze
+          KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT = [:client, :producer, :internal, nil].freeze
+
           def initialize(name = nil, version = nil)
             @name = name || ''
             @version = version || ''
@@ -15,19 +19,20 @@ module NewRelic
           def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
             parent_otel_context = ::OpenTelemetry::Trace.current_span(with_parent).context
 
-            finishable = if can_start_transaction?(parent_otel_context)
-              return if internal_span_kind_with_invalid_parent?(kind, parent_otel_context)
+            # is nil correct here? or should it be an invalid span?
+            return nil if should_not_create_telemetry?(parent_otel_context, kind)
 
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
-
-              add_remote_context_to_txn(nr_item, parent_otel_context)
-
-              nr_item
+            finishable = if can_start_transaction?(parent_otel_context, kind)
+              start_transaction_from_otel(name, parent_otel_context, kind)
             else
+              # this should only be run if we are in an existing transaction
+              # TODO: Expand to include special segment handling by type (ex. DB, External, etc)
+              # We may need to remove the add_attributes line below when we implement
               NewRelic::Agent::Tracer.start_segment(name: name)
             end
 
             otel_span = get_otel_span_from_finishable(finishable)
+
             otel_span.finishable = finishable
             otel_span.status = ::OpenTelemetry::Trace::Status.unset
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
@@ -50,6 +55,21 @@ module NewRelic
 
           private
 
+          def start_transaction_from_otel(name, parent_otel_context, kind)
+            nr_item = nil
+
+            case kind
+            when :server, :client
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
+            when :consumer, :producer, :internal
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
+            end
+
+            add_remote_context_to_txn(nr_item, parent_otel_context) if nr_item
+
+            nr_item
+          end
+
           def get_otel_span_from_finishable(finishable)
             case finishable
             when NewRelic::Agent::Transaction
@@ -62,12 +82,32 @@ module NewRelic
             end
           end
 
-          def can_start_transaction?(parent_otel_context)
-            parent_otel_context.remote? || !parent_otel_context.valid?
+          def can_start_transaction?(parent_otel_context, kind)
+            # if there's a current transaction, we add segments instead of making a new one
+            return false if NewRelic::Agent::Tracer.current_transaction
+
+            # can start a transaction if it has a remote parent
+            # and the kind is :server, :client, :internal, :consumer, :producer
+            return true if parent_otel_context.remote? && VALID_KINDS.include?(kind)
+
+            # can start a transaction if it has an invalid context
+            # and has a kind of :server, :consumer
+            return true if !parent_otel_context.valid? &&
+              KINDS_THAT_START_TRANSACTIONS.include?(kind)
+
+            # cannot start a transaction if it has an invalid context
+            # and has a kind of :client, :producer, :internal or nil
+            return false if !parent_otel_context.valid? &&
+              KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT.include?(kind)
+
+            # if there's any stragglers
+            false
           end
 
-          def internal_span_kind_with_invalid_parent?(kind, parent_otel_context)
-            !parent_otel_context.valid? && kind == :internal
+          def should_not_create_telemetry?(parent_otel_context, kind)
+            !parent_otel_context.valid? &&
+              KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT.include?(kind) &&
+              NewRelic::Agent::Tracer.current_transaction.nil?
           end
 
           def transaction_and_remote_parent?(txn, parent_otel_context)
