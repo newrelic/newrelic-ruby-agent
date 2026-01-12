@@ -11,18 +11,17 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(::Parallel) &&
-      ::Parallel.respond_to?(:map) &&
       NewRelic::LanguageSupport.can_fork?
   end
 
   executes do
     NewRelic::Agent.logger.info('Installing Parallel instrumentation')
 
-    # Start the pipe channel listener in the parent process
-    NewRelic::Agent.manual_start(
-      :start_channel_listener => true,
-      :sync_startup => false
-    ) unless NewRelic::Agent.agent&.started?
+    # Start the pipe channel listener in the parent process to receive data from forked workers
+    # This background thread is required for pipe communication - without it, data from children is lost
+    unless NewRelic::Agent::PipeChannelManager.listener.started?
+      NewRelic::Agent::PipeChannelManager.listener.start
+    end
 
     if use_prepend?
       prepend_instrument ::Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
