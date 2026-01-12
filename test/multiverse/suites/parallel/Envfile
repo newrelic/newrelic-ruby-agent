@@ -1,0 +1,20 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+# Test with nil (latest), and a few specific versions
+PARALLEL_VERSIONS = [
+  [nil],
+  ['1.20.0']
+]
+
+def gem_list(parallel_version = nil)
+  <<~RB
+    gem 'parallel'#{parallel_version}
+    gem 'rack'
+  RB
+end
+
+create_gemfiles(PARALLEL_VERSIONS)
