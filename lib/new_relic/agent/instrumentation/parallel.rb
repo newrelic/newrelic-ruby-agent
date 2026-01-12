@@ -24,7 +24,6 @@ DependencyDetection.defer do
       :sync_startup => false
     ) unless NewRelic::Agent.agent&.started?
 
-    # Install the instrumentation using the configured method (prepend or chain)
     if use_prepend?
       prepend_instrument ::Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
     else
