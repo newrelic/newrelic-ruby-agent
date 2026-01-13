@@ -10,31 +10,16 @@ if NewRelic::LanguageSupport.can_fork?
     include MultiverseHelpers
     include MarshallingTestCases
 
-    setup_and_teardown_agent do
-      # Ensure the pipe channel listener is started for these tests
-      # The listener is started by the instrumentation, but we ensure it here for tests
-      unless NewRelic::Agent::PipeChannelManager.listener.started?
-        NewRelic::Agent::PipeChannelManager.listener.start
-      end
-    end
+    setup_and_teardown_agent
 
     def around_each(&block)
-      # Use Parallel.map to verify our instrumentation correctly sets up pipe communication
-      # This ensures the instrumentation hooks into Parallel and invokes register_report_channel,
-      # after_fork, and flush_pipe_data automatically when Parallel is actually used
       Parallel.map([1], in_processes: 1) do |item|
-        # Execute the test in the child process
         yield
       end
 
-      # Give the pipe listener time to receive and process the data
       sleep 3.0
-      # Force harvest to pick up any pending pipe data
-      run_harvest
-    end
 
-    def after_each
-      NewRelic::Agent::PipeChannelManager.listener.stop
+      run_harvest
     end
 
     # Override first_call_for to handle the fact that Parallel.map may generate
