@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
       def worker(job_factory, options, &block)
         return super unless NewRelic::Agent.agent
 
-        # Make sure the pipe channel listener is listening
+        # Make sure the pipe channel listener is actually listening
         NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
 
         # Create a unique id for the channel and register it
