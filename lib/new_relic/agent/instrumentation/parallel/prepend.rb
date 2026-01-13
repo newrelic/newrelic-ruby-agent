@@ -11,7 +11,8 @@ module NewRelic::Agent::Instrumentation
         return super unless NewRelic::Agent.agent
 
         # Generate a unique channel ID for this worker
-        channel_id = object_id
+        # Use object_id (unique per object) combined with a random component
+        channel_id = object_id + rand(1_000_000_000)
 
         # Register the pipe channel before forking
         NewRelic::Agent.register_report_channel(channel_id)

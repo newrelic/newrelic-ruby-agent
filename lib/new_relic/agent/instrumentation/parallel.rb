@@ -17,10 +17,14 @@ DependencyDetection.defer do
   executes do
     NewRelic::Agent.logger.info('Installing Parallel instrumentation')
 
-    # Start the pipe channel listener in the parent process to receive data from forked workers
-    # This background thread is required for pipe communication - without it, data from children is lost
-    unless NewRelic::Agent::PipeChannelManager.listener.started?
-      NewRelic::Agent::PipeChannelManager.listener.start
+    # Ensure the agent is started and the pipe channel listener is running
+    # This is similar to what Resque does in its before_first_fork hook
+    if NewRelic::Agent.agent&.started?
+      # Agent already started, just ensure the listener is started
+      NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
+    else
+      # Agent not started yet, start it with the listener
+      NewRelic::Agent.manual_start(:start_channel_listener => true)
     end
 
     if use_prepend?
