@@ -14,13 +14,20 @@ module NewRelic::Agent::Instrumentation
           :report_instance_busy => false
         )
 
+        # If a transaction exists (inherited from parent), replace its metrics container
+        # with a fresh one. This preserves the transaction context (name, scope, etc.)
+        # but discards any metrics recorded by the parent before the fork.
+        # Only child's new metrics will be in the fresh container.
+        if (txn = NewRelic::Agent::Tracer.current_transaction)
+          txn.instance_variable_set(:@metrics, NewRelic::Agent::TransactionMetrics.new)
+        end
+
         # Install at_exit hook once per process to flush data when process exits
         # Unlike Resque (which forks per job), Parallel processes multiple jobs
         # per forked process, so we only flush when the process exits
         unless @parallel_at_exit_installed
           @parallel_at_exit_installed = true
           at_exit do
-            # hmm idk about this. 
             if (txn = NewRelic::Agent::Tracer.current_transaction)
               NewRelic::Agent.agent.stats_engine.merge_transaction_metrics!(
                 txn.metrics,
