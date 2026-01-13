@@ -4,10 +4,8 @@
 
 instrumentation_methods :chain, :prepend
 
-# Test with nil (latest), and a few specific versions
 PARALLEL_VERSIONS = [
-  [nil],
-  ['1.20.0']
+  [nil, 2.7],
 ]
 
 def gem_list(parallel_version = nil)

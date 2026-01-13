@@ -45,10 +45,6 @@ if NewRelic::LanguageSupport.can_fork?
       refute_predicate items.size, :zero?, "Expected at least one call for '#{subject}'"
       items.first
     end
-
-    def test_sends_metrics
-      skip 'idk this ones broken, do it later'
-    end
   end
 
 end
