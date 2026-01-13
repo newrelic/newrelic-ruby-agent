@@ -24,34 +24,24 @@ module NewRelic::Agent::Instrumentation::Sidekiq
       end
       trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
 
+      execution_block = proc do
+        NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
+          NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
+          ATTRIBUTE_JOB_NAMESPACE,
+          NewRelic::Agent::AttributeFilter::DST_NONE
+        )
+
+        if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
+          ::NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(trace_headers, 'Other')
+        end
+
+        yield
+      end
+
       if NewRelic::Agent.config[:'sidekiq.ignore_retry_errors']
-        perform_action_with_newrelic_trace_without_error_reporting(trace_args) do
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
-            NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
-            ATTRIBUTE_JOB_NAMESPACE,
-            NewRelic::Agent::AttributeFilter::DST_NONE
-          )
-
-          if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
-            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
-          end
-
-          yield
-        end
+        perform_action_with_newrelic_trace_without_error_reporting(trace_args, &execution_block)
       else
-        perform_action_with_newrelic_trace(trace_args) do
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
-            NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
-            ATTRIBUTE_JOB_NAMESPACE,
-            NewRelic::Agent::AttributeFilter::DST_NONE
-          )
-
-          if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
-            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
-          end
-
-          yield
-        end
+        perform_action_with_newrelic_trace(trace_args, &execution_block)
       end
     end
 
