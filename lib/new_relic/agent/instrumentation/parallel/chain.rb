@@ -15,6 +15,10 @@ module NewRelic::Agent::Instrumentation
             def worker(job_factory, options, &block)
               return worker_without_newrelic(job_factory, options, &block) unless NewRelic::Agent.agent
 
+              # Start the pipe channel listener to receive data from forked workers
+              # This is lazy - only starts when first worker is created (in_processes mode)
+              NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
+
               # Generate a unique channel ID for this worker
               # Use object_id (unique per object) combined with a random component
               channel_id = object_id + rand(1_000_000_000)

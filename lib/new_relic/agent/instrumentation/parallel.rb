@@ -17,9 +17,6 @@ DependencyDetection.defer do
   executes do
     NewRelic::Agent.logger.info('Installing Parallel instrumentation')
 
-    # Start the pipe channel listener to receive data from forked workers
-    NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
-
     if use_prepend?
       prepend_instrument Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
     else
