@@ -20,15 +20,17 @@ if NewRelic::LanguageSupport.can_fork?
       run_harvest
     end
 
-    # Override first_call_for to handle the fact that Parallel.map may generate
-    # additional calls beyond what the test expects. We just return the first call
-    # that has data, which is what the tests care about.
-    def first_call_for(subject)
-      items = $collector.calls_for(subject)
+    # Override this test bc parallel works a little differently so we need to expect it differently
+    def test_sends_metrics
+      with_around_hook do
+        NewRelic::Agent.record_metric('Boo', 42)
+      end
 
-      refute_predicate items.size, :zero?, "Expected at least one call for '#{subject}'"
-      items.first
+      transmit_data
+
+      results = $collector.calls_for('metric_data')
+      assert results.any? { |r| r.metric_names.include?('Boo') },
+        "Expected 'Boo' metric in one of #{results.size} metric_data calls"
     end
   end
-
 end
