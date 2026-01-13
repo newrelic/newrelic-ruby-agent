@@ -17,8 +17,8 @@ module NewRelic::Agent::Instrumentation
         # Register the pipe channel before forking
         NewRelic::Agent.register_report_channel(channel_id)
 
-        super(job_factory, options) do |*args|
-          worker_with_tracing(channel_id) { block.call(*args) }
+        super do |*args|
+          worker_with_tracing(channel_id) { yield(*args) }
         end
       end
     end

@@ -24,7 +24,7 @@ if NewRelic::LanguageSupport.can_fork?
       # after_fork, and flush_pipe_data automatically when Parallel is actually used
       Parallel.map([1], in_processes: 1) do |item|
         # Execute the test in the child process
-        block.call
+        yield
       end
 
       # Give the pipe listener time to receive and process the data
@@ -42,6 +42,7 @@ if NewRelic::LanguageSupport.can_fork?
     # that has data, which is what the tests care about.
     def first_call_for(subject)
       items = $collector.calls_for(subject)
+
       refute_predicate items.size, :zero?, "Expected at least one call for '#{subject}'"
       items.first
     end

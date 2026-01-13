@@ -23,7 +23,7 @@ module NewRelic::Agent::Instrumentation
               NewRelic::Agent.register_report_channel(channel_id)
 
               worker_without_newrelic(job_factory, options) do |*args|
-                worker_with_tracing(channel_id) { block.call(*args) }
+                worker_with_tracing(channel_id) { yield(*args) }
               end
             end
           end

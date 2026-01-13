@@ -10,7 +10,7 @@ DependencyDetection.defer do
   @name = :parallel
 
   depends_on do
-    defined?(::Parallel) &&
+    defined?(Parallel) &&
       NewRelic::LanguageSupport.can_fork?
   end
 
@@ -21,7 +21,7 @@ DependencyDetection.defer do
     NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
 
     if use_prepend?
-      prepend_instrument ::Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
+      prepend_instrument Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
     else
       NewRelic::Agent::Instrumentation::Parallel::Chain.instrument!
     end
