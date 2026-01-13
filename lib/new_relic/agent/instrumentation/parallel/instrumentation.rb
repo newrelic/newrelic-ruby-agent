@@ -5,29 +5,32 @@
 module NewRelic::Agent::Instrumentation
   module Parallel
     module Instrumentation
-      # Wraps the worker block with pipe communication setup for child processes
+      # This runs inside of the new process that was forked by Parallel
       def worker_with_tracing(channel_id, &block)
-        # In the child process after fork, set up pipe communication
-        # This is safe to call multiple times - it will only do the work once
         NewRelic::Agent.after_fork(
           :report_to_channel => channel_id,
           :report_instance_busy => false
         )
 
-        # If a transaction exists (inherited from parent), replace its metrics container
-        # with a fresh one. This preserves the transaction context (name, scope, etc.)
-        # but discards any metrics recorded by the parent before the fork.
-        # Only child's new metrics will be in the fresh container.
+        setup_for_txn_metric_merge_at_exit
+
+        yield
+      end
+
+      def setup_for_txn_metric_merge_at_exit
+        # Clear out any existing transaction metrics to prevent duplicates 
+        # when merging metrics back in at the end of the forked process
         if (txn = NewRelic::Agent::Tracer.current_transaction)
           txn.instance_variable_set(:@metrics, NewRelic::Agent::TransactionMetrics.new)
         end
 
-        # Install at_exit hook once per process to flush data when process exits
-        # Unlike Resque (which forks per job), Parallel processes multiple jobs
-        # per forked process, so we only flush when the process exits
+        # Install at_exit hook only once per process
         unless @parallel_at_exit_installed
           @parallel_at_exit_installed = true
           at_exit do
+            # Merge all newly recorded metrics back into the parent process
+            # It's a little weird, but needed because the transaction does not 
+            # finish in the child processes, so without this the metrics would be lost.
             if (txn = NewRelic::Agent::Tracer.current_transaction)
               NewRelic::Agent.agent.stats_engine.merge_transaction_metrics!(
                 txn.metrics,
@@ -35,13 +38,11 @@ module NewRelic::Agent::Instrumentation
               )
             end
 
+            # force data to be sent back to the parent process
             NewRelic::Agent.agent&.stop_event_loop
             NewRelic::Agent.agent&.flush_pipe_data
           end
         end
-
-        # Execute the original block
-        yield
       end
     end
   end
