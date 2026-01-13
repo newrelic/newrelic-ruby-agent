@@ -17,8 +17,6 @@ if NewRelic::LanguageSupport.can_fork?
         yield
       end
 
-      sleep 3.0
-
       run_harvest
     end
 
