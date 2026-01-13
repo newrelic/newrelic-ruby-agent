@@ -17,15 +17,8 @@ DependencyDetection.defer do
   executes do
     NewRelic::Agent.logger.info('Installing Parallel instrumentation')
 
-    # Ensure the agent is started and the pipe channel listener is running
-    # This is similar to what Resque does in its before_first_fork hook
-    if NewRelic::Agent.agent&.started?
-      # Agent already started, just ensure the listener is started
-      NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
-    else
-      # Agent not started yet, start it with the listener
-      NewRelic::Agent.manual_start(:start_channel_listener => true)
-    end
+    # Start the pipe channel listener to receive data from forked workers
+    NewRelic::Agent::PipeChannelManager.listener.start unless NewRelic::Agent::PipeChannelManager.listener.started?
 
     if use_prepend?
       prepend_instrument ::Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
