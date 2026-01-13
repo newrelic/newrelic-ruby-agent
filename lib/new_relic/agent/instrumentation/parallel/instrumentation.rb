@@ -20,6 +20,14 @@ module NewRelic::Agent::Instrumentation
         unless @parallel_at_exit_installed
           @parallel_at_exit_installed = true
           at_exit do
+            # hmm idk about this. 
+            if (txn = NewRelic::Agent::Tracer.current_transaction)
+              NewRelic::Agent.agent.stats_engine.merge_transaction_metrics!(
+                txn.metrics,
+                txn.best_name
+              )
+            end
+
             NewRelic::Agent.agent&.stop_event_loop
             NewRelic::Agent.agent&.flush_pipe_data
           end
