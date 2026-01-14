@@ -3,17 +3,18 @@
 # frozen_string_literal: true
 
 RAILS_VERSIONS = [
-  [nil, 3.2],
-  ['8.0.0', 3.2],
+  # Multiverse::Envfile#unshift_rails_edge controls what Ruby versions run on
+  # Rails edge / master branch
+  [nil, 3.2], # 8.1
+  ['8.0.0', 3.3],
   ['7.2.0', 3.1],
   ['7.1.0', 2.7],
   ['7.0.4', 2.7],
-  ['6.1.7', 2.5],
-  ['6.0.6', 2.5, 2.7],
-  ['5.2.8', 2.4, 2.7],
-  ['5.1.7', 2.4, 2.7],
-  ['5.0.7', 2.4, 2.7],
-  ['4.2.11', 2.4, 2.4]
+  ['6.1.7'],
+  ['6.0.6', 2.6, 2.7],
+  ['5.2.8', 2.6, 2.7],
+  ['5.1.7', 2.6, 2.7],
+  ['5.0.7', 2.6, 2.7]
 ]
 
 unshift_rails_edge(RAILS_VERSIONS)
@@ -44,8 +45,8 @@ def gem_list(rails_version = nil)
     #{haml_rails(rails_version)}
     gem 'minitest', '#{minitest_rails_version(rails_version)}'
     gem 'erubis' if RUBY_PLATFORM.eql?('java')
-    gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'
     gem 'drb' if RUBY_VERSION >= '3.4.0'
+    gem 'benchmark'
   RB
 end
 

@@ -7,7 +7,7 @@ require_relative 'instrumentation'
 module NewRelic::Agent::Instrumentation
   module Curb
     module Chain
-      def self.instrument! # rubocop:disable Metrics/AbcSize
+      def self.instrument!
         Curl::Easy.class_eval do
           include NewRelic::Agent::Instrumentation::Curb::Easy
 
@@ -69,7 +69,7 @@ module NewRelic::Agent::Instrumentation
         Curl::Multi.class_eval do
           include NewRelic::Agent::Instrumentation::Curb::Multi
 
-          # Add CAT with callbacks if the request is serial
+          # Add tracing with callbacks if the request is serial
           def add_with_newrelic(curl)
             add_with_tracing(curl) { add_without_newrelic(curl) }
           end

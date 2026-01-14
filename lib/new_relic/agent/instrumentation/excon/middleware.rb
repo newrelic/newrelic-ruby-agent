@@ -4,7 +4,7 @@
 
 module ::Excon
   module Middleware
-    class NewRelicCrossAppTracing
+    class NewRelicTracing
       TRACE_DATA_IVAR = :@newrelic_trace_data
       INSTRUMENTATION_NAME = 'Excon'
 

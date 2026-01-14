@@ -14,7 +14,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/messaging'
     require 'new_relic/agent/transaction/message_broker_segment'
   end

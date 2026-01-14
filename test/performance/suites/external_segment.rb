@@ -8,14 +8,6 @@ require 'new_relic/agent/obfuscator'
 class ExternalSegment < Performance::TestCase
   ITERATIONS = 1_000
 
-  CAT_CONFIG = {
-    :license_key => 'a' * 40,
-    :'cross_application_tracer.enabled' => true,
-    :cross_process_id => '1#1884',
-    :encoding_key => 'jotorotoes',
-    :trusted_account_ids => [1]
-  }
-
   TRACE_CONTEXT_CONFIG = {
     :'distributed_tracing.enabled' => true,
     :account_id => '190',
@@ -47,19 +39,6 @@ class ExternalSegment < Performance::TestCase
       in_transaction do
         thread = Thread.new { Net::HTTP.get(TEST_URI) }
         thread.join
-      end
-    end
-    stop_server(io_server)
-  end
-
-  def test_external_cat_request
-    NewRelic::Agent.config.add_config_for_testing(CAT_CONFIG)
-
-    io_server = start_server
-    reply_with_cat_headers(io_server)
-    measure(ITERATIONS) do
-      in_transaction do
-        Net::HTTP.get(TEST_URI)
       end
     end
     stop_server(io_server)
@@ -102,23 +81,9 @@ class ExternalSegment < Performance::TestCase
     end
   end
 
-  def reply_with_cat_headers(io_server)
-    message = {
-      :command => 'add_headers',
-      :payload => cat_response_headers
-    }.to_json
-    io_server.puts message
-  end
-
   def stop_server(io_server)
     message = {:command => 'shutdown'}.to_json
     io_server.puts message
     Process.wait
-  end
-
-  def cat_response_headers
-    obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
-    app_data = obfuscator.obfuscate(['1#1884', 'txn-name', 2, 8, 0, 'BEC1BC64675138B9'].to_json) + "\n"
-    {'X-NewRelic-App-Data' => app_data}
   end
 end

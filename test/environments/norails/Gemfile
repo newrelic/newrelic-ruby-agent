@@ -17,7 +17,6 @@ gem 'pry' if ENV['ENABLE_PRY']
 gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
 
 gem 'warning'
-gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'
 
 if RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
   gem 'mutex_m'

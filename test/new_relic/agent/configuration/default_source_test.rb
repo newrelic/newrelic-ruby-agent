@@ -101,24 +101,6 @@ module NewRelic::Agent::Configuration
       assert_nil DefaultSource.transform_for(:ca_bundle_path)
     end
 
-    def test_convert_to_list
-      result = DefaultSource.convert_to_list('Foo,Bar,Baz')
-
-      assert_equal %w[Foo Bar Baz], result
-    end
-
-    def test_convert_to_list_returns_original_argument_given_array
-      result = DefaultSource.convert_to_list(['Foo'])
-
-      assert_equal ['Foo'], result
-    end
-
-    def test_convert_to_list_raises_on_totally_wrong_object
-      assert_raises(ArgumentError) do
-        DefaultSource.convert_to_list(Object.new)
-      end
-    end
-
     def test_rules_ignore_converts_comma_delimited_string_to_array
       with_config(:'rules.ignore_url_regexes' => 'Foo,Bar,Baz') do
         assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore_url_regexes']
@@ -223,18 +205,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_api_host_us
-      with_config(license_key: '08a2ad66c637a29c3982469a3fe8d1982d002c4a') do
-        assert_equal 'rpm.newrelic.com', DefaultSource.api_host.call
-      end
-    end
-
-    def test_api_host_eu
-      with_config(license_key: 'eu01xx65c637a29c3982469a3fe8d1982d002c4b') do
-        assert_equal 'rpm.eu.newrelic.com', DefaultSource.api_host.call
-      end
-    end
-
     # Tests self.instrumentation_value_from_boolean
     def test_instrumentation_logger_matches_application_logging_enabled
       with_config(:'application_logging.enabled' => true) do
@@ -246,25 +216,6 @@ module NewRelic::Agent::Configuration
       with_config(:'application_logging.enabled' => false) do
         assert_equal 'disabled', NewRelic::Agent.config['instrumentation.logger']
       end
-    end
-
-    def test_convert_to_hash_returns_hash
-      result = {'key1' => 'value1', 'key2' => 'value2'}
-
-      assert_equal(DefaultSource.convert_to_hash(result), result)
-    end
-
-    def test_convert_to_hash_with_string
-      value = 'key1=value1,key2=value2'
-      result = {'key1' => 'value1', 'key2' => 'value2'}
-
-      assert_equal(DefaultSource.convert_to_hash(value), result)
-    end
-
-    def test_convert_to_hash_raises_error_with_wrong_data_type
-      value = [1, 2, 3]
-
-      assert_raises(ArgumentError) { DefaultSource.convert_to_hash(value) }
     end
 
     def test_allowlist_permits_valid_values
@@ -324,7 +275,7 @@ module NewRelic::Agent::Configuration
 
       config_array.each do |value|
         with_config(key => value) do
-          assert NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as truthy!"
+          assert NewRelic::Agent.config[key], "The ':#{value}' value failed to evaluate as truthy!"
         end
       end
     end
@@ -344,12 +295,12 @@ module NewRelic::Agent::Configuration
 
       %i[no off false].each do |value|
         with_config(key => value) do
-          refute NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as falsey!"
+          refute NewRelic::Agent.config[key], "The ':#{value}' value failed to evaluate as falsey!"
         end
       end
     end
 
-    def test_enforce_boolean_uses_defult_on_invalid_value
+    def test_enforce_boolean_uses_default_on_invalid_value
       key = :'send_data_on_exit' # default value is `true`
 
       with_config(key => 'invalid_value') do
@@ -359,10 +310,12 @@ module NewRelic::Agent::Configuration
 
     def test_enforce_boolean_logs_warning_on_invalid_value
       key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       with_config(key => 'yikes!') do
-        expects_logging(:warn, includes("Invalid value 'yikes!' for #{key}, applying default value of '#{default}'"))
+        NewRelic::Agent::Configuration::Manager.stub_const(:USER_CONFIG_CLASSES, [DottedHash]) do
+          expects_logging(:warn, includes('Expected to receive a value of type NewRelic::Agent::Configuration::Boolean matching pattern '))
+          NewRelic::Agent.config[key]
+        end
       end
     end
 

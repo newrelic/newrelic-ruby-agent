@@ -4,9 +4,8 @@
 
 require 'optparse'
 
-# Run the command given by the first argument.  Right
-# now all we have is deployments. We hope to have other
-# kinds of events here later.
+# Run the command given by the first argument.
+# Commands can be found in the commands/ directory.
 $LOAD_PATH << "#{File.dirname(__FILE__)}/.."
 module NewRelic
   module Cli
@@ -61,20 +60,12 @@ module NewRelic
         options = ARGV.options do |opts|
           script_name = File.basename($0)
 
-          # TODO: MAJOR VERSION - remove newrelic, deprecated since version x.xx
-          if /newrelic$/.match?(script_name)
-            $stdout.puts "warning: the 'newrelic' script has been renamed 'newrelic_rpm'"
-            script_name = 'newrelic_rpm'
-          end
-
           opts.banner = "Usage: #{script_name} [ #{@command_names.join(' | ')} ] [options]"
           opts.separator("use '#{script_name} <command> -h' to see detailed command options")
           opts
         end
         extra = options.order!
         command = extra.shift
-        # just make it a little easier on them
-        command = 'deployments' if command.include?('deploy')
         if command.nil?
           STDERR.puts options
         elsif !@command_names.include?(command)

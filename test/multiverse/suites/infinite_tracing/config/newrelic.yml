@@ -12,5 +12,4 @@ development:
   ca_bundle_path: ../../../config/test.cert.crt
   app_name: test
   host: localhost
-  api_host: localhost
   port: <%= $collector && $collector.port %>

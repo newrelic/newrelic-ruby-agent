@@ -31,7 +31,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def populate_container(sampler, n)
     n.times do |i|
       sampler.on_start_transaction(@state)
-      sampler.notice_sql("SELECT * FROM test#{i}", 'Database/test/select', {}, 1, @state)
+      statement = NewRelic::Agent::Database::Statement.new("SELECT * FROM test#{i}")
+      sampler.notice_sql_statement(statement, 'Database/test/select', 1)
       sampler.on_finishing_transaction(@state, 'txn')
     end
   end
@@ -51,22 +52,6 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     refute_nil @sampler.tl_transaction_data
   end
 
-  def test_notice_sql_no_transaction
-    assert_nil @sampler.tl_transaction_data
-    @sampler.notice_sql('select * from test', 'Database/test/select', nil, 10, @state)
-  end
-
-  def test_notice_sql
-    @sampler.on_start_transaction(@state)
-    @sampler.notice_sql('select * from test', 'Database/test/select', nil, 1.5, @state)
-    @sampler.notice_sql('select * from test2', 'Database/test2/select', nil, 1.3, @state)
-    # this sql will not be captured
-    @sampler.notice_sql('select * from test', 'Database/test/select', nil, 0, @state)
-
-    refute_nil @sampler.tl_transaction_data
-    assert_equal 2, @sampler.tl_transaction_data.sql_data.size
-  end
-
   def test_notice_sql_statement
     @sampler.on_start_transaction(@state)
 
@@ -80,14 +65,6 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
     assert_equal statement, slow_sql.statement
     assert_equal metric_name, slow_sql.metric_name
-  end
-
-  def test_notice_sql_truncates_query
-    @sampler.on_start_transaction(@state)
-    message = 'a' * 17_000
-    @sampler.notice_sql(message, 'Database/test/select', nil, 1.5, @state)
-
-    assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
   end
 
   def test_save_slow_sql
@@ -234,9 +211,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
     with_config(settings) do
       in_transaction do
-        sql = 'SELECT * FROM test'
+        statement = NewRelic::Agent::Database::Statement.new('SELECT * FROM test')
         metric_name = 'Database/test/select'
-        sampler.notice_sql(sql, metric_name, {}, 10)
+        sampler.notice_sql_statement(statement, metric_name, 10)
       end
     end
 
@@ -291,20 +268,6 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
       assert_equal('select * from test where foo = ?', sql_traces[0].sql)
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
-    end
-  end
-
-  def test_does_not_over_obfuscate_queries_for_postgres
-    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
-      sampler = NewRelic::Agent.agent.sql_sampler
-
-      in_transaction do
-        sql = %Q[INSERT INTO "items" ("name", "price") VALUES ('continuum transfunctioner', 100000) RETURNING "id"]
-        sampler.notice_sql(sql, 'Database/test/insert', {:adapter => 'postgres'}, 1.23)
-      end
-      sql_traces = sampler.harvest!
-
-      assert_equal(%Q[INSERT INTO "items" ("name", "price") VALUES (?, ?) RETURNING "id"], sql_traces[0].sql)
     end
   end
 

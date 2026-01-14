@@ -19,7 +19,9 @@ module NewRelic
               return if internal_span_kind_with_invalid_parent?(kind, parent_otel_context)
 
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
+
               add_remote_context_to_txn(nr_item, parent_otel_context)
+
               nr_item
             else
               NewRelic::Agent::Tracer.start_segment(name: name)
@@ -27,6 +29,7 @@ module NewRelic
 
             otel_span = get_otel_span_from_finishable(finishable)
             otel_span.finishable = finishable
+            otel_span.status = ::OpenTelemetry::Trace::Status.unset
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
             otel_span.add_attributes(attributes) if attributes
             otel_span
@@ -92,18 +95,24 @@ module NewRelic
           def set_nr_trace_state(distributed_tracer, otel_context)
             distributed_tracer.instance_variable_set(:@trace_state_payload, otel_context.tracestate)
             distributed_tracer.parent_transaction_id = distributed_tracer.trace_state_payload.transaction_id
-            distributed_tracer.determine_sampling_decision(otel_context.tracestate, otel_context.trace_flags)
+            trace_flags = parse_trace_flags(otel_context.trace_flags)
+
+            distributed_tracer.determine_sampling_decision(otel_context.tracestate, trace_flags)
           end
 
           def set_otel_trace_state(distributed_tracer, otel_context)
             nr_entry = otel_context.tracestate.value(Transaction::TraceContext::AccountHelpers.trace_state_entry_key)
-            return unless nr_entry
-
-            nr_payload = NewRelic::Agent::TraceContextPayload.from_s(nr_entry)
-            distributed_tracer.instance_variable_set(:@trace_state_payload, nr_payload)
-            distributed_tracer.parent_transaction_id = distributed_tracer.trace_state_payload.transaction_id
             trace_flags = parse_trace_flags(otel_context.trace_flags)
-            distributed_tracer.determine_sampling_decision(nr_payload, trace_flags)
+
+            if nr_entry
+              nr_payload = NewRelic::Agent::TraceContextPayload.from_s(nr_entry)
+
+              distributed_tracer.instance_variable_set(:@trace_state_payload, nr_payload)
+              distributed_tracer.parent_transaction_id = distributed_tracer.trace_state_payload.transaction_id
+              distributed_tracer.determine_sampling_decision(nr_payload, trace_flags)
+            else
+              distributed_tracer.determine_sampling_decision(NewRelic::Agent::TraceContextPayload::INVALID, trace_flags)
+            end
           end
 
           def parse_trace_flags(trace_flags)

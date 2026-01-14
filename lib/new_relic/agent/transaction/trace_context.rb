@@ -157,40 +157,42 @@ module NewRelic
             set_priority_and_sampled(
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
-              payload
+              payload,
+              trace_flags
             )
           elsif trace_flags == '00'
             set_priority_and_sampled(
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
               NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
-              payload
+              payload,
+              trace_flags
             )
           else
-            use_nr_tracestate_sampled(payload)
+            use_nr_tracestate_sampled(payload, trace_flags)
           end
         rescue
-          use_nr_tracestate_sampled(payload)
+          use_nr_tracestate_sampled(payload, trace_flags)
         end
 
-        def use_nr_tracestate_sampled(payload)
-          unless payload.sampled.nil?
+        def use_nr_tracestate_sampled(payload, trace_flags)
+          if payload.sampled.nil?
+            if trace_flags == '01'
+              transaction.sampled = NewRelic::Agent.instance.adaptive_sampler_remote_parent_sampled.sampled?
+            elsif trace_flags == '00'
+              transaction.sampled = NewRelic::Agent.instance.adaptive_sampler_remote_parent_not_sampled.sampled?
+            end
+
+            transaction.priority = transaction.default_priority
+          else
             transaction.sampled = payload.sampled
             transaction.priority = payload.priority if payload.priority
           end
         end
 
-        def set_priority_and_sampled(sampler, ratio, payload)
-          # Ruby evaluates case statements top to bottom. Listing the statements
-          # in the order of most likely to match keeps things performant.
-          # If we put more than one string in a condition, it'll check to see if
-          # the case matches any one of those conditions before moving on to the
-          # next one.
-          #
-          # Even though adaptive behaves the same as default, I hypothesize it
-          # will be used so infrequently, it should just be listed last.
+        def set_priority_and_sampled(sampler, ratio, payload, trace_flags = nil)
           case sampler
-          when 'default'
-            use_nr_tracestate_sampled(payload)
+          when 'adaptive'
+            use_nr_tracestate_sampled(payload, trace_flags)
           when 'always_on'
             transaction.sampled = true
             transaction.priority = 2.0
@@ -200,8 +202,6 @@ module NewRelic
           when 'trace_id_ratio_based'
             transaction.sampled = transaction.trace_ratio_sampled?(ratio)
             transaction.priority = transaction.default_priority
-          when 'adaptive'
-            use_nr_tracestate_sampled(payload)
           end
         end
 

@@ -1,6 +1,6 @@
 inherit_from: .rubocop_todo.yml
 
-require:
+plugins:
   # Default minitest configurations: https://github.com/rubocop/rubocop-minitest/blob/master/config/default.yml
   - rubocop-minitest
   # Default performance configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
@@ -861,7 +861,7 @@ Naming/MethodName:
 Naming/MethodParameterName:
   Enabled: false
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Enabled: false
 
 Naming/RescuedExceptionsVariableName:
@@ -878,9 +878,8 @@ Naming/VariableNumber:
 Performance/BindCall:
   Enabled: false
 
-# TODO: OLD RUBIES - Requires 2.5
 Performance/DeletePrefix:
-  Enabled: false
+  Enabled: true
 
 # TODO: OLD RUBIES - Requires 2.7
 Performance/MapCompact:
@@ -1237,12 +1236,8 @@ Style/LineEndConcatenation:
   Enabled: false
   # SafeAutoCorrect: false
 
-# TODO: OLD RUBIES - enable this cop after support for Ruby <= 2.5 has been
-#                    dropped. NewRelic::Agent::InfiniteTracing::Transformer.hash_to_attributes
-#                    currently does `values.map {}.to_h`. Newer Rubies should
-#                    use `values.to_h {}` instead.
 Style/MapToHash:
-  Enabled: false
+  Enabled: true
 
 Style/MethodCallWithArgsParentheses:
   Enabled: true

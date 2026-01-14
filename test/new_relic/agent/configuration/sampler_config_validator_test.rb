@@ -43,8 +43,6 @@ module NewRelic::Agent::Configuration
 
     def test_root_strategy_with_valid_ratio_returns_trace_id_ratio_based
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 0.5) do
-        config_value = NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-
         transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
           :'distributed_tracing.sampler.root',
           :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
@@ -67,7 +65,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_root_strategy_falls_back_to_default_when_ratio_is_nil
+    def test_root_strategy_falls_back_to_adaptive_default_when_ratio_is_nil
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => nil) do
@@ -77,29 +75,11 @@ module NewRelic::Agent::Configuration
         )
         result = transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', result
+        assert_equal 'adaptive', result
       end
     end
 
-    def test_root_strategy_falls_back_to_default_when_ratio_is_invalid_type
-      NewRelic::Agent.logger.stubs(:warn)
-
-      with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => '0.5') do
-        ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
-
-        assert_nil ratio, 'Invalid ratio should be transformed to nil'
-
-        transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
-          :'distributed_tracing.sampler.root',
-          :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
-        )
-        result = transform.call('trace_id_ratio_based')
-
-        assert_equal 'default', result
-      end
-    end
-
-    def test_root_strategy_falls_back_to_default_when_ratio_is_out_of_range
+    def test_root_strategy_falls_back_to_adaptive_default_when_ratio_is_out_of_range
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => 1.5) do
@@ -113,11 +93,11 @@ module NewRelic::Agent::Configuration
         )
         result = transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', result
+        assert_equal 'adaptive', result
       end
     end
 
-    def test_remote_parent_sampled_strategy_falls_back_to_default_when_ratio_is_invalid
+    def test_remote_parent_sampled_strategy_falls_back_to_adaptive_default_when_ratio_is_invalid
       NewRelic::Agent.logger.stubs(:warn)
 
       with_config(
@@ -133,7 +113,7 @@ module NewRelic::Agent::Configuration
         )
         result = transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', result
+        assert_equal 'adaptive', result
       end
     end
 
@@ -147,7 +127,7 @@ module NewRelic::Agent::Configuration
         )
         result = transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', result
+        assert_equal 'adaptive', result
       end
     end
 
@@ -157,7 +137,6 @@ module NewRelic::Agent::Configuration
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
       )
 
-      assert_equal 'default', transform.call('default')
       assert_equal 'adaptive', transform.call('adaptive')
       assert_equal 'always_on', transform.call('always_on')
       assert_equal 'always_off', transform.call('always_off')
@@ -173,7 +152,7 @@ module NewRelic::Agent::Configuration
         )
         result = transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', result
+        assert_equal 'adaptive', result
       end
     end
 
@@ -192,7 +171,7 @@ module NewRelic::Agent::Configuration
         3.times do
           result = transform.call('trace_id_ratio_based')
 
-          assert_equal 'default', result
+          assert_equal 'adaptive', result
         end
       end
     end
@@ -214,7 +193,7 @@ module NewRelic::Agent::Configuration
         )
         root_result = root_transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', root_result
+        assert_equal 'adaptive', root_result
 
         remote_transform = SamplerConfigValidator.validate_sampler_strategy_with_ratio(
           :'distributed_tracing.sampler.remote_parent_sampled',
@@ -222,7 +201,7 @@ module NewRelic::Agent::Configuration
         )
         remote_result = remote_transform.call('trace_id_ratio_based')
 
-        assert_equal 'default', remote_result
+        assert_equal 'adaptive', remote_result
       end
     end
 
@@ -268,7 +247,7 @@ module NewRelic::Agent::Configuration
       ) do
         strategy = NewRelic::Agent.config[:'distributed_tracing.sampler.root']
 
-        assert_equal 'default', strategy, "Expected sampler strategy to be 'default' when ratio is invalid"
+        assert_equal 'adaptive', strategy, "Expected sampler strategy to be 'adaptive' when ratio is invalid"
       end
     end
   end

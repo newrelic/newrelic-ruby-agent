@@ -122,40 +122,6 @@ module NewRelic
         @sql_traces.delete(shortest_key)
       end
 
-      # Records an SQL query, potentially creating a new slow SQL trace, or
-      # aggregating the query into an existing slow SQL trace.
-      #
-      # This method should be used only by gem authors wishing to extend
-      # the Ruby agent to instrument new database interfaces - it should
-      # generally not be called directly from application code.
-      #
-      # @param sql [String] the SQL query being recorded
-      # @param metric_name [String] is the metric name under which this query will be recorded
-      # @param config [Object] is the driver configuration for the connection
-      # @param duration [Float] number of seconds the query took to execute
-      # @param explainer [Proc] for internal use only - 3rd-party clients must
-      #                         not pass this parameter.
-      #
-      # @api public
-      # @deprecated Use {Datastores.notice_sql} instead.
-      #
-      def notice_sql(sql, metric_name, config, duration, state = nil, explainer = nil, binds = nil, name = nil) # THREAD_LOCAL_ACCESS sometimes
-        NewRelic::Agent.logger.warn(
-          'The SqlSampler#notice_sql method is deprecated. Please use Datastores.notice_sql instead.'
-        )
-        state ||= Tracer.state
-        data = state.sql_sampler_transaction_data
-        return unless data
-
-        if state.is_sql_recorded?
-          if duration > Agent.config[:'slow_sql.explain_threshold']
-            backtrace = caller.join("\n")
-            statement = Database::Statement.new(sql, config, explainer, binds, name)
-            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
-          end
-        end
-      end
-
       PRIORITY = 'priority'.freeze
 
       def distributed_trace_attributes(state)

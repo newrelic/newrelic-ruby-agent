@@ -77,13 +77,6 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
 * [Update the agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/update-ruby-agent)
 * [Uninstall the Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/uninstall-ruby-agent)
 
-### Recording deploys
-
-The Ruby agent supports recording deployments in New Relic via a command line
-tool or Capistrano recipes. For more information on these features, see
-[our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
-for more information.
-
 ## Support
 
 Should you need assistance with New Relic products, you are in good hands with several support diagnostic tools and support channels.

@@ -99,13 +99,6 @@ module NewRelic
         assert_equal 1, intrinsics['externalCallCount']
       end
 
-      def test_includes_cat_attributes
-        intrinsics, *_ = create_event(:payload_options => {:guid => 'GUID', :referring_transaction_guid => 'REFERRING_GUID'})
-
-        assert_equal 'GUID', intrinsics['nr.transactionGuid']
-        assert_equal 'REFERRING_GUID', intrinsics['nr.referringTransactionGuid']
-      end
-
       def test_includes_custom_attributes
         attrs = {'user' => 'Wes Mantooth', 'channel' => 9}
 

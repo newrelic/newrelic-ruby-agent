@@ -85,15 +85,12 @@ module NewRelic
       #   statement-level metrics (i.e. table or model name)
       #
       # @param [Proc,#call] callback proc or other callable to invoke after
-      #   running the datastore block. Receives three arguments:
-      #     * result of the yield
-      #     * (optional, deprecated) the most specific (scoped) metric name
-      #     * (optional, deprecated) elapsed time of the call
-      #   An example use is attaching SQL to Transaction Traces at the end
+      #   running the datastore block. Receives one argument: result of the
+      #   yield. An example use is attaching SQL to Transaction Traces at the end
       #   of a wrapped datastore call.
       #
-      #     callback = Proc.new do |result, metrics, elapsed|
-      #       NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+      #     callback = Proc.new do |result|
+      #       NewRelic::Agent::Datastores.notice_sql(query)
       #     end
       #
       #     NewRelic::Agent::Datastores.wrap("FauxDB", "find", "items", callback) do
@@ -145,19 +142,12 @@ module NewRelic
       # If you are recording non-SQL data, please use {notice_statement}
       # instead.
       #
-      #   NewRelic::Agent::Datastores.notice_sql(query, metrics, elapsed)
+      #   NewRelic::Agent::Datastores.notice_sql(query)
       #
       # @param [String] query the SQL text to be captured. Note that depending
       #   on user settings, this string will be run through obfuscation, but
       #   some dialects of SQL (or non-SQL queries) are not guaranteed to be
       #   properly obfuscated by these routines!
-      #
-      # @param [String] scoped_metric (optional, deprecated) The most specific
-      #   metric relating to this query. Typically the result of
-      #   NewRelic::Agent::Datastores::MetricHelper#metrics_for
-      #
-      # @param [Float] elapsed (optional, deprecated)  the elapsed time during
-      #   query execution
       #
       # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING QUERY TEXT!
       #   New Relic's Transaction Tracing and Slow SQL features will
@@ -167,11 +157,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_sql(query, scoped_metric = '', elapsed = 0.0)
-        NewRelic::Agent.logger.warn('The NewRelic::Agent::Datastores.notice_sql method is changing. ' \
-          'In a future major version, the scoped_metric and elapsed arguments will be removed. ' \
-          'The scoped_metric and elapsed values are now based on the current segment when the notice_sql method ' \
-          'was called.')
+      def self.notice_sql(query)
         NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
         if (txn = Tracer.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
@@ -188,12 +174,9 @@ module NewRelic
       # ensure that user information is obfuscated if the agent setting
       # `transaction_tracer.record_sql` is set to `obfuscated`
       #
-      #   NewRelic::Agent::Datastores.notice_statement("key", elapsed)
+      #   NewRelic::Agent::Datastores.notice_statement("key")
       #
       # @param [String] statement text of the statement to capture.
-      #
-      # @param [Float] elapsed (optional, deprecated) the elapsed time during
-      #   query execution
       #
       # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!
       #   This method will properly ignore statements when the user has turned
@@ -204,12 +187,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_statement(statement, elapsed = 0.0)
-        NewRelic::Agent.logger.warn('The ' \
-          'NewRelic::Agent::Datastores.notice_statement method is changing. ' \
-          'In a future major version, the elapsed argument will be removed. ' \
-          'The elapsed value is now based on the current segment when the ' \
-          'notice_statement method was called.')
+      def self.notice_statement(statement)
         NewRelic::Agent.record_api_supportability_metric(:notice_statement)
 
         # Settings may change eventually, but for now we follow the same

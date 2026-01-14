@@ -16,6 +16,8 @@ module NewRelic
 
       RABBITMQ_TRANSPORT_TYPE = 'RabbitMQ'
 
+      REJECT_HEADERS = %w[newrelic traceparent tracestate NewRelicID NewRelicTransaction NewRelicSynthetics]
+
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
         AttributeFilter::DST_TRANSACTION_TRACER |
         AttributeFilter::DST_ERROR_COLLECTOR
@@ -134,7 +136,7 @@ module NewRelic
           if headers
             NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(headers, library) # to handle the new w3c headers
             txn.distributed_tracer.consume_message_headers(headers, state, library) # to do the expected old things
-            CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
+            reject_messaging_internal_headers(headers).each do |k, v|
               txn.add_agent_attribute(:"message.headers.#{k}", v, AttributeFilter::DST_NONE) unless v.nil?
             end
           end
@@ -192,8 +194,6 @@ module NewRelic
         reply_to: nil,
         correlation_id: nil,
         exchange_type: nil)
-
-        raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
         # The following line needs else branch coverage
         original_headers = headers.nil? ? nil : headers.dup # rubocop:disable Style/SafeNavigation
@@ -265,8 +265,8 @@ module NewRelic
 
         if segment_parameters_enabled?
           if message_properties[:headers] && !message_properties[:headers].empty?
-            non_cat_headers = CrossAppTracing.reject_messaging_cat_headers(message_properties[:headers])
-            non_synth_headers = SyntheticsMonitor.reject_messaging_synthetics_header(non_cat_headers)
+            non_internal_headers = reject_messaging_internal_headers(message_properties[:headers])
+            non_synth_headers = SyntheticsMonitor.reject_messaging_synthetics_header(non_internal_headers)
             segment.params[:headers] = non_synth_headers unless non_synth_headers.empty?
           end
 
@@ -363,6 +363,13 @@ module NewRelic
         end
 
         transaction_name
+      end
+
+      # Filter out internal New Relic headers from message headers
+      def reject_messaging_internal_headers(headers)
+        return headers unless headers
+
+        headers.reject { |k, _v| REJECT_HEADERS.include?(k.to_s) }
       end
     end
   end

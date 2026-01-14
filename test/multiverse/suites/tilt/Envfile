@@ -5,8 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 TILT_VERSIONS = [
-  [nil, 2.4],
-  ['1.4.1', 2.4, 2.7]
+  [nil],
+  ['1.4.1', 2.6, 2.7]
 ]
 
 def haml_version(tilt_version)

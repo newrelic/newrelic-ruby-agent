@@ -14,19 +14,9 @@ function using_old_rails {
   [[ $RAILS_VERSION =~ .*"4".* ]]
 }
 
-function using_old_ruby {
-  # example RUBY_VERSION strings:
-  #   '2.4.10' => true, starts with "2", next digit is not a "6" or "7"
-  #   '2.7.7'  => false, starts with "2", next digit is "7"
-  #   '3.1.3'  => false, does not start with "2"
-  echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-  [[ $RUBY_VERSION =~ ^2\.[^67] ]]
-}
-
 function update_to_desired_rubygems_version {
   # Older rubies come with older Rubygems and we need 3.0.6 to
   # correctly install Bundler 1.17 for the multiverse test suite
-
   if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
     echo "DEBUG: running 'gem update --system 3.0.6 --force'"
     gem update --system 3.0.6 --force >/dev/null
@@ -56,17 +46,6 @@ function install_desired_bundler_version {
   gem list bundler
 }
 
-function configure_bundler {
-  if ! [[ $RUBY_VERSION =~ ^2\.4 ]]; then
-    echo "DEBUG: Ruby is not at version 2.4.x, skipping 'bundler config'"
-    return
-  fi
-
-  # add mysql specific config for bundler when we are using older mysql
-  echo "DEBUG: running 'bundle config'"
-  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
-}
-
 function install_ruby_version_specific_gems {
   if using_jruby; then
     echo "DEBUG: Skipping specific gem installation, as JRuby is in use"
@@ -76,17 +55,24 @@ function install_ruby_version_specific_gems {
     echo "DEBUG: running 'gem install' on specific gem versions"
     # The doubles below are needed for older Ruby versions, since the newer one won't install on the older Ruby versions
     gem install --default cgi:0.5.0
+    gem install --default cgi:0.5.1
     gem install --default date:3.4.1
+    gem install --default date:3.5.1
     gem install --default digest:3.1.0
     gem install --default digest:3.2.0
     gem install --default erb:4.0.4
-    gem install --default erb:5.0.1
-    gem install --default logger:1.7.0
+    gem install --default erb:5.0.2
+    gem install --default erb:6.0.1
+
     gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
     gem install --default set:1.1.2
     gem install --default strscan:3.0.4
     gem install --default strscan:3.1.5
+
+    if [[ $RUBY_VERSION =~ ^(2\.|3\.[0-4]) ]]; then
+    gem install --default logger:1.7.0
+    fi
 
     echo "DEBUG: Completed installing gems"
 
@@ -100,7 +86,6 @@ function set_up_bundler {
 
   update_to_desired_rubygems_version
   install_desired_bundler_version
-  configure_bundler
 }
 
 echo "DEBUG: setting up Bundler"

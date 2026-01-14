@@ -8,7 +8,6 @@ require 'evil_server'
 
 module HttpClientTestCases
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-    NewRelic::Agent::CrossAppTracing,
     MultiverseHelpers
 
   TRANSACTION_GUID = 'BEC1BC64675138B9'
@@ -17,7 +16,6 @@ module HttpClientTestCases
   $fake_secure_server = NewRelic::FakeSecureExternalServer.new
 
   setup_and_teardown_agent(
-    :cross_process_id => '269975#22824',
     :encoding_key => 'gringletoes',
     :trusted_account_ids => [269975]
   )
@@ -263,151 +261,6 @@ module HttpClientTestCases
     end
   end
 
-  # When an http call is made, the agent should add a request header named
-  # X-NewRelic-ID with a value equal to the encoded cross_app_id.
-
-  def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
-    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction { get_response }
-
-      assert_equal 'VURQV1BZRkZdXUFT', server.requests.last['HTTP_X_NEWRELIC_ID']
-    end
-    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-  end
-
-  def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
-    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
-      in_transaction { get_response }
-
-      assert_equal 'VURQV1BZRkZdXUFT', server.requests.last['HTTP_X_NEWRELIC_ID']
-    end
-    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-  end
-
-  def test_adds_newrelic_transaction_header
-    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
-      guid = nil
-      path_hash = nil
-      in_transaction do |txn|
-        guid = txn.guid
-        path_hash = txn.distributed_tracer.cat_path_hash
-        get_response
-      end
-
-      transaction_data = server.requests.last['HTTP_X_NEWRELIC_TRANSACTION']
-
-      refute_empty(transaction_data)
-
-      decoded = decode_payload(transaction_data)
-
-      assert_equal(guid, decoded[0])
-      refute(decoded[1])
-      assert_equal(guid, decoded[2])
-      assert_equal(path_hash, decoded[3])
-    end
-    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-  end
-
-  def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
-    in_transaction { get_response }
-
-    refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
-  end
-
-  def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
-    with_config(:cross_process_id => '') do
-      in_transaction { get_response }
-
-      refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
-    end
-  end
-
-  def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
-    with_config(:encoding_key => '') do
-      in_transaction { get_response }
-
-      refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
-    end
-  end
-
-  def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
-    $fake_server.override_response_headers('X-NewRelic-App-Data' => '')
-
-    in_transaction('test') do
-      get_response
-    end
-
-    assert_externals_recorded_for('localhost', 'GET')
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
-  end
-
-  def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID))
-
-    in_transaction('test') do
-      get_response
-    end
-
-    assert_externals_recorded_for('localhost', 'GET')
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
-  end
-
-  def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID))
-
-    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction('test') do
-        get_response
-      end
-    end
-
-    perform_last_node_error_assertions([
-      'External/all',
-      'External/allOther',
-      'ExternalApp/localhost/18#1884/all',
-      'ExternalTransaction/localhost/18#1884/txn-name',
-      'External/localhost/all',
-      ['ExternalTransaction/localhost/18#1884/txn-name', 'test']
-    ])
-  end
-
-  def test_crossapp_metrics_allow_valid_utf8_characters
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID))
-
-    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction('test') do
-        get_response
-      end
-    end
-
-    perform_last_node_error_assertions([
-      'External/all',
-      'External/allOther',
-      'ExternalApp/localhost/12#1114/all',
-      'External/localhost/all',
-      'ExternalTransaction/localhost/12#1114/世界線航跡蔵',
-      ['ExternalTransaction/localhost/12#1114/世界線航跡蔵', 'test']
-    ])
-  end
-
-  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
-    $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload('88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID))
-
-    in_transaction('test') do
-      get_response
-    end
-
-    assert_externals_recorded_for('localhost', 'GET')
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
-  end
-
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
     res = nil
     NewRelic::Agent.instance.stats_engine.stubs(:push_scope)
@@ -536,51 +389,6 @@ module HttpClientTestCases
     end
   end
 
-  load_cross_agent_test('cat_map').each do |test_case|
-    # Test cases that don't involve outgoing calls are done elsewhere
-    if test_case['outboundRequests']
-      define_method("test_#{test_case['name']}") do
-        NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-        config = {
-          :app_name => test_case['appName'],
-          :'cross_application_tracer.enabled' => true,
-          :'distributed_tracing.enabled' => false,
-          :'disable_all_tracing.enabled' => false
-        }
-        with_config(config) do
-          NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
-
-          in_transaction do |txn|
-            txn_info = test_case['inboundPayload']
-            payload = NewRelic::Agent::CrossAppPayload.new('someId', txn, txn_info)
-            txn.distributed_tracer.cross_app_payload = payload
-            stub_transaction_guid(test_case['transactionGuid'])
-            test_case['outboundRequests'].each do |req|
-              set_explicit_transaction_name(req['outboundTxnName'])
-              get_response
-
-              outbound_payload = server.requests.last['HTTP_X_NEWRELIC_TRANSACTION']
-              decoded_outbound_payload = decode_payload(outbound_payload)
-
-              assert_equal(req['expectedOutboundPayload'], decoded_outbound_payload)
-            end
-            set_explicit_transaction_name(test_case['transactionName'])
-          end
-        end
-
-        event = get_last_analytics_event
-
-        assert_event_attributes(
-          event,
-          test_case['name'],
-          test_case['expectedIntrinsicFields'],
-          test_case['nonExpectedIntrinsicFields']
-        )
-        NewRelic::Agent::Agent.any_instance.unstub(:connected?)
-      end
-    end
-  end
-
   # These tests only cover receiving, validating, and passing on the synthetics
   # request header to any outgoing HTTP requests. They do *not* cover attaching
   # of appropriate data to analytics events or transaction traces.
@@ -626,11 +434,6 @@ module HttpClientTestCases
 
   def http_header_name_to_rack_key(name)
     'HTTP_' + name.upcase.tr('-', '_')
-  end
-
-  def make_app_data_payload(*args)
-    obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
-    return obfuscator.obfuscate(args.to_json)
   end
 
   def decode_payload(payload)

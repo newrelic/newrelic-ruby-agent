@@ -34,10 +34,7 @@ module NewRelic
             begin
               destination = exchange_name(name)
 
-              tracing_enabled =
-                NewRelic::Agent::CrossAppTracing.cross_app_enabled? ||
-                NewRelic::Agent.config[:'distributed_tracing.enabled']
-              opts[:headers] ||= {} if tracing_enabled
+              opts[:headers] ||= {} if NewRelic::Agent.config[:'distributed_tracing.enabled']
 
               segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
                 library: LIBRARY,

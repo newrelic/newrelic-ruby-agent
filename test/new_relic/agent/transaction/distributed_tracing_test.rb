@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative '../../../test_helper'
-require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 require 'new_relic/agent/transaction'
@@ -216,34 +215,6 @@ module NewRelic
           assert_equal transaction.trace_id, intrinsics['traceId']
           assert_nil txn_intrinsics['parentId']
           assert txn_intrinsics['sampled']
-        end
-
-        def test_initial_legacy_cat_request_trace_id_overwritten_by_first_distributed_trace_guid
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          transaction = nil
-
-          transaction = in_transaction('test_txn') do |txn|
-            # simulate legacy cat
-            referring_txn_info = [
-              'b854df4feb2b1f06',
-              false,
-              '7e249074f277923d',
-              '5d2957be'
-            ]
-
-            payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-            txn.distributed_tracer.cross_app_payload = payload
-
-            txn.distributed_tracer.create_distributed_trace_payload
-          end
-
-          intrinsics, _, _ = last_transaction_event
-
-          assert_equal transaction.trace_id, intrinsics['traceId']
-
-          transaction.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-
-          assert_equal transaction.trace_id, intrinsics['traceId']
         end
 
         def test_intrinsics_assigned_to_transaction_event_from_distributed_trace
@@ -616,7 +587,6 @@ module NewRelic
 
         def test_trace_id_remains_consistent_across_distributed_trace_with_ratio_sampler
           parent_trace_id = nil
-          parent_priority = nil
           parent_payload = nil
 
           with_config(:'distributed_tracing.sampler.root' => 'trace_id_ratio_based',
@@ -624,7 +594,6 @@ module NewRelic
             # Create parent transaction
             in_transaction('parent_txn') do |parent_txn|
               parent_trace_id = parent_txn.trace_id
-              parent_priority = parent_txn.priority
               parent_payload = parent_txn.distributed_tracer.create_distributed_trace_payload
             end
 
@@ -689,7 +658,6 @@ module NewRelic
 
         def test_multi_hop_distributed_trace_with_trace_id_ratio_based
           grandparent_trace_id = nil
-          parent_sampled = nil
           grandparent_payload = nil
           parent_payload = nil
 
@@ -705,7 +673,6 @@ module NewRelic
             # Parent transaction accepts grandparent payload
             in_transaction('parent_txn') do |parent_txn|
               parent_txn.distributed_tracer.accept_distributed_trace_payload(grandparent_payload.text)
-              parent_sampled = parent_txn.sampled?
               parent_payload = parent_txn.distributed_tracer.create_distributed_trace_payload
             end
 
