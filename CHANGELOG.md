@@ -115,8 +115,8 @@
   When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file is created at the configured file location for every agent process. This file now includes the guid of the entity related to the agent when available. [PR#3371](https://github.com/newrelic/newrelic-ruby-agent/pull/3371)
 
 - **Bugfix: Resolve a `NoMethodError` in GCP utilization detection.**
-  
-  The GCP metadata discovery logic will now gracefully handle `nil` or unexpected values, preventing service initialization crashes. [PR##3388](https://github.com/newrelic/newrelic-ruby-agent/pull/#3388)
+
+  The GCP metadata discovery logic will now gracefully handle `nil` or unexpected values, preventing service initialization crashes. [PR#3388](https://github.com/newrelic/newrelic-ruby-agent/pull/#3388)
 
 ## v9.24.0
 
