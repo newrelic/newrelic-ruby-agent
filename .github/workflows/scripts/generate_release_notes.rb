@@ -24,7 +24,7 @@ class GenerateReleaseNotes
   # pass the filename as an arg to simplify testing
   def initialize(changelog_filename = 'CHANGELOG.md')
     changelog = File.read(changelog_filename)
-    @split_changelog = changelog.split('##')
+    @split_changelog = changelog.split("\n##")
   end
 
   def build_metadata
@@ -70,6 +70,7 @@ class GenerateReleaseNotes
   def major_bump?
     # look for a line that starts with 'v' followed by a version number
     # then grab the first match (the version number)
+    binding.irb
     previous_release_version = @split_changelog[2][/^ v(\d+\.\d+\.\d+)$/, 1]
     previous_major_version = previous_release_version.split('.')[0].to_i
 
