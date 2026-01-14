@@ -7,6 +7,8 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class TransactionStartingTest < Minitest::Test
+          INVALID_OTEL_SPAN = NewRelic::Agent::OpenTelemetry::Trace::Span::INVALID
+
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
             # just to be extra safe to make sure finishable is the correct class
@@ -93,25 +95,25 @@ module NewRelic
           def test_span_without_remote_parent_does_not_start_transaction_when_kind_client
             otel_span = @tracer.start_span('name', with_parent: ::OpenTelemetry::Context::ROOT, kind: :client)
 
-            assert_nil otel_span
+            assert_equal INVALID_OTEL_SPAN, otel_span
           end
 
           def test_span_without_remote_parent_does_not_start_transaction_when_kind_internal
             otel_span = @tracer.start_span('name', with_parent: ::OpenTelemetry::Context::ROOT, kind: :internal)
 
-            assert_nil otel_span
+            assert_equal INVALID_OTEL_SPAN, otel_span
           end
 
           def test_span_without_remote_parent_does_not_start_transaction_when_kind_producer
             otel_span = @tracer.start_span('name', with_parent: ::OpenTelemetry::Context::ROOT, kind: :producer)
 
-            assert_nil otel_span
+            assert_equal INVALID_OTEL_SPAN, otel_span
           end
 
           def test_span_without_remote_parent_does_not_start_transaction_when_kind_unspecified
             otel_span = @tracer.start_span('name', with_parent: ::OpenTelemetry::Context::ROOT)
 
-            assert_nil otel_span
+            assert_equal INVALID_OTEL_SPAN, otel_span
           end
 
           def test_span_with_remote_parent_and_current_transaction_creates_segment_when_kind_server

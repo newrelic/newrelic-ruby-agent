@@ -19,13 +19,11 @@ module NewRelic
           def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
             parent_otel_context = ::OpenTelemetry::Trace.current_span(with_parent).context
 
-            # is nil correct here? or should it be an invalid span?
-            return nil if should_not_create_telemetry?(parent_otel_context, kind)
+            return Span::INVALID if should_not_create_telemetry?(parent_otel_context, kind)
 
             finishable = if can_start_transaction?(parent_otel_context, kind)
               start_transaction_from_otel(name, parent_otel_context, kind)
             else
-              # this should only be run if we are in an existing transaction
               # TODO: Expand to include special segment handling by type (ex. DB, External, etc)
               # We may need to remove the add_attributes line below when we implement
               NewRelic::Agent::Tracer.start_segment(name: name)
