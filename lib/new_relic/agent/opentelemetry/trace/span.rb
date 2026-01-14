@@ -9,12 +9,29 @@ module NewRelic
         class Span < ::OpenTelemetry::Trace::Span
           attr_accessor :finishable
           attr_reader :status
-
+          # could be helpful to store kind on here to make it easier
+          # to move external request attributes around
           def finish(end_timestamp: nil)
+            update_client_span
             finishable&.finish
           end
 
+          def update_client_span
+            # do I need to remove the custom attributes?
+            # do we have a mechanism to do that?
+
+            # replacing for_external_request_segment
+            # maybe just put the attributes on this Otel span, and then move them around at the end?
+            if finishable.is_a?(NewRelic::Agent::Transaction::ExternalRequestSegment) &&
+              finishable.attributes.custom_attributes.key?('http.response.status_code') &&
+              finishable.http_status_code.nil?
+                finishable.instance_variable_set(:@http_status_code, finishable.attributes.custom_attributes['http.response.status_code'])
+            end
+          end
+
           def set_attribute(key, value)
+            # not on the segment, only on the span
+            # maybe we want add_new_segment_attributes
             NewRelic::Agent.add_custom_span_attributes(key => value)
           end
 

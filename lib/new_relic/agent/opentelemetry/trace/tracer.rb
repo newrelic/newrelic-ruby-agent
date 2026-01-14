@@ -12,6 +12,10 @@ module NewRelic
           KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT = [:client, :producer, :internal, nil].freeze
 
           def initialize(name = nil, version = nil)
+            # likely needs to transform to:
+            # args: name, version, tracer_provider
+            # instrumentation_scope = InstrumentationScope.new(name, version)
+            # tracer_provider = tracer_provider
             @name = name || ''
             @version = version || ''
           end
@@ -28,7 +32,8 @@ module NewRelic
               # this should only be run if we are in an existing transaction
               # TODO: Expand to include special segment handling by type (ex. DB, External, etc)
               # We may need to remove the add_attributes line below when we implement
-              NewRelic::Agent::Tracer.start_segment(name: name)
+              start_segment_from_otel(name: name, attributes: attributes, start_timestamp: start_timestamp, kind: kind)
+              # NewRelic::Agent::Tracer.start_segment(name: name)
             end
 
             otel_span = get_otel_span_from_finishable(finishable)
@@ -41,19 +46,51 @@ module NewRelic
           end
 
           def in_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
+            span = nil
             span = start_span(name, attributes: attributes, links: links, start_timestamp: start_timestamp, kind: kind)
-            begin
-              yield
-            rescue => e
-              # TODO: Update for segment errors if finishable is a segment
-              NewRelic::Agent.notice_error(e)
-              raise
-            end
+            ::OpenTelemetry::Trace.with_span(span) { |s, c| yield s, c }
+          rescue => e
+            # TODO: Update for segment errors if finishable is a segment
+            NewRelic::Agent.notice_error(e)
+            raise
           ensure
             span&.finish
           end
 
           private
+
+          def start_segment_from_otel(name:, attributes: nil, start_timestamp: nil, kind: nil)
+            case kind
+            when :client
+              start_otel_client_segment(name: name, attributes: attributes, start_timestamp: start_timestamp, kind: kind)
+            else
+              NewRelic::Agent::Tracer.start_segment(name: name)
+            end
+          end
+
+          def start_otel_client_segment(name:, attributes: nil, start_timestamp: nil, kind: nil)
+            # library is probably from instrumentation scope
+            # and we're not getting that right now
+            # tracer name is the best approximation now
+            # we're leaving a lot of attrs on the table...
+            # should we remove attrs after we've captured them?
+
+            seg = NewRelic::Agent::Tracer.start_external_request_segment(
+              library: @name,
+              uri: attributes['url.full'],
+              procedure: attributes['http.request.method'],
+              start_time: start_timestamp,
+              parent: nil
+            )
+            attributes.delete('url.full')
+            attributes.delete('http.request.method')
+            # what happens if:
+            attributes.delete('server.port')
+            # attributes.delete('server.address')
+            # attributes.delete('url.scheme')
+
+            seg
+          end
 
           def start_transaction_from_otel(name, parent_otel_context, kind)
             nr_item = nil
