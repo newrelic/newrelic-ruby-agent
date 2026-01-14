@@ -70,7 +70,6 @@ class GenerateReleaseNotes
   def major_bump?
     # look for a line that starts with 'v' followed by a version number
     # then grab the first match (the version number)
-    binding.irb
     previous_release_version = @split_changelog[2][/^ v(\d+\.\d+\.\d+)$/, 1]
     previous_major_version = previous_release_version.split('.')[0].to_i
 
