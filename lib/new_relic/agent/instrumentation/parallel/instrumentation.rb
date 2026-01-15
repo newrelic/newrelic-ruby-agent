@@ -18,7 +18,7 @@ module NewRelic::Agent::Instrumentation
       end
 
       def setup_for_txn_metric_merge_at_exit
-        # Clear out any existing transaction metrics to prevent duplicates 
+        # Clear out any existing transaction metrics to prevent duplicates
         # when merging metrics back in at the end of the forked process
         if (txn = NewRelic::Agent::Tracer.current_transaction)
           txn.instance_variable_set(:@metrics, NewRelic::Agent::TransactionMetrics.new)
@@ -29,7 +29,7 @@ module NewRelic::Agent::Instrumentation
           @parallel_at_exit_installed = true
           at_exit do
             # Merge all newly recorded metrics back into the parent process
-            # It's a little weird, but needed because the transaction does not 
+            # It's a little weird, but needed because the transaction does not
             # finish in the child processes, so without this the metrics would be lost.
             if (txn = NewRelic::Agent::Tracer.current_transaction)
               NewRelic::Agent.agent.stats_engine.merge_transaction_metrics!(

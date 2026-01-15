@@ -29,6 +29,7 @@ if NewRelic::LanguageSupport.can_fork?
       transmit_data
 
       results = $collector.calls_for('metric_data')
+
       assert results.any? { |r| r.metric_names.include?('Boo') },
         "Expected 'Boo' metric in one of #{results.size} metric_data calls"
     end
