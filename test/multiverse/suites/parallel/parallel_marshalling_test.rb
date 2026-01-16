@@ -8,6 +8,7 @@ if NewRelic::LanguageSupport.can_fork?
 
   at_exit do
     next unless defined?(SimpleCov) && SimpleCov.running
+
     SimpleCov.result
   end
 
