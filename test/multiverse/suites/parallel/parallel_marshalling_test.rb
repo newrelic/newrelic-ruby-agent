@@ -12,20 +12,6 @@ if NewRelic::LanguageSupport.can_fork?
 
     setup_and_teardown_agent
 
-    def setup
-      super
-      # Register SimpleCov at_exit once per process
-      # Parallel's instrumentation registers its at_exit when worker is set up (before our block)
-      # So we need to register ours BEFORE Parallel.map is called
-      # LIFO: instrumentation's hook (last registered) runs first, SimpleCov (first registered) runs second
-      if defined?(SimpleCov) && !@simplecov_at_exit_registered
-        @simplecov_at_exit_registered = true
-        at_exit do
-          SimpleCov.result if SimpleCov.running
-        end
-      end
-    end
-
     def around_each(&block)
       Parallel.map([1], in_processes: 1) do |item|
         yield

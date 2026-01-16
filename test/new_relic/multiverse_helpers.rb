@@ -44,6 +44,11 @@ module MultiverseHelpers
   end
 
   def setup_agent(opts = {}, &block)
+    # Register SimpleCov at_exit hook for forked subprocess coverage
+    # This must be done early so it's registered before any forking happens
+    # LIFO: instrumentation hooks (registered during fork) run first, SimpleCov runs second
+    register_simplecov_at_exit_for_forks
+
     ensure_fake_collector unless omit_collector?
     ensure_instrumentation_method
 
@@ -88,6 +93,20 @@ module MultiverseHelpers
 
     # If we didn't start-up right, our Control might not have reset on shutdown
     NewRelic::Control.reset
+  end
+
+  def register_simplecov_at_exit_for_forks
+    # Only register once per test instance to avoid multiple hooks
+    return if @simplecov_at_exit_registered
+    return unless defined?(SimpleCov)
+
+    @simplecov_at_exit_registered = true
+
+    # Register at_exit hook that will be inherited by forked child processes
+    # This hook runs AFTER instrumentation's at_exit hooks (LIFO), capturing their coverage
+    at_exit do
+      SimpleCov.result if SimpleCov.running
+    end
   end
 
   def run_agent(options = {}, &block)
