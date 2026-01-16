@@ -97,9 +97,6 @@ module NewRelic
             # and has a kind of :client, :producer, :internal or nil
             return false if !parent_otel_context.valid? &&
               KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT.include?(kind)
-
-            # if there's any stragglers
-            false
           end
 
           def should_not_create_telemetry?(parent_otel_context, kind)
