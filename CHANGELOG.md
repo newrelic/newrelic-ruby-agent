@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Add support for forking processes in Parallel gem instrumentation**
+
+  Parallel gem instrumentation has been added to allow more consistent monitoring in processes forked using the Parallel gem. [PR#3405](https://github.com/newrelic/newrelic-ruby-agent/pull/3405)
+
 ## v10.0.0
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
