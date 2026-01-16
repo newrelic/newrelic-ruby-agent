@@ -29,7 +29,7 @@ module NewRelic
           end
 
           def test_finishable_can_finish_transactions
-            span = @tracer.start_span('test')
+            span = @tracer.start_span('test', kind: :server)
             txn = span.finishable
             span.finish
 
@@ -68,7 +68,7 @@ module NewRelic
           end
 
           def test_recording_works_with_finishable_transactions_when_finished
-            span = @tracer.start_span('test_span')
+            span = @tracer.start_span('test_span', kind: :server)
 
             assert_instance_of NewRelic::Agent::Transaction, span.finishable
 
@@ -90,7 +90,7 @@ module NewRelic
           end
 
           def test_recording_works_with_finishable_transactions_when_not_finished
-            span = @tracer.start_span('drip drop')
+            span = @tracer.start_span('drip drop', kind: :server)
 
             assert_instance_of NewRelic::Agent::Transaction, span.finishable
             assert_predicate span, :recording?
@@ -111,7 +111,7 @@ module NewRelic
           def test_name_works_with_finishable_transaction
             name = 'initial_name'
             updated_name = 'updated_name'
-            span = @tracer.start_span(name)
+            span = @tracer.start_span(name, kind: :server)
 
             assert_instance_of NewRelic::Agent::Transaction, span.finishable
 
@@ -147,7 +147,7 @@ module NewRelic
 
               name = 'initial_name'
               updated_name = 'updated_name'
-              span = @tracer.start_span(name)
+              span = @tracer.start_span(name, kind: :server)
 
               span.finish
 
@@ -158,7 +158,7 @@ module NewRelic
           end
 
           def test_status_works_with_description
-            span = @tracer.start_span('oops')
+            span = @tracer.start_span('oops', kind: :server)
             span.status = ::OpenTelemetry::Trace::Status.error('Something went wrong')
             span.finishable.stubs(:sampled?).returns(true)
             span.finish
@@ -170,7 +170,7 @@ module NewRelic
           end
 
           def test_status_works_without_description
-            span = @tracer.start_span('sleepy puppy')
+            span = @tracer.start_span('sleepy puppy', kind: :server)
             span.status = ::OpenTelemetry::Trace::Status.ok
             span.finishable.stubs(:sampled?).returns(true)
             span.finish
@@ -182,7 +182,7 @@ module NewRelic
           end
 
           def test_default_status_is_unset
-            span = @tracer.start_span('advil')
+            span = @tracer.start_span('advil', kind: :server)
 
             assert_instance_of(::OpenTelemetry::Trace::Status, span.status)
             # unset is status code 1
