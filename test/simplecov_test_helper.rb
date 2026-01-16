@@ -18,6 +18,13 @@ begin
     # Use external at_exit so multiverse tests can control when coverage is saved
     # This prevents SimpleCov's automatic at_exit from stopping coverage too early
     SimpleCov.external_at_exit = true if defined?(SimpleCov)
+
+    # Register at_exit hook once for forked subprocess coverage
+    # This hook will be inherited by all forked child processes
+    # LIFO: instrumentation hooks (registered during fork) run first, SimpleCov runs second
+    at_exit do
+      SimpleCov.result if defined?(SimpleCov) && SimpleCov.running
+    end
   end
 rescue LoadError => e
   puts
