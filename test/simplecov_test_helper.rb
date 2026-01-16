@@ -8,7 +8,13 @@
 SIMPLECOV_MIN_RUBY_VERSION = '2.7.0'
 
 begin
-  require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION && ENV['VERBOSE_TEST_OUTPUT']
+  if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION && ENV['VERBOSE_TEST_OUTPUT']
+    require 'simplecov'
+
+    # Enable subprocess tracking IMMEDIATELY after loading SimpleCov
+    # This must happen before SimpleCov.start is called
+    SimpleCov.enable_for_subprocesses true if defined?(SimpleCov)
+  end
 rescue LoadError => e
   puts
   puts "SimpleCov requested by Ruby #{RUBY_VERSION} which is >=#{SIMPLECOV_MIN_RUBY_VERSION} "
