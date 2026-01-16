@@ -13,7 +13,7 @@ begin
 
     # Enable subprocess tracking IMMEDIATELY after loading SimpleCov
     # This must happen before SimpleCov.start is called
-    SimpleCov.enable_for_subprocesses true if defined?(SimpleCov)
+    SimpleCov.enable_for_subprocesses(true) if defined?(SimpleCov)
 
     # Use external at_exit so multiverse tests can control when coverage is saved
     # This prevents SimpleCov's automatic at_exit from stopping coverage too early

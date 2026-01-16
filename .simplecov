@@ -10,7 +10,7 @@ end
 
 # Enable coverage tracking for forked processes (e.g., Parallel gem, Resque)
 # Must be set BEFORE SimpleCov.start
-SimpleCov.enable_for_subprocesses true
+SimpleCov.enable_for_subprocesses(true)
 
 SimpleCov.start do
   # enable_coverage(:branch)
