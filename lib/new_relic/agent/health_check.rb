@@ -38,6 +38,8 @@ module NewRelic
           while @continue
             begin
               sleep @frequency
+              NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{NewRelic::Agent.config[:entity_guid]}")
+              NewRelic::Agent.logger.debug("WALUIGI: NewRelic::Agent.linking_metadata: #{NewRelic::Agent.linking_metadata}")
               write_file
               @continue = false if @status == SHUTDOWN
             rescue StandardError => e
@@ -92,6 +94,7 @@ module NewRelic
       end
 
       def contents
+        NewRelic::Agent.logger.debug("WALUIGI: #contents - ENTITY GUID: #{NewRelic::Agent.config[:entity_guid]}")
         <<~CONTENTS
           entity_guid: #{NewRelic::Agent.config[:entity_guid]}
           healthy: #{@status[:healthy]}
