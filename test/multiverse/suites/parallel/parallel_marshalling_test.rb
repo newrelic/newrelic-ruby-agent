@@ -6,6 +6,11 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marsha
 
 if NewRelic::LanguageSupport.can_fork?
 
+  at_exit do
+    next unless defined?(SimpleCov) && SimpleCov.running
+    SimpleCov.result
+  end
+
   class ParallelMarshallingTest < Minitest::Test
     include MultiverseHelpers
     include MarshallingTestCases
