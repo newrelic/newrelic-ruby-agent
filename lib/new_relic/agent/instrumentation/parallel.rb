@@ -20,7 +20,8 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_instrument Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
     else
-      NewRelic::Agent::Instrumentation::Parallel::Chain.instrument!
+      chain_instrument NewRelic::Agent::Instrumentation::Parallel::Chain
+
     end
   end
 end
