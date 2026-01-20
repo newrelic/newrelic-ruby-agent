@@ -15,7 +15,6 @@ DependencyDetection.defer do
   end
 
   executes do
-
     if use_prepend?
       prepend_instrument Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
     else
