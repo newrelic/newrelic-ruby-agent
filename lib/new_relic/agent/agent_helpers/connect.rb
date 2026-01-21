@@ -106,7 +106,9 @@ module NewRelic
           connect_response = @service.connect(request_builder.connect_payload)
 
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
+          NewRelic::Agent.logger.debug("WALUIGI: connect_to_server after response handler Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
           response_handler.configure_agent(connect_response)
+          NewRelic::Agent.logger.debug("WALUIGI: after configure_agent Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
 
           log_connection(connect_response) if connect_response
           connect_response
