@@ -56,8 +56,11 @@ module NewRelic
         def merge_top_level_keys(merged_settings, connect_reply)
           TOP_LEVEL_KEYS.each do |key_name|
             if connect_reply[key_name]
+              # This is when the entity guid first appears in the logs
               NewRelic::Agent.logger.debug("WALUIGI: merge_top_level_keys connect_reply['entity_guid'] = #{connect_reply['entity_guid']}") if key_name == 'entity_guid'
+              NewRelic::Agent.logger.debug("WALUIGI: merge_top_level_keys connect_reply['account_id'] = #{connect_reply['account_id']}") if key_name == 'account_id'
               merged_settings[key_name] = connect_reply[key_name]
+              # Entity guid here too
               NewRelic::Agent.logger.debug("WALUIGI: merged_settings = #{merged_settings}") if key_name == 'entity_guid'
             end
           end

@@ -9,6 +9,7 @@ module NewRelic
         @start_time = nano_time
         @continue = true
         @status = HEALTHY
+        @entity_guid = 'nope'
         # the following assignments may set @continue = false if they are invalid
         set_enabled
         set_delivery_location
@@ -39,6 +40,7 @@ module NewRelic
             begin
               sleep @frequency
               NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{Agent.config[:entity_guid]}")
+              NewRelic::Agent.logger.debug("WALUIGI: ACCOUNT ID: #{Agent.config[:account_id]}")
               NewRelic::Agent.logger.debug("WALUIGI: NewRelic::Agent.linking_metadata: #{NewRelic::Agent.linking_metadata}")
               write_file
               @continue = false if @status == SHUTDOWN
@@ -94,7 +96,6 @@ module NewRelic
       end
 
       def contents
-        NewRelic::Agent.logger.debug("WALUIGI: #contents - ENTITY GUID: #{Agent.config[:entity_guid]}")
         <<~CONTENTS
           config_guid: #{Agent.config[:entity_guid]}
           ivar_guid: #{@entity_guid}
@@ -125,7 +126,9 @@ module NewRelic
       def write_file
         @file ||= "#{@delivery_location}/#{file_name}"
 
-        File.write(@file, contents)
+        text = contents
+        NewRelic::Agent.logger.debug("WALUIGI: HEALTH FILE CONTENTS: #{text}")
+        File.write(@file, text)
       rescue StandardError => e
         NewRelic::Agent.logger.error("Agent Control health check raised an error while writing a file: #{e}")
         @continue = false
