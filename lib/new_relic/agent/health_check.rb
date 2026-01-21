@@ -38,7 +38,7 @@ module NewRelic
           while @continue
             begin
               sleep @frequency
-              NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{NewRelic::Agent.config[:entity_guid]}")
+              NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{Agent.config[:entity_guid]}")
               NewRelic::Agent.logger.debug("WALUIGI: NewRelic::Agent.linking_metadata: #{NewRelic::Agent.linking_metadata}")
               write_file
               @continue = false if @status == SHUTDOWN
@@ -94,14 +94,20 @@ module NewRelic
       end
 
       def contents
-        NewRelic::Agent.logger.debug("WALUIGI: #contents - ENTITY GUID: #{NewRelic::Agent.config[:entity_guid]}")
+        NewRelic::Agent.logger.debug("WALUIGI: #contents - ENTITY GUID: #{Agent.config[:entity_guid]}")
         <<~CONTENTS
-          entity_guid: #{NewRelic::Agent.config[:entity_guid]}
+          config_guid: #{Agent.config[:entity_guid]}
+          ivar_guid: #{@entity_guid}
+          method_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
           start_time_unix_nano: #{@start_time}
           status_time_unix_nano: #{nano_time}
         CONTENTS
+      end
+
+      def entity_guid
+        Agent.config[:entity_guid]
       end
 
       def last_error
