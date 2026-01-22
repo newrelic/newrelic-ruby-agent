@@ -106,26 +106,7 @@ module NewRelic
           connect_response = @service.connect(request_builder.connect_payload)
 
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
-          NewRelic::Agent.logger.debug("WALUIGI: connect_to_server after response handler Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
           response_handler.configure_agent(connect_response)
-          # agent config has it here now too
-          NewRelic::Agent.logger.debug("WALUIGI: after configure_agent Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
-          
-          # Write entity_guid to shared file for health check process
-          if NewRelic::Agent.config[:entity_guid]
-            begin
-              File.write('/tmp/nr_entity_guid', NewRelic::Agent.config[:entity_guid])
-              NewRelic::Agent.logger.debug("WALUIGI: Wrote entity_guid to shared file: #{NewRelic::Agent.config[:entity_guid]}")
-            rescue => e
-              NewRelic::Agent.logger.debug("WALUIGI: Failed to write entity_guid to shared file: #{e}")
-            end
-          end
-
-          NewRelic::Agent.logger.debug("WALUIGI: calling set_entity_guid = #{Agent.config[:entity_guid]}")
-          NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
-          result = NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
-          NewRelic::Agent.logger.debug("WALUIGI: set_entity_guid result = #{result}")
-          # @health_check.instance_variable_set(:@entity_guid, Agent.config[:entity_guid])
 
           log_connection(connect_response) if connect_response
           connect_response
@@ -212,7 +193,6 @@ module NewRelic
           @connect_state = :connected
           signal_connected
           NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
-          NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
         rescue NewRelic::Agent::ForceDisconnectException => e
           handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e

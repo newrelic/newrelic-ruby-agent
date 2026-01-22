@@ -6,16 +6,13 @@ module NewRelic
   module Agent
     class HealthCheck
       def initialize
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH INIT: Process #{Process.pid} - Creating HealthCheck instance")
         @start_time = nano_time
         @continue = true
         @status = HEALTHY
-        @entity_guid = 'nope'
         # the following assignments may set @continue = false if they are invalid
         set_enabled
         set_delivery_location
         set_frequency
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH INIT: Process #{Process.pid} - HealthCheck initialized with @enabled=#{@enabled}, @continue=#{@continue}")
       end
 
       HEALTHY = {healthy: true, last_error: 'NR-APM-000', message: 'Healthy'}.freeze
@@ -32,34 +29,22 @@ module NewRelic
       SHUTDOWN = {healthy: true, last_error: 'NR-APM-099', message: 'Agent has shutdown'}.freeze
 
       def create_and_run_health_check_loop
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH CHECK: Process #{Process.pid} create_and_run_health_check_loop called")
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH CHECK: Process #{Process.pid} health_checks_enabled? = #{health_checks_enabled?}")
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH CHECK: Process #{Process.pid} @continue = #{@continue}")
         return unless health_checks_enabled? && @continue
 
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH CHECK: Process #{Process.pid} - Agent Control health check conditions met. Starting health checks.")
+        NewRelic::Agent.logger.debug('Agent Control health check conditions met. Starting health checks.')
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
 
         Thread.new do
-          NewRelic::Agent.logger.debug("WALUIGI HEALTH THREAD: Process #{Process.pid} health check thread started")
           while @continue
-            NewRelic::Agent.logger.debug("WALUIGI HEALTH LOOP: Process #{Process.pid} - loop iteration started")
-            NewRelic::Agent.logger.debug("TIGGER: current guid: #{@entity_guid}")
             begin
               sleep @frequency
-              NewRelic::Agent.logger.debug("WALUIGI HEALTH LOOP: Process #{Process.pid} - woke up after #{@frequency} seconds")
-              NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{Agent.config[:entity_guid]}")
-              NewRelic::Agent.logger.debug("WALUIGI: ACCOUNT ID: #{Agent.config[:account_id]}")
-              NewRelic::Agent.logger.debug("WALUIGI: NewRelic::Agent.linking_metadata: #{NewRelic::Agent.linking_metadata}")
               write_file
               @continue = false if @status == SHUTDOWN
-              NewRelic::Agent.logger.debug("WALUIGI HEALTH LOOP: Process #{Process.pid} - loop iteration completed")
             rescue StandardError => e
-              NewRelic::Agent.logger.error("WALUIGI HEALTH LOOP: Process #{Process.pid} - Aborting Agent Control health check. Error raised: #{e}")
+              NewRelic::Agent.logger.error("Aborting Agent Control health check. Error raised: #{e}")
               @continue = false
             end
           end
-          NewRelic::Agent.logger.debug("WALUIGI HEALTH THREAD: Process #{Process.pid} health check thread ended")
         end
       end
 
@@ -68,13 +53,6 @@ module NewRelic
 
         @status = status.dup
         update_message(options) unless options.empty?
-      end
-
-      def set_entity_guid(guid)
-        NewRelic::Agent.logger.debug("WALUIGI SET_ENTITY_GUID: Process #{Process.pid} called with guid=#{guid.inspect}")
-        NewRelic::Agent.logger.debug("WALUIGI SET_ENTITY_GUID: Caller trace:")
-        NewRelic::Agent.logger.debug(caller[0..5].join("\n"))
-        @entity_guid = guid
       end
 
       def healthy?
@@ -114,38 +92,13 @@ module NewRelic
       end
 
       def contents
-        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: Process #{Process.pid} generating contents")
-        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: Agent.config[:entity_guid] = #{Agent.config[:entity_guid].inspect}")
-        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: entity_guid method = #{entity_guid.inspect}")
-        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: @entity_guid = #{@entity_guid.inspect}")
-
-        # Use entity_guid method for both config_guid and method_guid since it has fallback logic
-        guid = entity_guid
-
         <<~CONTENTS
-          config_guid: #{guid}
-          method_guid: #{guid}
-          new_method_guid: #{@entity_guid}
+          entity_guid: #{NewRelic::Agent.config[:entity_guid]}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
           start_time_unix_nano: #{@start_time}
           status_time_unix_nano: #{nano_time}
         CONTENTS
-      end
-
-      def entity_guid
-        # Try config first, then shared file as fallback
-        guid = Agent.config[:entity_guid]
-        if guid.nil? || guid.empty?
-          begin
-            guid = File.read('/tmp/nr_entity_guid').strip
-            NewRelic::Agent.logger.debug("WALUIGI: Read entity_guid from shared file: #{guid}")
-          rescue => e
-            NewRelic::Agent.logger.debug("WALUIGI: Failed to read entity_guid from shared file: #{e}")
-            guid = nil
-          end
-        end
-        guid
       end
 
       def last_error
@@ -163,20 +116,14 @@ module NewRelic
       def write_file
         @file ||= "#{@delivery_location}/#{file_name}"
 
-        NewRelic::Agent.logger.debug("WALUIGI WRITE FILE: Process #{Process.pid} writing health file to #{@file}")
-        text = contents
-        NewRelic::Agent.logger.debug("WALUIGI: HEALTH FILE CONTENTS: #{text}")
-        File.write(@file, text)
-        NewRelic::Agent.logger.debug("WALUIGI WRITE FILE: Process #{Process.pid} successfully wrote health file")
+        File.write(@file, contents)
       rescue StandardError => e
-        NewRelic::Agent.logger.error("WALUIGI WRITE FILE: Process #{Process.pid} - Agent Control health check raised an error while writing a file: #{e}")
+        NewRelic::Agent.logger.error("Agent Control health check raised an error while writing a file: #{e}")
         @continue = false
       end
 
       def health_checks_enabled?
-        result = @enabled && @delivery_location && @frequency > 0
-        NewRelic::Agent.logger.debug("WALUIGI HEALTH ENABLED: Process #{Process.pid} - @enabled=#{@enabled}, @delivery_location=#{@delivery_location}, @frequency=#{@frequency}, result=#{result}")
-        result
+        @enabled && @delivery_location && @frequency > 0
       end
 
       def update_message(options)
