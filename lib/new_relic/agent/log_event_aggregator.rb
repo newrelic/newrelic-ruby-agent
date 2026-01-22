@@ -22,6 +22,7 @@ module NewRelic
       SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
       LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
       LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
+      LOGGING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logging/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
@@ -42,6 +43,14 @@ module NewRelic
       LABELS_ENABLED_KEY = :'application_logging.forwarding.labels.enabled'
       LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
       CUSTOM_ATTRIBUTES_KEY = :'application_logging.forwarding.custom_attributes'
+
+      LOGGING_LEVELS = {
+        0 => 'DEBUG',
+        1 => 'INFO',
+        2 => 'WARN',
+        3 => 'ERROR',
+        4 => 'FATAL'
+      }.freeze
 
       attr_reader :attributes
 
@@ -104,6 +113,28 @@ module NewRelic
         @lock.synchronize do
           @buffer.append(priority: priority) do
             create_logstasher_event(priority, severity, log)
+          end
+        end
+      rescue
+        nil
+      end
+
+      def record_logging_event(log)
+        return unless logging_enabled?
+
+        severity = LOGGING_LEVELS[log.level]
+        increment_event_counters(severity)
+
+        return unless monitoring_conditions_met?(severity)
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
+        return txn.add_log_event(create_logging_event(priority, severity, log)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_logging_event(priority, severity, log)
           end
         end
       rescue
@@ -185,6 +216,25 @@ module NewRelic
         event['attributes'] = log_copy
       end
 
+      def create_logging_event(priority, severity, log)
+        formatted_message = truncate_message(log.data)
+        event = add_event_metadata(formatted_message, severity)
+        add_logging_event_attributes(event, log)
+
+        create_prioritized_event(priority, event)
+      end
+
+      def add_logging_event_attributes(event, log)
+        # binding.irb
+        log_copy = log.dup
+        # Delete previously reported attributes
+        log_copy.delete('message')
+        log_copy.delete('level')
+        log_copy.delete('@timestamp')
+
+        event['attributes'] = log_copy
+      end
+
       def add_custom_attributes(custom_attributes)
         attributes.add_custom_attributes(custom_attributes)
       end
@@ -241,6 +291,10 @@ module NewRelic
 
       def logstasher_enabled?
         @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
+      end
+
+      def logging_enabled?
+        @enabled && NewRelic::Agent::Instrumentation::Logging::Logger.enabled?
       end
 
       private
