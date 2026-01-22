@@ -60,7 +60,10 @@ module NewRelic
       end
 
       def set_entity_guid(guid)
-        @entity_guid = guid
+        NewRelic::Agent.logger.debug("Setting entity GUID to: #{guid}")
+        @entity_guid = guid.dup
+        NewRelic::Agent.logger.debug("Set @entity_guid to: #{@entity_guid}")
+        @entity_guid
       end
 
       def healthy?
