@@ -108,6 +108,8 @@ module NewRelic
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
           response_handler.configure_agent(connect_response)
 
+          sync_health_check_guid
+
           log_connection(connect_response) if connect_response
           connect_response
         end
@@ -221,6 +223,12 @@ module NewRelic
           sleep(connect_retry_period)
           true
         end
+
+        def sync_health_check_guid
+          guid = NewRelic::Agent.config[:entity_guid]
+          return unless guid
+
+          File.write('/tmp/nr_entity_guid', guid)
       end
     end
   end

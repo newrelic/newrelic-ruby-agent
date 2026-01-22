@@ -93,12 +93,19 @@ module NewRelic
 
       def contents
         <<~CONTENTS
-          entity_guid: #{NewRelic::Agent.config[:entity_guid]}
+          entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
           start_time_unix_nano: #{@start_time}
           status_time_unix_nano: #{nano_time}
         CONTENTS
+      end
+
+      def entity_guid
+        guid = NewRelic::Agent.config[:entity_guid]
+        return guid if guid && !guid.empty?
+
+        File.read('/tmp/nr_entity_guid').strip rescue nil
       end
 
       def last_error
