@@ -40,6 +40,8 @@ module NewRelic
             NewRelic::Agent.logger.debug("TIGGER: current guid: #{@entity_guid}")
             begin
               sleep @frequency
+              # Try to update entity_guid from environment if not set yet
+              set_entity_guid(ENV['NEW_RELIC_ENTITY_GUID'])
               NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{Agent.config[:entity_guid]}")
               NewRelic::Agent.logger.debug("WALUIGI: ACCOUNT ID: #{Agent.config[:account_id]}")
               NewRelic::Agent.logger.debug("WALUIGI: NewRelic::Agent.linking_metadata: #{NewRelic::Agent.linking_metadata}")
@@ -121,7 +123,8 @@ module NewRelic
       end
 
       def entity_guid
-        Agent.config[:entity_guid]
+        # Try config first, then environment variable as fallback
+        Agent.config[:entity_guid] || ENV['NEW_RELIC_ENTITY_GUID']
       end
 
       def last_error
