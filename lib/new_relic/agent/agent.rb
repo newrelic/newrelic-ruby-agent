@@ -90,6 +90,9 @@ module NewRelic
       end
 
       def init_components
+        # we could possibly assign entity_guid as an instance variable
+        # and change this to a reader/writer on agent
+        # and update it after the server source comes back
         @health_check = HealthCheck.new
         @service = NewRelicService.new
         @events = EventListener.new
