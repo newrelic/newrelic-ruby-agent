@@ -118,9 +118,13 @@ module NewRelic
         NewRelic::Agent.logger.debug("WALUIGI CONTENTS: Agent.config[:entity_guid] = #{Agent.config[:entity_guid].inspect}")
         NewRelic::Agent.logger.debug("WALUIGI CONTENTS: entity_guid method = #{entity_guid.inspect}")
         NewRelic::Agent.logger.debug("WALUIGI CONTENTS: @entity_guid = #{@entity_guid.inspect}")
+
+        # Use entity_guid method for both config_guid and method_guid since it has fallback logic
+        guid = entity_guid
+
         <<~CONTENTS
-          config_guid: #{Agent.config[:entity_guid]}
-          method_guid: #{entity_guid}
+          config_guid: #{guid}
+          method_guid: #{guid}
           new_method_guid: #{@entity_guid}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
@@ -130,7 +134,18 @@ module NewRelic
       end
 
       def entity_guid
-        Agent.config[:entity_guid]
+        # Try config first, then shared file as fallback
+        guid = Agent.config[:entity_guid]
+        if guid.nil? || guid.empty?
+          begin
+            guid = File.read('/tmp/nr_entity_guid').strip
+            NewRelic::Agent.logger.debug("WALUIGI: Read entity_guid from shared file: #{guid}")
+          rescue => e
+            NewRelic::Agent.logger.debug("WALUIGI: Failed to read entity_guid from shared file: #{e}")
+            guid = nil
+          end
+        end
+        guid
       end
 
       def last_error
