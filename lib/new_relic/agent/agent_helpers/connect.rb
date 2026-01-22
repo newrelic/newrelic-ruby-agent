@@ -111,7 +111,6 @@ module NewRelic
           # agent config has it here now too
           NewRelic::Agent.logger.debug("WALUIGI: after configure_agent Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
           
-          ENV['NEW_RELIC_ENTITY_GUID'] = NewRelic::Agent.config[:entity_guid] if NewRelic::Agent.config[:entity_guid]
           NewRelic::Agent.logger.debug("WALUIGI: calling set_entity_guid = #{Agent.config[:entity_guid]}")
           NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
           result = NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
