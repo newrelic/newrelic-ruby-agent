@@ -110,6 +110,11 @@ module NewRelic
           response_handler.configure_agent(connect_response)
           # agent config has it here now too
           NewRelic::Agent.logger.debug("WALUIGI: after configure_agent Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
+          
+          NewRelic::Agent.logger.debug("WALUIGI: calling set_entity_guid = #{Agent.config[:entity_guid]}")
+          NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
+          result = NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
+          NewRelic::Agent.logger.debug("WALUIGI: set_entity_guid result = #{result}")
           # @health_check.instance_variable_set(:@entity_guid, Agent.config[:entity_guid])
 
           log_connection(connect_response) if connect_response
