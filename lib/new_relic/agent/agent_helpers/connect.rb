@@ -229,7 +229,9 @@ module NewRelic
           return unless guid
 
           File.write('/tmp/nr_entity_guid', guid)
-      end
+        rescue => e
+          NewRelic::Agent.logger.debug("Failed to write entity_guid to shared file: #{e}")
+        end
     end
   end
 end
