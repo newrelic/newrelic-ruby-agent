@@ -59,6 +59,10 @@ module NewRelic
         update_message(options) unless options.empty?
       end
 
+      def set_entity_guid(guid)
+        @entity_guid = guid
+      end
+
       def healthy?
         @status == HEALTHY
       end
@@ -98,8 +102,8 @@ module NewRelic
       def contents
         <<~CONTENTS
           config_guid: #{Agent.config[:entity_guid]}
-          ivar_guid: #{@entity_guid}
           method_guid: #{entity_guid}
+          new_method_guid: #{@entity_guid}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
           start_time_unix_nano: #{@start_time}

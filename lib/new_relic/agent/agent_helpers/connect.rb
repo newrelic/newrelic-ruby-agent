@@ -110,7 +110,7 @@ module NewRelic
           response_handler.configure_agent(connect_response)
           # agent config has it here now too
           NewRelic::Agent.logger.debug("WALUIGI: after configure_agent Agent.config[:entity_guid] = #{Agent.config[:entity_guid]}")
-          @health_check.instance_variable_set(:@entity_guid, Agent.config[:entity_guid])
+          # @health_check.instance_variable_set(:@entity_guid, Agent.config[:entity_guid])
 
           log_connection(connect_response) if connect_response
           connect_response
@@ -197,6 +197,7 @@ module NewRelic
           @connect_state = :connected
           signal_connected
           NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
+          NewRelic::Agent.agent&.health_check&.set_entity_guid(NewRelic::Agent.config[:entity_guid])
         rescue NewRelic::Agent::ForceDisconnectException => e
           handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e
