@@ -37,6 +37,7 @@ module NewRelic
 
         Thread.new do
           while @continue
+            NewRelic::Agent.logger.debug("TIGGER: current guid: #{@entity_guid}")
             begin
               sleep @frequency
               NewRelic::Agent.logger.debug("WALUIGI: ENTITY GUID: #{Agent.config[:entity_guid]}")
@@ -61,6 +62,7 @@ module NewRelic
 
       def set_entity_guid(guid)
         NewRelic::Agent.logger.debug("Setting entity GUID to: #{guid}")
+        NewRelic::Agent.logger.debug("WALUIGI SET_ENTITY_GUID: HealthCheck object_id = #{self.object_id}")
         @entity_guid = guid.dup
         NewRelic::Agent.logger.debug("Set @entity_guid to: #{@entity_guid}")
         @entity_guid
@@ -103,6 +105,10 @@ module NewRelic
       end
 
       def contents
+        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: Agent.config[:entity_guid] = #{Agent.config[:entity_guid].inspect}")
+        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: @entity_guid = #{@entity_guid.inspect}")
+        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: entity_guid method = #{entity_guid.inspect}")
+        NewRelic::Agent.logger.debug("WALUIGI CONTENTS: HealthCheck object_id = #{self.object_id}")
         <<~CONTENTS
           config_guid: #{Agent.config[:entity_guid]}
           method_guid: #{entity_guid}
