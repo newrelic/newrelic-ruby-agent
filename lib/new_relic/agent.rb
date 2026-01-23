@@ -132,10 +132,7 @@ module NewRelic
 
     # The singleton Agent instance.  Used internally.
     def agent # :nodoc:
-      if @agent
-        NewRelic::Agent.logger.debug("AGENT ACCESS: Process #{Process.pid} accessing Agent instance #{@agent.object_id}")
-        return @agent
-      end
+      return @agent if @agent
 
       NewRelic::Agent.logger.debug("Agent unavailable as it hasn't been started.")
       NewRelic::Agent.logger.debug(caller.join("\n"))
@@ -143,7 +140,6 @@ module NewRelic
     end
 
     def agent=(new_instance) # :nodoc:
-      NewRelic::Agent.logger.debug("AGENT ASSIGN: Process #{Process.pid} assigning Agent instance #{new_instance&.object_id}")
       @agent = new_instance
       add_deferred_method_tracers_now
     end

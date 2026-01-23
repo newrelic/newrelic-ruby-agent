@@ -68,12 +68,10 @@ module NewRelic
       include NewRelic::Agent::AgentHelpers::Transmit
 
       def initialize
-        NewRelic::Agent.logger.debug("AGENT INIT: Process #{Process.pid} initializing Agent instance #{self.object_id}")
         init_basics
         init_components
         init_event_handlers
         setup_attribute_filter
-        NewRelic::Agent.logger.debug("AGENT INIT: Process #{Process.pid} finished initializing Agent instance #{self.object_id}")
       end
 
       private
@@ -144,14 +142,7 @@ module NewRelic
         # Should only be called by NewRelic::Control - returns a
         # memoized singleton instance of the agent, creating one if needed
         def instance
-          if @instance
-            NewRelic::Agent.logger.debug("AGENT INSTANCE: Process #{Process.pid} using existing Agent instance #{@instance.object_id}")
-          else
-            NewRelic::Agent.logger.debug("AGENT INSTANCE: Process #{Process.pid} creating NEW Agent instance")
-            @instance = self.new
-            NewRelic::Agent.logger.debug("AGENT INSTANCE: Process #{Process.pid} created Agent instance #{@instance.object_id}")
-          end
-          @instance
+          @instance ||= self.new
         end
       end
 
