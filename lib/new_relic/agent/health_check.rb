@@ -6,25 +6,13 @@ module NewRelic
   module Agent
     class HealthCheck
       def initialize
-        NewRelic::Agent.logger.debug("INIT DEBUG: Process #{Process.pid} starting HealthCheck initialization")
-
         @start_time = nano_time
         @continue = true
         @status = HEALTHY
-
-        NewRelic::Agent.logger.debug("INIT DEBUG: Process #{Process.pid} initial state - @continue = #{@continue}, @status = #{@status.inspect}")
-
         # the following assignments may set @continue = false if they are invalid
-        NewRelic::Agent.logger.debug("INIT DEBUG: Process #{Process.pid} calling set_enabled")
         set_enabled
-
-        NewRelic::Agent.logger.debug("INIT DEBUG: Process #{Process.pid} calling set_delivery_location")
         set_delivery_location
-
-        NewRelic::Agent.logger.debug("INIT DEBUG: Process #{Process.pid} calling set_frequency")
         set_frequency
-
-        NewRelic::Agent.logger.debug("INIT DEBUG: Process #{Process.pid} finished initialization - @continue = #{@continue}, @enabled = #{@enabled}")
       end
 
       HEALTHY = {healthy: true, last_error: 'NR-APM-000', message: 'Healthy'}.freeze
@@ -41,19 +29,9 @@ module NewRelic
       SHUTDOWN = {healthy: true, last_error: 'NR-APM-099', message: 'Agent has shutdown'}.freeze
 
       def create_and_run_health_check_loop
-        NewRelic::Agent.logger.debug("HEALTH LOOP DEBUG: Process #{Process.pid} called create_and_run_health_check_loop")
+        return unless health_checks_enabled? && @continue
 
-        unless health_checks_enabled?
-          NewRelic::Agent.logger.debug("HEALTH LOOP DEBUG: Process #{Process.pid} health_checks_enabled? = false, returning early")
-          return
-        end
-
-        unless @continue
-          NewRelic::Agent.logger.debug("HEALTH LOOP DEBUG: Process #{Process.pid} @continue = false, returning early")
-          return
-        end
-
-        NewRelic::Agent.logger.debug("HEALTH LOOP DEBUG: Process #{Process.pid} passed all checks, starting health check loop")
+        NewRelic::Agent.logger.debug('Agent Control health check conditions met. Starting health checks.')
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
 
         Thread.new do
@@ -84,55 +62,32 @@ module NewRelic
       private
 
       def set_enabled
-        # DEBUG: Check what each process sees for environment variables
-        control_enabled = ENV['NEW_RELIC_AGENT_CONTROL_ENABLED']
-        delivery_location = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']
-
-        NewRelic::Agent.logger.debug("ENV DEBUG: Process #{Process.pid} sees NEW_RELIC_AGENT_CONTROL_ENABLED = '#{control_enabled}'")
-        NewRelic::Agent.logger.debug("ENV DEBUG: Process #{Process.pid} sees NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION = '#{delivery_location}'")
-
         @enabled = if ENV['NEW_RELIC_AGENT_CONTROL_ENABLED'] == 'true'
-          NewRelic::Agent.logger.debug("Process #{Process.pid} enabling health checks (NEW_RELIC_AGENT_CONTROL_ENABLED = true)")
           true
         else
-          NewRelic::Agent.logger.debug("Process #{Process.pid} NEW_RELIC_AGENT_CONTROL_ENABLED not true, disabling health checks")
+          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_ENABLED not true, disabling health checks')
           @continue = false
           false
         end
       end
 
       def set_delivery_location
-        delivery_env = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']
-        NewRelic::Agent.logger.debug("DELIVERY DEBUG: Process #{Process.pid} ENV delivery location = '#{delivery_env}'")
-
-        @delivery_location = if delivery_env
+        @delivery_location = if ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']
           # The spec states file paths for the delivery location will begin with file://
           # This does not create a valid path in Ruby, so remove the prefix when present
-          result = delivery_env.gsub('file://', '')
-          NewRelic::Agent.logger.debug("DELIVERY DEBUG: Process #{Process.pid} using env location (cleaned) = '#{result}'")
-          result
+          ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']&.gsub('file://', '')
         else
           # The spec default is 'file:///newrelic/apm/health', but since we're just going to remove it anyway...
-          result = '/newrelic/apm/health'
-          NewRelic::Agent.logger.debug("DELIVERY DEBUG: Process #{Process.pid} using default location = '#{result}'")
-          result
+          '/newrelic/apm/health'
         end
-
-        NewRelic::Agent.logger.debug("DELIVERY DEBUG: Process #{Process.pid} final @delivery_location = '#{@delivery_location}'")
       end
 
       def set_frequency
-        frequency_env = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY']
-        NewRelic::Agent.logger.debug("FREQUENCY DEBUG: Process #{Process.pid} ENV frequency = '#{frequency_env}'")
-
-        @frequency = frequency_env ? frequency_env.to_i : 5
-        NewRelic::Agent.logger.debug("FREQUENCY DEBUG: Process #{Process.pid} final @frequency = #{@frequency}")
+        @frequency = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'] ? ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'].to_i : 5
 
         if @frequency <= 0
-          NewRelic::Agent.logger.debug("FREQUENCY DEBUG: Process #{Process.pid} frequency #{@frequency} <= 0, disabling health checks")
+          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less, disabling health checks')
           @continue = false
-        else
-          NewRelic::Agent.logger.debug("FREQUENCY DEBUG: Process #{Process.pid} frequency #{@frequency} > 0, keeping @continue = #{@continue}")
         end
       end
 
@@ -175,15 +130,7 @@ module NewRelic
       end
 
       def health_checks_enabled?
-        NewRelic::Agent.logger.debug("HEALTH ENABLED DEBUG: Process #{Process.pid} checking health_checks_enabled?")
-        NewRelic::Agent.logger.debug("HEALTH ENABLED DEBUG: Process #{Process.pid} @enabled = #{@enabled}")
-        NewRelic::Agent.logger.debug("HEALTH ENABLED DEBUG: Process #{Process.pid} @delivery_location = '#{@delivery_location}'")
-        NewRelic::Agent.logger.debug("HEALTH ENABLED DEBUG: Process #{Process.pid} @frequency = #{@frequency}")
-
-        result = @enabled && @delivery_location && @frequency > 0
-        NewRelic::Agent.logger.debug("HEALTH ENABLED DEBUG: Process #{Process.pid} health_checks_enabled? = #{result}")
-
-        result
+        @enabled && @delivery_location && @frequency > 0
       end
 
       def update_message(options)
