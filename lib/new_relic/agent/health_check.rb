@@ -42,11 +42,13 @@ module NewRelic
 
               test_counter += 1
               if test_counter.even?
-                update_status(HEALTHY)
+                @status = 'healthy'
                 NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to HEALTHY (counter: #{test_counter})")
+                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to @status to: #{@status})")
               else
-                update_status(FAILED_TO_CONNECT)
+                @status = 'unhealthy'
                 NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to FAILED_TO_CONNECT (counter: #{test_counter})")
+                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to @status to: #{@status})")
               end
 
               write_file
@@ -104,6 +106,7 @@ module NewRelic
 
       def contents
         NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} is writing health file contents")
+        NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} is writing health file with status: #{@status[:healthy]}")
         <<~CONTENTS
           entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
