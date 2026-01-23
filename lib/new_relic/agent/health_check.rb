@@ -43,10 +43,10 @@ module NewRelic
               test_counter += 1
               if test_counter.even?
                 update_status(HEALTHY)
-                NewRelic::Agent.logger.debug("WALUIGI TEST: Process 1 set status to HEALTHY (counter: #{test_counter})")
+                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to HEALTHY (counter: #{test_counter})")
               else
                 update_status(FAILED_TO_CONNECT)
-                NewRelic::Agent.logger.debug("WALUIGI TEST: Process 1 set status to FAILED_TO_CONNECT (counter: #{test_counter})")
+                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to FAILED_TO_CONNECT (counter: #{test_counter})")
               end
 
               write_file
@@ -62,7 +62,6 @@ module NewRelic
       def update_status(status, options = [])
         return unless @continue
 
-        NewRelic::Agent.logger.debug("WALUIGI STATUS UPDATE: Process #{Process.pid} updating status to #{status.inspect}")
         @status = status.dup
         update_message(options) unless options.empty?
       end
@@ -104,7 +103,7 @@ module NewRelic
       end
 
       def contents
-        NewRelic::Agent.logger.debug("WALUIGI STATUS DEBUG: Process #{Process.pid} @status = #{@status.inspect}")
+        NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} is writing health file contents")
         <<~CONTENTS
           entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
