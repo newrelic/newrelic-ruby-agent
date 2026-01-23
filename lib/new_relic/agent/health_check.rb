@@ -41,15 +41,10 @@ module NewRelic
               sleep @frequency
 
               test_counter += 1
-              if test_counter.even?
-                @status = HEALTHY
-                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to HEALTHY (counter: #{test_counter})")
-                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} @status = #{@status.inspect}")
-              else
-                @status = FAILED_TO_CONNECT
-                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to FAILED_TO_CONNECT (counter: #{test_counter})")
-                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} @status = #{@status.inspect}")
-              end
+              # Force Process 1 to ALWAYS be healthy
+              @status = HEALTHY
+              NewRelic::Agent.logger.debug("PROCESS 1 ALWAYS HEALTHY TEST: Process #{Process.pid} keeping status HEALTHY (counter: #{test_counter})")
+              NewRelic::Agent.logger.debug("PROCESS 1 ALWAYS HEALTHY TEST: Process #{Process.pid} @status = #{@status.inspect}")
 
               write_file
               @continue = false if @status == SHUTDOWN
