@@ -42,13 +42,13 @@ module NewRelic
 
               test_counter += 1
               if test_counter.even?
-                @status = 'healthy'
+                @status = HEALTHY
                 NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to HEALTHY (counter: #{test_counter})")
-                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to @status to: #{@status})")
+                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} @status = #{@status.inspect}")
               else
-                @status = 'unhealthy'
+                @status = FAILED_TO_CONNECT
                 NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to FAILED_TO_CONNECT (counter: #{test_counter})")
-                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} set status to @status to: #{@status})")
+                NewRelic::Agent.logger.debug("HEALTH STATUS TEST: Process #{Process.pid} @status = #{@status.inspect}")
               end
 
               write_file
@@ -64,8 +64,10 @@ module NewRelic
       def update_status(status, options = [])
         return unless @continue
 
+        NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} updating status to #{status.inspect}")
         @status = status.dup
         update_message(options) unless options.empty?
+        NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} @status is now #{@status.inspect}")
       end
 
       def healthy?
@@ -106,7 +108,7 @@ module NewRelic
 
       def contents
         NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} is writing health file contents")
-        NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} is writing health file with status: #{@status[:healthy]}")
+        NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} current @status = #{@status.inspect}")
         <<~CONTENTS
           entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
