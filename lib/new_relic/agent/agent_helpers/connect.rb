@@ -232,6 +232,7 @@ module NewRelic
         rescue => e
           NewRelic::Agent.logger.debug("Failed to write entity_guid to shared file: #{e}")
         end
+      end
     end
   end
 end
