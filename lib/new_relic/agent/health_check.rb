@@ -64,8 +64,17 @@ module NewRelic
       def update_status(status, options = [])
         return unless @continue
 
-        NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} updating status to #{status.inspect}")
-        @status = status.dup
+        # TEST: Force certain worker processes to report as unhealthy
+        if Process.pid != 1 && [13, 21].include?(Process.pid)
+          # Force processes 13 and 21 to always report as failed to connect
+          test_status = FAILED_TO_CONNECT
+          NewRelic::Agent.logger.debug("WORKER FAILURE TEST: Process #{Process.pid} FORCED to FAILED_TO_CONNECT")
+          @status = test_status.dup
+        else
+          NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} updating status to #{status.inspect}")
+          @status = status.dup
+        end
+
         update_message(options) unless options.empty?
         NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} @status is now #{@status.inspect}")
       end
