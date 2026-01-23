@@ -224,9 +224,10 @@ module NewRelic
           true
         end
 
-        # Write entity_guid to shared file for health check process.
-        # Health checks run in a separate process that can't access this process's
-        # Agent.config[:entity_guid], so use the file system for shared communication.
+        # The parent health check instance may not have access to the
+        # entity_guid when initialized. The parent loop creates the health check
+        # file, so we update entity_guid to a shared file once a worker process
+        # has connected and received its entity_guid.
         def sync_health_check_guid
           guid = NewRelic::Agent.config[:entity_guid]
           return unless guid
