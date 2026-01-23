@@ -40,8 +40,6 @@ module NewRelic
           ::NewRelic::Agent.logger.debug("Server provided config: #{config_data.inspect}")
           server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, @config)
           @config.replace_or_add_config(server_config)
-          # this is the first time it is part of the config
-          NewRelic::Agent.logger.debug('WALUIGI: After replacing config from server, entity_guid = ' + @config[:entity_guid].to_s)
         end
       end
     end

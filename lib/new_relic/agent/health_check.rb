@@ -35,9 +35,20 @@ module NewRelic
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
 
         Thread.new do
+          test_counter = 0
           while @continue
             begin
               sleep @frequency
+
+              test_counter += 1
+              if test_counter.even?
+                update_status(HEALTHY)
+                NewRelic::Agent.logger.debug("WALUIGI TEST: Process 1 set status to HEALTHY (counter: #{test_counter})")
+              else
+                update_status(FAILED_TO_CONNECT)
+                NewRelic::Agent.logger.debug("WALUIGI TEST: Process 1 set status to FAILED_TO_CONNECT (counter: #{test_counter})")
+              end
+
               write_file
               @continue = false if @status == SHUTDOWN
             rescue StandardError => e
@@ -51,6 +62,7 @@ module NewRelic
       def update_status(status, options = [])
         return unless @continue
 
+        NewRelic::Agent.logger.debug("WALUIGI STATUS UPDATE: Process #{Process.pid} updating status to #{status.inspect}")
         @status = status.dup
         update_message(options) unless options.empty?
       end
@@ -92,6 +104,7 @@ module NewRelic
       end
 
       def contents
+        NewRelic::Agent.logger.debug("WALUIGI STATUS DEBUG: Process #{Process.pid} @status = #{@status.inspect}")
         <<~CONTENTS
           entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
