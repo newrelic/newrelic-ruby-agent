@@ -35,17 +35,9 @@ module NewRelic
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
 
         Thread.new do
-          test_counter = 0
           while @continue
             begin
               sleep @frequency
-
-              test_counter += 1
-              # Force Process 1 to ALWAYS be healthy
-              @status = HEALTHY
-              NewRelic::Agent.logger.debug("PROCESS 1 ALWAYS HEALTHY TEST: Process #{Process.pid} keeping status HEALTHY (counter: #{test_counter})")
-              NewRelic::Agent.logger.debug("PROCESS 1 ALWAYS HEALTHY TEST: Process #{Process.pid} @status = #{@status.inspect}")
-
               write_file
               @continue = false if @status == SHUTDOWN
             rescue StandardError => e
@@ -59,19 +51,8 @@ module NewRelic
       def update_status(status, options = [])
         return unless @continue
 
-        # TEST: Force certain worker processes to report as unhealthy
-        if Process.pid != 1 && [13, 21].include?(Process.pid)
-          # Force processes 13 and 21 to always report as failed to connect
-          test_status = FAILED_TO_CONNECT
-          NewRelic::Agent.logger.debug("WORKER FAILURE TEST: Process #{Process.pid} FORCED to FAILED_TO_CONNECT")
-          @status = test_status.dup
-        else
-          NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} updating status to #{status.inspect}")
-          @status = status.dup
-        end
-
+        @status = status.dup
         update_message(options) unless options.empty?
-        NewRelic::Agent.logger.debug("WORKER STATUS UPDATE: Process #{Process.pid} @status is now #{@status.inspect}")
       end
 
       def healthy?
@@ -111,8 +92,6 @@ module NewRelic
       end
 
       def contents
-        NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} is writing health file contents")
-        NewRelic::Agent.logger.debug("HEALTH FILE DEBUG: Process #{Process.pid} current @status = #{@status.inspect}")
         <<~CONTENTS
           entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
