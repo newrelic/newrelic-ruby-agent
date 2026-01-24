@@ -7,6 +7,7 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
+          STATUS_DESTINATIONS = AttributeFilter::DST_SPAN_EVENTS | AttributeFilter::DST_TRANSACTION_SEGMENTS
           attr_accessor :finishable
           attr_reader :status
 
@@ -63,7 +64,8 @@ module NewRelic
             attrs = {'status.code' => new_status.code}
             attrs['status.description'] = new_status.description unless new_status.description.empty?
 
-            NewRelic::Agent.add_custom_span_attributes(attrs)
+            txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
+            attrs.each{ |k, v| txn.add_agent_attribute(k, v, STATUS_DESTINATIONS) }
           end
 
           INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)

@@ -160,39 +160,71 @@ module NewRelic
           def test_status_works_with_description
             span = @tracer.start_span('oops', kind: :server)
             span.status = ::OpenTelemetry::Trace::Status.error('Something went wrong')
-            span.finishable.stubs(:sampled?).returns(true)
+            txn = span.finishable
+
+            txn.stubs(:sampled?).returns(true)
             span.finish
 
             # error is code 2
             expected = {'status.code' => 2, 'status.description' => 'Something went wrong'}
 
-            assert_equal expected, last_span_event[1]
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal expected['status.code'], segment_agent_attrs['status.code']
+            assert_equal expected['status.description'], segment_agent_attrs['status.description']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal expected['status.code'], last_span_agent_attrs['status.code']
+            assert_equal expected['status.description'], last_span_agent_attrs['status.description']
           end
 
           def test_status_works_without_description
             span = @tracer.start_span('sleepy puppy', kind: :server)
+            txn = span.finishable
             span.status = ::OpenTelemetry::Trace::Status.ok
-            span.finishable.stubs(:sampled?).returns(true)
+
+            txn.stubs(:sampled?).returns(true)
             span.finish
 
             # ok is status code 0
             expected = {'status.code' => 0}
 
-            assert_equal expected, last_span_event[1]
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal expected['status.code'], segment_agent_attrs['status.code']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal expected['status.code'], last_span_agent_attrs['status.code']
           end
 
           def test_default_status_is_unset
             span = @tracer.start_span('advil', kind: :server)
+            txn = span.finishable
 
             assert_instance_of(::OpenTelemetry::Trace::Status, span.status)
             # unset is status code 1
             assert_equal(1, span.status.code)
 
+            txn.stubs(:sampled?).returns(true)
             span.finish
 
             expected = {'status.code' => 1}
 
-            assert_equal expected, last_span_event[1]
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal expected['status.code'], segment_agent_attrs['status.code']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal expected['status.code'], last_span_agent_attrs['status.code']
           end
         end
       end
