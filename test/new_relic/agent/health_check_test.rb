@@ -414,6 +414,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         sleep(1.5)
 
         health_files = Dir.glob("#{health_dir}/health-*.yml")
+
         assert_operator health_files.length, :>=, 3,
           "Expected at least 2 health check files, found #{health_files.length}: #{health_files}"
       end
