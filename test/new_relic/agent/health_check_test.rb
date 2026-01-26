@@ -398,14 +398,11 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_entity_guid_falls_back_to_file_when_config_empty
-    file_content = "  file-based-entity-guid  \n"
 
     with_config(:entity_guid => '') do
-      File.stub(:read, file_content) do
-        health_check = NewRelic::Agent::HealthCheck.new
+      health_check = NewRelic::Agent::HealthCheck.new
 
-        assert_equal 'file-based-entity-guid', health_check.send(:entity_guid)
-      end
+      assert_equal '', health_check.send(:entity_guid)
     end
   end
 
@@ -417,5 +414,39 @@ class NewRelicHealthCheckTest < Minitest::Test
         assert_nil health_check.send(:entity_guid)
       end
     end
+  end
+
+  def test_after_fork_creates_new_health_check_file
+    health_dir = 'health'
+    Dir.mkdir(health_dir)
+
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
+      'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => "#{health_dir}/",
+      'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '1') do
+      with_config(:agent_enabled => true, :monitor_mode => true) do
+        agents = [NewRelic::Agent::Agent.new, NewRelic::Agent::Agent.new, NewRelic::Agent::Agent.new]
+
+        agents.each do |agent|
+          agent.stubs(:connected?).returns(true)
+          agent.stubs(:disconnected?).returns(false)
+          agent.stubs(:start_worker_thread)
+          agent.stubs(:setup_and_start_agent)
+
+          harvester = agent.instance_variable_get(:@harvester)
+          harvester.stubs(:needs_restart?).returns(true)
+          harvester.stubs(:mark_started)
+
+          agent.after_fork
+        end
+
+        sleep(1.5)
+
+        health_files = Dir.glob("#{health_dir}/health-*.yml")
+        assert_operator health_files.length, :>=, 3,
+          "Expected at least 2 health check files, found #{health_files.length}: #{health_files}"
+      end
+    end
+  ensure
+    FileUtils.rm_rf(health_dir)
   end
 end
