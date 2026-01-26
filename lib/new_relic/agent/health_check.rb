@@ -124,8 +124,10 @@ module NewRelic
 
       def write_file
         @file ||= "#{@delivery_location}/#{file_name}"
-
-        File.write(@file, contents)
+        NewRelic::Agent.logger.debug("WALUIGI: Writing filename:#{@file}. Thread ID: #{Thread.current.object_id} in Process ID: #{Process.pid}")
+        stuff = contents
+        NewRelic::Agent.logger.debug("WALUIGI: Writing contents: #{stuff}")
+        File.write(@file, stuff)
       rescue StandardError => e
         NewRelic::Agent.logger.error("Agent Control health check raised an error while writing a file: #{e}")
         @continue = false

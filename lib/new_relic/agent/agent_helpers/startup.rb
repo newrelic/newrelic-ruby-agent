@@ -38,7 +38,7 @@ module NewRelic
         def check_config_and_start_agent
           # some health statuses, such as invalid license key, are ran before
           # the agent officially starts
-          @health_check.create_and_run_health_check_loop if !using_forking_dispatcher?
+          @health_check.create_and_run_health_check_loop
           return unless monitoring? && has_correct_license_key?
           return if using_forking_dispatcher?
 
