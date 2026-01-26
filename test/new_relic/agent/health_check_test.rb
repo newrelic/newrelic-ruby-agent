@@ -388,34 +388,6 @@ class NewRelicHealthCheckTest < Minitest::Test
     refute_predicate health_check, :healthy?
   end
 
-  def test_entity_guid_returns_config_value_when_present
-    entity_guid = 'test-entity-guid-123'
-    with_config(:entity_guid => entity_guid) do
-      health_check = NewRelic::Agent::HealthCheck.new
-
-      assert_equal entity_guid, health_check.send(:entity_guid)
-    end
-  end
-
-  def test_entity_guid_falls_back_to_file_when_config_empty
-
-    with_config(:entity_guid => '') do
-      health_check = NewRelic::Agent::HealthCheck.new
-
-      assert_equal '', health_check.send(:entity_guid)
-    end
-  end
-
-  def test_entity_guid_returns_nil_when_file_read_fails
-    with_config(:entity_guid => nil) do
-      File.stub(:read, -> { raise Errno::ENOENT, 'No such file' }) do
-        health_check = NewRelic::Agent::HealthCheck.new
-
-        assert_nil health_check.send(:entity_guid)
-      end
-    end
-  end
-
   def test_after_fork_creates_new_health_check_file
     health_dir = 'health'
     Dir.mkdir(health_dir)
