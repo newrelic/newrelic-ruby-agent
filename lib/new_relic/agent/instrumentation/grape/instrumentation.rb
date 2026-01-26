@@ -22,8 +22,19 @@ module NewRelic::Agent::Instrumentation
           endpoint = env[API_ENDPOINT]
           version = env[API_VERSION]
 
-          api_class = (context.class.respond_to?(:base) && context.class.base) || context.class
-          handle_transaction(endpoint, api_class.name, version)
+          binding.irb
+
+          class_name = endpoint.instance_variable_get(:@options)[:for].to_s ||
+                      (context.class.respond_to?(:base) && context.class.base) || 
+                      context.class
+
+
+          if class_name.nil?
+            api_class = env[API_ENDPOINT].instance_variable_get(:@options)[:for]                                                                                   
+            class_name = api_class.to_s  
+          end
+
+          handle_transaction(endpoint, class_name, version)
         rescue => e
           ::NewRelic::Agent.logger.warn('Error in Grape instrumentation', e)
         end
