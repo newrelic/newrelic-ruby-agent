@@ -22,8 +22,7 @@ module NewRelic::Agent::Instrumentation
           endpoint = env[API_ENDPOINT]
           version = env[API_VERSION]
 
-          class_name = (context.class.respond_to?(:base) && context.class.base) || 
-                      context.class
+          class_name = (context.class.respond_to?(:base) && context.class.base) || context.class
 
           handle_transaction(endpoint, class_name, version)
         rescue => e
