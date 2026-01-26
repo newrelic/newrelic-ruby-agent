@@ -22,17 +22,8 @@ module NewRelic::Agent::Instrumentation
           endpoint = env[API_ENDPOINT]
           version = env[API_VERSION]
 
-          binding.irb
-
-          class_name = endpoint.instance_variable_get(:@options)[:for].to_s ||
-                      (context.class.respond_to?(:base) && context.class.base) || 
+          class_name = (context.class.respond_to?(:base) && context.class.base) || 
                       context.class
-
-
-          if class_name.nil?
-            api_class = env[API_ENDPOINT].instance_variable_get(:@options)[:for]                                                                                   
-            class_name = api_class.to_s  
-          end
 
           handle_transaction(endpoint, class_name, version)
         rescue => e
