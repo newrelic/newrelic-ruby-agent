@@ -33,9 +33,10 @@ module NewRelic
 
         NewRelic::Agent.logger.debug('Agent Control health check conditions met. Starting health checks.')
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
-
+        
         Thread.new do
           while @continue
+            NewRelic::Agent.logger.debug("WALUIGI: Thread ID health check loop: #{Thread.current.object_id} in Process ID: #{Process.pid}")
             begin
               sleep @frequency
               write_file

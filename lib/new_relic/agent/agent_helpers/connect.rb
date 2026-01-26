@@ -107,7 +107,7 @@ module NewRelic
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
           response_handler.configure_agent(connect_response)
           NewRelic::Agent.logger.debug("WALUIGI: Process ID connect_to_server: #{Process.pid}")
-          NewRelic::Agent.logger.debug("WALUIGI: Connect response: #{connect_response.inspect}")
+          NewRelic::Agent.logger.debug("WALUIGI: Connect response agent run ID: #{connect_response['agent_run_id']}")
           NewRelic::Agent.logger.debug("WALUIGI: guid_id in connect: #{NewRelic::Agent.config[:entity_guid]}")
 
           # sync_health_check_guid
