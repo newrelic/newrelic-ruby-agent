@@ -95,19 +95,12 @@ module NewRelic
       def contents
         NewRelic::Agent.logger.debug("WALUIGI: Process ID writing contents: #{Process.pid}")
         <<~CONTENTS
-          entity_guid: #{entity_guid}
+          entity_type: #{NewRelic::Agent.config[:entity_guid]}
           healthy: #{@status[:healthy]}
           status: #{@status[:message]}#{last_error}
           start_time_unix_nano: #{@start_time}
           status_time_unix_nano: #{nano_time}
         CONTENTS
-      end
-
-      def entity_guid
-        guid = NewRelic::Agent.config[:entity_guid]
-        return guid if guid && !guid.empty?
-
-        File.read('/tmp/nr_entity_guid').strip rescue nil
       end
 
       def last_error
@@ -124,10 +117,8 @@ module NewRelic
 
       def write_file
         @file ||= "#{@delivery_location}/#{file_name}"
-        NewRelic::Agent.logger.debug("WALUIGI: Writing filename:#{@file}. Thread ID: #{Thread.current.object_id} in Process ID: #{Process.pid}")
-        stuff = contents
-        NewRelic::Agent.logger.debug("WALUIGI: Writing contents: #{stuff}")
-        File.write(@file, stuff)
+
+        File.write(@file, contents)
       rescue StandardError => e
         NewRelic::Agent.logger.error("Agent Control health check raised an error while writing a file: #{e}")
         @continue = false

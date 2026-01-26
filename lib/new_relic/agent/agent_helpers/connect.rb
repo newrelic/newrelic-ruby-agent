@@ -110,8 +110,6 @@ module NewRelic
           NewRelic::Agent.logger.debug("WALUIGI: Connect response agent run ID: #{connect_response['agent_run_id']}")
           NewRelic::Agent.logger.debug("WALUIGI: guid_id in connect: #{NewRelic::Agent.config[:entity_guid]}")
 
-          # sync_health_check_guid
-
           log_connection(connect_response) if connect_response
           connect_response
         end
@@ -225,19 +223,6 @@ module NewRelic
           sleep(connect_retry_period)
           true
         end
-
-        # The parent health check instance may not have access to the
-        # entity_guid when initialized. The parent loop creates the health check
-        # file, so we update entity_guid to a shared file once a worker process
-        # has connected and received its entity_guid.
-        # def sync_health_check_guid
-        #   guid = NewRelic::Agent.config[:entity_guid]
-        #   return unless guid
-
-        #   File.write('/tmp/nr_entity_guid', guid)
-        # rescue => e
-        #   NewRelic::Agent.logger.debug("Failed to write entity_guid to shared file: #{e}")
-        # end
       end
     end
   end
