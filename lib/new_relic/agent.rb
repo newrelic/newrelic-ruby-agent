@@ -130,8 +130,10 @@ module NewRelic
     @tracer_queue = []
     @metrics_already_recorded = Set.new
 
+    # The singleton Agent instance. Used internally.
     def agent # :nodoc:
       return @agent if @agent
+
       NewRelic::Agent.logger.debug("Agent unavailable as it hasn't been started.")
       NewRelic::Agent.logger.debug(caller.join("\n"))
       nil
