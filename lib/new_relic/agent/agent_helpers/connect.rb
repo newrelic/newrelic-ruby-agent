@@ -104,11 +104,13 @@ module NewRelic
             environment_for_connect
           )
           connect_response = @service.connect(request_builder.connect_payload)
-
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
           response_handler.configure_agent(connect_response)
+          NewRelic::Agent.logger.debug("WALUIGI: Process ID connect_to_server: #{Process.pid}")
+          NewRelic::Agent.logger.debug("WALUIGI: Connect response: #{connect_response.inspect}")
+          NewRelic::Agent.logger.debug("WALUIGI: guid_id in connect: #{NewRelic::Agent.config[:entity_guid]}")
 
-          sync_health_check_guid
+          # sync_health_check_guid
 
           log_connection(connect_response) if connect_response
           connect_response
@@ -228,14 +230,14 @@ module NewRelic
         # entity_guid when initialized. The parent loop creates the health check
         # file, so we update entity_guid to a shared file once a worker process
         # has connected and received its entity_guid.
-        def sync_health_check_guid
-          guid = NewRelic::Agent.config[:entity_guid]
-          return unless guid
+        # def sync_health_check_guid
+        #   guid = NewRelic::Agent.config[:entity_guid]
+        #   return unless guid
 
-          File.write('/tmp/nr_entity_guid', guid)
-        rescue => e
-          NewRelic::Agent.logger.debug("Failed to write entity_guid to shared file: #{e}")
-        end
+        #   File.write('/tmp/nr_entity_guid', guid)
+        # rescue => e
+        #   NewRelic::Agent.logger.debug("Failed to write entity_guid to shared file: #{e}")
+        # end
       end
     end
   end

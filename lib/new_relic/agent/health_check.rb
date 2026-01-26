@@ -92,6 +92,7 @@ module NewRelic
       end
 
       def contents
+        NewRelic::Agent.logger.debug("WALUIGI: Process ID writing contents: #{Process.pid}")
         <<~CONTENTS
           entity_guid: #{entity_guid}
           healthy: #{@status[:healthy]}
