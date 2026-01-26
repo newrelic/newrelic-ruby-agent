@@ -104,11 +104,9 @@ module NewRelic
             environment_for_connect
           )
           connect_response = @service.connect(request_builder.connect_payload)
+
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
           response_handler.configure_agent(connect_response)
-          NewRelic::Agent.logger.debug("WALUIGI: Process ID connect_to_server: #{Process.pid}")
-          NewRelic::Agent.logger.debug("WALUIGI: Connect response agent run ID: #{connect_response['agent_run_id']}")
-          NewRelic::Agent.logger.debug("WALUIGI: guid_id in connect: #{NewRelic::Agent.config[:entity_guid]}")
 
           log_connection(connect_response) if connect_response
           connect_response
