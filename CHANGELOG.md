@@ -6,6 +6,11 @@
 
   Grape's release of v3.1.0 introduced changes that were incompatible with the agent's instrumentation, causing issues when collecting transaction names. The agent has been updated to properly extract class names for transaction naming in the updated Grape API structure. [PR#3413](https://github.com/newrelic/newrelic-ruby-agent/pull/3413)
 
+  - **Bugfix: Fix `sidekiq.ignore_retry_errors`**                           
+                                                                            
+  The configuration option `sidekiq.ignore_retry_errors: true` was continuing to report retry errors. The agent now correctly ignores retry errors and only reports when jobs permanently fail. [PR#3399](https://github.com/newrelic/newrelic-ruby-agent/pull/3399)      
+                                                                       
+
 ## v10.0.0
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
