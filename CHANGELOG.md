@@ -8,7 +8,7 @@
 
 - **Bugfix: Create health check files in forked processes**
 
-  The agent now properly initializes health check loops after forking, ensuring each process generates its own health check file. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409)
+  The agent now properly initializes health check loops after forking, ensuring each process generates its own health check file. This fix also has the effect of correctly including `entity.guid` values in the health check files. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409) [Issue#3408](https://github.com/newrelic/newrelic-ruby-agent/issues/3408)
 
 ## v10.0.0
 
