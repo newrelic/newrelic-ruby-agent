@@ -10,6 +10,10 @@
 
   The agent now properly initializes health check loops after forking, ensuring each process generates its own health check file. This fix also has the effect of correctly including `entity.guid` values in the health check files. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409) [Issue#3408](https://github.com/newrelic/newrelic-ruby-agent/issues/3408)
 
+- **Bugfix: Fix `sidekiq.ignore_retry_errors`**                           
+
+  The configuration option `sidekiq.ignore_retry_errors: true` was continuing to report retry errors. The agent now correctly ignores retry errors and only reports when jobs permanently fail. [PR#3399](https://github.com/newrelic/newrelic-ruby-agent/pull/3399)      
+                                                                       
 ## v10.0.0
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
