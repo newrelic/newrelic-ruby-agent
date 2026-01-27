@@ -387,4 +387,30 @@ class NewRelicHealthCheckTest < Minitest::Test
 
     refute_predicate health_check, :healthy?
   end
+
+  def test_after_fork_creates_new_health_check_file
+    health_dir = 'health'
+    Dir.mkdir(health_dir)
+
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
+      'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => "#{health_dir}/",
+      'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '1') do
+      with_config(:agent_enabled => true, :monitor_mode => true) do
+        agents = [NewRelic::Agent::Agent.new, NewRelic::Agent::Agent.new, NewRelic::Agent::Agent.new]
+
+        agents.each do |agent|
+          agent.after_fork
+        end
+
+        sleep(1)
+
+        health_files = Dir.glob("#{health_dir}/health-*.yml")
+
+        assert_operator health_files.length, :>=, 3,
+          "Expected at least 2 health check files, found #{health_files.length}: #{health_files}"
+      end
+    end
+  ensure
+    FileUtils.rm_rf(health_dir)
+  end
 end
