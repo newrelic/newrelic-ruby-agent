@@ -48,7 +48,7 @@ module NewRelic
             # stop any transactions if there's lingering activity
             NewRelic::Agent::Tracer.current_transaction&.finish
 
-            otel_span = @tracer.start_span('otel_api_span')
+            otel_span = @tracer.start_span('otel_api_span', kind: :server)
             otel_finishable = otel_span.finishable
 
             assert_instance_of NewRelic::Agent::Transaction, otel_finishable, "OTel span's finishable should be an NR Transaction"
@@ -123,9 +123,6 @@ module NewRelic
           end
 
           def test_set_otel_tracestate_without_newrelic_entry
-            # TODO: Need to address trace context work for setting empty tracestate
-            skip 'need to make trace context changes to support this'
-
             with_config(:account_id => '190', primary_application_id: '46954') do
               carrier = {
                 'traceparent' => '00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01',

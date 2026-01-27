@@ -458,7 +458,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a path to the agent log file, excluding the filename.'
+          :description => 'Defines a path to the agent log file, excluding the filename. If you want to send your agent logs to standard out, set this to STDOUT.'
         },
         :marshaller => {
           :default => 'json',

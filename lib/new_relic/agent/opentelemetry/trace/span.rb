@@ -65,6 +65,8 @@ module NewRelic
 
             NewRelic::Agent.add_custom_span_attributes(attrs)
           end
+
+          INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)
         end
       end
     end
