@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add support for forking processes in Parallel gem instrumentation**
+
+  Parallel gem instrumentation has been added to allow more consistent monitoring in processes forked using the Parallel gem. [PR#3405](https://github.com/newrelic/newrelic-ruby-agent/pull/3405)
+
 - **Feature: Add support for Grape v3.1.0**
 
   Grape's release of v3.1.0 introduced changes that were incompatible with the agent's instrumentation, causing issues when collecting transaction names. The agent has been updated to properly extract class names for transaction naming in the updated Grape API structure. [PR#3413](https://github.com/newrelic/newrelic-ruby-agent/pull/3413)
