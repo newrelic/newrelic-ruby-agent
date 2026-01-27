@@ -399,19 +399,10 @@ class NewRelicHealthCheckTest < Minitest::Test
         agents = [NewRelic::Agent::Agent.new, NewRelic::Agent::Agent.new, NewRelic::Agent::Agent.new]
 
         agents.each do |agent|
-          agent.stubs(:connected?).returns(true)
-          agent.stubs(:disconnected?).returns(false)
-          agent.stubs(:start_worker_thread)
-          agent.stubs(:setup_and_start_agent)
-
-          harvester = agent.instance_variable_get(:@harvester)
-          harvester.stubs(:needs_restart?).returns(true)
-          harvester.stubs(:mark_started)
-
           agent.after_fork
         end
 
-        sleep(1.5)
+        sleep(1)
 
         health_files = Dir.glob("#{health_dir}/health-*.yml")
 
