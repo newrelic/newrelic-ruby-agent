@@ -7,7 +7,6 @@ module NewRelic::Agent::Instrumentation
     include NewRelic::Agent::Instrumentation::Logging::Logger
 
     def log_event(event)
-      binding.irb
       log_event_with_new_relic(event) { super }
     end
   end

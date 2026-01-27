@@ -215,21 +215,15 @@ module NewRelic
         create_prioritized_event(priority, event)
       end
 
-      def add_logging_event_attributes(event, log)
-        data = {
-          'level_number' => log.level,
-          'file'         => log.file,
-          'line'         => log.line,
-          'method'       => log.method,
-          'logger'       => log.logger
-        }
-
-        data.each do |key, val|
-          event[key] = val unless val.empty?
-        end
-
-        event
-      end
+      def add_logging_event_attributes(event, log)                              
+        event['level_number'] = log.level unless log.level.nil?                 
+        event['file'] = log.file if log.file && !log.file.empty?                
+        event['line'] = log.line unless log.line.nil?                           
+        event['method_name'] = log.method_name if log.method_name && !log.method_name.empty?                                                   
+        event['logger'] = log.logger if log.logger && !log.logger.empty?        
+                                                                                
+        event                                                                   
+      end 
 
       def add_custom_attributes(custom_attributes)
         attributes.add_custom_attributes(custom_attributes)
