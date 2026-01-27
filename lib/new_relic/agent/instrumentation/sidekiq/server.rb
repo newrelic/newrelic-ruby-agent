@@ -24,7 +24,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
       end
       trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
 
-      perform_action_with_newrelic_trace(trace_args) do
+      execution_block = proc do
         NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
           NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
           ATTRIBUTE_JOB_NAMESPACE,
@@ -32,10 +32,49 @@ module NewRelic::Agent::Instrumentation::Sidekiq
         )
 
         if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
-          ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
+          ::NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(trace_headers, 'Other')
         end
 
         yield
+      end
+
+      if NewRelic::Agent.config[:'sidekiq.ignore_retry_errors']
+        perform_action_with_newrelic_trace_without_error_reporting(trace_args, &execution_block)
+      else
+        perform_action_with_newrelic_trace(trace_args, &execution_block)
+      end
+    end
+
+    private
+
+    # Version of perform_action_with_newrelic_trace that doesn't report errors
+    def perform_action_with_newrelic_trace_without_error_reporting(*args, &block)
+      NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace_without_error_reporting)
+      state = NewRelic::Agent::Tracer.state
+      request = newrelic_request(args)
+      queue_start_time = detect_queue_start_time(request)
+
+      skip_tracing = do_not_trace? || !state.is_execution_traced?
+
+      if skip_tracing
+        state.current_transaction&.ignore!
+        NewRelic::Agent.disable_all_tracing { return yield }
+      end
+
+      trace_options = args.last.is_a?(Hash) ? args.last : NewRelic::EMPTY_HASH
+      category = trace_options[:category] || :controller
+      txn_options = create_transaction_options(trace_options, category, state, queue_start_time)
+
+      begin
+        finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
+          name: txn_options[:transaction_name],
+          category: category,
+          options: txn_options
+        )
+
+        yield
+      ensure
+        finishable&.finish
       end
     end
 
