@@ -8,7 +8,7 @@
 
 - **Bugfix: Create health check files in forked processes**
 
-  The agent now creates and runs health check loops in forked processes, ensuring a health check file is generated for each forked process. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409)
+  The agent now properly initializes health check loops after forking, ensuring each process generates its own health check file. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409)
 
 ## v10.0.0
 
