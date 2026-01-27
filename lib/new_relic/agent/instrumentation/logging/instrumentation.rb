@@ -12,12 +12,11 @@ module NewRelic::Agent::Instrumentation
       end
 
       def log_event_with_new_relic(event)
-        binding.irb 
+        severity = ::Logging::LNAMES[event.level]     
 
-        # mdc_data = Logging::MappedDiagnosticContext.context        
         NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
-        ::NewRelic::Agent.agent.log_event_aggregator.record_logging_event(event)
-        ::NewRelic::Agent::LocalLogDecorator.decorate(event)
+        ::NewRelic::Agent.agent.log_event_aggregator.record_logging_event(event, severity)
+        ::NewRelic::Agent::LocalLogDecorator.decorate(event.data)
 
         yield
       end

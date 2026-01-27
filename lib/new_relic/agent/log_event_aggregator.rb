@@ -44,14 +44,6 @@ module NewRelic
       LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
       CUSTOM_ATTRIBUTES_KEY = :'application_logging.forwarding.custom_attributes'
 
-      LOGGING_LEVELS = {
-        0 => 'DEBUG',
-        1 => 'INFO',
-        2 => 'WARN',
-        3 => 'ERROR',
-        4 => 'FATAL'
-      }.freeze
-
       attr_reader :attributes
 
       def initialize(events)
@@ -119,10 +111,9 @@ module NewRelic
         nil
       end
 
-      def record_logging_event(log)
+      def record_logging_event(log, severity)
         return unless logging_enabled?
 
-        severity = LOGGING_LEVELS[log.level]
         increment_event_counters(severity)
 
         return unless monitoring_conditions_met?(severity)
@@ -225,14 +216,19 @@ module NewRelic
       end
 
       def add_logging_event_attributes(event, log)
-        # binding.irb
-        log_copy = log.dup
-        # Delete previously reported attributes
-        log_copy.delete('message')
-        log_copy.delete('level')
-        log_copy.delete('@timestamp')
+        data = {
+          'level_number' => log.level,
+          'file'         => log.file,
+          'line'         => log.line,
+          'method'       => log.method,
+          'logger'       => log.logger
+        }
 
-        event['attributes'] = log_copy
+        data.each do |key, val|
+          event[key] = val unless val.empty?
+        end
+
+        event
       end
 
       def add_custom_attributes(custom_attributes)
