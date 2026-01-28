@@ -4,6 +4,15 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<~RB
-  gem 'logging'
-RB
+logging_versions = [
+  [nil, 2.7]
+]
+
+# Lock down activesupport version due to a logstasher test incompatiability with 7.1.
+def gem_list(logging_versions = nil)
+  <<~RB
+    gem 'logging'#{logging_versions}
+  RB
+end
+
+create_gemfiles(logging_versions)
