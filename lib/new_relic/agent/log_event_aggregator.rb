@@ -113,6 +113,7 @@ module NewRelic
 
       def record_logging_event(log, severity)
         return unless logging_enabled?
+        return if log.data.nil? || log.data.empty?
 
         increment_event_counters(severity)
 

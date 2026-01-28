@@ -12,18 +12,21 @@ module NewRelic::Agent::Instrumentation
       end
 
       def log_event_with_new_relic(event)
-        if event.logger == @name # Prevents duplicates when the same event goes through multiple loggers
+        # If sending to multiple loggers, decorate each log
+        event.data = NewRelic::Agent::LocalLogDecorator.decorate(event.data)
+
+        # Prevents duplicates when the same event goes through multiple loggers
+        if event.logger == @name 
           begin
             severity = ::Logging::LNAMES[event.level]
             NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
             NewRelic::Agent.agent.log_event_aggregator.record_logging_event(event, severity)
-            NewRelic::Agent::LocalLogDecorator.decorate(event.data)
           rescue => e
             NewRelic::Agent.logger.debug("Failed to capture Logging event: #{e.message}")
           end
         end
 
-        yield
+        yield if block_given?
       end
     end                                                       
   end
