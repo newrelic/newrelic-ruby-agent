@@ -65,7 +65,7 @@ module NewRelic
             attrs['status.description'] = new_status.description unless new_status.description.empty?
 
             txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
-            attrs.each{ |k, v| txn.add_agent_attribute(k, v, STATUS_DESTINATIONS) }
+            attrs.each { |k, v| txn.add_agent_attribute(k, v, STATUS_DESTINATIONS) }
           end
 
           INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)
