@@ -1510,7 +1510,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
-        :'instrumentation.logging' => {
+        :'instrumentation.parallel' => {
           :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
@@ -1518,6 +1518,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the logging library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the parallel library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.aws_sdk_firehose' => {
           :default => 'auto',
@@ -1722,6 +1723,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.logging' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the logging library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.logstasher' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),

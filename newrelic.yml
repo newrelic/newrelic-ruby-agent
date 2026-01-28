@@ -350,7 +350,7 @@ common: &default_settings
 
   # This setting controls the behavior of transaction sampling when a remote
   # parent is sampled. Available values are adaptive (the default), always_on,
-  # always_off, and trace_id_ratio_based..
+  # always_off, and trace_id_ratio_based.
   # distributed_tracing.sampler.remote_parent_sampled: adaptive
 
   # This setting controls the behavior of transaction sampling for transactions
@@ -608,6 +608,10 @@ common: &default_settings
   # be one of auto, prepend, chain, disabled.
   # instrumentation.opensearch: auto
 
+  # Controls auto-instrumentation of the parallel library at start-up. May be one
+  # of auto, prepend, chain, disabled.
+  # instrumentation.parallel: auto
+
   # Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks
   # into the to_app method in Puma::Rack::Builder to find gems to instrument
   # during application startup. May be one of: auto, prepend, chain, disabled.
@@ -694,7 +698,8 @@ common: &default_settings
   # Defines a name for the log file.
   # log_file_name: newrelic_agent.log
 
-  # Defines a path to the agent log file, excluding the filename.
+  # Defines a path to the agent log file, excluding the filename. If you want to
+  # send your agent logs to standard out, set this to STDOUT.
   # log_file_path: log/
 
   # Specifies a marshaller for transmitting data to the New Relic collector.
@@ -837,7 +842,7 @@ common: &default_settings
   # Specify a list of exceptions you do not want the agent to strip when
   # strip_exception_messages is true. Separate exceptions with a comma. For
   # example, "ImportantException,PreserveMessageException".
-  # strip_exception_messages.allowed_classes: ""
+  # strip_exception_messages.allowed_classes: []
 
   # If true, the agent strips messages from all exceptions except those in the
   # allowed classes list. Enabled automatically in high security mode.
