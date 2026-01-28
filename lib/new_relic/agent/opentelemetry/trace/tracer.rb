@@ -27,7 +27,7 @@ module NewRelic
           def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
             parent_otel_context = ::OpenTelemetry::Trace.current_span(with_parent).context
 
-            return Span::INVALID if should_not_create_telemetry?(parent_otel_context, kind)
+            return ::OpenTelemetry::Trace::Span::INVALID if should_not_create_telemetry?(parent_otel_context, kind)
 
             finishable = if can_start_transaction?(parent_otel_context, kind)
               start_transaction_from_otel(name, parent_otel_context, kind)

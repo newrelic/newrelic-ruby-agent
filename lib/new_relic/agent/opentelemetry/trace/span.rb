@@ -78,8 +78,6 @@ module NewRelic
             txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
             attrs.each { |k, v| txn.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) }
           end
-
-          INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)
         end
       end
     end
