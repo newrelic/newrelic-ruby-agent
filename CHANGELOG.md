@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.1.0
 
 - **Feature: Add support for forking processes in Parallel gem instrumentation**
 
