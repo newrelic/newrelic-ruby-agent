@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Logging::Chain
     def self.instrument!
       ::Logging::Logger.class_eval do
-        include NewRelic::Agent::Instrumentation::Logging
+        include NewRelic::Agent::Instrumentation::Logging::Logger
 
         alias_method(:log_event_without_new_relic, :log_event)
 
