@@ -76,6 +76,10 @@ module NewRelic
           def start_otel_client_segment(name:, attributes: nil, start_timestamp: nil, kind: nil)
             attributes = NewRelic::EMPTY_HASH if attributes.nil?
             uri = create_uri(attributes)
+
+            # We need to have a URI to create an External Request Segment
+            return NewRelic::Agent::Tracer.start_segment(name: name) if uri.nil? || uri.empty?
+
             procedure = attributes['http.request.method'] || attributes['http.method']
 
             NewRelic::Agent::Tracer.start_external_request_segment(
