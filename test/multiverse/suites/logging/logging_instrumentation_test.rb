@@ -10,7 +10,7 @@ class LoggingInstrumentationTest < Minitest::Test
 
     @appender = Logging.appenders.io('test_appender', @written)
     @logger = Logging.logger('test_logger')
-    Logging.init :debug, :info, :custom_level_meow, :warn, :error, :fatal
+    Logging.init(:debug, :info, :custom_level_meow, :warn, :error, :fatal)
     @logger.level = :debug
     @logger.add_appenders(@appender)
 
@@ -26,7 +26,7 @@ class LoggingInstrumentationTest < Minitest::Test
 
   def test_no_instrumentation_when_disabled
     with_config(:'instrumentation.logging' => 'disabled') do
-      @logger.info 'Test message'
+      @logger.info('Test message')
     end
     _, events = @aggregator.harvest!
 
@@ -35,7 +35,7 @@ class LoggingInstrumentationTest < Minitest::Test
 
   def test_level_is_recorded
     in_transaction do
-      @logger.info 'Test message'
+      @logger.info('Test message')
     end
     _, events = @aggregator.harvest!
 
@@ -45,11 +45,11 @@ class LoggingInstrumentationTest < Minitest::Test
 
   def test_log_levels_are_recorded
     in_transaction do
-      @logger.debug 'Debug message'
-      @logger.info 'Info message'
-      @logger.warn 'Warning message'
-      @logger.error 'Error message'
-      @logger.fatal 'Fatal message'
+      @logger.debug('Debug message')
+      @logger.info('Info message')
+      @logger.warn('Warning message')
+      @logger.error('Error message')
+      @logger.fatal('Fatal message')
     end
     _, events = @aggregator.harvest!
 
@@ -67,7 +67,7 @@ class LoggingInstrumentationTest < Minitest::Test
 
   def test_custom_log_level_is_recorded
     in_transaction do
-      @logger.custom_level_meow 'Cats are purrfect!'
+      @logger.custom_level_meow('Cats are purrfect!')
     end
     _, events = @aggregator.harvest!
 
@@ -78,7 +78,7 @@ class LoggingInstrumentationTest < Minitest::Test
 
   def test_logging_attributes_are_recorded
     in_transaction do
-      @logger.info 'Test message'
+      @logger.info('Test message')
     end
     _, events = @aggregator.harvest!
 
@@ -93,32 +93,32 @@ class LoggingInstrumentationTest < Minitest::Test
     end
     _, events = @aggregator.harvest!
 
-    assert events.empty?
+    assert_predicate(events, :empty?)
   end
 
   def test_logs_with_empty_messages_are_not_recorded
     in_transaction do
-      @logger.info ''
+      @logger.info('')
     end
     _, events = @aggregator.harvest!
 
-    assert events.empty?
+    assert_predicate(events, :empty?)
   end
 
   def test_logging_events_include_trace_linkng_metadata
-      in_transaction do
-        @logger.info 'Test message'
-      end
-      _, events = @aggregator.harvest!
+    in_transaction do
+      @logger.info('Test message')
+    end
+    _, events = @aggregator.harvest!
 
-      assert events[0][1]['trace.id']
-      assert events[0][1]['span.id']
+    assert events[0][1]['trace.id']
+    assert events[0][1]['span.id']
   end
 
   def test_log_decorating_enabled_records_linking_metadata
     with_config(:'application_logging.local_decorating.enabled' => true) do
       in_transaction do
-        @logger.info 'Decorate me!'
+        @logger.info('Decorate me!')
       end
     end
 
@@ -128,16 +128,16 @@ class LoggingInstrumentationTest < Minitest::Test
     assert_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
   end
 
-  def test_log_decorating_enabled_records_linking_metadata
+  def test_log_decorating_disabled_does_not_record_linking_metadata
     with_config(:'application_logging.local_decorating.enabled' => false) do
       in_transaction do
-        @logger.info 'Decorate me!'
+        @logger.info('Do not decorate me!')
       end
     end
 
     log_output = @written.string
 
-    assert_match(/Decorate me!/, log_output)
+    assert_match(/Do not decorate me!/, log_output)
     refute_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
   end
 end

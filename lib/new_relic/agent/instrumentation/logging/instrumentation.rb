@@ -5,7 +5,7 @@
 module NewRelic::Agent::Instrumentation
   module Logging
     module Logger
-      INSTRUMENTATION_NAME = "Logging"
+      INSTRUMENTATION_NAME = 'Logging'
 
       def self.enabled?
         NewRelic::Agent.config[:'instrumentation.logging'] != 'disabled'
@@ -16,7 +16,7 @@ module NewRelic::Agent::Instrumentation
         event.data = NewRelic::Agent::LocalLogDecorator.decorate(event.data)
 
         # Prevents duplicates when the same event goes through multiple loggers
-        if event.logger == @name 
+        if event.logger == @name
           begin
             severity = ::Logging::LNAMES[event.level]
             NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
@@ -28,6 +28,6 @@ module NewRelic::Agent::Instrumentation
 
         yield if block_given?
       end
-    end                                                       
+    end
   end
 end

@@ -223,8 +223,8 @@ module NewRelic
         event['method_name'] = log.method_name unless log.method_name.empty?
         event['logger'] = log.logger unless log.logger.empty?
 
-        event                                                                   
-      end 
+        event
+      end
 
       def add_custom_attributes(custom_attributes)
         attributes.add_custom_attributes(custom_attributes)

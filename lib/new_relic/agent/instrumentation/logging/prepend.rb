@@ -10,6 +10,6 @@ module NewRelic::Agent::Instrumentation
       log_event_with_new_relic(event) do
         super(event)
       end
-    end 
+    end
   end
 end
