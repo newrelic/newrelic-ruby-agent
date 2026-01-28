@@ -215,13 +215,13 @@ module NewRelic
         create_prioritized_event(priority, event)
       end
 
-      def add_logging_event_attributes(event, log)                              
-        event['level_number'] = log.level unless log.level.nil?                 
-        event['file'] = log.file if log.file && !log.file.empty?                
-        event['line'] = log.line unless log.line.nil?                           
-        event['method_name'] = log.method_name if log.method_name && !log.method_name.empty?                                                   
-        event['logger'] = log.logger if log.logger && !log.logger.empty?        
-                                                                                
+      def add_logging_event_attributes(event, log)
+        event['level_number'] = log.level # Logging always assigns a level number
+        event['file'] = log.file unless log.file.empty?
+        event['line'] = log.line unless log.line.empty?
+        event['method_name'] = log.method_name unless log.method_name.empty?
+        event['logger'] = log.logger unless log.logger.empty?
+
         event                                                                   
       end 
 

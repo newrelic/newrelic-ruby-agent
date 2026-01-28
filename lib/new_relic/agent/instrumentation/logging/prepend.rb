@@ -6,8 +6,9 @@ module NewRelic::Agent::Instrumentation
   module Logging::Logger::Prepend
     include NewRelic::Agent::Instrumentation::Logging::Logger
 
-    def log_event(event)
-      log_event_with_new_relic(event) { super }
-    end
+    def log_event(event)                                                                                                                                         
+      log_event_with_new_relic(event)                                                                                                                            
+      super(event)                                                                                                                                               
+    end 
   end
 end
