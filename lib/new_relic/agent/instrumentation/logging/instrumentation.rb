@@ -15,7 +15,7 @@ module NewRelic::Agent::Instrumentation
         # If sending to multiple loggers, decorate each log
         event.data = NewRelic::Agent::LocalLogDecorator.decorate(event.data)
 
-        # Prevents duplicates when the same event goes through multiple loggers
+        # Prevents duplicate NR events when the same log goes through multiple loggers
         if event.logger == @name
           begin
             severity = ::Logging::LNAMES[event.level]

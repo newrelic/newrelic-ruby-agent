@@ -12,17 +12,12 @@ DependencyDetection.defer do
   executes do
     require_relative 'logging/instrumentation'
 
-    # prepend_instrument and chain_instrument call extract_supportability_name
-    # to get the library name for supportability metrics and info-level logging.
-    # This is done by spliting on the 2nd to last spot of the instrumented
-    # module. If this isn't how we want the name to appear, pass in the desired
-    # name as a third argument.
     if use_prepend?
       require_relative 'logging/prepend'
-      prepend_instrument Logging::Logger, NewRelic::Agent::Instrumentation::Logging::Logger::Prepend
+      prepend_instrument Logging::Logger, NewRelic::Agent::Instrumentation::Logging::Logger::Prepend, 'Logging'
     else
       require_relative 'logging/chain'
-      chain_instrument NewRelic::Agent::Instrumentation::Logging::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Logging::Chain, 'Logging'
     end
   end
 end
