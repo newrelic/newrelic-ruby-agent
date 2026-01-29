@@ -16,7 +16,7 @@ module NewRelic::Agent::Instrumentation
 
       ::NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
       ::NewRelic::Agent.agent.log_event_aggregator.record_logstasher_event(log)
-      ::NewRelic::Agent::LocalLogDecorator.decorate(log)
+      log['message'] = ::NewRelic::Agent::LocalLogDecorator.decorate(log['message'])
 
       logstasher_event
     end

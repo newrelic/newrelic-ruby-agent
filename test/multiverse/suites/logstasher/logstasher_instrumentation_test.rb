@@ -78,34 +78,38 @@ class LogStasherInstrumentationTest < Minitest::Test
     assert events[0][1]['attributes'].key?('source')
   end
 
-  def test_log_decorating_enabled_records_linking_metadata
+  def test_records_trace_linking_metadata
+    in_transaction do
+      LogStasher.warn('yikes')
+    end
+
+    _, events = @aggregator.harvest!
+    assert events[0][1]['trace.id']
+    assert events[0][1]['span.id']
+  end
+
+  def test_log_decorating_records_linking_metadata_when_enabled
     with_config(:'application_logging.local_decorating.enabled' => true) do
       in_transaction do
         LogStasher.warn('yikes')
       end
     end
-    logfile = JSON.parse(@written.string)
+    log_output = @written.string
 
-    assert logfile.key?('entity.name')
-    assert logfile.key?('entity.type')
-    assert logfile.key?('hostname')
-    assert logfile.key?('trace.id')
-    assert logfile.key?('span.id')
+    assert_match(/yikes/, log_output)
+    assert_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
   end
 
-  def test_log_decorating_disabled_doesnt_records_linking_metadata
+  def test_log_decorating_does_not_record_linking_metadata_when_disabled
     with_config(:'application_logging.local_decorating.enabled' => false) do
       in_transaction do
         LogStasher.warn('yikes')
       end
     end
-    logfile = JSON.parse(@written.string)
+    log_output = @written.string
 
-    refute logfile.key?('entity.name')
-    refute logfile.key?('entity.type')
-    refute logfile.key?('hostname')
-    refute logfile.key?('trace.id')
-    refute logfile.key?('span.id')
+    assert_match(/yikes/, log_output)
+    refute_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
   end
 
   def test_no_instrumentation_when_disabled
