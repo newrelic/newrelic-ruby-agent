@@ -45,10 +45,11 @@ module NewRelic::Agent
         end
       end
 
-      def test_does_not_decorate_if_instrumentation_logger_and_logastasher_disabled
+      def test_does_not_decorate_if_loggins_instrumentations_disabled
         with_config(
           :'instrumentation.logger' => 'disabled',
           :'instrumentation.logstasher' => 'disabled',
+          :'instrumentation.logging' => 'disabled',
           :'application_logging.enabled' => true,
           :'application_logging.local_decorating.enabled' => true
         ) do
