@@ -111,7 +111,7 @@ module NewRelic
         nil
       end
 
-      def record_logging_event(log, severity)
+      def record_logging_event(log, severity, mdc_data)
         return unless logging_enabled?
         return if log.data.nil? || log.data.empty?
 
@@ -122,11 +122,11 @@ module NewRelic
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
 
-        return txn.add_log_event(create_logging_event(priority, severity, log)) if txn
+        return txn.add_log_event(create_logging_event(priority, severity, log, mdc_data)) if txn
 
         @lock.synchronize do
           @buffer.append(priority: priority) do
-            create_logging_event(priority, severity, log)
+            create_logging_event(priority, severity, log, mdc_data)
           end
         end
       rescue
@@ -208,23 +208,32 @@ module NewRelic
         event['attributes'] = log_copy
       end
 
-      def create_logging_event(priority, severity, log)
+      def create_logging_event(priority, severity, log, mdc_data)
         formatted_message = truncate_message(log.data)
         event = add_event_metadata(formatted_message, severity)
-        add_logging_event_attributes(event, log)
+        add_logging_event_attributes(event, log, mdc_data)
 
         create_prioritized_event(priority, event)
       end
 
-      def add_logging_event_attributes(event, log)
+      def add_logging_event_attributes(event, log, mdc_data)
         event['level_number'] = log.level # Logging always assigns a level number
         event['file'] = log.file unless log.file.empty?
         event['line'] = log.line unless log.line.empty?
         event['method_name'] = log.method_name unless log.method_name.empty?
         event['logger'] = log.logger unless log.logger.empty?
+        add_mdc_data_to_event(event, mdc_data) if !mdc_data.empty?
 
         event
       end
+
+      def add_mdc_data_to_event(event, mdc_data)
+        mdc_data.each do |key, value|
+          event["mdc.#{key}"] = value
+        end
+      rescue => e
+        NewRelic::Agent.logger.debug("Failed to add Logging MDC data to event: #{e.message}")
+      end   
 
       def add_custom_attributes(custom_attributes)
         attributes.add_custom_attributes(custom_attributes)

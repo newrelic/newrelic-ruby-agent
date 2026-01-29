@@ -19,14 +19,24 @@ module NewRelic::Agent::Instrumentation
         if event.logger == @name
           begin
             severity = ::Logging::LNAMES[event.level]
+            mdc_data = capture_mdc_data
             NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
-            NewRelic::Agent.agent.log_event_aggregator.record_logging_event(event, severity)
+            NewRelic::Agent.agent.log_event_aggregator.record_logging_event(event, severity, mdc_data)
           rescue => e
             NewRelic::Agent.logger.debug("Failed to capture Logging event: #{e.message}")
           end
         end
 
         yield if block_given?
+      end
+
+      private
+
+      def capture_mdc_data
+        ::Logging.mdc.context
+      rescue => e
+        NewRelic::Agent.logger.debug("Failed to capture Logging MDC data: #{e.message}")
+        {}
       end
     end
   end
