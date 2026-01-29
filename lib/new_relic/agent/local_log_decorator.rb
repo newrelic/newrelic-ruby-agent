@@ -29,9 +29,6 @@ module NewRelic
 
       def decorating_enabled?
         NewRelic::Agent.config[:'application_logging.enabled'] &&
-          (NewRelic::Agent::Instrumentation::Logger.enabled? ||
-            NewRelic::Agent::Instrumentation::LogStasher.enabled? ||
-            NewRelic::Agent::Instrumentation::Logging::Logger.enabled?) &&
           NewRelic::Agent.config[:'application_logging.local_decorating.enabled']
       end
 
