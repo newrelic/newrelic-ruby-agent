@@ -233,7 +233,7 @@ module NewRelic
         end
       rescue => e
         NewRelic::Agent.logger.debug("Failed to add Logging MDC data to event: #{e.message}")
-      end   
+      end
 
       def add_custom_attributes(custom_attributes)
         attributes.add_custom_attributes(custom_attributes)

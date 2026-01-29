@@ -141,17 +141,17 @@ class LoggingInstrumentationTest < Minitest::Test
     refute_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
   end
 
-  def test_captures_mdc_data                                                  
-    in_transaction do                                                         
-      Logging.mdc['user_id'] = '12345'                                        
-      Logging.mdc['request_id'] = 'abc-def'                                   
-      @logger.info('Test with MDC')                                           
-    end                                                                       
-    _, events = @aggregator.harvest!                                          
-                                                                              
-    assert_equal '12345', events[0][1]['mdc.user_id']                         
-    assert_equal 'abc-def', events[0][1]['mdc.request_id']                    
-  ensure                                                                      
-    Logging.mdc.clear                                                         
-  end 
+  def test_captures_mdc_data
+    in_transaction do
+      Logging.mdc['user_id'] = '12345'
+      Logging.mdc['request_id'] = 'abc-def'
+      @logger.info('Test with MDC')
+    end
+    _, events = @aggregator.harvest!
+
+    assert_equal '12345', events[0][1]['mdc.user_id']
+    assert_equal 'abc-def', events[0][1]['mdc.request_id']
+  ensure
+    Logging.mdc.clear
+  end
 end
