@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add configation option error_collector.backtrace_truncate_location**
+
+  A new configuration option has been added, `error_collector.backtrace_truncate_location`, which allows the user to specify where in the backtrace to truncate when the number of frames exceeds `error_collector.max_backtrace_frames`. Options are `'top'` (remove frames from the beginning), `'middle'` (remove frames from the middle, preserving the beginning and end), or `'end'` (remove frames from the end). The default is `'middle'. [PR#]()
+
 ## v10.1.0
 
 - **Feature: Add support for forking processes in Parallel gem instrumentation**
