@@ -20,7 +20,7 @@ class LoggingInstrumentationTest < Minitest::Test
   end
 
   def teardown
-    File.delete('test_logger') if File.exist?('test_logger')
+    FileUtils.rm_f('test_logger')
 
     NewRelic::Agent.instance.stats_engine.reset!
     NewRelic::Agent.instance.log_event_aggregator.reset!
@@ -104,8 +104,8 @@ class LoggingInstrumentationTest < Minitest::Test
     assert_equal 1, events.length
     event_attributes = events[0][1]
 
-    assert_match(/logging_instrumentation_test\.rb$/, event_attributes['file'], "File should be captured")
-    assert_equal 30, event_attributes['line'], "Line number should be captured"
+    assert_match(/logging_instrumentation_test\.rb$/, event_attributes['file'])
+    assert_equal 30, event_attributes['line']
   end
 
   def test_logs_without_messages_are_not_recorded
@@ -193,9 +193,7 @@ class LoggingInstrumentationTest < Minitest::Test
 
   def test_logger_with_json_appender_layout
     json_appender = Logging.appenders.rolling_file(
-      'development.log',
-      :age    => 'daily',
-      :layout => Logging.layouts.json
+      'development.log', :age => 'daily', :layout => Logging.layouts.json
     )
 
     layout_logger = Logging.logger('json_layout_logger')
@@ -212,9 +210,9 @@ class LoggingInstrumentationTest < Minitest::Test
     assert_equal 'json_layout_logger', events[0][1]['logger']
     assert_equal 'JSON layout test message', events[0][1]['message']
 
-    File.delete('json_layout_logger') if File.exist?('json_layout_logger')
-    File.delete('development.log') if File.exist?('development.log')
-    File.delete('development.log.age') if File.exist?('development.log.age')
+    FileUtils.rm_f('json_layout_logger')
+    FileUtils.rm_f('development.log')
+    FileUtils.rm_f('development.log.age')
   end
 
   def test_logger_level_filtering
@@ -232,8 +230,8 @@ class LoggingInstrumentationTest < Minitest::Test
     assert_equal 'WARN', events[0][1]['level']
     assert_equal 'Warn message - should be captured', events[0][1]['message']
 
-    Logging.logger['filtered_severity_logger'].clear_appenders if Logging.logger['filtered_severity_logger']
-    File.delete('filtered_severity_logger') if File.exist?('filtered_severity_logger')
+    Logging.logger['filtered_severity_logger']&.clear_appenders
+    FileUtils.rm_f('filtered_severity_logger')
   end
 
   def test_forwarding_threshold_filtering
