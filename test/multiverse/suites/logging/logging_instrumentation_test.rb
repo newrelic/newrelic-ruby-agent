@@ -6,13 +6,9 @@ class LoggingInstrumentationTest < Minitest::Test
   include MultiverseHelpers
 
   def setup
-    @written = StringIO.new
-
-    @appender = Logging.appenders.io('test_appender', @written)
     @logger = Logging.logger('test_logger')
     Logging.init(:debug, :info, :custom_level_meow, :warn, :error, :fatal)
     @logger.level = :debug
-    @logger.add_appenders(@appender)
 
     @aggregator = NewRelic::Agent.agent.log_event_aggregator
     NewRelic::Agent.instance.stats_engine.reset!
@@ -24,6 +20,12 @@ class LoggingInstrumentationTest < Minitest::Test
 
     NewRelic::Agent.instance.stats_engine.reset!
     NewRelic::Agent.instance.log_event_aggregator.reset!
+  end
+
+  def setup_string_appender
+    @written = StringIO.new
+    @appender = Logging.appenders.io('test_appender', @written)
+    @logger.add_appenders(@appender)
   end
 
   def log_from_this_method
@@ -105,7 +107,7 @@ class LoggingInstrumentationTest < Minitest::Test
     event_attributes = events[0][1]
 
     assert_match(/logging_instrumentation_test\.rb$/, event_attributes['file'])
-    assert_equal 30, event_attributes['line']
+    assert_equal 32, event_attributes['line']
   end
 
   def test_logs_without_messages_are_not_recorded
@@ -137,6 +139,8 @@ class LoggingInstrumentationTest < Minitest::Test
   end
 
   def test_log_decorating_enabled_records_linking_metadata
+    setup_string_appender
+
     with_config(:'application_logging.local_decorating.enabled' => true) do
       in_transaction do
         @logger.info('Decorate me!')
@@ -150,6 +154,8 @@ class LoggingInstrumentationTest < Minitest::Test
   end
 
   def test_log_decorating_disabled_does_not_record_linking_metadata
+    setup_string_appender
+
     with_config(:'application_logging.local_decorating.enabled' => false) do
       in_transaction do
         @logger.info('Do not decorate me!')
@@ -175,6 +181,7 @@ class LoggingInstrumentationTest < Minitest::Test
   end
 
   def test_multiple_appenders_record_one_event
+    setup_string_appender
     second_output = StringIO.new
     second_appender = Logging.appenders.io('second_appender', second_output)
 
