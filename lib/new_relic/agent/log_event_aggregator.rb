@@ -219,8 +219,8 @@ module NewRelic
       def add_logging_event_attributes(event, log, mdc_data)
         event['level_number'] = log.level # Logging always assigns a level number
         event['file'] = log.file unless log.file.empty?
-        event['line'] = log.line unless log.line.empty?
-        event['method_name'] = log.method_name unless log.method_name.empty?
+        event['line'] = log.line unless (log.line.respond_to?(:empty?) && log.line.empty?) || log.line.nil?
+        event['method_name'] = log.method_name unless log.method_name.nil? || log.method_name.empty?
         event['logger'] = log.logger unless log.logger.empty?
         add_mdc_data_to_event(event, mdc_data) if !mdc_data.empty?
 

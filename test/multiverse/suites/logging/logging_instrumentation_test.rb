@@ -20,8 +20,14 @@ class LoggingInstrumentationTest < Minitest::Test
   end
 
   def teardown
+    File.delete('test_logger') if File.exist?('test_logger')
+
     NewRelic::Agent.instance.stats_engine.reset!
     NewRelic::Agent.instance.log_event_aggregator.reset!
+  end
+
+  def log_from_this_method
+    @logger.info('Message with caller info')
   end
 
   def test_no_instrumentation_when_disabled
@@ -85,6 +91,21 @@ class LoggingInstrumentationTest < Minitest::Test
     assert_equal 'INFO', events[0][1]['level']
     assert_equal 'test_logger', events[0][1]['logger']
     assert_equal 1, events[0][1]['level_number']
+  end
+
+  def test_captures_caller_tracing_attributes_when_enabled
+    @logger.caller_tracing = true
+
+    in_transaction do
+      log_from_this_method
+    end
+    _, events = @aggregator.harvest!
+
+    assert_equal 1, events.length
+    event_attributes = events[0][1]
+
+    assert_match(/logging_instrumentation_test\.rb$/, event_attributes['file'], "File should be captured")
+    assert_equal 30, event_attributes['line'], "Line number should be captured"
   end
 
   def test_logs_without_messages_are_not_recorded
@@ -151,7 +172,98 @@ class LoggingInstrumentationTest < Minitest::Test
 
     assert_equal '12345', events[0][1]['mdc.user_id']
     assert_equal 'abc-def', events[0][1]['mdc.request_id']
-  ensure
-    Logging.mdc.clear
+  end
+
+  def test_multiple_appenders_record_one_event
+    second_output = StringIO.new
+    second_appender = Logging.appenders.io('second_appender', second_output)
+
+    @logger.add_appenders(second_appender)
+
+    in_transaction do
+      @logger.info('Message to multiple appenders')
+    end
+    _, events = @aggregator.harvest!
+
+    assert_equal 1, events.length
+    assert_equal 'INFO', events[0][1]['level']
+    assert_match(/Message to multiple appenders/, @written.string)
+    assert_match(/Message to multiple appenders/, second_output.string)
+  end
+
+  def test_logger_with_json_appender_layout
+    json_appender = Logging.appenders.rolling_file(
+      'development.log',
+      :age    => 'daily',
+      :layout => Logging.layouts.json
+    )
+
+    layout_logger = Logging.logger('json_layout_logger')
+    layout_logger.add_appenders(json_appender)
+    layout_logger.level = :info
+
+    in_transaction do
+      layout_logger.info('JSON layout test message')
+    end
+    _, events = @aggregator.harvest!
+
+    assert_equal 1, events.length
+    assert_equal 'INFO', events[0][1]['level']
+    assert_equal 'json_layout_logger', events[0][1]['logger']
+    assert_equal 'JSON layout test message', events[0][1]['message']
+
+    File.delete('json_layout_logger') if File.exist?('json_layout_logger')
+    File.delete('development.log') if File.exist?('development.log')
+    File.delete('development.log.age') if File.exist?('development.log.age')
+  end
+
+  def test_logger_level_filtering
+    filtered_logger = Logging.logger('filtered_severity_logger')
+    filtered_output = StringIO.new
+    filtered_logger.level = :warn
+
+    in_transaction do
+      filtered_logger.info('Info message - should be filtered')
+      filtered_logger.warn('Warn message - should be captured')
+    end
+    _, events = @aggregator.harvest!
+
+    assert_equal 1, events.length
+    assert_equal 'WARN', events[0][1]['level']
+    assert_equal 'Warn message - should be captured', events[0][1]['message']
+
+    Logging.logger['filtered_severity_logger'].clear_appenders if Logging.logger['filtered_severity_logger']
+    File.delete('filtered_severity_logger') if File.exist?('filtered_severity_logger')
+  end
+
+  def test_forwarding_threshold_filtering
+    with_config(:'application_logging.forwarding.log_level' => 'WARN') do
+      in_transaction do
+        @logger.debug('Debug message - should be filtered')
+        @logger.info('Info message - should be filtered')
+        @logger.warn('Warn message - should be forwarded')
+        @logger.error('Error message - should be forwarded')
+      end
+      _, events = @aggregator.harvest!
+
+      assert_equal 2, events.length
+      assert_equal 'WARN', events[0][1]['level']
+      assert_equal 'ERROR', events[1][1]['level']
+    end
+  end
+
+  def test_forwarding_threshold_allows_custom_levels
+    with_config(:'application_logging.forwarding.log_level' => 'ERROR') do
+      in_transaction do
+        @logger.info('Info message - should be filtered')
+        @logger.custom_level_meow('Custom level message - should always be forwarded')
+        @logger.error('Error message - should be forwarded')
+      end
+      _, events = @aggregator.harvest!
+
+      assert_equal 2, events.length
+      assert_equal 'CUSTOM_LEVEL_MEOW', events[0][1]['level']
+      assert_equal 'ERROR', events[1][1]['level']
+    end
   end
 end
