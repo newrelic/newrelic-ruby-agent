@@ -17,7 +17,7 @@ jobs:
         with:
           ruby-version: 3.4
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: Generate release notes and environment variables
         run: |
@@ -57,13 +57,13 @@ jobs:
     if: failure()
     steps:
       - name: Checkout agent repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: Get branch name
         run: echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
 
       - name: Checkout docs website repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
         with:
           token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
           repository: newrelic/docs-website
