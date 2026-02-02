@@ -111,10 +111,11 @@ module NewRelic
         nil
       end
 
-      def record_logging_event(log, severity, mdc_data)
+      def record_logging_event(log, mdc_data)
         return unless logging_enabled?
         return if log.data.nil? || log.data.empty?
 
+        severity = ::Logging::LNAMES[log.level] || 'UNKNOWN'
         increment_event_counters(severity)
 
         return unless monitoring_conditions_met?(severity)
