@@ -11,7 +11,18 @@ module NewRelic
           attr_reader :status
 
           def finish(end_timestamp: nil)
+            update_client_span
             finishable&.finish
+          end
+
+          def update_client_span
+            if finishable.is_a?(NewRelic::Agent::Transaction::ExternalRequestSegment) &&
+                finishable.http_status_code.nil?
+              finishable_attrs = finishable.attributes.custom_attributes
+              code = finishable_attrs['http.response.status_code'] || finishable_attrs['http.status_code']
+
+              finishable.instance_variable_set(:@http_status_code, code) if code
+            end
           end
 
           def set_attribute(key, value)
@@ -22,6 +33,7 @@ module NewRelic
             NewRelic::Agent.add_custom_span_attributes(attributes)
           end
 
+          # TODO: do we need to add a condition for NewRelic::Agent::Tracer.capture_segment_error(segment) if finishable is a segment?
           def record_exception(exception, attributes: nil)
             NewRelic::Agent.notice_error(exception, attributes: attributes)
           end
@@ -66,8 +78,6 @@ module NewRelic
             txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
             attrs.each { |k, v| txn.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) }
           end
-
-          INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)
         end
       end
     end
