@@ -2459,6 +2459,22 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
         },
+        :'opentelemetry.traces.include' => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that **will** have their trace signals sent to New Relic. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
+        },
+        # Exclude Net::HTTP because it currently instruments the NR agent's requests
+        # Could list all OTel instrumentation with matches... 
+        :'opentelemetry.traces.exclude' => {
+          :default => 'OpenTelemetry::Instrumentation::Net::HTTP',
+          :public => false,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that will **not** have their trace signals sent to New Relic. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
+        },
         :force_reconnect => {
           :default => false,
           :public => false,

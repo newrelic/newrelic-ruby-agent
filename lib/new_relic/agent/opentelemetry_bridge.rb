@@ -30,6 +30,10 @@ module NewRelic
         ::OpenTelemetry.tracer_provider = OpenTelemetry::Trace::TracerProvider.new
         Transaction.prepend(OpenTelemetry::TransactionPatch)
         ::OpenTelemetry.propagation = OpenTelemetry::Context::Propagation::TracePropagator.new
+        # TODO: Currently, we'll get a successful install message logged by the OpenTelemetry logger via the registry even if the instrumentation is on the exclude list
+        if defined?(::OpenTelemetry::Instrumentation::Registry)
+          ::OpenTelemetry::Instrumentation.registry.install_all
+        end
       end
     end
   end

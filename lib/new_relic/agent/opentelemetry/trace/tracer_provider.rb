@@ -7,9 +7,26 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class TracerProvider < ::OpenTelemetry::Trace::TracerProvider
-          # TODO: Add a registration mechanism for tracers like exists in the SDK
+          Key = Struct.new(:name, :version)
+          private_constant(:Key)
+
+          def initialize
+            @registry = {}
+            @registry_mutex = Mutex.new
+          end
+
+          def excluded_tracers
+            @excluded ||= (NewRelic::Agent.config[:'opentelemetry.traces.exclude'].split(',') -
+              NewRelic::Agent.config[:'opentelemetry.traces.include'].split(',')
+            )
+          end
+
           def tracer(name = nil, version = nil)
-            @tracer ||= Tracer.new(name, version)
+            # We create a no-op tracer if the tracer is configured to be excluded
+            return ::OpenTelemetry::Trace::Tracer.new if excluded_tracers.include?(name)
+
+            NewRelic::Agent.logger.warn 'OpenTelemetry::Trace::TracerProvider#tracer called without providing a tracer name.' if name.nil? || name.empty?
+            @registry_mutex.synchronize { @registry[Key.new(name, version)] ||= OpenTelemetry::Trace::Tracer.new(name, version) }
           end
         end
       end
