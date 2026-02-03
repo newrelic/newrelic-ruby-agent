@@ -5,15 +5,18 @@
 module NewRelic
   module Agent
     class OpenTelemetryBridge
-      def initialize
+      def initialize(events)
         # currently, we only have support for traces
         # this method should change when we add support for metrics and logs.
         if defined?(OpenTelemetry) && Agent.config[:'opentelemetry.enabled'] && Agent.config[:'opentelemetry.traces.enabled']
           OpenTelemetryBridge.install
-          NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/enabled', 0.0)
-          # else
-          # This record metric calls happen before the agent is fully started, which causes us to log warnings every single time the agent runs.
-          # NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled', 0.0)
+          events.subscribe(:initial_configuration_complete) do
+            NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/enabled', 0.0)
+          end
+        else
+          events.subscribe(:initial_configuration_complete) do
+            NewRelic::Agent.record_metric('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled', 0.0)
+          end
         end
       end
 
