@@ -287,7 +287,7 @@ module NewRelic
         when 'end'
           # Remove the end, keep the beginning
           trace[0...keep_frames].concat(["<truncated #{truncate_frames} additional frames>"])
-        else # 'middle' or default
+        else # 'middle' or default (original behavior)
           # Remove the middle, keep beginning and end
           # If keep_frames is odd, we will split things up favoring the top of the trace
           keep_top = (keep_frames / 2.0).ceil
