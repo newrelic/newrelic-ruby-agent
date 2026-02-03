@@ -30,10 +30,34 @@ module NewRelic
         ::OpenTelemetry.tracer_provider = OpenTelemetry::Trace::TracerProvider.new
         Transaction.prepend(OpenTelemetry::TransactionPatch)
         ::OpenTelemetry.propagation = OpenTelemetry::Context::Propagation::TracePropagator.new
-        # TODO: Currently, we'll get a successful install message logged by the OpenTelemetry logger via the registry even if the instrumentation is on the exclude list
-        if defined?(::OpenTelemetry::Instrumentation::Registry)
-          ::OpenTelemetry::Instrumentation.registry.install_all
+        install_instrumentation
+      end
+
+      def self.install_instrumentation
+        return unless defined?(::OpenTelemetry::Instrumentation::Registry)
+
+        # Cache the exclude list computation - do string splits once
+        excluded_names = NewRelic::Agent.config[:'opentelemetry.traces.exclude'].split(',').map(&:strip)
+        included_names = NewRelic::Agent.config[:'opentelemetry.traces.include'].split(',').map(&:strip)
+        excluded_set = (excluded_names - included_names).to_set
+
+        return ::OpenTelemetry::Instrumentation.registry.install_all if excluded_set.empty?
+
+        registry = ::OpenTelemetry::Instrumentation.registry
+        registry_lock = registry.instance_variable_get(:@lock)
+
+        registry_lock.synchronize do
+          instrumentation = registry.instance_variable_get(:@instrumentation)
+
+          # Filter directly on objects, not strings
+          without_excluded = instrumentation.reject do |inst|
+            excluded_set.include?(inst.to_s)
+          end
+
+          registry.instance_variable_set(:@instrumentation, without_excluded)
         end
+
+        ::OpenTelemetry::Instrumentation.registry.install_all
       end
     end
   end

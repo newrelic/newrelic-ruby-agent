@@ -23,6 +23,8 @@ module NewRelic
 
           def tracer(name = nil, version = nil)
             # We create a no-op tracer if the tracer is configured to be excluded
+            # This should only be run when a custom tracer that isn't defined by
+            # OpenTelemetry instrumentation is excluded
             return ::OpenTelemetry::Trace::Tracer.new if excluded_tracers.include?(name)
 
             NewRelic::Agent.logger.warn 'OpenTelemetry::Trace::TracerProvider#tracer called without providing a tracer name.' if name.nil? || name.empty?
