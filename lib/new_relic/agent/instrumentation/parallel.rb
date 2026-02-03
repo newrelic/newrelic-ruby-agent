@@ -1,0 +1,24 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+require_relative 'parallel/instrumentation'
+require_relative 'parallel/chain'
+require_relative 'parallel/prepend'
+
+DependencyDetection.defer do
+  @name = :parallel
+
+  depends_on do
+    defined?(Parallel) &&
+      NewRelic::LanguageSupport.can_fork?
+  end
+
+  executes do
+    if use_prepend?
+      prepend_instrument Parallel.singleton_class, NewRelic::Agent::Instrumentation::Parallel::Prepend
+    else
+      chain_instrument NewRelic::Agent::Instrumentation::Parallel::Chain
+    end
+  end
+end

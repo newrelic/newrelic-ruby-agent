@@ -1,5 +1,23 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.1.0
+
+- **Feature: Add support for forking processes in Parallel gem instrumentation**
+
+  Parallel gem instrumentation has been added to allow more consistent monitoring in processes forked using the Parallel gem. [PR#3405](https://github.com/newrelic/newrelic-ruby-agent/pull/3405)
+
+- **Feature: Add support for Grape v3.1.0**
+
+  Grape's release of v3.1.0 introduced changes that were incompatible with the agent's instrumentation, causing issues when collecting transaction names. The agent has been updated to properly extract class names for transaction naming in the updated Grape API structure. [PR#3413](https://github.com/newrelic/newrelic-ruby-agent/pull/3413)
+
+- **Bugfix: Create health check files in forked processes**
+
+  The agent now properly initializes health check loops after forking, ensuring each process generates its own health check file. This fix also has the effect of correctly including `entity.guid` values in the health check files. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409) [Issue#3408](https://github.com/newrelic/newrelic-ruby-agent/issues/3408)
+
+- **Bugfix: Fix `sidekiq.ignore_retry_errors`**                           
+
+  The configuration option `sidekiq.ignore_retry_errors: true` was continuing to report retry errors. The agent now correctly ignores retry errors and only reports when jobs permanently fail. [PR#3399](https://github.com/newrelic/newrelic-ruby-agent/pull/3399)      
+                                                                       
 ## v10.0.0
 
 - **Breaking Change: Remove support for Ruby 2.4 and 2.5**
@@ -115,8 +133,8 @@
   When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file is created at the configured file location for every agent process. This file now includes the guid of the entity related to the agent when available. [PR#3371](https://github.com/newrelic/newrelic-ruby-agent/pull/3371)
 
 - **Bugfix: Resolve a `NoMethodError` in GCP utilization detection.**
-  
-  The GCP metadata discovery logic will now gracefully handle `nil` or unexpected values, preventing service initialization crashes. [PR##3388](https://github.com/newrelic/newrelic-ruby-agent/pull/#3388)
+
+  The GCP metadata discovery logic will now gracefully handle `nil` or unexpected values, preventing service initialization crashes. [PR#3388](https://github.com/newrelic/newrelic-ruby-agent/pull/#3388)
 
 ## v9.24.0
 

@@ -63,8 +63,11 @@ module NewRelic
             attrs = {'status.code' => new_status.code}
             attrs['status.description'] = new_status.description unless new_status.description.empty?
 
-            NewRelic::Agent.add_custom_span_attributes(attrs)
+            txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
+            attrs.each { |k, v| txn.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) }
           end
+
+          INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)
         end
       end
     end

@@ -223,7 +223,7 @@ module NewRelic
           return unless needs_after_fork_work?
 
           ::NewRelic::Agent.logger.debug("Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking.")
-
+          @health_check.create_and_run_health_check_loop
           channel_id = options[:report_to_channel]
           install_pipe_service(channel_id) if channel_id
 

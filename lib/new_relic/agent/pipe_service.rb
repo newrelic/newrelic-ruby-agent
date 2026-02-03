@@ -69,6 +69,12 @@ module NewRelic
         @pipe.close if @pipe # rubocop:disable Style/SafeNavigation
       end
 
+      # Validates that data can be marshalled. For PipeService, we always
+      # use Marshal, so this always returns true.
+      def valid_to_marshal?(data)
+        true
+      end
+
       # Invokes the block it is passed.  This is used to implement HTTP
       # keep-alive in the NewRelicService, and is a required interface for any
       # Service class.

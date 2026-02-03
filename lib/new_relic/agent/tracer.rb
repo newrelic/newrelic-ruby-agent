@@ -384,7 +384,7 @@ module NewRelic
         rescue ArgumentError
           raise
         rescue => exception
-          log_error('start_datastore_segment', exception)
+          log_error('start_message_broker_segment', exception)
         end
 
         # This method should only be used by Tracer for access to the

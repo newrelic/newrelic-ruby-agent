@@ -458,7 +458,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a path to the agent log file, excluding the filename.'
+          :description => 'Defines a path to the agent log file, excluding the filename. If you want to send your agent logs to standard out, set this to STDOUT.'
         },
         :marshaller => {
           :default => 'json',
@@ -1509,6 +1509,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.parallel' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the parallel library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.aws_sdk_firehose' => {
           :default => 'auto',

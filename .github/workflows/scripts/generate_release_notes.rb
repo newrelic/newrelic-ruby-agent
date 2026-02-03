@@ -24,7 +24,7 @@ class GenerateReleaseNotes
   # pass the filename as an arg to simplify testing
   def initialize(changelog_filename = 'CHANGELOG.md')
     changelog = File.read(changelog_filename)
-    @split_changelog = changelog.split('##')
+    @split_changelog = changelog.split("\n##")
   end
 
   def build_metadata
