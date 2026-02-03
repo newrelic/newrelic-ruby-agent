@@ -140,6 +140,7 @@ module NewRelic
             threads.each(&:join)
 
             unique_tracers = tracers.uniq
+
             assert_equal 1, unique_tracers.size, 'Expected all threads to receive the same tracer instance'
           end
         end

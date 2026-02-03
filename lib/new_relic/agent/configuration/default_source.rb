@@ -2453,7 +2453,7 @@ module NewRelic
           :description => 'A global configuration option for disabling all OpenTelemetry signals sent through New Relic. If false, no OpenTelemetry signals will be sent to New Relic. If true, the signal-specific enabled config option (e.g. opentelemetry.traces.enabled) determines whether telemetry of that signal type will be reported to New Relic.'
         },
         :'opentelemetry.traces.enabled' => {
-          :default => false,
+          :default => true,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
@@ -2467,7 +2467,7 @@ module NewRelic
           :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that **will** have their trace signals sent to New Relic. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
         },
         # Exclude Net::HTTP because it currently instruments the NR agent's requests
-        # Could list all OTel instrumentation with matches... 
+        # Could list all OTel instrumentation with matches...
         :'opentelemetry.traces.exclude' => {
           :default => 'OpenTelemetry::Instrumentation::Net::HTTP',
           :public => false,

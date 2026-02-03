@@ -18,7 +18,7 @@ module NewRelic
           def excluded_tracers
             @excluded ||= (NewRelic::Agent.config[:'opentelemetry.traces.exclude'].split(',') -
               NewRelic::Agent.config[:'opentelemetry.traces.include'].split(',')
-            )
+                          )
           end
 
           def tracer(name = nil, version = nil)
