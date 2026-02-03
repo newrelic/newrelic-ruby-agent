@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/error_trace_aggregator'
-require 'new_relic/agent/error_event_aggregator' 
+require 'new_relic/agent/error_event_aggregator'
 
 module NewRelic
   module Agent
