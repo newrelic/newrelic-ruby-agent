@@ -66,6 +66,19 @@ module NewRelic
             end
           end
 
+          def transaction
+            return nil unless finishable
+
+            @transaction ||= finishable.is_a?(Transaction) ? finishable : finishable.transaction
+          end
+
+          def add_instrumentation_scope(name, version)
+            return unless transaction
+
+            transaction.add_agent_attribute('otel.scope.name', name, AttributeFilter::DST_SPAN_EVENTS)
+            transaction.add_agent_attribute('otel.scope.version', version, AttributeFilter::DST_SPAN_EVENTS)
+          end
+
           # @api private
           def status=(new_status)
             # When OTel spans are inititalized they get an unset status
@@ -75,8 +88,7 @@ module NewRelic
             attrs = {'status.code' => new_status.code}
             attrs['status.description'] = new_status.description unless new_status.description.empty?
 
-            txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
-            attrs.each { |k, v| txn.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) }
+            attrs.each { |k, v| transaction.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) } if transaction
           end
         end
       end

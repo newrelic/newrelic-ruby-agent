@@ -16,10 +16,6 @@ module NewRelic
           KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT = [:client, :producer, :internal, nil].freeze
 
           def initialize(name = nil, version = nil)
-            # TODO: likely needs to transform to:
-            # args: name, version, tracer_provider
-            # instrumentation_scope = ::InstrumentationScope.new(name, version)
-            # tracer_provider = tracer_provider
             @name = name || ''
             @version = version || ''
           end
@@ -38,10 +34,9 @@ module NewRelic
             otel_span = get_otel_span_from_finishable(finishable)
 
             otel_span.finishable = finishable
-            # TODO: Update status to apply as an agent attribute
-            # rather than as a custom attribute
             otel_span.status = ::OpenTelemetry::Trace::Status.unset
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
+            otel_span.add_instrumentation_scope(@name, @version)
             otel_span.add_attributes(attributes) if attributes
             otel_span
           end
