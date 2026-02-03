@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
       def log_event_with_new_relic(event)
         # If sending to multiple loggers, decorate each log
         event.data = NewRelic::Agent::LocalLogDecorator.decorate(event.data)
-        
+
         # Prevents duplicate NR events when the same log goes through multiple loggers
         if event.logger == @name
           begin
