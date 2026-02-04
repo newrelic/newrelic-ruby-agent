@@ -9,7 +9,6 @@ logging_versions = [
   ['2.3.0', 2.6] # logging 2.3.0 is the earliest version to support Ruby 2.6
 ]
 
-# Lock down activesupport version due to a logstasher test incompatiability with 7.1.
 def gem_list(logging_versions = nil)
   <<~RB
     gem 'logging'#{logging_versions}
