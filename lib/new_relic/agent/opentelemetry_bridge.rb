@@ -7,7 +7,7 @@ module NewRelic
     class OpenTelemetryBridge
       DEFAULT_EXCLUDED_TRACERS = %w[elasticsearch-api dalli].freeze
 
-      def initialize
+      def initialize(events)
         # currently, we only have support for traces
         # this method should change when we add support for metrics and logs.
         if defined?(OpenTelemetry) && Agent.config[:'opentelemetry.enabled'] && Agent.config[:'opentelemetry.traces.enabled']
