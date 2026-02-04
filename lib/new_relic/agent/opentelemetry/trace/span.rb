@@ -12,7 +12,16 @@ module NewRelic
 
           def finish(end_timestamp: nil)
             update_client_span
+            update_server_span
             finishable&.finish
+          end
+
+          def update_server_span
+            if finishable.is_a?(NewRelic::Agent::Transaction) && finishable.category == :web
+              finishable_segment_attrs = finishable.segments.first.attributes.custom_attributes
+              code = finishable_segment_attrs['http.response.status_code'] || finishable_segment_attrs['http.status_code']
+              finishable.http_response_code = code if code
+            end
           end
 
           def update_client_span
