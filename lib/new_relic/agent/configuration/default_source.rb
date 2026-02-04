@@ -705,6 +705,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
         },
+        :'error_collector.backtrace_truncate_location' => {
+          :default => 'middle',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :allowlist => %w[top middle end],
+          :description => 'Specifies where in the backtrace to truncate when the number of frames exceeds `error_collector.max_backtrace_frames`. Options are `top` (remove frames from the beginning), `middle` (remove frames from the middle, preserving the beginning and end), or `end` (remove frames from the end).'
+        },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
           :public => true,
