@@ -16,6 +16,7 @@ module NewRelic
           :'opentelemetry.traces.enabled' => true
         }
         NewRelic::Agent.config.add_config_for_testing(@config)
+        @events = NewRelic::Agent::EventListener.new
       end
 
       def teardown
@@ -23,13 +24,13 @@ module NewRelic
       end
 
       def test_does_not_run_requires_without_opentelemetry_api_gem
-        assert NewRelic::Agent::OpenTelemetryBridge.new
+        assert NewRelic::Agent::OpenTelemetryBridge.new(@events)
       end
 
       def test_does_not_install_if_overall_flag_off_but_traces_on
         with_config(:'opentelemetry.enabled' => false, :'opentelemetry.traces.enabled' => true) do
           NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
-            refute_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
+            refute_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new(@events) }
           end
         end
       end
@@ -37,7 +38,7 @@ module NewRelic
       def test_does_not_install_if_overall_flag_on_but_traces_off
         with_config(:'opentelemetry.enabled' => true, :'opentelemetry.traces.enabled' => false) do
           NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
-            refute_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
+            refute_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new(@events) }
           end
         end
       end
@@ -45,7 +46,7 @@ module NewRelic
       def test_does_not_run_requires_without_config
         with_config(:'opentelemetry.enabled' => false) do
           Object.stub_const(:OpenTelemetry, nil) do # pretend like the opentelemetry-api gem is installed
-            assert NewRelic::Agent::OpenTelemetryBridge.new
+            assert NewRelic::Agent::OpenTelemetryBridge.new(@events)
           end
         end
       end
@@ -53,7 +54,7 @@ module NewRelic
       def test_installs_bridge_when_configured
         Object.stub_const(:OpenTelemetry, nil) do # pretend like the opentelemetry-api gem is installed
           NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
-            assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
+            assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new(@events) }
           end
         end
       end
@@ -61,20 +62,22 @@ module NewRelic
       def test_adds_supportability_metric_when_opentelemetry_enabled
         Object.stub_const(:OpenTelemetry, nil) do # pretend like the opentelemetry-api gem is installed
           NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { nil }) do
-            NewRelic::Agent::OpenTelemetryBridge.new
+            NewRelic::Agent::OpenTelemetryBridge.new(@events)
+            @events.notify(:initial_configuration_complete)
 
             assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/enabled')
           end
         end
       end
 
-      # def test_adds_supportability_metric_when_opentelemetry_disabled
-      #   with_config(:'opentelemetry.enabled' => false) do
-      #     NewRelic::Agent::OpenTelemetryBridge.new
+      def test_adds_supportability_metric_when_opentelemetry_disabled
+        with_config(:'opentelemetry.enabled' => false) do
+          NewRelic::Agent::OpenTelemetryBridge.new(@events)
+          @events.notify(:initial_configuration_complete)
 
-      #     assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled')
-      #   end
-      # end
+          assert_metrics_recorded('Supportability/Tracing/Ruby/OpenTelemetryBridge/disabled')
+        end
+      end
     end
   end
 end
