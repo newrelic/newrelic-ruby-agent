@@ -54,6 +54,33 @@ module NewRelic
               assert_instance_of(::OpenTelemetry::Context, result)
             end
 
+            def test_extract_returns_context_when_trace_context_parse_returns_nil
+              carrier = {'traceparent' => 'invalid-trace-parent'}
+              context = ::OpenTelemetry::Context.current
+
+              # Stub TraceContext.parse to return nil
+              NewRelic::Agent::DistributedTracing::TraceContext.stub(:parse, nil) do
+                result = @propagator.extract(carrier, context: context)
+
+                assert_instance_of(::OpenTelemetry::Context, result)
+                assert_equal(context, result, 'Should return the original context when trace_context is nil')
+              end
+            end
+
+            def test_extract_does_not_log_error_when_trace_context_is_nil
+              carrier = {'traceparent' => 'malformed-data'}
+              result = nil
+
+              NewRelic::Agent::DistributedTracing::TraceContext.stub(:parse, nil) do
+                log = with_array_logger(:debug) do
+                  result = @propagator.extract(carrier)
+                end
+
+                refute log.array.any? { |m| m.include?('Unable to extract context') }, 'Expected error to not be logged for nil context'
+                assert_instance_of(::OpenTelemetry::Context, result)
+              end
+            end
+
             def test_extract_handles_rack_getter
               # This getter class is deprecated and may go away someday
               # The other getter class in the code is from a different library
