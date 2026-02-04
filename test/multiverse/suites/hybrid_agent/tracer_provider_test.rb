@@ -76,26 +76,75 @@ module NewRelic
             end
           end
 
-          def test_include_list_overrides_exclude_list
+          def test_configured_exclude_has_priority_over_configured_include
             with_config(
               :'opentelemetry.traces.exclude' => 'TracerA,TracerB',
               :'opentelemetry.traces.include' => 'TracerA'
             ) do
               excluded_tracers = @tracer_provider.excluded_tracers
 
-              refute_includes excluded_tracers, 'TracerA', 'TracerA should not be excluded when it is in the include list'
+              assert_includes excluded_tracers, 'TracerA', 'TracerA should be excluded even when in include list (configured exclude has priority)'
               assert_includes excluded_tracers, 'TracerB', 'TracerB should still be excluded'
             end
           end
 
-          def test_include_list_allows_excluded_tracer_through
+          def test_configured_exclude_blocks_tracer_even_when_in_include_list
             with_config(
               :'opentelemetry.traces.exclude' => 'MyTracer',
               :'opentelemetry.traces.include' => 'MyTracer'
             ) do
               tracer = @tracer_provider.tracer('MyTracer')
 
+              assert_instance_of ::OpenTelemetry::Trace::Tracer, tracer
+              refute_instance_of NewRelic::Agent::OpenTelemetry::Trace::Tracer, tracer
+            end
+          end
+
+          def test_default_excludes_are_applied_when_no_config
+            with_config(
+              :'opentelemetry.traces.exclude' => '',
+              :'opentelemetry.traces.include' => ''
+            ) do
+              excluded_tracers = @tracer_provider.excluded_tracers
+
+              assert_includes excluded_tracers, 'elasticsearch-api', 'elasticsearch-api should be in default excludes'
+              assert_includes excluded_tracers, 'dalli', 'dalli should be in default excludes'
+            end
+          end
+
+          def test_configured_include_overrides_default_exclude
+            with_config(
+              :'opentelemetry.traces.exclude' => '',
+              :'opentelemetry.traces.include' => 'elasticsearch-api'
+            ) do
+              excluded_tracers = @tracer_provider.excluded_tracers
+
+              refute_includes excluded_tracers, 'elasticsearch-api', 'elasticsearch-api should not be excluded when in include list (overrides default)'
+              assert_includes excluded_tracers, 'dalli', 'dalli should still be excluded by default'
+            end
+          end
+
+          def test_configured_include_allows_default_excluded_tracer
+            with_config(
+              :'opentelemetry.traces.exclude' => '',
+              :'opentelemetry.traces.include' => 'dalli'
+            ) do
+              tracer = @tracer_provider.tracer('dalli')
+
               assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Tracer, tracer
+            end
+          end
+
+          def test_configured_exclude_combined_with_default_excludes
+            with_config(
+              :'opentelemetry.traces.exclude' => 'MyTracer',
+              :'opentelemetry.traces.include' => 'elasticsearch-api'
+            ) do
+              excluded_tracers = @tracer_provider.excluded_tracers
+
+              assert_includes excluded_tracers, 'MyTracer', 'MyTracer should be excluded (configured exclude)'
+              refute_includes excluded_tracers, 'elasticsearch-api', 'elasticsearch-api should not be excluded (configured include overrides default)'
+              assert_includes excluded_tracers, 'dalli', 'dalli should be excluded (default exclude)'
             end
           end
 

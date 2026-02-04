@@ -5,6 +5,8 @@
 module NewRelic
   module Agent
     class OpenTelemetryBridge
+      DEFAULT_EXCLUDED_TRACERS = %w[elasticsearch-api dalli].freeze
+
       def initialize
         # currently, we only have support for traces
         # this method should change when we add support for metrics and logs.
@@ -33,13 +35,21 @@ module NewRelic
         install_instrumentation
       end
 
+      def self.calculate_excluded_tracers
+        excluded_names = NewRelic::Agent.config[:'opentelemetry.traces.exclude'].split(',').map(&:strip)
+        included_names = NewRelic::Agent.config[:'opentelemetry.traces.include'].split(',').map(&:strip)
+
+        # Priority order (highest to lowest):
+        # 1. Configured exclude list - always excluded
+        # 2. Configured include list - overrides default exclude
+        # 3. Default exclude list - excluded unless overridden by configured include
+        excluded_names + (DEFAULT_EXCLUDED_TRACERS - included_names)
+      end
+
       def self.install_instrumentation
         return unless defined?(::OpenTelemetry::Instrumentation::Registry)
 
-        # Cache the exclude list computation - do string splits once
-        excluded_names = NewRelic::Agent.config[:'opentelemetry.traces.exclude'].split(',').map(&:strip)
-        included_names = NewRelic::Agent.config[:'opentelemetry.traces.include'].split(',').map(&:strip)
-        excluded_set = (excluded_names - included_names).to_set
+        excluded_set = calculate_excluded_tracers.to_set
 
         return ::OpenTelemetry::Instrumentation.registry.install_all if excluded_set.empty?
 
