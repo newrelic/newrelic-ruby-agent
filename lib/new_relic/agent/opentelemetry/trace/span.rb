@@ -18,6 +18,7 @@ module NewRelic
           def update_client_span
             if finishable.is_a?(NewRelic::Agent::Transaction::ExternalRequestSegment) &&
                 finishable.http_status_code.nil?
+              # TODO: Delete duplicate attrs from custom attributes
               finishable_attrs = finishable.attributes.custom_attributes
               code = finishable_attrs['http.response.status_code'] || finishable_attrs['http.status_code']
 

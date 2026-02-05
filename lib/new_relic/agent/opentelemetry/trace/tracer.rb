@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../segments/http_external'
+require_relative '../segments/datastore'
 
 module NewRelic
   module Agent
@@ -10,6 +11,7 @@ module NewRelic
       module Trace
         class Tracer < ::OpenTelemetry::Trace::Tracer
           include NewRelic::Agent::OpenTelemetry::Segments::HttpExternal
+          include NewRelic::Agent::OpenTelemetry::Segments::Datastore
 
           VALID_KINDS = [:server, :client, :consumer, :producer, :internal, nil].freeze
           KINDS_THAT_START_TRANSACTIONS = %i[server consumer].freeze
@@ -65,11 +67,11 @@ module NewRelic
             end
           end
 
-          # TODO: Database client spans also have the :client kind
-          # We need to add logic to differentiate between HTTP and DB client spans
-          # and start the appropriate segment type
           def start_otel_client_segment(name:, attributes: nil, start_timestamp: nil, kind: nil)
             attributes = NewRelic::EMPTY_HASH if attributes.nil?
+
+            return start_db_client_segment(name: name, attributes: attributes) if attributes.key?('db.system')
+
             uri = create_uri(attributes)
 
             # We need to have a URI to create an External Request Segment
@@ -84,6 +86,26 @@ module NewRelic
               start_time: start_timestamp,
               parent: nil
             )
+          end
+
+          # TODO: Connection spans from PG instrumentation don't have
+          # db.system attributes until after they've started,
+          # so they won't be datastore segments.
+          def start_db_client_segment(name:, attributes:, start_timestamp: nil)
+            operation = parse_operation(name, attributes)
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: attributes['db.system'],
+              operation: operation,
+              collection: attributes['db.collection.name'],
+              host: attributes['net.peer.name'],
+              port_path_or_id: attributes['net.peer.port'],
+              database_name: attributes['db.name'],
+              start_time: start_timestamp
+            )
+
+            segment._notice_sql(attributes['db.statement'])
+
+            segment
           end
 
           def start_transaction_from_otel(name, parent_otel_context, kind)
