@@ -301,6 +301,32 @@ module NewRelic::Agent
       end
     end
 
+    def test_uses_sequential_detection_when_detect_in_parallel_is_disabled
+      stub_aws_info
+
+      with_config(:'utilization.detect_in_parallel' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+
+        utilization_data.expects(:detect_vendors_sequential).once
+        utilization_data.expects(:detect_vendors_parallel).never
+
+        utilization_data.to_collector_hash
+      end
+    end
+
+    def test_uses_parallel_detection_when_detect_in_parallel_is_enabled
+      stub_aws_info
+
+      with_config(:'utilization.detect_in_parallel' => true, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+
+        utilization_data.expects(:detect_vendors_parallel).once
+        utilization_data.expects(:detect_vendors_sequential).never
+
+        utilization_data.to_collector_hash
+      end
+    end
+
     # ---
 
     def stub_aws_info(response_code: '200', response_body: default_aws_response)

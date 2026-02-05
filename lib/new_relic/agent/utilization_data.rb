@@ -87,6 +87,8 @@ module NewRelic
       end
 
       def detect_ecs_vendor(collector_hash)
+        return unless Agent.config[:'utilization.detect_aws']
+
         # try v4 first, and only try unversioned endpoint if v4 fails
         ecs = Utilization::ECSV4.new
         if ecs.detect
@@ -101,23 +103,12 @@ module NewRelic
         end
       end
 
-      def append_ecs_info(collector_hash)
-        return unless Agent.config[:'utilization.detect_aws']
-
-        if Agent.config[:'utilization.detect_in_parallel']
-          Thread.new { detect_ecs_vendor(collector_hash) }
-        else
-          detect_ecs_vendor(collector_hash)
-          nil
-        end
-      end
-
       def detect_vendors_parallel(collector_hash)
         threads = []
         complete = false
 
         # ecs needs be checked even if AWS check succeeds
-        ecs_thread = append_ecs_info(collector_hash)
+        ecs_thread = Thread.new { detect_ecs_vendor(collector_hash) }
 
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
@@ -141,7 +132,8 @@ module NewRelic
       end
 
       def detect_vendors_sequential(collector_hash)
-        append_ecs_info(collector_hash)
+        detect_ecs_vendor(collector_hash)
+
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
 
