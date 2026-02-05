@@ -86,26 +86,33 @@ module NewRelic
         result
       end
 
-      def append_ecs_info(collector_hash)
-        return unless Agent.config[:'utilization.detect_aws']
-
-        Thread.new do
-          # try v4 first, and only try unversioned endpoint if v4 fails
-          ecs = Utilization::ECSV4.new
+      def detect_ecs_vendor(collector_hash)
+        # try v4 first, and only try unversioned endpoint if v4 fails
+        ecs = Utilization::ECSV4.new
+        if ecs.detect
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:ecs] = ecs.metadata
+        else
+          ecs = Utilization::ECS.new
           if ecs.detect
             collector_hash[:vendors] ||= {}
             collector_hash[:vendors][:ecs] = ecs.metadata
-          else
-            ecs = Utilization::ECS.new
-            if ecs.detect
-              collector_hash[:vendors] ||= {}
-              collector_hash[:vendors][:ecs] = ecs.metadata
-            end
           end
         end
       end
 
-      def append_vendor_info(collector_hash)
+      def append_ecs_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_aws']
+
+        if Agent.config[:'utilization.detect_in_parallel']
+          Thread.new { detect_ecs_vendor(collector_hash) }
+        else
+          detect_ecs_vendor(collector_hash)
+          nil
+        end
+      end
+
+      def detect_vendors_parallel(collector_hash)
         threads = []
         complete = false
 
@@ -131,6 +138,29 @@ module NewRelic
           sleep 0.01
         end
         ecs_thread&.join
+      end
+
+      def detect_vendors_sequential(collector_hash)
+        append_ecs_info(collector_hash)
+        VENDORS.each_pair do |klass, config_option|
+          next unless Agent.config[config_option]
+
+          vendor = klass.new
+
+          if vendor.detect
+            collector_hash[:vendors] ||= {}
+            collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
+            break
+          end
+        end
+      end
+
+      def append_vendor_info(collector_hash)
+        if Agent.config[:'utilization.detect_in_parallel']
+          detect_vendors_parallel(collector_hash)
+        else
+          detect_vendors_sequential(collector_hash)
+        end
       end
 
       def append_docker_info(collector_hash)
