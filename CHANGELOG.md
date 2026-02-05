@@ -6,6 +6,10 @@
 
   A new configuration option has been added, `error_collector.backtrace_truncate_location`, which allows the user to specify where in the backtrace to truncate when the number of frames exceeds `error_collector.max_backtrace_frames`. Options are `'top'` (removes frames from the beginning), `'middle'` (removes frames from the middle, preserving the beginning and end), or `'end'` (removes frames from the end). The default is `'middle'`. [PR#3424](https://github.com/newrelic/newrelic-ruby-agent/pull/3424)
 
+- **Feature: Add configuration option utilization.detect_in_parallel**
+
+  A new configuration option has been added, `utilization.detect_in_parallel`, which controls whether the agent uses threads when detecting cloud vendor information to speed up agent startup. When set to `false`, vendor detection runs sequentially without creating threads. The default is `true`. [PR#3439](https://github.com/newrelic/newrelic-ruby-agent/pull/3439)
+
 ## v10.1.0
 
 - **Feature: Add support for forking processes in Parallel gem instrumentation**
