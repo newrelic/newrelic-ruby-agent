@@ -5,7 +5,11 @@
 module NewRelic
   module Agent
     class OpenTelemetryBridge
-      DEFAULT_EXCLUDED_TRACERS = %w[elasticsearch-api dalli].freeze
+            # Exclude tracers from native OTel instrumentation by default to prevent double-reporting.
+            # Affects libraries that the Ruby agent already instruments automatically.
+            # Can be overridden via the opentelemetry.traces.include configuration.
+            # https://opentelemetry.io/ecosystem/registry/?language=ruby&flag=native
+            DEFAULT_EXCLUDED_TRACERS = %w[elasticsearch-api dalli].freeze
 
       def initialize(events)
         # currently, we only have support for traces
