@@ -48,4 +48,5 @@ typhoeus
 unicorn
 view_component
 yajl-ruby
+logging
 parallel

@@ -1,0 +1,18 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+logging_versions = [
+  [nil, 2.7],
+  ['2.3.0', 2.6] # logging 2.3.0 is the earliest version to support Ruby 2.6
+]
+
+def gem_list(logging_versions = nil)
+  <<~RB
+    gem 'logging'#{logging_versions}
+  RB
+end
+
+create_gemfiles(logging_versions)
