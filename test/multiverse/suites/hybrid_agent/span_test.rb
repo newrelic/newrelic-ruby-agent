@@ -160,39 +160,171 @@ module NewRelic
           def test_status_works_with_description
             span = @tracer.start_span('oops', kind: :server)
             span.status = ::OpenTelemetry::Trace::Status.error('Something went wrong')
-            span.finishable.stubs(:sampled?).returns(true)
+            txn = span.finishable
+
+            txn.stubs(:sampled?).returns(true)
             span.finish
 
             # error is code 2
             expected = {'status.code' => 2, 'status.description' => 'Something went wrong'}
 
-            assert_equal expected, last_span_event[1]
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal expected['status.code'], segment_agent_attrs['status.code']
+            assert_equal expected['status.description'], segment_agent_attrs['status.description']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal expected['status.code'], last_span_agent_attrs['status.code']
+            assert_equal expected['status.description'], last_span_agent_attrs['status.description']
           end
 
           def test_status_works_without_description
             span = @tracer.start_span('sleepy puppy', kind: :server)
+            txn = span.finishable
             span.status = ::OpenTelemetry::Trace::Status.ok
-            span.finishable.stubs(:sampled?).returns(true)
+
+            txn.stubs(:sampled?).returns(true)
             span.finish
 
             # ok is status code 0
             expected = {'status.code' => 0}
 
-            assert_equal expected, last_span_event[1]
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal expected['status.code'], segment_agent_attrs['status.code']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal expected['status.code'], last_span_agent_attrs['status.code']
           end
 
           def test_default_status_is_unset
             span = @tracer.start_span('advil', kind: :server)
+            txn = span.finishable
 
             assert_instance_of(::OpenTelemetry::Trace::Status, span.status)
             # unset is status code 1
             assert_equal(1, span.status.code)
 
+            txn.stubs(:sampled?).returns(true)
             span.finish
 
             expected = {'status.code' => 1}
 
-            assert_equal expected, last_span_event[1]
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal expected['status.code'], segment_agent_attrs['status.code']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal expected['status.code'], last_span_agent_attrs['status.code']
+          end
+
+          def test_transaction_returns_transaction_when_finishable_is_transaction
+            span = @tracer.start_span('test', kind: :server)
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+            assert_equal span.finishable, span.transaction
+
+            span.finish
+          end
+
+          def test_transaction_returns_transaction_when_finishable_is_segment
+            in_transaction do |txn|
+              span = @tracer.start_span('test_segment')
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+              assert_equal txn, span.transaction
+
+              span.finish
+            end
+          end
+
+          def test_transaction_memoizes_result
+            span = @tracer.start_span('test', kind: :server)
+            txn = span.finishable
+
+            first_call = span.transaction
+            second_call = span.transaction
+
+            assert_equal txn, first_call
+            assert_equal txn, second_call
+            assert_same first_call, second_call
+
+            span.finish
+          end
+
+          def test_transaction_returns_nil_when_finishable_is_nil
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.finishable
+            assert_nil span.transaction
+          end
+
+          def test_add_instrumentation_scope_adds_name_and_version_attributes
+            scope_name = 'my-instrumentation-library'
+            scope_version = '1.2.3'
+
+            span = @tracer.start_span('test', kind: :server)
+            txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
+
+            span.add_instrumentation_scope(scope_name, scope_version)
+            span.finish
+
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal scope_name, segment_agent_attrs['otel.scope.name']
+            assert_equal scope_version, segment_agent_attrs['otel.scope.version']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal scope_name, last_span_agent_attrs['otel.scope.name']
+            assert_equal scope_version, last_span_agent_attrs['otel.scope.version']
+          end
+
+          def test_add_instrumentation_scope_works_with_segment_finishable
+            scope_name = 'segment-instrumentation'
+            scope_version = '2.0.0'
+
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              span = @tracer.start_span('test_segment')
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+
+              span.add_instrumentation_scope(scope_name, scope_version)
+              span.finish
+
+              segment_attrs = txn.segments[1].attributes
+              segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+              assert_equal scope_name, segment_agent_attrs['otel.scope.name']
+              assert_equal scope_version, segment_agent_attrs['otel.scope.version']
+            end
+          end
+
+          def test_add_instrumentation_scope_does_not_fail_with_nil_transaction
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.transaction
+            refute_raises { span.add_instrumentation_scope('test-scope', '1.0.0') }
+          end
+
+          def test_status_does_not_fail_with_nil_transaction
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.transaction
+            refute_raises { span.status = ::OpenTelemetry::Trace::Status.ok }
           end
         end
       end

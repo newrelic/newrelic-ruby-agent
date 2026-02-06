@@ -277,14 +277,23 @@ module NewRelic
         keep_frames ||= Agent.config[:'error_collector.max_backtrace_frames']
         return trace if !keep_frames || trace.length < keep_frames || trace.length == 0
 
-        # If keep_frames is odd, we will split things up favoring the top of the trace
-        keep_top = (keep_frames / 2.0).ceil
-        keep_bottom = (keep_frames / 2.0).floor
-
         truncate_frames = trace.length - keep_frames
+        truncate_location = Agent.config[:'error_collector.backtrace_truncate_location']
 
-        truncated_trace = trace[0...keep_top].concat(["<truncated #{truncate_frames.to_s} additional frames>"]).concat(trace[-keep_bottom..-1])
-        truncated_trace
+        case truncate_location
+        when 'top'
+          # Remove the beginning, keep the end
+          trace[-keep_frames..-1].unshift("<truncated #{truncate_frames} additional frames>")
+        when 'end'
+          # Remove the end, keep the beginning
+          trace[0...keep_frames].concat(["<truncated #{truncate_frames} additional frames>"])
+        else # 'middle' or default (original behavior)
+          # Remove the middle, keep beginning and end
+          # If keep_frames is odd, we will split things up favoring the top of the trace
+          keep_top = (keep_frames / 2.0).ceil
+          keep_bottom = (keep_frames / 2.0).floor
+          trace[0...keep_top].concat(["<truncated #{truncate_frames} additional frames>"]).concat(trace[-keep_bottom..-1])
+        end
       end
 
       def create_noticed_error(exception, options)

@@ -45,7 +45,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: run 1st version
         uses: ./.github/actions/run_perfverse
@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: run 2nd version
         uses: ./.github/actions/run_perfverse
@@ -79,7 +79,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: run 3rd version
         uses: ./.github/actions/run_perfverse
@@ -96,7 +96,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: run 4th version
         uses: ./.github/actions/run_perfverse
@@ -114,7 +114,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: run agent disabled version
         uses: ./.github/actions/run_perfverse
@@ -132,7 +132,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
       - name: create dirs
         run: |
