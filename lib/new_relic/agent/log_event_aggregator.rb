@@ -230,7 +230,7 @@ module NewRelic
 
       def add_mdc_data_to_event(event, mdc_data)
         mdc_data.each do |key, value|
-          event["mdc.#{key}"] = value
+          event["context.mdc.#{key}"] = value
         end
       rescue => e
         NewRelic::Agent.logger.debug("Failed to add Logging MDC data to event: #{e.message}")

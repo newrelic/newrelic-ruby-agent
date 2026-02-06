@@ -176,8 +176,8 @@ class LoggingInstrumentationTest < Minitest::Test
     end
     _, events = @aggregator.harvest!
 
-    assert_equal '12345', events[0][1]['mdc.user_id']
-    assert_equal 'abc-def', events[0][1]['mdc.request_id']
+    assert_equal '12345', events[0][1]['context.mdc.user_id']
+    assert_equal 'abc-def', events[0][1]['context.mdc.request_id']
   end
 
   def test_multiple_appenders_record_one_event
