@@ -76,7 +76,7 @@ module NewRelic
             txn = txns[1][0]
             intrinsics = txn[0]
 
-            assert_equal 'Controller/OTelClient/potatoes.com/GET /sustainable-spuds', intrinsics['name']
+            assert_equal 'Controller/OTelClient/GET /sustainable-spuds', intrinsics['name']
           end
 
           def test_server_old_transaction_metrics
@@ -85,9 +85,9 @@ module NewRelic
             # TODO: dunno what these should be either
             assert_metrics_recorded([
               'HttpDispatcher',
-              'Controller/OTelClient/potatoes.com/GET /sustainable-spuds',
+              'Controller/OTelClient/GET /sustainable-spuds',
               'WebTransactionTotalTime',
-              'WebTransactionTotalTime/Controller/OTelClient/potatoes.com/GET /sustainable-spuds'
+              'WebTransactionTotalTime/Controller/OTelClient/GET /sustainable-spuds'
             ])
           end
 
@@ -147,7 +147,7 @@ module NewRelic
             txn = txns[1][0]
             intrinsics = txn[0]
 
-            assert_equal 'Controller/OTelClient/potatoes.com/GET /sustainable-spuds', intrinsics['name']
+            assert_equal 'Controller/OTelClient/GET /sustainable-spuds', intrinsics['name']
           end
 
           def test_server_stable_transaction_metrics
@@ -155,9 +155,9 @@ module NewRelic
 
             assert_metrics_recorded([
               'HttpDispatcher',
-              'Controller/OTelClient/potatoes.com/GET /sustainable-spuds',
+              'Controller/OTelClient/GET /sustainable-spuds',
               'WebTransactionTotalTime',
-              'WebTransactionTotalTime/Controller/OTelClient/potatoes.com/GET /sustainable-spuds'
+              'WebTransactionTotalTime/Controller/OTelClient/GET /sustainable-spuds'
             ])
           end
 

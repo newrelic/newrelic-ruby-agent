@@ -115,7 +115,7 @@ module NewRelic
 
             case kind
             when :server
-              name = set_server_transaction_name(name, @name, attributes)
+              name = create_server_transaction_name(name, @name, attributes)
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web, options: {request: attributes})
               update_request_attributes(nr_item, attributes)
             when :client

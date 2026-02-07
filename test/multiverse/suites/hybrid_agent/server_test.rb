@@ -13,66 +13,52 @@ module NewRelic
         @test_instance = TestClass.new
       end
 
-      def test_set_server_transaction_name_with_stable_attributes
+      def teardown
+        mocha_teardown
+      end
+
+      def test_create_server_transaction_name_with_stable_attributes
         original_name = 'GET'
         tracer_name = 'MyTracer'
         attributes = {
-          'server.address' => 'example.com',
           'http.request.method' => 'GET',
           'url.path' => '/api/users'
         }
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
 
-        assert_equal 'Controller/MyTracer/example.com/GET /api/users', result
+        assert_equal 'Controller/MyTracer/GET /api/users', result
       end
 
-      def test_set_server_transaction_name_with_old_attributes
+      def test_create_server_transaction_name_with_old_attributes
         original_name = 'HTTP GET'
         tracer_name = 'MyTracer'
         attributes = {
-          'http.host' => 'example.com',
           'http.method' => 'POST',
           'http.target' => '/api/posts'
         }
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
 
-        assert_equal 'Controller/MyTracer/example.com/POST /api/posts', result
+        assert_equal 'Controller/MyTracer/POST /api/posts', result
       end
 
-      def test_set_server_transaction_name_prefers_stable_attributes
+      def test_create_server_transaction_name_prefers_stable_attributes
         original_name = 'GET'
         tracer_name = 'MyTracer'
-        # Mix of stable and old attributes - stable should be preferred
         attributes = {
-          'server.address' => 'stable.example.com',
-          'http.host' => 'old.example.com',
           'http.request.method' => 'PUT',
           'http.method' => 'GET',
           'url.path' => '/stable/path',
           'http.target' => '/old/path'
         }
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
 
-        assert_equal 'Controller/MyTracer/stable.example.com/PUT /stable/path', result
+        assert_equal 'Controller/MyTracer/PUT /stable/path', result
       end
 
-      def test_set_server_transaction_name_returns_original_when_host_missing
-        original_name = 'GET'
-        tracer_name = 'MyTracer'
-        attributes = {
-          'http.request.method' => 'GET',
-          'url.path' => '/api/users'
-        }
-
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
-
-        assert_equal original_name, result
-      end
-
-      def test_set_server_transaction_name_returns_original_when_method_missing
+      def test_create_server_transaction_name_returns_original_when_method_missing
         original_name = 'GET'
         tracer_name = 'MyTracer'
         attributes = {
@@ -80,48 +66,47 @@ module NewRelic
           'url.path' => '/api/users'
         }
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal original_name, result
       end
 
-      def test_set_server_transaction_name_returns_original_when_path_missing
+      def test_create_server_transaction_name_returns_original_when_path_missing
         original_name = 'GET'
         tracer_name = 'MyTracer'
         attributes = {
-          'server.address' => 'example.com',
           'http.request.method' => 'GET'
         }
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal original_name, result
       end
 
-      def test_set_server_transaction_name_returns_original_when_all_missing
-        original_name = 'GET'
+      def test_create_server_transaction_name_returns_original_when_all_missing
+        original_name = 'HTTP GET'
         tracer_name = 'MyTracer'
         attributes = {}
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, attributes)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal original_name, result
       end
 
-      def test_set_server_transaction_name_with_nil_attributes
+      def test_create_server_transaction_name_with_nil_attributes
         original_name = 'GET'
         tracer_name = 'MyTracer'
 
-        result = @test_instance.set_server_transaction_name(original_name, tracer_name, nil)
+        result = @test_instance.create_server_transaction_name(original_name, tracer_name, nil)
 
         assert_equal original_name, result
       end
 
-      # update_request_attributes tests
-
       def test_update_request_attributes_with_stable_attributes
+        # A :request key must be in the options hash to create an instance of
+        # RequestAttributes for the trasaction when it starts
         txn = in_transaction(request: {}) do |t|
-          t
+          t.stubs(:sampled?).returns(true)
         end
 
         attributes = {
@@ -142,8 +127,10 @@ module NewRelic
       end
 
       def test_update_request_attributes_with_old_attributes
+        # A :request key must be in the options hash to create an instance of
+        # RequestAttributes for the trasaction when it starts
         txn = in_transaction(request: {}) do |t|
-          t
+          t.stubs(:sampled?).returns(true)
         end
 
         attributes = {
@@ -164,8 +151,10 @@ module NewRelic
       end
 
       def test_update_request_attributes_prefers_stable_attributes
+        # A :request key must be in the options hash to create an instance of
+        # RequestAttributes for the trasaction when it starts
         txn = in_transaction(request: {}) do |t|
-          t
+          t.stubs(:sampled?).returns(true)
         end
 
         # Mix of stable and old attributes - stable should be preferred
@@ -191,8 +180,10 @@ module NewRelic
       end
 
       def test_update_request_attributes_with_partial_attributes
+        # A :request key must be in the options hash to create an instance of
+        # RequestAttributes for the trasaction when it starts
         txn = in_transaction(request: {}) do |t|
-          t
+          t.stubs(:sampled?).returns(true)
         end
 
         request_attributes = txn.instance_variable_get(:@request_attributes)
@@ -210,12 +201,14 @@ module NewRelic
         assert_equal 'DELETE', request_attributes.instance_variable_get(:@request_method)
 
         assert_equal original_path, request_attributes.instance_variable_get(:@request_path)
-        assert_equal original_user_agent, request_attributes.instance_variable_get(:@user_agent)
+        assert_nil request_attributes.instance_variable_get(:@user_agent)
       end
 
       def test_update_request_attributes_with_nil_attributes
+        # A :request key must be in the options hash to create an instance of
+        # RequestAttributes for the trasaction when it starts
         txn = in_transaction(request: {}) do |t|
-          t
+          t.stubs(:sampled?).returns(true)
         end
 
         @test_instance.update_request_attributes(txn, nil)

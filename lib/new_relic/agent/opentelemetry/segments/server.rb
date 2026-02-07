@@ -7,16 +7,22 @@ module NewRelic
     module OpenTelemetry
       module Segments
         module Server
-          def set_server_transaction_name(original_name, tracer_name, attributes)
+          def create_server_transaction_name(original_name, tracer_name, attributes)
             attributes ||= NewRelic::EMPTY_HASH
-            host = attributes['server.address'] || attributes['http.host']
             method = attributes['http.request.method'] || attributes['http.method']
             path = attributes['url.path'] || attributes['http.target']
 
-            if [host, method, path].any?(&:nil?)
-              original_name
+            if method && path
+              # TransactionNamer.name_for is used in ControllerInstrumentation
+              # This will produce a name that looks something like:
+              # "Controller/OpenTelemetry::Instrumentation::Rack/GET /path"
+              # "method /path" is roughly what the semantic conventions have for
+              # a server span name in the stable conventions, but the old
+              # conventions prefix with HTTP; so we create the string
+              # ourselves until only the stable conventions are used
+              Instrumentation::ControllerInstrumentation::TransactionNamer.name_for(nil, nil, :web, {class_name: tracer_name, name: "#{method} #{path}"})
             else
-              "Controller/#{tracer_name}/#{host}/#{method} #{path}"
+              original_name
             end
           end
 
