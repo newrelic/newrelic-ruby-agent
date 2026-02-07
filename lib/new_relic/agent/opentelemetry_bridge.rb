@@ -5,11 +5,46 @@
 module NewRelic
   module Agent
     class OpenTelemetryBridge
-      # Exclude tracers from native OTel instrumentation by default to prevent double-reporting.
+      # Exclude tracers by default to prevent double-reporting.
       # Affects libraries that the Ruby agent already instruments automatically.
       # Can be overridden via the opentelemetry.traces.include configuration.
       # https://opentelemetry.io/ecosystem/registry/?language=ruby&flag=native
-      DEFAULT_EXCLUDED_TRACERS = %w[elasticsearch-api dalli].freeze
+      DEFAULT_EXCLUDED_TRACERS = %w[
+        elasticsearch-api
+        dalli
+        OpenTelemetry::Instrumentation::ActionMailer
+        OpenTelemetry::Instrumentation::ActionPack
+        OpenTelemetry::Instrumentation::ActionView
+        OpenTelemetry::Instrumentation::ActiveJob
+        OpenTelemetry::Instrumentation::ActiveRecord
+        OpenTelemetry::Instrumentation::ActiveStorage
+        OpenTelemetry::Instrumentation::ActiveSupport
+        OpenTelemetry::Instrumentation::AwsLambda
+        OpenTelemetry::Instrumentation::AwsSdk
+        OpenTelemetry::Instrumentation::Bunny
+        OpenTelemetry::Instrumentation::ConcurrentRuby
+        OpenTelemetry::Instrumentation::Dalli
+        OpenTelemetry::Instrumentation::Ethon
+        OpenTelemetry::Instrumentation::Excon
+        OpenTelemetry::Instrumentation::Grape
+        OpenTelemetry::Instrumentation::GraphQL
+        OpenTelemetry::Instrumentation::Grpc
+        OpenTelemetry::Instrumentation::HTTP
+        OpenTelemetry::Instrumentation::HttpClient
+        OpenTelemetry::Instrumentation::HTTPX
+        OpenTelemetry::Instrumentation::Logger
+        OpenTelemetry::Instrumentation::Mongo
+        OpenTelemetry::Instrumentation::NetHTTP
+        OpenTelemetry::Instrumentation::Rack
+        OpenTelemetry::Instrumentation::Rails
+        OpenTelemetry::Instrumentation::Rake
+        OpenTelemetry::Instrumentation::Rdkafka
+        OpenTelemetry::Instrumentation::Redis
+        OpenTelemetry::Instrumentation::Resque
+        OpenTelemetry::Instrumentation::RubyKafka
+        OpenTelemetry::Instrumentation::Sidekiq
+        OpenTelemetry::Instrumentation::Sinatra
+      ].freeze
 
       def initialize(events)
         # currently, we only have support for traces
