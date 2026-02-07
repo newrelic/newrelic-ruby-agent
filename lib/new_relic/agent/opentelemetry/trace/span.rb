@@ -16,6 +16,9 @@ module NewRelic
             finishable&.finish
           end
 
+          # TODO: This method can probably be combined with update_client_span
+          # and turned into something more generic when we refactor the way
+          # attributes are stored on NR items
           def update_server_span
             if finishable.is_a?(NewRelic::Agent::Transaction) && finishable.category == :web
               finishable_segment_attrs = finishable.segments.first.attributes.custom_attributes

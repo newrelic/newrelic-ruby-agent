@@ -17,6 +17,13 @@ module NewRelic
             NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
+          # The Agent Spec for attribute translation has specific version
+          # numbers it uses. Ruby's semantic conventions for HTTP don't exactly
+          # align with those versions.
+          # Our agent will instead translate the "old" and "stable" semconv
+          # versions used by the OTEL_SEMCONV_STABILITY_OPT_IN environment
+          # variable.
+          #
           # These attributes match what appear in a Rack request using old semconv
           def old_name
             'HTTP GET'
@@ -82,7 +89,6 @@ module NewRelic
           def test_server_old_transaction_metrics
             run_server_transaction(old_name, old_req_attrs, old_res_attrs)
 
-            # TODO: dunno what these should be either
             assert_metrics_recorded([
               'HttpDispatcher',
               'Controller/OTelClient/GET /sustainable-spuds',

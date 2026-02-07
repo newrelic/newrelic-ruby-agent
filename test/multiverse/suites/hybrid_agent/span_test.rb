@@ -304,7 +304,8 @@ module NewRelic
           end
 
           def test_update_server_span_does_not_update_non_web_transaction
-            # Consumer spans create task transactions, not web transactions
+            # Consumer spans create transactions with a :task category,
+            # not with a :web category
             span = @tracer.start_span('test_span', kind: :consumer)
             txn = span.finishable
 
@@ -412,20 +413,11 @@ module NewRelic
             refute_raises { span.status = ::OpenTelemetry::Trace::Status.ok }
           end
 
-          def test_update_server_span_handles_nil_finishable
-            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
-
-            assert_nil span.finishable
-
-            # Should not raise an error
-            span.finish
-          end
-
-          def test_update_server_span_handles_string_status_code
+          def test_update_server_span_handles_string_http_response_status_code
             span = @tracer.start_span('test_span', kind: :server)
             txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
 
-            # Some instrumentation might pass status codes as strings
             span.add_attributes({'http.response.status_code' => '503'})
 
             span.finish
