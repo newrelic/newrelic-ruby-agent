@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'he
 
 # Dalli
 DALLI_VERSIONS = [
-  [nil],
+  ['< 5.0'],
   ['= 3.1.0']
 ]
 def gem_list(version = nil)
