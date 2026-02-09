@@ -6,9 +6,9 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class TransactionPatchTest < Minitest::Test
-        def teardown
-          NewRelic::Agent.instance.transaction_event_aggregator.reset!
-          NewRelic::Agent.instance.span_event_aggregator.reset!
+        def setup
+          harvest_transaction_events!
+          harvest_span_events!
         end
 
         # We want to verify the context switching works for both OTel and NR

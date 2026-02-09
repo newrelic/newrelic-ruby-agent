@@ -11,6 +11,7 @@ module NewRelic
 
       def setup
         @test_instance = TestClass.new
+        harvest_transaction_events!
       end
 
       def teardown

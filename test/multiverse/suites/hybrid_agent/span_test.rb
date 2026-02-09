@@ -13,12 +13,12 @@ module NewRelic
 
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
+            harvest_transaction_events!
+            harvest_span_events!
           end
 
           def teardown
             mocha_teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           def test_finish_does_not_fail_if_no_finishable_present

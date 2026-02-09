@@ -9,12 +9,12 @@ module NewRelic
         class DbMappingTest < Minitest::Test
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('OTelClient')
+            harvest_span_events!
+            harvest_transaction_events!
           end
 
           def teardown
             mocha_teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           def db_attrs

@@ -9,12 +9,12 @@ module NewRelic
         class ServerMappingTest < Minitest::Test
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('OTelClient')
+            harvest_transaction_events!
+            harvest_span_events!
           end
 
           def teardown
             mocha_teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           # The Agent Spec for attribute translation has specific version
