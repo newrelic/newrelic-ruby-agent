@@ -1,5 +1,5 @@
 ARG RUBY_VERSION=3.3.3
-FROM registry.docker.com/library/ruby:$RUBY_VERSION as base
+FROM registry.docker.com/library/ruby:$RUBY_VERSION AS base
 
 ARG AGENT_VERSION
 
