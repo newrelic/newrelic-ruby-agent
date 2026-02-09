@@ -12,38 +12,38 @@ module NewRelic
       DEFAULT_EXCLUDED_TRACERS = %w[
         elasticsearch-api
         dalli
-        OpenTelemetry::Instrumentation::ActionMailer
-        OpenTelemetry::Instrumentation::ActionPack
-        OpenTelemetry::Instrumentation::ActionView
-        OpenTelemetry::Instrumentation::ActiveJob
-        OpenTelemetry::Instrumentation::ActiveRecord
-        OpenTelemetry::Instrumentation::ActiveStorage
-        OpenTelemetry::Instrumentation::ActiveSupport
-        OpenTelemetry::Instrumentation::AwsLambda
-        OpenTelemetry::Instrumentation::AwsSdk
-        OpenTelemetry::Instrumentation::Bunny
-        OpenTelemetry::Instrumentation::ConcurrentRuby
-        OpenTelemetry::Instrumentation::Dalli
-        OpenTelemetry::Instrumentation::Ethon
-        OpenTelemetry::Instrumentation::Excon
-        OpenTelemetry::Instrumentation::Grape
-        OpenTelemetry::Instrumentation::GraphQL
-        OpenTelemetry::Instrumentation::Grpc
-        OpenTelemetry::Instrumentation::HTTP
-        OpenTelemetry::Instrumentation::HttpClient
-        OpenTelemetry::Instrumentation::HTTPX
-        OpenTelemetry::Instrumentation::Logger
-        OpenTelemetry::Instrumentation::Mongo
-        OpenTelemetry::Instrumentation::NetHTTP
-        OpenTelemetry::Instrumentation::Rack
-        OpenTelemetry::Instrumentation::Rails
-        OpenTelemetry::Instrumentation::Rake
-        OpenTelemetry::Instrumentation::Rdkafka
-        OpenTelemetry::Instrumentation::Redis
-        OpenTelemetry::Instrumentation::Resque
-        OpenTelemetry::Instrumentation::RubyKafka
-        OpenTelemetry::Instrumentation::Sidekiq
-        OpenTelemetry::Instrumentation::Sinatra
+        OpenTelemetry::Instrumentation::ActionMailer::Instrumentation
+        OpenTelemetry::Instrumentation::ActionPack::Instrumentation
+        OpenTelemetry::Instrumentation::ActionView::Instrumentation
+        OpenTelemetry::Instrumentation::ActiveJob::Instrumentation
+        OpenTelemetry::Instrumentation::ActiveRecord::Instrumentation
+        OpenTelemetry::Instrumentation::ActiveStorage::Instrumentation
+        OpenTelemetry::Instrumentation::ActiveSupport::Instrumentation
+        OpenTelemetry::Instrumentation::AwsLambda::Instrumentation
+        OpenTelemetry::Instrumentation::AwsSdk::Instrumentation
+        OpenTelemetry::Instrumentation::Bunny::Instrumentation
+        OpenTelemetry::Instrumentation::ConcurrentRuby::Instrumentation
+        OpenTelemetry::Instrumentation::Dalli::Instrumentation
+        OpenTelemetry::Instrumentation::Ethon::Instrumentation
+        OpenTelemetry::Instrumentation::Excon::Instrumentation
+        OpenTelemetry::Instrumentation::Grape::Instrumentation
+        OpenTelemetry::Instrumentation::GraphQL::Instrumentation
+        OpenTelemetry::Instrumentation::Grpc::Instrumentation
+        OpenTelemetry::Instrumentation::HTTP::Instrumentation
+        OpenTelemetry::Instrumentation::HttpClient::Instrumentation
+        OpenTelemetry::Instrumentation::HTTPX::Instrumentation
+        OpenTelemetry::Instrumentation::Logger::Instrumentation
+        OpenTelemetry::Instrumentation::Mongo::Instrumentation
+        OpenTelemetry::Instrumentation::Net::HTTP::Instrumentation
+        OpenTelemetry::Instrumentation::Rack::Instrumentation
+        OpenTelemetry::Instrumentation::Rails::Instrumentation
+        OpenTelemetry::Instrumentation::Rake::Instrumentation
+        OpenTelemetry::Instrumentation::Rdkafka::Instrumentation
+        OpenTelemetry::Instrumentation::Redis::Instrumentation
+        OpenTelemetry::Instrumentation::Resque::Instrumentation
+        OpenTelemetry::Instrumentation::RubyKafka::Instrumentation
+        OpenTelemetry::Instrumentation::Sidekiq::Instrumentation
+        OpenTelemetry::Instrumentation::Sinatra::Instrumentation
       ].freeze
 
       def initialize(events)
@@ -108,7 +108,7 @@ module NewRelic
 
           registry.instance_variable_set(:@instrumentation, without_excluded)
         end
-
+        binding.irb
         ::OpenTelemetry::Instrumentation.registry.install_all
       end
     end
