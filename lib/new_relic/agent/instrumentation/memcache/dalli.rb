@@ -51,7 +51,7 @@ module NewRelic
           end
 
           def instrument_send_multiget
-            if supports_binary_protocol?
+            if supports_binary_protocol? 
               ::Dalli::Protocol::Binary
             else
               ::Dalli::Server
