@@ -108,7 +108,7 @@ module NewRelic
 
           registry.instance_variable_set(:@instrumentation, without_excluded)
         end
-        binding.irb
+
         ::OpenTelemetry::Instrumentation.registry.install_all
       end
     end

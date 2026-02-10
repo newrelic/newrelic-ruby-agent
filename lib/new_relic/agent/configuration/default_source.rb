@@ -2473,7 +2473,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that **will** have their trace signals sent to New Relic.'
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that **will** have their trace signals sent to New Relic.'
         },
         :'opentelemetry.traces.exclude' => {
           :default => '',
@@ -2481,7 +2481,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that will **not** have their trace signals sent to New Relic.'
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that will **not** have their trace signals sent to New Relic.'
         },
         :force_reconnect => {
           :default => false,
