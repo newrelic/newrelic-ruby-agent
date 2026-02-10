@@ -9,12 +9,12 @@ module NewRelic
         class HttpMappingTest < Minitest::Test
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('OTelClient')
+            harvest_transaction_events!
+            harvest_span_events!
           end
 
           def teardown
             mocha_teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
@@ -109,6 +109,7 @@ module NewRelic
             ])
 
             spans = harvest_span_events!
+            # binding.irb
             span = spans[1][0]
             intrinsics = span[0]
             custom = span[1]
