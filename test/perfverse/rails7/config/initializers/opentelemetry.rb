@@ -3,5 +3,6 @@
 # frozen_string_literal: true
 
 require 'opentelemetry-api'
+require 'opentelemetry-common'
 
 APP_TRACER = OpenTelemetry.tracer_provider.tracer('agent-app', '0.0.0')
