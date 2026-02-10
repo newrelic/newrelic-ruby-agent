@@ -1,0 +1,107 @@
+# original source: https://github.com/newrelic/newrelic-agent-control/blob/main/agent-control/agent-type-registry/newrelic/com.newrelic.apm_ruby-0.1.0.yaml
+namespace: newrelic
+name: com.newrelic.apm_ruby
+version: 0.1.0
+variables:
+  k8s:
+    podLabelSelector:
+      description: "Pod label selector"
+      type: yaml
+      default: { }
+      required: false
+    containerSelector:
+      description: "Container selector"
+      type: yaml
+      default: { }
+      required: false
+    namespaceLabelSelector:
+      description: "Namespace label selector"
+      type: yaml
+      default: { }
+      required: false
+    # All 'agent' side-car related variables are flattened.
+    version:
+      description: "Ruby Agent init container version"
+      type: string
+      default: "latest"
+      required: false
+    env:
+      description: "environment variables to pass to Ruby agent"
+      type: yaml
+      default: [ ]
+      required: false
+    imagePullPolicy:
+      description: "image pull policy for the Ruby agent init container"
+      type: string
+      default: "Always"
+      required: false
+    resourceRequirements:
+      description: "resource requirements for the Ruby agent init container"
+      type: yaml
+      default: { }
+      required: false
+    securityContext:
+      description: "security context for the Ruby agent init container"
+      type: yaml
+      default: { }
+      required: false
+    # All health sidecar related variables are flattened and prefixed with "health_"
+    health_env:
+      description: "environment variables to pass to health sidecar"
+      type: yaml
+      default: [ ]
+      required: false
+    health_version:
+      description: "health sidecar image version"
+      type: string
+      default: "latest"
+      required: false
+    health_imagePullPolicy:
+      description: "image pull policy for the health sidecar"
+      type: string
+      default: "Always"
+      required: false
+    health_resourceRequirements:
+      description: "resource requirements for the health sidecar"
+      type: yaml
+      default: { }
+      required: false
+    health_securityContext:
+      description: "security context for the health sidecar"
+      type: yaml
+      default: { }
+      required: false
+deployment:
+  k8s:
+    health:
+      interval: 30s
+      initial_delay: 30s
+    objects:
+      instrumentation:
+        apiVersion: newrelic.com/v1beta3
+        kind: Instrumentation
+        metadata:
+          name: ${nr-sub:agent_id}
+          # APM CRs should be installed in "nr-ac:namespace"
+          # Due to a limitation in the k8s-agents-operator, Instrumentation CRs must be installed in the same namespace as the operator.
+          # Hence, the namespace is set to "nr-ac:namespace_agents".
+          # Reference: https://github.com/newrelic/k8s-agents-operator/blob/92c19208864f051f03f457ee04b772fca5042162/api/v1beta1/instrumentation_webhook.go#L110C27-L110C72
+          namespace: ${nr-ac:namespace_agents}
+        spec:
+          agent:
+            language: ruby
+            image: newrelic/newrelic-ruby-init:${nr-var:version}
+            env: ${nr-var:env}
+            imagePullPolicy: ${nr-var:imagePullPolicy}
+            resources: ${nr-var:resourceRequirements}
+            securityContext: ${nr-var:securityContext}
+          healthAgent:
+            image: newrelic/k8s-apm-agent-health-sidecar:${nr-var:health_version}
+            env: ${nr-var:health_env}
+            imagePullPolicy: ${nr-var:health_imagePullPolicy}
+            resources: ${nr-var:health_resourceRequirements}
+            securityContext: ${nr-var:health_securityContext}
+          podLabelSelector: ${nr-var:podLabelSelector}
+          namespaceLabelSelector: ${nr-var:namespaceLabelSelector}
+          containerSelector: ${nr-var:containerSelector}
+

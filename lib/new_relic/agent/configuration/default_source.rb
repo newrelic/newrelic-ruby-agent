@@ -2277,6 +2277,13 @@ module NewRelic
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.'
         },
+        :'utilization.detect_in_parallel' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent will perform environment detection in parallel to speed up agent startup time.'
+        },
         # Private
         :account_id => {
           :default => nil,
