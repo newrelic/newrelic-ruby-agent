@@ -60,6 +60,7 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
@@ -82,6 +83,7 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -374,6 +376,7 @@ module NewRelic::Agent
           'Logging/lines/DEBUG' => {:call_count => 9},
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -407,6 +410,7 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -434,6 +438,7 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
