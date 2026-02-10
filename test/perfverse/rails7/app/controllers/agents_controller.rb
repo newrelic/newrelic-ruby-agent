@@ -71,7 +71,9 @@ class AgentsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_agent
-    @agent = Agent.find(params[:id])
+    # We're updating the slug for the agent show pages to
+    # avoid needing to grab the ID
+    @agent = Agent.find_by(repository: params[:repository])
   end
 
   # Only allow a list of trusted parameters through.

@@ -5,8 +5,14 @@
 class PredictableController < ApplicationController
 
   def custom_event
-    endpoint_name = 'Custom Event'
-    ::NewRelic::Agent.record_custom_event("PredictableEvent", attr1: "value1", 'attr2': 1, 'attr3': 0.2, 'attr4': true)
+    # For this test, we're using the HTTP.rb instrumentation
+    # as a variable: sometimes it will pull from NR,
+    # sometimes it will pull from OTel
+    endpoint_name = 'http://www.tiobe.com/tiobe-index/'
+    HTTP.get(endpoint_name)
+    # We don't have an equivalent for
+    # endpoints_name = 'Custom Event'
+    # ::NewRelic::Agent.record_custom_event("PredictableEvent", attr1: "value1", 'attr2': 1, 'attr3': 0.2, 'attr4': true)
     render :index, locals: {endpoint_name: endpoint_name}
   end
 end

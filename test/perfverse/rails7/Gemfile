@@ -6,6 +6,11 @@ ruby '3.3.3'
 
 gem 'newrelic_rpm', '>= 8.8.0'
 
+# Hybrid agent libraries for testing
+gem 'opentelemetry-api'
+gem 'http'
+gem 'opentelemetry-instrumentation-http'
+
 gem 'puma', '~> 5.0'
 gem 'rails', '~> 7.0.2', '>= 7.0.2.3'
 gem 'sprockets-rails'
