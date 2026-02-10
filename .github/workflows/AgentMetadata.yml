@@ -100,6 +100,6 @@ jobs:
           newrelic-client-id: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
           newrelic-private-key: ${{ secrets.FC_SYS_ID_PR_KEY }}
           apm-control-nr-license-key: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }} # action app is instrumented and supported by APM Control team
-          agent-type: TestAgent #${{ inputs.agent-type }}
+          agent-type: ${{ inputs.agent-type }}
           version: ${{ inputs.version }}
           cache: ${{ inputs.use-cache }}
