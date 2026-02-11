@@ -11,7 +11,7 @@ def run_command(command)
 end
 
 def transform_agent_tags(agent_tag)
-  agent_tag.split(':').tap do |array|
+  agent_tag.split(':', 2).tap do |array|
     array[1] = array[1]&.split(';')
   end
 end
@@ -62,14 +62,14 @@ def run_rails_app(agent_tag, env_vars, iteration)
 end
 
 def run_docker_report(agent_tag, container_ids, iteration)
-  Thread.new do 
+  Thread.new do
     output_dir = "#{ENV['DOCKER_MONITOR_OUTPUT_DIR']}/run_#{iteration}"
     env_str = ''
     env_str += "-e TEST_TAG=#{ENV['TEST_TAG']} "
     env_str += "-e AGENT_VERSION=#{agent_tag} "
     env_str += "-e DOCKER_MONITOR_OUTPUT_DIR=#{output_dir} "
     env_str += "-e MONITOR_CONTAINERS=#{container_ids} "
-  
+
     docker_mount_bind = "--mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
     output_mount_bind = "--mount type=bind,source=./#{output_dir},target=/app/#{output_dir}"
 

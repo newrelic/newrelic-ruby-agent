@@ -9,17 +9,21 @@ class WhichIsWhich
   include ::NewRelic::Agent::MethodTracer
 
   def self.samename
-    'Class (static) method named samename'
+    APP_TRACER.in_span('WhichIsWhich.samename', kind: :consumer) do
+      'Class (static) method named samename'
+    end
   end
 
   class << self
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     include ::NewRelic::Agent::MethodTracer
-    add_transaction_tracer :samename, category: :task
+    add_transaction_tracer :samename, category: :task if !NewRelic::Agent.config[:'opentelemetry.enabled']
   end
 
   def samename
+    span = APP_TRACER.start_span('WhichIsWhich#samename', kind: :consumer)
     'Instance method named samename'
+    span&.finish
   end
-  add_transaction_tracer :samename, category: :task
+  add_transaction_tracer :samename, category: :task if !NewRelic::Agent.config[:'opentelemetry.enabled']
 end
