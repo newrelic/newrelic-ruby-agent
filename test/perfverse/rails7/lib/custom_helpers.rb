@@ -27,7 +27,7 @@ module Custom
       include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
       include ::NewRelic::Agent::MethodTracer
       add_transaction_tracer :custom_class_method, category: :task if !NewRelic::Agent.config[:'opentelemetry.enabled']
-      add_method_tracer :custom_class_method_too, %w[Custom/CLMtesting/ClassMethod]
+      add_method_tracer :custom_class_method_too, %w[Custom/CLMtesting/ClassMethod] if !NewRelic::Agent.config[:'opentelemetry.enabled']
     end
 
     def custom_instance_method
