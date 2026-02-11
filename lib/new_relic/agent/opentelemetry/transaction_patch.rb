@@ -6,35 +6,27 @@ module NewRelic
   module Agent
     module OpenTelemetry
       module TransactionPatch
-        attr_accessor :opentelemetry_context
-
-        def initialize(_category, _options)
-          @opentelemetry_context = {}
-          super
-        end
-
         def set_current_segment(new_segment)
           @current_segment_lock.synchronize do
-            unless opentelemetry_context.empty?
-              ::OpenTelemetry::Context.detach(opentelemetry_context[otel_current_span_key])
+            if new_segment&.respond_to?(:transaction) && new_segment.transaction
+              span = find_or_create_span(new_segment)
+              Thread.current[:nr_otel_current_span] = span
             end
-
-            span = find_or_create_span(new_segment)
-            ctx = ::OpenTelemetry::Context.current.set_value(otel_current_span_key, span)
-            token = ::OpenTelemetry::Context.attach(ctx)
-
-            opentelemetry_context[otel_current_span_key] = token
           end
 
           super
         end
 
         def remove_current_segment_by_thread_id(id)
-          # make sure the context is fully detached when the transaction ends
-          @current_segment_lock.synchronize do
-            ::OpenTelemetry::Context.detach(opentelemetry_context[otel_current_span_key])
-            opentelemetry_context.delete(id)
+          if id == Thread.current.object_id
+            Thread.current[:nr_otel_current_span] = nil
           end
+
+          super
+        end
+
+        def finish
+          Thread.current[:nr_otel_current_span] = nil
 
           super
         end
@@ -45,9 +37,14 @@ module NewRelic
           if segment.instance_variable_defined?(:@otel_span)
             segment.instance_variable_get(:@otel_span)
           else
-            span = Trace::Span.new(span_context: span_context_from_segment(segment))
-            segment.instance_variable_set(:@otel_span, span)
-            span
+            begin
+              span = Trace::Span.new(span_context: span_context_from_segment(segment))
+              segment.instance_variable_set(:@otel_span, span)
+              span
+            rescue => e
+              NewRelic::Agent.logger.debug("Failed to create NR OTel span: #{e}")
+              nil
+            end
           end
         end
 
@@ -58,11 +55,34 @@ module NewRelic
             remote: false
           )
         end
+      end
+    end
+  end
+end
 
-        def otel_current_span_key
-          # CURRENT_SPAN_KEY is a private constant
-          ::OpenTelemetry::Trace.const_get(:CURRENT_SPAN_KEY)
-        end
+module ::OpenTelemetry
+  module Trace
+    class << self
+      alias_method :original_current_span, :current_span
+
+      def current_span(context = nil)
+        return original_current_span(context) if context
+
+        thread = Thread.current
+        return original_current_span(context) if thread[:nr_otel_recursion_guard]
+
+        nr_span = thread[:nr_otel_current_span]
+        return nr_span if nr_span
+
+        # Fallback with recursion protection
+        thread[:nr_otel_recursion_guard] = true
+        result = original_current_span(context)
+        thread[:nr_otel_recursion_guard] = nil
+
+        result
+      rescue => e
+        NewRelic::Agent.logger.debug("Error in OpenTelemetry.current_span override, falling back to original implementation: #{e}")
+        original_current_span(context)
       end
     end
   end
