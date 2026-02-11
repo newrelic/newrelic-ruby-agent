@@ -85,14 +85,12 @@ if __name__ == "__main__":
     json_file = open(os.path.join(output_dir, "metadata.json"), "w")
     metadata = {}
     agent_version = os.environ.get("AGENT_VERSION")
-    test_tag = os.environ.get("TEST_TAG")
 
     metadata['agent_version'] = agent_version
-    metadata['x_axis'] = print(f"{agent_version}_{test_tag}")
     metadata['container_ids'] = container_ids
     metadata['output_file'] = output_file
     metadata['output_file_name'] = output_file
-    metadata['TEST_TAG'] = test_tag
+    metadata['TEST_TAG'] = os.environ.get("TEST_TAG")
 
     json_file.write(json.dumps(metadata, indent=4))
     json_file.close()

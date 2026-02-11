@@ -96,7 +96,7 @@ def dockermon_data
 end
 
 def create_graph(data, key)
-  Charty.box_plot(data: data, x: :x_axis, y: key).save("output/#{key}.png")
+  Charty.box_plot(data: data, x: :test_tag, y: key).save("output/#{key}.png")
 end
 
 def create_network_output_graph(data)
