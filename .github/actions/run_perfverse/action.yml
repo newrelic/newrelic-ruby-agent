@@ -42,7 +42,7 @@ runs:
         ruby ./.github/workflows/scripts/run_perf_tests.rb
       env:
         AGENT_TAG: ${{ inputs.agent_tag }}
-        TEST_TAG: ${{ inputs.run_label }}
+        TEST_TAG: ${{ inputs.test_tag }}
         RUN_TIME: ${{ inputs.run_time }}
         NR_LICENSE_KEY: ${{ inputs.nr_license_key }}
         DOCKER_MONITOR_OUTPUT_DIR: ${{ inputs.docker_monitor_output_dir }}
