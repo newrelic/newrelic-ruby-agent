@@ -55,6 +55,7 @@ jobs:
           nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
           iterations: ${{ inputs.iterations }}
           run_label: run_one
+          test_tag: run_one_t
 
   run_perf_tests_2:
     runs-on: ubuntu-latest
@@ -72,6 +73,7 @@ jobs:
           nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
           iterations: ${{ inputs.iterations }}
           run_label: run_two
+          test_tag: run_two_t
 
   run_perf_tests_3:
     runs-on: ubuntu-latest
@@ -89,6 +91,7 @@ jobs:
           nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
           iterations: ${{ inputs.iterations }}
           run_label: run_three
+          test_tag: run_three_t
 
   run_perf_tests_4:
     runs-on: ubuntu-latest
@@ -106,6 +109,7 @@ jobs:
           nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
           iterations: ${{ inputs.iterations }}
           run_label: run_four
+          test_tag: run_four_t
 
 
   run_perf_tests_disabled:
@@ -124,6 +128,7 @@ jobs:
           nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
           iterations: ${{ inputs.iterations }}
           run_label: run_agent_disabled
+          test_tag: run_agent_disabled_t
 
   create_graphs:
     needs: [run_perf_tests_disabled, run_perf_tests_4, run_perf_tests_3, run_perf_tests_2, run_perf_tests_1]

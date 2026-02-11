@@ -45,7 +45,7 @@ def read_from_container(client, log, container_id):
         print(f"Time: {stat['read']} Container: {container_id} name: {stat['name']}", flush=True)
         output_stats(log, stat)
 
-    
+
 def sigterm_handler(signum, frame):
     print("SIGTERM received, exiting gracefully...")
     sys.exit(0)
@@ -53,7 +53,7 @@ def sigterm_handler(signum, frame):
 if __name__ == "__main__":
     # Register the signal handler for SIGTERM
     signal.signal(signal.SIGTERM, sigterm_handler)
-    
+
     client = docker.from_env()
 
     dockermon_output_dir = os.environ.get("DOCKER_MONITOR_OUTPUT_DIR")
@@ -85,12 +85,14 @@ if __name__ == "__main__":
     json_file = open(os.path.join(output_dir, "metadata.json"), "w")
     metadata = {}
     agent_version = os.environ.get("AGENT_VERSION")
+    test_tag = os.environ.get("TEST_TAG")
 
     metadata['agent_version'] = agent_version
+    metadata['x_axis'] = print(f"{agent_version}_{test_tag}")
     metadata['container_ids'] = container_ids
     metadata['output_file'] = output_file
     metadata['output_file_name'] = output_file
-    metadata['TEST_TAG'] = os.environ.get("TEST_TAG")
+    metadata['TEST_TAG'] = test_tag
 
     json_file.write(json.dumps(metadata, indent=4))
     json_file.close()
