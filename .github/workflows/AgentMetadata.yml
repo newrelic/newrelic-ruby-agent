@@ -95,7 +95,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Run action
-        uses: newrelic/agent-metadata-action@v1.0.1
+        uses: newrelic/agent-metadata-action@v1.0.2
         with:
           newrelic-client-id: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
           newrelic-private-key: ${{ secrets.FC_SYS_ID_PR_KEY }}
