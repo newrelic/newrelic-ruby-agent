@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'opentelemetry-api'
+# There's a missing require in the HTTP OTel instrumentation library
 require 'opentelemetry-common'
 
 APP_TRACER = OpenTelemetry.tracer_provider.tracer('agent-app', '0.0.0')
