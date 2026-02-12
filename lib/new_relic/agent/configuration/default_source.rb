@@ -5,6 +5,7 @@
 require 'forwardable'
 require_relative '../../constants'
 require_relative '../instrumentation/active_support_subscriber'
+require_relative '../opentelemetry_bridge'
 require_relative 'sampler_config_validator'
 
 module NewRelic
@@ -1731,6 +1732,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.logging' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the logging library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.logstasher' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :documentation_default => 'auto',
@@ -2268,6 +2278,13 @@ module NewRelic
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.'
         },
+        :'utilization.detect_in_parallel' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent will perform environment detection in parallel to speed up agent startup time.'
+        },
         # Private
         :account_id => {
           :default => nil,
@@ -2455,33 +2472,32 @@ module NewRelic
         },
         :'opentelemetry.enabled' => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'A global configuration option for disabling all OpenTelemetry signals sent through New Relic. If false, no OpenTelemetry signals will be sent to New Relic. If true, the signal-specific enabled config option (e.g. opentelemetry.traces.enabled) determines whether telemetry of that signal type will be reported to New Relic.'
         },
         :'opentelemetry.traces.enabled' => {
           :default => true,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
+          :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans.'
         },
         :'opentelemetry.traces.include' => {
           :default => '',
-          :public => false,
+          :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that **will** have their trace signals sent to New Relic. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that **will** have their trace signals sent to New Relic.'
         },
-        # Exclude Net::HTTP because it currently instruments the NR agent's requests
-        # Could list all OTel instrumentation with matches...
         :'opentelemetry.traces.exclude' => {
-          :default => 'OpenTelemetry::Instrumentation::Net::HTTP',
-          :public => false,
+          :default => '',
+          :documentation_default => NewRelic::Agent::OpenTelemetryBridge::DEFAULT_EXCLUDED_TRACERS.join(','),
+          :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Net::HTTP"), that will **not** have their trace signals sent to New Relic. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that will **not** have their trace signals sent to New Relic.'
         },
         :force_reconnect => {
           :default => false,

@@ -60,3 +60,13 @@ jobs:
 
     - name: Publish newrelic-infinite_tracing to rubygems.org
       run: ruby ./.github/workflows/scripts/rubygems-publish.rb infinite_tracing/newrelic-infinite_tracing
+
+  update-agent-metadata:
+    needs: [release]
+    uses: ./.github/workflows/AgentMetadata.yml
+    with:
+      version: ${{ github.event.release.tag_name }}
+    secrets:
+      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
+      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
+      APM_CONTROL_NR_LICENSE_KEY_STAGING: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}

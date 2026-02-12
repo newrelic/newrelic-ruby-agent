@@ -11,13 +11,8 @@ module NewRelic
 
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
-            # just to be extra safe to make sure finishable is the correct class
-            NewRelic::Agent::Tracer.current_transaction&.finish
-          end
-
-          def teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
+            harvest_transaction_events!
+            harvest_span_events!
           end
 
           def test_span_with_remote_parent_makes_web_transaction_when_kind_client

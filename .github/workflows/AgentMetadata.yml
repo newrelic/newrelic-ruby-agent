@@ -1,0 +1,105 @@
+name: Agent Metadata
+
+permissions:
+  contents: read
+
+on:
+  # Allows manual triggering with parameters
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v10.0.0)'
+        required: true
+        type: string
+      agent-type:
+        description: 'Agent type'
+        required: false
+        default: 'NRRubyAgent'
+        type: string
+      use-cache:
+        description: 'Use cache'
+        required: false
+        default: true
+        type: boolean
+  # commented items below pertain to future work
+  #      oci-registry:
+  #        description: 'OCI registry URL for binary uploads (e.g., ghcr.io/newrelic/agents). Leave empty to skip binary upload.'
+  #        required: false
+  #        default: ''
+  #        type: string
+  #      oci-username:
+  #        description: 'OCI registry username (required if oci-registry is set)'
+  #        required: false
+  #        default: ''
+  #        type: string
+  #      oci-password:
+  #        description: 'OCI registry password or token (required if oci-registry is set)'
+  #        required: false
+  #        default: ''
+  #        type: string
+  #      binaries:
+  #        description: 'JSON array with artifact definitions'
+  #        required: false
+  #        default: ''
+  #        type: string
+
+  # Allows calling from another workflow
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version tag to test'
+        required: true
+        type: string
+      agent-type:
+        description: 'Agent type'
+        required: false
+        default: 'NRRubyAgent'
+        type: string
+      use-cache:
+        description: 'Use cache'
+        required: false
+        default: true
+        type: boolean
+    # commented items below pertain to future work
+    #      oci-registry:
+    #        description: 'OCI registry URL for binary uploads (e.g., ghcr.io/newrelic/agents). Leave empty to skip binary upload.'
+    #        required: false
+    #        default: ''
+    #        type: string
+    #      oci-username:
+    #        description: 'OCI registry username (required if oci-registry is set)'
+    #        required: false
+    #        default: ''
+    #        type: string
+    #      oci-password:
+    #        description: 'OCI registry password or token (required if oci-registry is set)'
+    #        required: false
+    #        default: ''
+    #        type: string
+    #      binaries:
+    #        description: 'JSON array with artifact definitions'
+    #        required: false
+    #        default: ''
+    #        type: string
+    secrets:
+      FC_SYS_ID_CLIENT_ID:
+        required: true
+      FC_SYS_ID_PR_KEY:
+        required: true
+      APM_CONTROL_NR_LICENSE_KEY_STAGING:
+        required: true
+
+jobs:
+  test-agent-metadata-action:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Run action
+        uses: newrelic/agent-metadata-action@v1.0.2
+        with:
+          newrelic-client-id: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
+          newrelic-private-key: ${{ secrets.FC_SYS_ID_PR_KEY }}
+          apm-control-nr-license-key: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }} # action app is instrumented and supported by APM Control team
+          agent-type: ${{ inputs.agent-type }}
+          version: ${{ inputs.version }}
+          cache: ${{ inputs.use-cache }}

@@ -4,6 +4,7 @@
 
 require_relative '../segments/http_external'
 require_relative '../segments/datastore'
+require_relative '../segments/server'
 
 module NewRelic
   module Agent
@@ -12,6 +13,7 @@ module NewRelic
         class Tracer < ::OpenTelemetry::Trace::Tracer
           include NewRelic::Agent::OpenTelemetry::Segments::HttpExternal
           include NewRelic::Agent::OpenTelemetry::Segments::Datastore
+          include NewRelic::Agent::OpenTelemetry::Segments::Server
 
           VALID_KINDS = [:server, :client, :consumer, :producer, :internal, nil].freeze
           KINDS_THAT_START_TRANSACTIONS = %i[server consumer].freeze
@@ -28,7 +30,7 @@ module NewRelic
             return ::OpenTelemetry::Trace::Span::INVALID if should_not_create_telemetry?(parent_otel_context, kind)
 
             finishable = if can_start_transaction?(parent_otel_context, kind)
-              start_transaction_from_otel(name, parent_otel_context, kind)
+              start_transaction_from_otel(name, parent_otel_context, kind, attributes: attributes)
             else
               start_segment_from_otel(name: name, attributes: attributes, start_timestamp: start_timestamp, kind: kind)
             end
@@ -108,12 +110,16 @@ module NewRelic
             segment
           end
 
-          def start_transaction_from_otel(name, parent_otel_context, kind)
+          def start_transaction_from_otel(name, parent_otel_context, kind, attributes: {})
             nr_item = nil
 
             case kind
-            when :server, :client
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
+            when :server
+              name = create_server_transaction_name(name, @name, attributes)
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web, options: {request: attributes})
+              update_request_attributes(nr_item, attributes)
+            when :client
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web, options: {request: attributes})
             when :consumer, :producer, :internal, nil
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end

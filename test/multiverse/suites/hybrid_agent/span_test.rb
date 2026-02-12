@@ -13,12 +13,12 @@ module NewRelic
 
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
+            harvest_transaction_events!
+            harvest_span_events!
           end
 
           def teardown
             mocha_teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           def test_finish_does_not_fail_if_no_finishable_present
@@ -242,7 +242,93 @@ module NewRelic
 
               assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
               assert_equal txn, span.transaction
+              span.finish
+            end
+          end
 
+          def test_update_server_span_sets_response_code_with_stable_attribute
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.add_attributes({'http.response.status_code' => 200})
+
+            span.finish
+
+            assert_equal 200, txn.http_response_code
+          end
+
+          def test_update_server_span_sets_response_code_with_old_attribute
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.add_attributes({'http.status_code' => 404})
+
+            span.finish
+
+            assert_equal 404, txn.http_response_code
+          end
+
+          def test_update_server_span_prefers_stable_over_old_attribute
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.add_attributes({
+              'http.response.status_code' => 201,
+              'http.status_code' => 200
+            })
+
+            span.finish
+
+            assert_equal 201, txn.http_response_code
+          end
+
+          def test_update_server_span_does_not_set_code_when_no_attributes_present
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.finish
+
+            assert_nil txn.http_response_code
+          end
+
+          def test_update_server_span_does_not_update_non_web_transaction
+            # Consumer spans create transactions with a :task category,
+            # not with a :web category
+            span = @tracer.start_span('test_span', kind: :consumer)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :task, txn.category
+
+            span.add_attributes({'http.response.status_code' => 200})
+
+            span.finish
+
+            assert_nil txn.http_response_code
+          end
+
+          def test_update_server_span_does_not_update_segment
+            in_transaction do
+              span = @tracer.start_span('test_span')
+              segment = span.finishable
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, segment
+
+              span.add_attributes({'http.response.status_code' => 200})
+
+              # Should not raise an error, just return early
               span.finish
             end
           end
@@ -325,6 +411,18 @@ module NewRelic
 
             assert_nil span.transaction
             refute_raises { span.status = ::OpenTelemetry::Trace::Status.ok }
+          end
+
+          def test_update_server_span_handles_string_http_response_status_code
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
+
+            span.add_attributes({'http.response.status_code' => '503'})
+
+            span.finish
+
+            assert_equal '503', txn.http_response_code
           end
         end
       end

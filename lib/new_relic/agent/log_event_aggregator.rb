@@ -22,6 +22,7 @@ module NewRelic
       SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
       LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
       LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
+      LOGGING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logging/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
@@ -110,6 +111,29 @@ module NewRelic
         nil
       end
 
+      def record_logging_event(log, mdc_data)
+        return unless logging_enabled?
+        return if log.data.nil? || log.data.empty?
+
+        severity = ::Logging::LNAMES[log.level] || 'UNKNOWN'
+        increment_event_counters(severity)
+
+        return unless monitoring_conditions_met?(severity)
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
+        return txn.add_log_event(create_logging_event(priority, severity, log, mdc_data)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_logging_event(priority, severity, log, mdc_data)
+          end
+        end
+      rescue
+        nil
+      end
+
       def monitoring_conditions_met?(severity)
         !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
       end
@@ -185,6 +209,33 @@ module NewRelic
         event['attributes'] = log_copy
       end
 
+      def create_logging_event(priority, severity, log, mdc_data)
+        formatted_message = truncate_message(log.data)
+        event = add_event_metadata(formatted_message, severity)
+        add_logging_event_attributes(event, log, mdc_data)
+
+        create_prioritized_event(priority, event)
+      end
+
+      def add_logging_event_attributes(event, log, mdc_data)
+        event['level_number'] = log.level # Logging always assigns a level number
+        event['file'] = log.file unless log.file.empty?
+        event['line'] = log.line unless (log.line.respond_to?(:empty?) && log.line.empty?) || log.line.nil?
+        event['method_name'] = log.method_name unless log.method_name.nil? || log.method_name.empty?
+        event['logger'] = log.logger unless log.logger.empty?
+        add_mdc_data_to_event(event, mdc_data) if !mdc_data.empty?
+
+        event
+      end
+
+      def add_mdc_data_to_event(event, mdc_data)
+        mdc_data.each do |key, value|
+          event["context.mdc.#{key}"] = value
+        end
+      rescue => e
+        NewRelic::Agent.logger.debug("Failed to add Logging MDC data to event: #{e.message}")
+      end
+
       def add_custom_attributes(custom_attributes)
         attributes.add_custom_attributes(custom_attributes)
       end
@@ -243,6 +294,10 @@ module NewRelic
         @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
       end
 
+      def logging_enabled?
+        @enabled && NewRelic::Agent::Instrumentation::Logging::Logger.enabled?
+      end
+
       private
 
       # We record once-per-connect metrics for enabled/disabled state at the
@@ -252,6 +307,7 @@ module NewRelic
           @high_security = NewRelic::Agent.config[:high_security]
           record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
+          record_configuration_metric(LOGGING_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
