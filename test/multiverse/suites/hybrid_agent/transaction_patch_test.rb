@@ -185,7 +185,7 @@ module NewRelic
 
           # The OTel default return value for spans without context is INVALID
           assert_equal ::OpenTelemetry::Trace::Span::INVALID, result, 'Should delegate to original when guard is set'
-          
+
           # Cleanup to prevent leaking state into other tests
           thread[:nr_otel_recursion_guard] = nil
           thread[:nr_otel_current_span] = nil
@@ -248,8 +248,9 @@ module NewRelic
             refute_nil thread[:nr_otel_current_span], 'Should have thread-local span during segment'
 
             txn.remove_current_segment_by_thread_id(thread.object_id)
+
             assert_nil thread[:nr_otel_current_span], 'Should clear thread-local span when segment removed'
-            
+
             child_segment.finish
           end
         end
@@ -281,6 +282,7 @@ module NewRelic
 
             # Should handle error gracefully
             span = txn.send(:find_or_create_span, segment)
+
             assert_nil span, 'Should return nil when span creation fails'
 
             # Should not crash transaction
@@ -330,7 +332,7 @@ module NewRelic
             assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Span, span
             assert_equal segment.guid, span.context.span_id, 'Span ID should match segment GUID'
             assert_equal segment.transaction.trace_id, span.context.trace_id, 'Trace ID should match transaction trace ID'
-            refute span.context.remote?, 'Span should not be remote'
+            refute_predicate(span.context, :remote?, 'Span should not be remote')
 
             segment.finish
           end
