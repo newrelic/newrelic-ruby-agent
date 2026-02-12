@@ -33,6 +33,7 @@ module NewRelic
         require_relative 'opentelemetry/trace'
         require_relative 'opentelemetry/transaction_patch'
         require_relative 'opentelemetry/context'
+        require_relative 'opentelemetry/trace_patch'
 
         NewRelic::Agent.logger.warn('OpenTelemetry SDK gem is installed. This may interfere with New Relic instrumentation.') if defined?(OpenTelemetry::SDK)
 
