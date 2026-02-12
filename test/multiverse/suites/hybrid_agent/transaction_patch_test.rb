@@ -126,7 +126,7 @@ module NewRelic
         end
 
         def test_nr_api_finishes_nr_transaction
-          txn = Tracer.start_transaction(name: 'test', category: :otel)
+          txn = Tracer.start_transaction(name: 'test', category: :web)
           txn.stubs(:sampled?).returns(true)
           txn.finish
 
@@ -134,13 +134,162 @@ module NewRelic
         end
 
         def test_finish_transaction_resets_contexts
-          txn = Tracer.start_transaction(name: 'test', category: :otel)
+          txn = Tracer.start_transaction(name: 'test', category: :web)
           txn.stubs(:sampled?).returns(true)
           txn.finish
 
           assert_equal ::OpenTelemetry::Trace::Span::INVALID, ::OpenTelemetry::Trace.current_span, 'OTel current span should be INVALID after transaction finish'
           assert_nil Tracer.current_transaction, 'NR current transaction should be nil after transaction finish'
           assert_nil Tracer.current_segment, 'NR current segment should be nil after transaction finish'
+        end
+
+        def test_current_span_delegates_when_context_provided
+          context = ::OpenTelemetry::Context.empty
+
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+
+            nr_span = Thread.current[:nr_otel_current_span]
+            result_with_context = ::OpenTelemetry::Trace.current_span(context)
+            result_without_context = ::OpenTelemetry::Trace.current_span
+
+            assert_equal nr_span, result_without_context, 'Should return NR span when no context provided'
+            refute_equal nr_span, result_with_context, 'Should delegate to original when context provided'
+          end
+        end
+
+        def test_current_span_returns_original_without_transaction
+          Thread.current[:nr_otel_current_span] = nil
+          current_span = ::OpenTelemetry::Trace.current_span
+
+          assert_equal ::OpenTelemetry::Trace::Span::INVALID, current_span, 'Should return INVALID span when no NR span available'
+        end
+
+        def test_current_span_returns_nr_span_in_transaction
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+
+            nr_span = Thread.current[:nr_otel_current_span]
+            current_span = ::OpenTelemetry::Trace.current_span
+
+            assert_equal nr_span, current_span, 'Should return NR span when in transaction'
+            assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Span, current_span
+          end
+        end
+
+        def test_thread_local_span_cleared_on_transaction_finish
+          thread = Thread.current
+          txn = Tracer.start_transaction(name: 'test_finish', category: :web)
+          txn.stubs(:sampled?).returns(true)
+
+          # Should have span set
+          assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Span, thread[:nr_otel_current_span], 'Should have thread-local span set during transaction'
+
+          txn.finish
+
+          # Should be cleared after finish
+          assert_nil thread[:nr_otel_current_span], 'Should clear thread-local span after transaction finish'
+        end
+
+        def test_thread_local_span_cleared_on_segment_removal
+          thread = Thread.current
+
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+
+            child_segment = Tracer.start_segment(name: 'child')
+
+            refute_nil thread[:nr_otel_current_span], 'Should have thread-local span during segment'
+
+            txn.remove_current_segment_by_thread_id(thread.object_id)
+
+            assert_nil thread[:nr_otel_current_span], 'Should clear thread-local span when segment removed'
+
+            child_segment.finish
+          end
+        end
+
+        def test_span_memoization_on_segment
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+            segment = txn.segments.first
+
+            # First call should create span
+            span1 = txn.send(:find_or_create_span, segment)
+
+            # Second call should return memoized span
+            span2 = txn.send(:find_or_create_span, segment)
+
+            assert_same span1, span2, 'Should return same span instance (memoized)'
+            assert segment.instance_variable_defined?(:@otel_span), 'Should memoize span on segment'
+          end
+        end
+
+        def test_span_creation_handles_errors_gracefully
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+
+            # Mock SpanContext.new to raise error
+            ::OpenTelemetry::Trace::SpanContext.stubs(:new).raises(StandardError.new('SpanContext failed'))
+
+            segment = Tracer.start_segment(name: 'error_test')
+
+            # Should handle error gracefully
+            span = txn.send(:find_or_create_span, segment)
+
+            assert_nil span, 'Should return nil when span creation fails'
+
+            # Should not crash transaction
+            refute_predicate txn, :finished?, 'Transaction should continue after span creation error'
+
+            segment.finish
+            ::OpenTelemetry::Trace::SpanContext.unstub(:new)
+          end
+        end
+
+        def test_thread_local_span_isolation_across_threads
+          results = {}
+          threads = []
+
+          2.times do |i|
+            threads << Thread.new do
+              in_transaction(name: "txn_#{i}") do |txn|
+                txn.stubs(:sampled?).returns(true)
+
+                # Each thread should have its own NR span
+                current_span = ::OpenTelemetry::Trace.current_span
+                results[i] = {
+                  span_id: current_span.context.span_id,
+                  thread_local_span: Thread.current[:nr_otel_current_span]
+                }
+              end
+            end
+          end
+
+          threads.each(&:join)
+
+          # Each thread should have different span IDs
+          refute_equal results[0][:span_id], results[1][:span_id], 'Threads should have different span IDs'
+
+          # Thread-local spans should match API spans
+          assert_equal results[0][:span_id], results[0][:thread_local_span].context.span_id, 'Thread 0 spans should match'
+          assert_equal results[1][:span_id], results[1][:thread_local_span].context.span_id, 'Thread 1 spans should match'
+        end
+
+        def test_span_context_created_correctly_from_segment
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+            segment = Tracer.start_segment(name: 'context_test')
+
+            span = txn.send(:find_or_create_span, segment)
+
+            assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Span, span
+            assert_equal segment.guid, span.context.span_id, 'Span ID should match segment GUID'
+            assert_equal segment.transaction.trace_id, span.context.trace_id, 'Trace ID should match transaction trace ID'
+            refute_predicate(span.context, :remote?, 'Span should not be remote')
+
+            segment.finish
+          end
         end
       end
     end
