@@ -2471,7 +2471,7 @@ module NewRelic
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
         :'opentelemetry.enabled' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
