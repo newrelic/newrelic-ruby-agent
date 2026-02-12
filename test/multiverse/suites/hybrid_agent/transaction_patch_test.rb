@@ -145,20 +145,24 @@ module NewRelic
 
         def test_current_span_delegates_when_context_provided
           context = ::OpenTelemetry::Context.empty
-          original_result = ::OpenTelemetry::Trace.original_current_span(context)
-          api_result = ::OpenTelemetry::Trace.current_span(context)
 
-          assert_equal original_result, api_result, 'Should delegate to original when context provided'
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+
+            nr_span = Thread.current[:nr_otel_current_span]
+            result_with_context = ::OpenTelemetry::Trace.current_span(context)
+            result_without_context = ::OpenTelemetry::Trace.current_span
+
+            assert_equal nr_span, result_without_context, 'Should return NR span when no context provided'
+            refute_equal nr_span, result_with_context, 'Should delegate to original when context provided'
+          end
         end
 
         def test_current_span_returns_original_without_transaction
-          # Ensure no transaction is active and no thread-local span
           Thread.current[:nr_otel_current_span] = nil
-
-          original_span = ::OpenTelemetry::Trace.original_current_span
           current_span = ::OpenTelemetry::Trace.current_span
 
-          assert_equal original_span, current_span, 'Should return original span when no NR span available'
+          assert_equal ::OpenTelemetry::Trace::Span::INVALID, current_span, 'Should return INVALID span when no NR span available'
         end
 
         def test_current_span_returns_nr_span_in_transaction
@@ -173,23 +177,25 @@ module NewRelic
           end
         end
 
-        def test_recursion_guard_prevents_infinite_loops
+        def test_recursion_guard_calls_original_current_span_when_set
           thread = Thread.current
-
-          # Test 1: Guard blocks recursive calls
           thread[:nr_otel_recursion_guard] = true
           thread[:nr_otel_current_span] = nil
-
-          original_span = ::OpenTelemetry::Trace.original_current_span
           result = ::OpenTelemetry::Trace.current_span
 
-          assert_equal original_span, result, 'Should return original span when guard is set'
-
-          # Test 2: Guard is cleared properly in fallback path
+          # The OTel default return value for spans without context is INVALID
+          assert_equal ::OpenTelemetry::Trace::Span::INVALID, result, 'Should delegate to original when guard is set'
+          
+          # Cleanup to prevent leaking state into other tests
           thread[:nr_otel_recursion_guard] = nil
           thread[:nr_otel_current_span] = nil
+        end
 
+        def test_recursion_guard_is_cleared_after_fallback
+          thread = Thread.current
+          # With a nil nr_otel_recursion_guard, it should be reset to true during fallback and then cleared
           ::OpenTelemetry::Trace.current_span
+
           assert_nil thread[:nr_otel_recursion_guard], 'Guard should be cleared after fallback'
         end
 
@@ -213,12 +219,8 @@ module NewRelic
 
           threads.each(&:join)
 
-          # Thread 1 should get original span (guard active)
-          # Thread 2 should get NR span (no guard, in transaction)
-          original_span = ::OpenTelemetry::Trace.original_current_span
-
-          assert_equal original_span, results[:thread1]
-          assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Span, results[:thread2]
+          assert_equal ::OpenTelemetry::Trace::Span::INVALID, results[:thread1], 'Thread with guard should get original span'
+          assert_instance_of NewRelic::Agent::OpenTelemetry::Trace::Span, results[:thread2], 'Thread without guard should get NR span'
         end
 
         def test_thread_local_span_cleared_on_transaction_finish
