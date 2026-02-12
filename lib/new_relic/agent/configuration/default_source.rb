@@ -1706,7 +1706,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of HTTPClient at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.httprb' => {
-          :default => 'disabled',
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -2485,7 +2485,7 @@ module NewRelic
           :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans.'
         },
         :'opentelemetry.traces.include' => {
-          :default => 'OpenTelemetry::Instrumentation::HTTP::Instrumentation',
+          :default => '',
           :public => true,
           :type => String,
           :allowed_from_server => false,
