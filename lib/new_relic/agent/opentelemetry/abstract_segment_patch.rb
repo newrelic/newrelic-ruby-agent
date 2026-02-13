@@ -12,6 +12,7 @@ module NewRelic
             if otel_span.respond_to?(:finish) && !otel_span.instance_variable_get(:@finished)
               begin
                 otel_span.finish
+
                 return if finished?
               rescue => e
                 NewRelic::Agent.logger.debug("Error finishing OpenTelemetry span during force_finish: #{e}")
