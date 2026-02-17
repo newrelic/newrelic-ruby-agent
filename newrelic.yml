@@ -744,17 +744,17 @@ common: &default_settings
 
   # Enables the creation of Transaction Trace segments and timeslice metrics from
   # OpenTelemetry Spans. This will help drive New Relic UI experience for
-  # opentelemetry spans.
+  # OpenTelemetry spans.
   # opentelemetry.traces.enabled: true
 
   # A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g.
   # "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that
-  # will **not** have their trace signals sent to New Relic.
+  # will **not** have their traces sent to New Relic.
   # opentelemetry.traces.exclude: elasticsearch-api,dalli,OpenTelemetry::Instrumentation::ActionMailer::Instrumentation,OpenTelemetry::Instrumentation::ActionPack::Instrumentation,OpenTelemetry::Instrumentation::ActionView::Instrumentation,OpenTelemetry::Instrumentation::ActiveJob::Instrumentation,OpenTelemetry::Instrumentation::ActiveRecord::Instrumentation,OpenTelemetry::Instrumentation::ActiveStorage::Instrumentation,OpenTelemetry::Instrumentation::ActiveSupport::Instrumentation,OpenTelemetry::Instrumentation::AwsLambda::Instrumentation,OpenTelemetry::Instrumentation::AwsSdk::Instrumentation,OpenTelemetry::Instrumentation::Bunny::Instrumentation,OpenTelemetry::Instrumentation::ConcurrentRuby::Instrumentation,OpenTelemetry::Instrumentation::Dalli::Instrumentation,OpenTelemetry::Instrumentation::Ethon::Instrumentation,OpenTelemetry::Instrumentation::Excon::Instrumentation,OpenTelemetry::Instrumentation::Grape::Instrumentation,OpenTelemetry::Instrumentation::GraphQL::Instrumentation,OpenTelemetry::Instrumentation::Grpc::Instrumentation,OpenTelemetry::Instrumentation::HTTP::Instrumentation,OpenTelemetry::Instrumentation::HttpClient::Instrumentation,OpenTelemetry::Instrumentation::HTTPX::Instrumentation,OpenTelemetry::Instrumentation::Logger::Instrumentation,OpenTelemetry::Instrumentation::Mongo::Instrumentation,OpenTelemetry::Instrumentation::Net::HTTP::Instrumentation,OpenTelemetry::Instrumentation::Rack::Instrumentation,OpenTelemetry::Instrumentation::Rails::Instrumentation,OpenTelemetry::Instrumentation::Rake::Instrumentation,OpenTelemetry::Instrumentation::Rdkafka::Instrumentation,OpenTelemetry::Instrumentation::Redis::Instrumentation,OpenTelemetry::Instrumentation::Resque::Instrumentation,OpenTelemetry::Instrumentation::RubyKafka::Instrumentation,OpenTelemetry::Instrumentation::Sidekiq::Instrumentation,OpenTelemetry::Instrumentation::Sinatra::Instrumentation
 
   # A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g.
   # "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that
-  # **will** have their trace signals sent to New Relic.
+  # **will** have their traces sent to New Relic.
   # opentelemetry.traces.include: ""
 
   # If true, uses Module#prepend rather than alias_method for ActiveRecord
