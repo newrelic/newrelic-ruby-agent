@@ -4,7 +4,7 @@
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
 
-  OpenTelemetry Tracing APIs can now be translated into New Relic telemetry with the New Relic Ruby agent's new Hybrid Agent features. This allows the `newrelic_rpm` gem to behave similarly to an OpenTelemetry SDK, accepting OpenTelemetry API calls and turning them into New Relic Transactions and Segments with familiar attributes and names. This also allows users to take advantage of OpenTelemetry instrumentation for libraries not instrumented by the New Relic Ruby agent.
+  OpenTelemetry Tracing APIs can now be translated into New Relic telemetry with the New Relic Ruby agent's new Hybrid Agent features. This allows the `newrelic_rpm` gem to behave similarly to an OpenTelemetry SDK, accepting OpenTelemetry API calls and turning them into New Relic Transactions and Segments with familiar attributes and names.
 
   The following configuration options relate to Hybrid Agent features:
 
