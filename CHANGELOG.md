@@ -2,7 +2,20 @@
 
 ## dev
 
-- **Feature: Add configation option error_collector.backtrace_truncate_location**
+- **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
+
+  OpenTelemetry Tracing APIs can now be translated into New Relic telemetry with the New Relic Ruby agent's new Hybrid Agent features. This allows the `newrelic_rpm` gem to behave similarly to an OpenTelemetry SDK, accepting OpenTelemetry API calls and turning them into New Relic Transactions and Segments with familiar attributes and names.
+
+  The following configuration options relate to Hybrid Agent features:
+
+    | Configuration name | Default | Behavior |
+    | ------------------ | ------- |----------|
+    | opentelemetry.enabled | `false` | A global configuration option for disabling all OpenTelemetry signals sent through New Relic. |
+    | opentelemetry.traces.enabled | `true` |  Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans |
+    | opentelemetry.traces.include | `''` | A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that **will** have their trace signals sent to New Relic.|
+    | opentelemetry.traces.exclude | `''` | A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that will **not** have their trace signals sent to New Relic. All known tracers for instrumentation that conflicts with New Relic instrumentation are excluded by default. |
+
+- **Feature: Add configuration option error_collector.backtrace_truncate_location**
 
   A new configuration option has been added, `error_collector.backtrace_truncate_location`, which allows the user to specify where in the backtrace to truncate when the number of frames exceeds `error_collector.max_backtrace_frames`. Options are `'top'` (removes frames from the beginning), `'middle'` (removes frames from the middle, preserving the beginning and end), or `'end'` (removes frames from the end). The default is `'middle'`. [PR#3424](https://github.com/newrelic/newrelic-ruby-agent/pull/3424)
 
@@ -28,9 +41,9 @@
 
   The agent now properly initializes health check loops after forking, ensuring each process generates its own health check file. This fix also has the effect of correctly including `entity.guid` values in the health check files. [PR#3409](https://github.com/newrelic/newrelic-ruby-agent/pull/3409) [Issue#3408](https://github.com/newrelic/newrelic-ruby-agent/issues/3408)
 
-- **Bugfix: Fix `sidekiq.ignore_retry_errors`**                           
+- **Bugfix: Fix `sidekiq.ignore_retry_errors`**
 
-  The configuration option `sidekiq.ignore_retry_errors: true` was continuing to report retry errors. The agent now correctly ignores retry errors and only reports when jobs permanently fail. [PR#3399](https://github.com/newrelic/newrelic-ruby-agent/pull/3399)      
+  The configuration option `sidekiq.ignore_retry_errors: true` was continuing to report retry errors. The agent now correctly ignores retry errors and only reports when jobs permanently fail. [PR#3399](https://github.com/newrelic/newrelic-ruby-agent/pull/3399)
 
 ## v10.0.0
 

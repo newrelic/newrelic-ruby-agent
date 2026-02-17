@@ -2482,22 +2482,22 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans.'
+          :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for OpenTelemetry spans.'
         },
         :'opentelemetry.traces.include' => {
           :default => '',
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that **will** have their trace signals sent to New Relic.'
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that **will** have their traces sent to New Relic.'
         },
         :'opentelemetry.traces.exclude' => {
           :default => '',
-          :documentation_default => NewRelic::Agent::OpenTelemetryBridge::DEFAULT_EXCLUDED_TRACERS.join(','),
+          :documentation_default => "#{NewRelic::Agent::OpenTelemetryBridge::DEFAULT_EXCLUDED_TRACERS.join(',')}",
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that will **not** have their trace signals sent to New Relic.'
+          :description => 'A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that will **not** have their traces sent to New Relic.'
         },
         :force_reconnect => {
           :default => false,
