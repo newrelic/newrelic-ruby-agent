@@ -380,6 +380,12 @@ common: &default_settings
   # end.
   # error_collector.attributes.include: []
 
+  # Specifies where in the backtrace to truncate when the number of frames exceeds
+  # error_collector.max_backtrace_frames. Options are top (remove frames from the
+  # beginning), middle (remove frames from the middle, preserving the beginning
+  # and end), or end (remove frames from the end).
+  # error_collector.backtrace_truncate_location: middle
+
   # If true, the agent collects TransactionError events.
   # error_collector.capture_events: true
 
@@ -580,6 +586,10 @@ common: &default_settings
   # be one of: auto, prepend, chain, disabled.
   # instrumentation.logger: auto
 
+  # Controls auto-instrumentation of the logging library at start-up. May be one
+  # of auto, prepend, chain, disabled.
+  # instrumentation.logging: auto
+
   # Controls auto-instrumentation of the LogStasher library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.logstasher: auto
@@ -724,6 +734,28 @@ common: &default_settings
 
   # If true, the agent obfuscates OpenSearch queries in transaction traces.
   # opensearch.obfuscate_queries: true
+
+  # A global configuration option for disabling all OpenTelemetry signals sent
+  # through New Relic. If false, no OpenTelemetry signals will be sent to New
+  # Relic. If true, the signal-specific enabled config option (e.g.
+  # opentelemetry.traces.enabled) determines whether telemetry of that signal type
+  # will be reported to New Relic.
+  # opentelemetry.enabled: false
+
+  # Enables the creation of Transaction Trace segments and timeslice metrics from
+  # OpenTelemetry Spans. This will help drive New Relic UI experience for
+  # opentelemetry spans.
+  # opentelemetry.traces.enabled: true
+
+  # A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g.
+  # "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that
+  # will **not** have their trace signals sent to New Relic.
+  # opentelemetry.traces.exclude: elasticsearch-api,dalli,OpenTelemetry::Instrumentation::ActionMailer::Instrumentation,OpenTelemetry::Instrumentation::ActionPack::Instrumentation,OpenTelemetry::Instrumentation::ActionView::Instrumentation,OpenTelemetry::Instrumentation::ActiveJob::Instrumentation,OpenTelemetry::Instrumentation::ActiveRecord::Instrumentation,OpenTelemetry::Instrumentation::ActiveStorage::Instrumentation,OpenTelemetry::Instrumentation::ActiveSupport::Instrumentation,OpenTelemetry::Instrumentation::AwsLambda::Instrumentation,OpenTelemetry::Instrumentation::AwsSdk::Instrumentation,OpenTelemetry::Instrumentation::Bunny::Instrumentation,OpenTelemetry::Instrumentation::ConcurrentRuby::Instrumentation,OpenTelemetry::Instrumentation::Dalli::Instrumentation,OpenTelemetry::Instrumentation::Ethon::Instrumentation,OpenTelemetry::Instrumentation::Excon::Instrumentation,OpenTelemetry::Instrumentation::Grape::Instrumentation,OpenTelemetry::Instrumentation::GraphQL::Instrumentation,OpenTelemetry::Instrumentation::Grpc::Instrumentation,OpenTelemetry::Instrumentation::HTTP::Instrumentation,OpenTelemetry::Instrumentation::HttpClient::Instrumentation,OpenTelemetry::Instrumentation::HTTPX::Instrumentation,OpenTelemetry::Instrumentation::Logger::Instrumentation,OpenTelemetry::Instrumentation::Mongo::Instrumentation,OpenTelemetry::Instrumentation::Net::HTTP::Instrumentation,OpenTelemetry::Instrumentation::Rack::Instrumentation,OpenTelemetry::Instrumentation::Rails::Instrumentation,OpenTelemetry::Instrumentation::Rake::Instrumentation,OpenTelemetry::Instrumentation::Rdkafka::Instrumentation,OpenTelemetry::Instrumentation::Redis::Instrumentation,OpenTelemetry::Instrumentation::Resque::Instrumentation,OpenTelemetry::Instrumentation::RubyKafka::Instrumentation,OpenTelemetry::Instrumentation::Sidekiq::Instrumentation,OpenTelemetry::Instrumentation::Sinatra::Instrumentation
+
+  # A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g.
+  # "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that
+  # **will** have their trace signals sent to New Relic.
+  # opentelemetry.traces.include: ""
 
   # If true, uses Module#prepend rather than alias_method for ActiveRecord
   # instrumentation.
@@ -973,6 +1005,10 @@ common: &default_settings
   # If true, the agent automatically detects that it is running in an Google Cloud
   # Platform environment.
   # utilization.detect_gcp: true
+
+  # If true, the agent will perform environment detection in parallel to speed up
+  # agent startup time.
+  # utilization.detect_in_parallel: true
 
   # If true, the agent automatically detects that it is running in Kubernetes.
   # utilization.detect_kubernetes: true

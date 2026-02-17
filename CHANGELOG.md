@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.2.0
 
 - **Feature: Add configation option error_collector.backtrace_truncate_location**
 
