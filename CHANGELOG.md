@@ -15,7 +15,6 @@
     | opentelemetry.traces.include | `''` | A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that **will** have their trace signals sent to New Relic.|
     | opentelemetry.traces.exclude | `''` | A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. "AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation"), that will **not** have their trace signals sent to New Relic. All known tracers for instrumentation that conflicts with New Relic instrumentation are excluded by default. |
 
-
 - **Feature: Add configuration option error_collector.backtrace_truncate_location**
 
   A new configuration option has been added, `error_collector.backtrace_truncate_location`, which allows the user to specify where in the backtrace to truncate when the number of frames exceeds `error_collector.max_backtrace_frames`. Options are `'top'` (removes frames from the beginning), `'middle'` (removes frames from the middle, preserving the beginning and end), or `'end'` (removes frames from the end). The default is `'middle'`. [PR#3424](https://github.com/newrelic/newrelic-ruby-agent/pull/3424)
