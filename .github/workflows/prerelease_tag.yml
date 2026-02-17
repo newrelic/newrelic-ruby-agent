@@ -1,0 +1,34 @@
+name: Create Release PR
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create_prerelease_tag:
+    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Install Ruby 3.4
+      uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c # tag v1.287.0
+      with:
+        ruby-version: 3.4
+
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
+
+    - run: bundle install
+
+    - name: Set prerelease tag env var
+      run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
+
+    - name: Make tag
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # tag v2.5.0
+      with:
+        tag_name: ${{ env.prerelease_tag }}
+        name: ${{ env.prerelease_tag }}
+        target_commitish: prerelease_updates_${{ env.prerelease_tag }}
+        prerelease: true
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
