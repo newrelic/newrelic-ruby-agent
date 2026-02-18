@@ -8,6 +8,8 @@ on:
 jobs:
   create_prerelease_tag:
     if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    permissions:
+      contents: write
     runs-on: ubuntu-22.04
     steps:
     - name: Install Ruby 3.4
