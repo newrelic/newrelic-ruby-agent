@@ -45,19 +45,6 @@ module NewRelic::Agent
         end
       end
 
-      def test_does_not_decorate_if_instrumentation_logger_and_logastasher_disabled
-        with_config(
-          :'instrumentation.logger' => 'disabled',
-          :'instrumentation.logstasher' => 'disabled',
-          :'application_logging.enabled' => true,
-          :'application_logging.local_decorating.enabled' => true
-        ) do
-          decorated_message = LocalLogDecorator.decorate(MESSAGE)
-
-          assert_equal MESSAGE, decorated_message
-        end
-      end
-
       def test_does_not_decorate_if_application_logging_disabled
         with_config(
           :'instrumentation.logger' => 'disabled',

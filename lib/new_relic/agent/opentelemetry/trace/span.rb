@@ -11,7 +11,31 @@ module NewRelic
           attr_reader :status
 
           def finish(end_timestamp: nil)
+            update_client_span
+            update_server_span
             finishable&.finish
+          end
+
+          # TODO: This method can probably be combined with update_client_span
+          # and turned into something more generic when we refactor the way
+          # attributes are stored on NR items
+          def update_server_span
+            if finishable.is_a?(NewRelic::Agent::Transaction) && finishable.category == :web
+              finishable_segment_attrs = finishable.segments.first.attributes.custom_attributes
+              code = finishable_segment_attrs['http.response.status_code'] || finishable_segment_attrs['http.status_code']
+              finishable.http_response_code = code if code
+            end
+          end
+
+          def update_client_span
+            if finishable.is_a?(NewRelic::Agent::Transaction::ExternalRequestSegment) &&
+                finishable.http_status_code.nil?
+              # TODO: Delete duplicate attrs from custom attributes
+              finishable_attrs = finishable.attributes.custom_attributes
+              code = finishable_attrs['http.response.status_code'] || finishable_attrs['http.status_code']
+
+              finishable.instance_variable_set(:@http_status_code, code) if code
+            end
           end
 
           def set_attribute(key, value)
@@ -22,6 +46,7 @@ module NewRelic
             NewRelic::Agent.add_custom_span_attributes(attributes)
           end
 
+          # TODO: do we need to add a condition for NewRelic::Agent::Tracer.capture_segment_error(segment) if finishable is a segment?
           def record_exception(exception, attributes: nil)
             NewRelic::Agent.notice_error(exception, attributes: attributes)
           end
@@ -54,6 +79,19 @@ module NewRelic
             end
           end
 
+          def transaction
+            return nil unless finishable
+
+            @transaction ||= finishable.is_a?(Transaction) ? finishable : finishable.transaction
+          end
+
+          def add_instrumentation_scope(name, version)
+            return unless transaction
+
+            transaction.add_agent_attribute('otel.scope.name', name, AttributeFilter::DST_SPAN_EVENTS)
+            transaction.add_agent_attribute('otel.scope.version', version, AttributeFilter::DST_SPAN_EVENTS)
+          end
+
           # @api private
           def status=(new_status)
             # When OTel spans are inititalized they get an unset status
@@ -63,11 +101,8 @@ module NewRelic
             attrs = {'status.code' => new_status.code}
             attrs['status.description'] = new_status.description unless new_status.description.empty?
 
-            txn = finishable.is_a?(Transaction) ? finishable : finishable.transaction
-            attrs.each { |k, v| txn.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) }
+            attrs.each { |k, v| transaction.add_agent_attribute(k, v, AttributeFilter::DST_SPAN_EVENTS) } if transaction
           end
-
-          INVALID = new(span_context: ::OpenTelemetry::Trace::SpanContext::INVALID)
         end
       end
     end

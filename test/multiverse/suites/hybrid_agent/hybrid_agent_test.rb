@@ -14,7 +14,8 @@ class HybridAgentTest < Minitest::Test
 
   def setup
     @tracer = OpenTelemetry.tracer_provider.tracer
-
+    harvest_transaction_events!
+    harvest_span_events!
     # in order to inject headers, there must be a parent account ID and a
     # parent application ID
     @config = {

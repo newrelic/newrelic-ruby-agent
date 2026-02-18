@@ -301,6 +301,65 @@ module NewRelic::Agent
       end
     end
 
+    def test_uses_sequential_detection_when_detect_in_parallel_is_disabled
+      stub_aws_info
+
+      with_config(:'utilization.detect_in_parallel' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+
+        utilization_data.expects(:detect_vendors_sequential).once
+        utilization_data.expects(:detect_vendors_parallel).never
+
+        utilization_data.to_collector_hash
+      end
+    end
+
+    def test_uses_parallel_detection_when_detect_in_parallel_is_enabled
+      stub_aws_info
+
+      with_config(:'utilization.detect_in_parallel' => true, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+
+        utilization_data.expects(:detect_vendors_parallel).once
+        utilization_data.expects(:detect_vendors_sequential).never
+
+        utilization_data.to_collector_hash
+      end
+    end
+
+    def test_sequential_detection_finds_aws_vendor
+      stub_aws_info
+
+      with_config(:'utilization.detect_in_parallel' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+
+        expected = {
+          :instanceId => 'i-08987cdeff7489fa7',
+          :instanceType => 'c4.2xlarge',
+          :availabilityZone => 'us-west-2c'
+        }
+
+        assert_equal expected, utilization_data.to_collector_hash[:vendors][:aws]
+      end
+    end
+
+    def test_sequential_detection_finds_ecs_vendor
+      stub_aws_info
+
+      # Stub ECS v4 detection to succeed
+      ecs_instance = mock('ecs')
+      ecs_instance.stubs(:detect).returns(true)
+      ecs_instance.stubs(:metadata).returns({ecsFargate: '1.4.0'})
+      Utilization::ECSV4.stubs(:new).returns(ecs_instance)
+
+      with_config(:'utilization.detect_in_parallel' => false, :'utilization.detect_docker' => false) do
+        utilization_data = UtilizationData.new
+        collector_hash = utilization_data.to_collector_hash
+
+        assert_equal({ecsFargate: '1.4.0'}, collector_hash[:vendors][:ecs])
+      end
+    end
+
     # ---
 
     def stub_aws_info(response_code: '200', response_body: default_aws_response)

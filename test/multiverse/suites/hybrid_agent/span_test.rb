@@ -13,12 +13,12 @@ module NewRelic
 
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
+            harvest_transaction_events!
+            harvest_span_events!
           end
 
           def teardown
             mocha_teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           def test_finish_does_not_fail_if_no_finishable_present
@@ -225,6 +225,204 @@ module NewRelic
             last_span_agent_attrs = last_span_event[2]
 
             assert_equal expected['status.code'], last_span_agent_attrs['status.code']
+          end
+
+          def test_transaction_returns_transaction_when_finishable_is_transaction
+            span = @tracer.start_span('test', kind: :server)
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+            assert_equal span.finishable, span.transaction
+
+            span.finish
+          end
+
+          def test_transaction_returns_transaction_when_finishable_is_segment
+            in_transaction do |txn|
+              span = @tracer.start_span('test_segment')
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+              assert_equal txn, span.transaction
+              span.finish
+            end
+          end
+
+          def test_update_server_span_sets_response_code_with_stable_attribute
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.add_attributes({'http.response.status_code' => 200})
+
+            span.finish
+
+            assert_equal 200, txn.http_response_code
+          end
+
+          def test_update_server_span_sets_response_code_with_old_attribute
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.add_attributes({'http.status_code' => 404})
+
+            span.finish
+
+            assert_equal 404, txn.http_response_code
+          end
+
+          def test_update_server_span_prefers_stable_over_old_attribute
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.add_attributes({
+              'http.response.status_code' => 201,
+              'http.status_code' => 200
+            })
+
+            span.finish
+
+            assert_equal 201, txn.http_response_code
+          end
+
+          def test_update_server_span_does_not_set_code_when_no_attributes_present
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :web, txn.category
+
+            span.finish
+
+            assert_nil txn.http_response_code
+          end
+
+          def test_update_server_span_does_not_update_non_web_transaction
+            # Consumer spans create transactions with a :task category,
+            # not with a :web category
+            span = @tracer.start_span('test_span', kind: :consumer)
+            txn = span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, txn
+            assert_equal :task, txn.category
+
+            span.add_attributes({'http.response.status_code' => 200})
+
+            span.finish
+
+            assert_nil txn.http_response_code
+          end
+
+          def test_update_server_span_does_not_update_segment
+            in_transaction do
+              span = @tracer.start_span('test_span')
+              segment = span.finishable
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, segment
+
+              span.add_attributes({'http.response.status_code' => 200})
+
+              # Should not raise an error, just return early
+              span.finish
+            end
+          end
+
+          def test_transaction_memoizes_result
+            span = @tracer.start_span('test', kind: :server)
+            txn = span.finishable
+
+            first_call = span.transaction
+            second_call = span.transaction
+
+            assert_equal txn, first_call
+            assert_equal txn, second_call
+            assert_same first_call, second_call
+
+            span.finish
+          end
+
+          def test_transaction_returns_nil_when_finishable_is_nil
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.finishable
+            assert_nil span.transaction
+          end
+
+          def test_add_instrumentation_scope_adds_name_and_version_attributes
+            scope_name = 'my-instrumentation-library'
+            scope_version = '1.2.3'
+
+            span = @tracer.start_span('test', kind: :server)
+            txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
+
+            span.add_instrumentation_scope(scope_name, scope_version)
+            span.finish
+
+            segment_attrs = txn.segments.first.attributes
+            segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+            assert_equal scope_name, segment_agent_attrs['otel.scope.name']
+            assert_equal scope_version, segment_agent_attrs['otel.scope.version']
+
+            # index 2 of the last_span_event array is for agent attributes
+            last_span_agent_attrs = last_span_event[2]
+
+            assert_equal scope_name, last_span_agent_attrs['otel.scope.name']
+            assert_equal scope_version, last_span_agent_attrs['otel.scope.version']
+          end
+
+          def test_add_instrumentation_scope_works_with_segment_finishable
+            scope_name = 'segment-instrumentation'
+            scope_version = '2.0.0'
+
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              span = @tracer.start_span('test_segment')
+
+              assert_instance_of NewRelic::Agent::Transaction::Segment, span.finishable
+
+              span.add_instrumentation_scope(scope_name, scope_version)
+              span.finish
+
+              segment_attrs = txn.segments[1].attributes
+              segment_agent_attrs = segment_attrs.instance_variable_get(:@agent_attributes)
+
+              assert_equal scope_name, segment_agent_attrs['otel.scope.name']
+              assert_equal scope_version, segment_agent_attrs['otel.scope.version']
+            end
+          end
+
+          def test_add_instrumentation_scope_does_not_fail_with_nil_transaction
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.transaction
+            refute_raises { span.add_instrumentation_scope('test-scope', '1.0.0') }
+          end
+
+          def test_status_does_not_fail_with_nil_transaction
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.transaction
+            refute_raises { span.status = ::OpenTelemetry::Trace::Status.ok }
+          end
+
+          def test_update_server_span_handles_string_http_response_status_code
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
+
+            span.add_attributes({'http.response.status_code' => '503'})
+
+            span.finish
+
+            assert_equal '503', txn.http_response_code
           end
         end
       end

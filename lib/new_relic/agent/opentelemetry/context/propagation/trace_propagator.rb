@@ -27,6 +27,9 @@ module NewRelic
                 format: carrier_format,
                 trace_state_entry_key: Transaction::TraceContext::AccountHelpers.trace_state_entry_key
               )
+
+              return context if trace_context.nil?
+
               tp = trace_context.trace_parent
               span_context = ::OpenTelemetry::Trace::SpanContext.new(
                 trace_id: tp['trace_id'],

@@ -28,6 +28,6 @@
     "@eslint/create-config": "^0.4.5",
     "@octokit/graphql": "^5.0.6",
     "@vercel/ncc": "^0.36.1",
-    "eslint": "^8.43.0"
+    "eslint": "^9.26.0"
   }
 }

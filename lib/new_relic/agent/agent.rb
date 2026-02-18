@@ -107,7 +107,7 @@ module NewRelic
         @adaptive_sampler_remote_parent_not_sampled = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
         @serverless_handler = ServerlessHandler.new
-        @opentelemetry_bridge = OpenTelemetryBridge.new
+        @opentelemetry_bridge = OpenTelemetryBridge.new(@events)
       end
 
       def init_event_handlers

@@ -309,6 +309,42 @@ module NewRelic::Agent
         assert_equal ['error1', 'error2', '<truncated 1 additional frames>', 'error4'], trace
       end
 
+      def test_truncate_trace_with_location_top
+        with_config(:'error_collector.backtrace_truncate_location' => 'top',
+          :'error_collector.max_backtrace_frames' => 2) do
+          trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4])
+
+          assert_equal ['<truncated 2 additional frames>', 'error3', 'error4'], trace
+        end
+      end
+
+      def test_truncate_trace_with_location_end
+        with_config(:'error_collector.backtrace_truncate_location' => 'end',
+          :'error_collector.max_backtrace_frames' => 2) do
+          trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4])
+
+          assert_equal ['error1', 'error2', '<truncated 2 additional frames>'], trace
+        end
+      end
+
+      def test_truncate_trace_with_location_middle
+        with_config(:'error_collector.backtrace_truncate_location' => 'middle',
+          :'error_collector.max_backtrace_frames' => 2) do
+          trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4])
+
+          assert_equal ['error1', '<truncated 2 additional frames>', 'error4'], trace
+        end
+      end
+
+      def test_truncate_trace_defaults_to_middle_with_invalid_location
+        with_config(:'error_collector.backtrace_truncate_location' => 'invalid',
+          :'error_collector.max_backtrace_frames' => 2) do
+          trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4])
+
+          assert_equal ['error1', '<truncated 2 additional frames>', 'error4'], trace
+        end
+      end
+
       if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
         def test_extract_stack_trace_from_original_exception
           orig = mock('original', :backtrace => 'STACK STACK STACK')
