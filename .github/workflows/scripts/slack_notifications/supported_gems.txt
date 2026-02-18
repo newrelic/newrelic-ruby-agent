@@ -50,3 +50,4 @@ view_component
 yajl-ruby
 logging
 parallel
+semantic_logger

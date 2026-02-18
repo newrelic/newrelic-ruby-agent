@@ -134,6 +134,24 @@ module NewRelic
         nil
       end
 
+      def record_semantic_logger(log, severity)
+        return unless logger_enabled?
+        return if log.message.nil? || log.message.empty?
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
+        return txn.add_log_event(create_semantic_logger_event(priority, severity, log)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_semantic_logger_event(priority, severity, log)
+          end
+        end
+      rescue
+        nil
+      end
+
       def monitoring_conditions_met?(severity)
         !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
       end
