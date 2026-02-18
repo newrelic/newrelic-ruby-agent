@@ -29,11 +29,11 @@ module NewRelic
         end
 
         def metric_name_from_payload(name, payload)
-          "Ruby/ActionCable/#{metric_name(payload)}/#{action_name(name)}"
+          "Ruby/ActionCable/#{metric_name(payload)}#{action_name(name)}"
         end
 
         def metric_name(payload)
-          payload[:broadcasting] || payload[:channel_class]
+          "#{payload[:channel_class]}/" if payload[:channel_class]
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze

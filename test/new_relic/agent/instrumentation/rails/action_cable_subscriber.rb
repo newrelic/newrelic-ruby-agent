@@ -126,7 +126,7 @@ module NewRelic
           sample = last_transaction_trace
 
           assert_nil sample, 'Did not expect a transaction to be created for broadcast'
-          refute_metrics_recorded ['Ruby/ActionCable/TestBroadcasting/broadcast']
+          refute_metrics_recorded ['Ruby/ActionCable/broadcast']
         end
 
         def test_actual_call_to_broadcast_method_records_segment_in_txn
@@ -136,15 +136,15 @@ module NewRelic
             @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
           end
 
-          metric_name = 'Ruby/ActionCable/TestBroadcasting/broadcast'
+          metric_name = 'Ruby/ActionCable/broadcast'
 
           assert_metrics_recorded metric_name
           assert find_node_with_name(last_transaction_trace, metric_name),
             'Could not find a node with desired name.'
         end
 
-        def test_metric_name_correctly_names_payload_for_broadcast
-          assert_equal 'TestBroadcasting', @subscriber.send(:metric_name, payload_for_broadcast)
+        def test_metric_name_returns_nil_for_payload_from_broadcast
+          assert_nil @subscriber.send(:metric_name, payload_for_broadcast)
         end
 
         def test_metric_name_correctly_names_payload_for_channel
@@ -200,11 +200,21 @@ module NewRelic
         end
 
         def payload_for_broadcast
-          {
-            broadcasting: 'TestBroadcasting',
-            message: {message: 'test_message'},
-            coder: 'idk-we-dont-save-this'
-          }
+          {broadcasting: 'tasks_964944192',
+           message:
+            {action: 'created',
+             task:
+              {'id' => 629957653,
+               'name' => 'Go for a run',
+               'description' => 'Week 9 C25k',
+               'created_at' =>
+                '2026-02-18T21:47:55.096Z',
+               'updated_at' =>
+                '2026-02-18T21:47:55.096Z',
+               'status' => 'in_progress',
+               'group_id' => 964944192},
+             user: 'one@example.com'},
+           coder: ActiveSupport::JSON}
         end
       end
     end

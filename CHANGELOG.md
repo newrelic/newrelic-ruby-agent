@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Reduce cardinality of ActionCable broadcast metrics**
+
+  Previously, the metrics for ActionCable broadcast included the value for the broadcasting. This value can have very high cardinality. Now, the metrics exclude the broadcasting value and are much simpler: `Ruby/ActionCable/broadcast`. (PR#XXXX)[link]
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
