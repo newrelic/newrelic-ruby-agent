@@ -148,7 +148,11 @@ module NewRelic
         end
 
         def test_metric_name_correctly_names_payload_for_channel
-          assert_equal 'TestChannel', @subscriber.send(:metric_name, payload_for_perform_action)
+          # The slash is added by the metric_name method because metric_name
+          # will be nil if called with the broadcast notification since it
+          # does not have a :channel_class attribute in the payload.
+          # This way, we don't end up with double slashes for broadcast metrics.
+          assert_equal 'TestChannel/', @subscriber.send(:metric_name, payload_for_perform_action)
         end
 
         def test_actual_call_to_action_cable
