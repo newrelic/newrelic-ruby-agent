@@ -13,11 +13,15 @@ module NewRelic::Agent::Instrumentation
 
       def log_with_new_relic(log)
         NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
-        NewRelic::Agent.agent.log_event_aggregator.record_semantic_logger(log, log.level)
 
-        log.message = NewRelic::Agent::LocalLogDecorator.decorate(log.message)
-        
-        yield
+        begin
+          log.message = NewRelic::Agent::LocalLogDecorator.decorate(log.message)
+          NewRelic::Agent.agent.log_event_aggregator.record_semantic_logger(log)
+        rescue => e
+          NewRelic::Agent.logger.debug("Failed to capture Semantic Logger event: #{e.message}")
+        end
+
+        yield if block_given?
       end
     end
   end

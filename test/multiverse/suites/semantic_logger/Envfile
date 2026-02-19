@@ -4,6 +4,15 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<~RB
-  gem 'semantic_logger'
-RB
+semantic_logger_versions = [
+  [nil, 2.7],
+  ['4.6.0', 2.7] # earliest version that works with our instrumentation
+]
+
+def gem_list(semantic_logger_versions = nil)
+  <<~RB
+    gem 'semantic_logger'#{semantic_logger_versions}
+  RB
+end
+
+create_gemfiles(semantic_logger_versions)

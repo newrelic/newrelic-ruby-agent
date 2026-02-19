@@ -5,7 +5,7 @@
 module NewRelic::Agent::Instrumentation
   module SemanticLogger::Appenders::Chain
     def self.instrument!
-      ::SemanticLogger.class_eval do
+      ::SemanticLogger::Appenders.class_eval do
         include NewRelic::Agent::Instrumentation::SemanticLogger::Appenders
 
         alias_method(:log_without_new_relic, :log)

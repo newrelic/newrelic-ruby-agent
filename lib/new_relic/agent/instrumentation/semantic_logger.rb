@@ -6,8 +6,7 @@ DependencyDetection.defer do
   named :semantic_logger
 
   depends_on do
-    # The class that needs to be defined to prepend/chain onto. This can be used
-    defined?(SemanticLogger::Appenders) && NewRelic::Agent.config[:'application_logging.enabled']
+    defined?(SemanticLogger::Appenders) && NewRelic::Agent.config[:'application_logging.enabled'] && NewRelic::Agent.config[:'instrumentation.semantic_logger'] != 'disabled'
   end
 
   executes do

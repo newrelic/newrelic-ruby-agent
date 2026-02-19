@@ -23,6 +23,7 @@ module NewRelic
       LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
       LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
       LOGGING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logging/%s'.freeze
+      SEMANTIC_LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/SemanticLogger/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
@@ -134,9 +135,14 @@ module NewRelic
         nil
       end
 
-      def record_semantic_logger(log, severity)
-        return unless logger_enabled?
+      def record_semantic_logger(log)
+        return unless semantic_logger_enabled?
         return if log.message.nil? || log.message.empty?
+
+        severity = log.level.to_s.upcase
+        increment_event_counters(severity)
+
+        return unless monitoring_conditions_met?(severity)
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
@@ -153,7 +159,7 @@ module NewRelic
       end
 
       def monitoring_conditions_met?(severity)
-        !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
+        !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !NewRelic::Agent.config[:high_security]
       end
 
       def determine_severity(log)
@@ -246,6 +252,19 @@ module NewRelic
         event
       end
 
+      def create_semantic_logger_event(priority, severity, log)
+        formatted_message = truncate_message(log.message)
+        event = add_event_metadata(formatted_message, severity)
+        add_semantic_logger_event_attributes(event, log)
+
+        create_prioritized_event(priority, event)
+      end
+
+      def add_semantic_logger_event_attributes(event, log)
+        add_payload_attributes(event, log)
+        add_log_instance_variables(event, log)
+      end
+
       def add_mdc_data_to_event(event, mdc_data)
         mdc_data.each do |key, value|
           event["context.mdc.#{key}"] = value
@@ -316,7 +335,38 @@ module NewRelic
         @enabled && NewRelic::Agent::Instrumentation::Logging::Logger.enabled?
       end
 
+      def semantic_logger_enabled?
+        NewRelic::Agent.config[:'application_logging.enabled'] && NewRelic::Agent::Instrumentation::SemanticLogger::Appenders.enabled?
+      end
+
       private
+
+      def add_payload_attributes(event, log)
+        return unless log.respond_to?(:payload) && log.payload.is_a?(Hash)
+
+        log.payload.each do |key, value|
+          next if empty_value?(value)
+          event[key.to_s] = value
+        end
+      end
+
+      def add_log_instance_variables(event, log)
+        skip_vars = %w[@level @level_index @message @time @payload]
+
+        log.instance_variables.each do |var|
+          next if skip_vars.include?(var.to_s)
+
+          value = log.instance_variable_get(var)
+          next if empty_value?(value)
+
+          key = var.to_s.sub('@', '')
+          event[key] = value
+        end
+      end
+
+      def empty_value?(value)
+        value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      end
 
       # We record once-per-connect metrics for enabled/disabled state at the
       # point we consider the configuration stable (i.e. once we've gotten SSC)
@@ -326,6 +376,7 @@ module NewRelic
           record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(LOGGING_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
+          record_configuration_metric(SEMANTIC_LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
