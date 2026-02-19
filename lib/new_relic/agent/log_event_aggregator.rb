@@ -346,6 +346,7 @@ module NewRelic
 
         log.payload.each do |key, value|
           next if empty_value?(value)
+
           event[key.to_s] = value
         end
       end

@@ -32,13 +32,13 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
   def test_no_instrumentation_when_disabled
     with_config(:'instrumentation.semantic_logger' => 'disabled') do
-      @logger.info('Test message')                                                                        
-      flush_semantic_logger                                                                 
+      @logger.info('Test message')
+      flush_semantic_logger
     end
     _, events = @aggregator.harvest!
-                                      
-    assert_empty(events)                                                               
-  end 
+
+    assert_empty(events)
+  end
 
   def test_level_is_recorded
     in_transaction do
@@ -81,7 +81,7 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     in_transaction do
       @logger.info('Test message', user_id: 123, action: 'login')
     end
-    flush_semantic_logger  
+    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 'INFO', events[0][1]['level']
@@ -117,7 +117,7 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     with_config(:'application_logging.local_decorating.enabled' => true) do
       in_transaction do
         @logger.info('Decorate me!')
-        flush_semantic_logger  
+        flush_semantic_logger
       end
     end
     log_output = @written.string
@@ -211,7 +211,7 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
     assert_equal 'INFO', events[0][1]['level']
     assert_equal 'Tagged message', events[0][1]['message']
-    assert_equal ['web', 'api'], events[0][1]['tags']
+    assert_equal %w[web api], events[0][1]['tags']
   end
 
   def test_custom_logger_names
