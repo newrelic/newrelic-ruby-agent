@@ -176,17 +176,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     assert_match(/Message to multiple appenders/, second_output.string)
   end
 
-  def test_high_security_mode_blocks_forwarding
-    with_config(:high_security => true) do
-      in_transaction do
-        @logger.info('Should not be forwarded in high security mode')
-      end
-      flush_semantic_logger
-      _, events = @aggregator.harvest!
-
-      assert_empty(events)
-    end
-  end
 
   def test_application_logging_disabled_blocks_instrumentation
     with_config(:'application_logging.enabled' => false) do

@@ -159,7 +159,7 @@ module NewRelic
       end
 
       def monitoring_conditions_met?(severity)
-        !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !NewRelic::Agent.config[:high_security]
+        !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
       end
 
       def determine_severity(log)
