@@ -20,10 +20,6 @@ module NewRelic
       DROPPED_METRIC = 'Logging/Forwarding/Dropped'.freeze
       SEEN_METRIC = 'Supportability/Logging/Forwarding/Seen'.freeze
       SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
-      LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
-      LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
-      LOGGING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logging/%s'.freeze
-      SEMANTIC_LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/SemanticLogger/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
@@ -324,22 +320,26 @@ module NewRelic
       end
 
       def logger_enabled?
-        @enabled && @instrumentation_logger_enabled
+        application_logging_and_instrumentation_enabled?(@instrumentation_logger_enabled)
       end
 
       def logstasher_enabled?
-        @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::LogStasher.enabled?)
       end
 
       def logging_enabled?
-        @enabled && NewRelic::Agent::Instrumentation::Logging::Logger.enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::Logging::Logger.enabled?)
       end
 
       def semantic_logger_enabled?
-        NewRelic::Agent.config[:'application_logging.enabled'] && NewRelic::Agent::Instrumentation::SemanticLogger::Appenders.enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::SemanticLogger::Appenders.enabled?)
       end
 
       private
+
+      def application_logging_and_instrumentation_enabled?(instrumentation_enabled)
+        @enabled && instrumentation_enabled
+      end
 
       def add_payload_attributes(event, log)
         return unless log.respond_to?(:payload) && log.payload.is_a?(Hash)
@@ -374,27 +374,35 @@ module NewRelic
       def register_for_done_configuring(events)
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
-          record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
-          record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
-          record_configuration_metric(LOGGING_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
-          record_configuration_metric(SEMANTIC_LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
           record_configuration_metric(LABELS_SUPPORTABILITY_FORMAT, LABELS_ENABLED_KEY)
+          %w[Logger LogStasher Logging SemanticLogger].each do |library|
+            record_logs_supportability_metric(library, OVERALL_ENABLED_KEY)
+          end
 
           add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
         end
       end
 
       def record_configuration_metric(format, key)
+        label = supportability_label_for(key)
+        NewRelic::Agent.increment_metric(format % label)
+      end
+
+      def record_logs_supportability_metric(library, key)
+        label = supportability_label_for(key)
+        NewRelic::Agent.increment_metric("Supportability/Logging/Ruby/#{library}/#{label}")
+      end
+
+      def supportability_label_for(key)
         state = NewRelic::Agent.config[key]
-        label = if !enabled?
+        if !enabled?
           'disabled'
         else
           state ? 'enabled' : 'disabled'
         end
-        NewRelic::Agent.increment_metric(format % label)
       end
 
       def after_harvest(metadata)
