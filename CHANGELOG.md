@@ -2,9 +2,9 @@
 
 ## dev
 
-- **Security: Remove dead 'digest/md5' require for FIPS compliance**
+- **Bugfix: Remove dead 'digest/md5' require for FIPS/FedRAMP compliance**
 
-  In version 7.1.0 of the agent, MD5 usage was replaced with SHA1 for FIPS compliance. However, the old require for 'digest/md5' was not removed. We have removed the require to help our FIPS/FedRAMP users. Thank you to [ashleyboehs](https://github.com/ashleyboehs) for bringing this to our attention! [Issue#3469](https://github.com/newrelic/newrelic-ruby-agent/issues/3469) [PR#3470](https://github.com/newrelic/newrelic-ruby-agent/issues/3470)
+  In version 7.1.0 of the agent, MD5 usage was replaced with SHA1 for FIPS compliance [(PR)](https://github.com/newrelic/newrelic-ruby-agent/pull/686). However, the old require for 'digest/md5' was not removed. We have removed the require to help our FIPS/FedRAMP users. Thank you to [@ashleyboehs](https://github.com/ashleyboehs) for bringing this to our attention! [Issue#3469](https://github.com/newrelic/newrelic-ruby-agent/issues/3469) [PR#3470](https://github.com/newrelic/newrelic-ruby-agent/issues/3470)
 
 ## v10.2.0
 
