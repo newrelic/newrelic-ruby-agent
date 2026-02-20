@@ -24,16 +24,9 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     @appender = SemanticLogger.add_appender(io: @written, formatter: :default)
   end
 
-  def flush_semantic_logger
-    # Our instrumentation hooks in as an appender, so finish
-    # appender log threads.
-    ::SemanticLogger.flush
-  end
-
   def test_no_instrumentation_when_disabled
     with_config(:'instrumentation.semantic_logger' => 'disabled') do
       @logger.info('Test message')
-      flush_semantic_logger
     end
     _, events = @aggregator.harvest!
 
@@ -44,7 +37,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     in_transaction do
       @logger.info('Test message')
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 'INFO', events[0][1]['level']
@@ -60,7 +52,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
       @logger.error('Error message')
       @logger.fatal('Fatal message')
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 'TRACE', events[0][1]['level']
@@ -81,7 +72,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     in_transaction do
       @logger.info('Test message', user_id: 123, action: 'login')
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 'INFO', events[0][1]['level']
@@ -103,7 +93,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     in_transaction do
       @logger.info('Test message')
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert events[0][1]['timestamp']
@@ -117,7 +106,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     with_config(:'application_logging.local_decorating.enabled' => true) do
       in_transaction do
         @logger.info('Decorate me!')
-        flush_semantic_logger
       end
     end
     log_output = @written.string
@@ -134,7 +122,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
         @logger.info('Do not decorate me!')
       end
     end
-    flush_semantic_logger
     log_output = @written.string
 
     assert_match(/Do not decorate me!/, log_output)
@@ -149,7 +136,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
         @logger.warn('Warn message - should be forwarded')
         @logger.error('Error message - should be forwarded')
       end
-      flush_semantic_logger
       _, events = @aggregator.harvest!
 
       assert_equal 2, events.length
@@ -166,8 +152,8 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
     in_transaction do
       @logger.info('Message to multiple appenders')
+      SemanticLogger.flush # Ensure log events are processed by async appenders
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 1, events.length
@@ -182,7 +168,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
         @logger.info('Tagged message')
       end
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 'INFO', events[0][1]['level']
@@ -196,7 +181,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     in_transaction do
       custom_logger.info('Custom logger message')
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 1, events.length
@@ -211,7 +195,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
       @logger.info('Info message - should be filtered by logger')
       @logger.warn('Warn message - should be captured')
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 1, events.length
@@ -223,7 +206,6 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     in_transaction do
       @logger.info('Message with backtrace', backtrace: caller)
     end
-    flush_semantic_logger
     _, events = @aggregator.harvest!
 
     assert_equal 'INFO', events[0][1]['level']
