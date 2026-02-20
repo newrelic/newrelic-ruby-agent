@@ -114,6 +114,26 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     assert_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
   end
 
+  def test_log_decorating_enabled_records_linking_metadata_for_multiple_appenders
+    setup_local_appender
+
+    second_output = StringIO.new
+    SemanticLogger.add_appender(io: second_output, formatter: :json)
+
+    with_config(:'application_logging.local_decorating.enabled' => true) do
+      in_transaction do
+        @logger.info('Decorate me!')
+      end
+    end
+    log_output = @written.string
+    second_log_output = second_output.string
+
+    assert_match(/Decorate me!/, log_output)
+    assert_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, log_output)
+    assert_match(/Decorate me!/, second_log_output)
+    assert_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, second_log_output)
+  end
+
   def test_log_decorating_disabled_does_not_record_linking_metadata
     setup_local_appender
 
