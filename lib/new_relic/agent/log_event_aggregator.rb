@@ -332,7 +332,7 @@ module NewRelic
       end
 
       def semantic_logger_enabled?
-        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::SemanticLogger::Appenders.enabled?)
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::SemanticLogger::Logger.enabled?)
       end
 
       private

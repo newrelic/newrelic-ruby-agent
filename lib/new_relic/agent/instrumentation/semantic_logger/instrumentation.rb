@@ -4,7 +4,7 @@
 
 module NewRelic::Agent::Instrumentation
   module SemanticLogger
-    module Appenders
+    module Logger
       INSTRUMENTATION_NAME = 'SemanticLogger'
 
       def self.enabled?

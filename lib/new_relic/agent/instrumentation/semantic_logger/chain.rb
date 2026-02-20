@@ -5,10 +5,10 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module SemanticLogger::Appenders::Chain
+  module SemanticLogger::Logger::Chain
     def self.instrument!
-      ::SemanticLogger::Appenders.class_eval do
-        include NewRelic::Agent::Instrumentation::SemanticLogger::Appenders
+      ::SemanticLogger::Logger.class_eval do
+        include NewRelic::Agent::Instrumentation::SemanticLogger::Logger
 
         alias_method(:log_without_new_relic, :log)
 

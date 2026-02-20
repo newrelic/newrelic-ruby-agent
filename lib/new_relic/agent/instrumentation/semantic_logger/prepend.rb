@@ -5,8 +5,8 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module SemanticLogger::Appenders::Prepend
-    include NewRelic::Agent::Instrumentation::SemanticLogger::Appenders
+  module SemanticLogger::Logger::Prepend
+    include NewRelic::Agent::Instrumentation::SemanticLogger::Logger
 
     def log(log)
       log_with_new_relic(log) { super }
