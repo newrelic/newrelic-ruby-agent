@@ -258,7 +258,7 @@ module NewRelic
 
       def add_semantic_logger_event_attributes(event, log)
         add_payload_attributes(event, log)
-        add_log_instance_variables(event, log)
+        add_semantic_logger_instance_variables(event, log)
       end
 
       def add_mdc_data_to_event(event, mdc_data)
@@ -351,7 +351,8 @@ module NewRelic
         end
       end
 
-      def add_log_instance_variables(event, log)
+      def add_semantic_logger_instance_variables(event, log)
+        # Skip attributes handled elsewhere or that we don't want reported i.e. level_index
         skip_vars = %w[@level @level_index @message @time @payload]
 
         log.instance_variables.each do |var|
@@ -360,7 +361,7 @@ module NewRelic
           value = log.instance_variable_get(var)
           next if empty_value?(value)
 
-          key = var.to_s.sub('@', '')
+          key = var.to_s.delete_prefix('@')
           event[key] = value
         end
       end
