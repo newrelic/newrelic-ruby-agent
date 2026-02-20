@@ -18,7 +18,7 @@ This code is actively maintained by New Relic engineering teams and delivered he
 ## Supported environments
 
 An up-to-date list of Ruby versions and frameworks for the latest agent
-can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-frameworks).
+can be found on [our docs site](https://docs.newrelic.com/docs/ruby/supported-frameworks).
 
 You can also monitor non-web applications. Refer to the "Other
 Environments" section below.
@@ -70,7 +70,7 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
   * [Rails plugin installation](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-installation-rails-plugin)
   * [AWS Lambda](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/)
   * [GAE Flexible Environment](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent-gae-flexible-environment)
-  * [Pure Rack apps](http://docs.newrelic.com/docs/ruby/rack-middlewares)
+  * [Pure Rack apps](https://docs.newrelic.com/docs/ruby/rack-middlewares)
   * [Ruby agent and Heroku](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-heroku)
   * [Background jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/monitor-ruby-background-processes)
 * [Configure the agent](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration)
@@ -81,7 +81,7 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
 
 Should you need assistance with New Relic products, you are in good hands with several support diagnostic tools and support channels.
 
-This [troubleshooting framework](https://knowledge.newrelic.com/s/article/Ruby-Troubleshooting-Framework-Install) steps you through common troubleshooting questions.
+This [troubleshooting guide](https://docs.newrelic.com/docs/apm/agents/ruby-agent/troubleshooting/no-data-appears-ruby/) walks you through common troubleshooting steps.
 
 New Relic offers NRDiag, [a client-side diagnostic utility](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) that automatically detects common problems with New Relic agents. If NRDiag detects a problem, it suggests troubleshooting steps. NRDiag can also automatically attach troubleshooting data to a New Relic Support ticket.
 
