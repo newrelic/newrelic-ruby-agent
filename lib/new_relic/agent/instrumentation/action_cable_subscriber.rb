@@ -33,7 +33,11 @@ module NewRelic
         end
 
         def metric_name(payload)
-          "#{payload[:channel_class]}/" if payload[:channel_class]
+          if NewRelic::Agent.config[:simplify_action_cable_broadcast_metrics]
+            "#{payload[:channel_class]}/" if payload[:channel_class]
+          else
+            (payload[:broadcasting] || payload[:channel_class]) + '/'
+          end
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze

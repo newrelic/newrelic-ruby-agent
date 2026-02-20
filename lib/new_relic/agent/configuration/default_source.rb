@@ -1164,6 +1164,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
         },
+        :simplify_action_cable_broadcast_metrics => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, metrics for Action Cable broadcast calls will not include the `broadcasting` value for a given broadcast. Defaults to `false`. The default may change in a future major version release.'
+        },
         # TODO: by subscribing to process_middleware.action_dispatch events,
         #       we duplicate the efforts already performed by non-notifications
         #       based instrumentation. In future, we ought to determine the

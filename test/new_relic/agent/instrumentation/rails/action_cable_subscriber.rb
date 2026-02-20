@@ -107,6 +107,27 @@ module NewRelic
           refute_nil(find_node_with_name(sample, metric_name), "Expected trace to have node with name: #{metric_name}")
         end
 
+        def test_creates_tt_node_for_transmit_when_simplify_config_is_true
+          # the simplify config should not change the way the metric is named
+          # for non-broadcast notifications
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
+
+            assert_predicate NewRelic::Agent::Tracer.current_transaction, :recording_web_transaction?
+            @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
+            advance_process_time(1.0)
+            @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
+            @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
+
+            sample = last_transaction_trace
+
+            assert_equal('Controller/ActionCable/TestChannel/test_action', sample.transaction_name)
+            metric_name = 'Ruby/ActionCable/TestChannel/transmit'
+
+            refute_nil(find_node_with_name(sample, metric_name), "Expected trace to have node with name: #{metric_name}")
+          end
+        end
+
         def test_does_not_record_unscoped_metrics_nor_create_trace_for_transmit_outside_of_active_txn
           @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
           advance_process_time(1.0)
@@ -126,7 +147,7 @@ module NewRelic
           sample = last_transaction_trace
 
           assert_nil sample, 'Did not expect a transaction to be created for broadcast'
-          refute_metrics_recorded ['Ruby/ActionCable/broadcast']
+          refute_metrics_recorded ['Ruby/ActionCable/tasks_964944192/broadcast']
         end
 
         def test_actual_call_to_broadcast_method_records_segment_in_txn
@@ -136,15 +157,37 @@ module NewRelic
             @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
           end
 
-          metric_name = 'Ruby/ActionCable/broadcast'
+          metric_name = 'Ruby/ActionCable/tasks_964944192/broadcast'
 
           assert_metrics_recorded metric_name
           assert find_node_with_name(last_transaction_trace, metric_name),
             'Could not find a node with desired name.'
         end
 
-        def test_metric_name_returns_nil_for_payload_from_broadcast
-          assert_nil @subscriber.send(:metric_name, payload_for_broadcast)
+        def test_actual_call_to_broadcast_method_records_segment_in_txn_with_simplify_config
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            in_transaction do |txn|
+              @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+              advance_process_time(1.0)
+              @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+            end
+
+            metric_name = 'Ruby/ActionCable/broadcast'
+
+            assert_metrics_recorded metric_name
+            assert find_node_with_name(last_transaction_trace, metric_name),
+              'Could not find a node with desired name.'
+          end
+        end
+
+        def test_metric_name_correctly_names_payload_for_broadcast
+          assert_equal 'tasks_964944192', @subscriber.send(:metric_name, payload_for_broadcast)
+        end
+
+        def test_metric_name_returns_nil_for_payload_from_broadcast_with_simplify_config
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            assert_nil @subscriber.send(:metric_name, payload_for_broadcast)
+          end
         end
 
         def test_metric_name_correctly_names_payload_for_channel

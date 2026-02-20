@@ -2,9 +2,9 @@
 
 ## dev
 
-- **Bugfix: Reduce cardinality of ActionCable broadcast metrics**
+- **Bugfix: Provide config option to reduce cardinality of ActionCable broadcast metrics**
 
-  Previously, the metrics for ActionCable broadcast included the value for the broadcasting. This value can have very high cardinality. Now, the metrics exclude the broadcasting value and are much simpler: `Ruby/ActionCable/broadcast`. (PR#XXXX)[link]
+  By default, the metrics for ActionCable broadcast method calls include the value of the broadcasting. This value can have very high cardinality. Now, the `:simplify_action_cable_broadcast_metrics` configuration option allows users to remove the broadcasting value from the metric name. This creates a metric that looks like: `Ruby/ActionCable/broadcast`. [PR#3463](https://github.com/newrelic/newrelic-ruby-agent/pull/3463)
 
 ## v10.2.0
 
