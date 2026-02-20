@@ -23,6 +23,7 @@ module NewRelic
           @stats_engine.clear_stats
           NewRelic::Agent.manual_start
           NewRelic::Agent::Tracer.clear_state
+          harvest_span_events!
         end
 
         def teardown
@@ -181,12 +182,63 @@ module NewRelic
         end
 
         def test_metric_name_correctly_names_payload_for_broadcast
-          assert_equal 'tasks_964944192', @subscriber.send(:metric_name, payload_for_broadcast)
+          # The trailing / is added in the metric_name method to protect against
+          # double / characters in the name because there are some cases where
+          # metric_name will return nil
+          assert_equal 'tasks_964944192/', @subscriber.send(:metric_name, payload_for_broadcast)
         end
 
         def test_metric_name_returns_nil_for_payload_from_broadcast_with_simplify_config
           with_config(:simplify_action_cable_broadcast_metrics => true) do
             assert_nil @subscriber.send(:metric_name, payload_for_broadcast)
+          end
+        end
+
+        def test_add_broadcasting_attribute_adds_attr_to_span_when_conditions_true
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            in_transaction do
+              @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+              advance_process_time(1.0)
+              @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+            end
+
+            spans = harvest_span_events!
+            action_cable_span = spans[1][0]
+
+            assert_equal 'Ruby/ActionCable/broadcast', action_cable_span[0]['name'], 'First span has wrong name'
+            assert_equal 'tasks_964944192', action_cable_span[2]['broadcasting'], 'broadcasting not found in agent attributes'
+          end
+        end
+
+        def test_add_broadcasting_attribute_does_not_add_attr_to_span_when_no_broadcasting_key
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            in_transaction do
+              @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
+              advance_process_time(1.0)
+              @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
+            end
+
+            spans = harvest_span_events!
+            action_cable_span = spans[1][0]
+
+            assert_includes action_cable_span[0]['name'], 'ActionCable', 'First span not from Action Cable'
+            refute action_cable_span[2].key?('broadcasting'), 'broadcasting key found in agent attributes'
+          end
+        end
+
+        def test_add_broadcasting_attribute_does_not_add_attr_to_span_when_config_false
+          with_config(:simplify_action_cable_broadcast_metrics => false) do
+            in_transaction do
+              @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+              advance_process_time(1.0)
+              @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+            end
+
+            spans = harvest_span_events!
+            action_cable_span = spans[1][0]
+
+            assert_includes action_cable_span[0]['name'], 'ActionCable', 'First span not from Action Cable'
+            refute action_cable_span[2].key?('broadcasting'), 'broadcasting key found in agent attributes'
           end
         end
 

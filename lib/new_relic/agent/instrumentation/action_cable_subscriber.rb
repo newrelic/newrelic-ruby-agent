@@ -17,8 +17,11 @@ module NewRelic
               category: :action_cable
             )
           else
-            Tracer.start_segment(name: metric_name_from_payload(name, payload))
+            segment = Tracer.start_segment(name: metric_name_from_payload(name, payload))
+            add_broadcasting_attribute(segment, payload)
+            segment
           end
+
           push_segment(id, finishable)
         end
 
@@ -38,6 +41,17 @@ module NewRelic
           else
             (payload[:broadcasting] || payload[:channel_class]) + '/'
           end
+        end
+
+        def add_broadcasting_attribute(segment, payload)
+          return unless NewRelic::Agent.config[:simplify_action_cable_broadcast_metrics]
+          return unless payload.key?(:broadcasting)
+
+          segment.transaction.add_agent_attribute(
+            'broadcasting',
+            payload[:broadcasting],
+            AttributeFilter::DST_SPAN_EVENTS
+          )
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze
