@@ -15,8 +15,8 @@ module NewRelic::Agent::Instrumentation
         NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
         begin
-          log.message = NewRelic::Agent::LocalLogDecorator.decorate(log.message)
           NewRelic::Agent.agent.log_event_aggregator.record_semantic_logger(log)
+          log.message = NewRelic::Agent::LocalLogDecorator.decorate(log.message)
         rescue => e
           NewRelic::Agent.logger.debug("Failed to capture Semantic Logger event: #{e.message}")
         end
