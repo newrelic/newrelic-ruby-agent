@@ -153,6 +153,7 @@ module NewRelic
 
         def test_actual_call_to_broadcast_method_records_segment_in_txn
           in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
             @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
             advance_process_time(1.0)
             @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
@@ -168,6 +169,7 @@ module NewRelic
         def test_actual_call_to_broadcast_method_records_segment_in_txn_with_simplify_config
           with_config(:simplify_action_cable_broadcast_metrics => true) do
             in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
               @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
               advance_process_time(1.0)
               @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
@@ -196,7 +198,8 @@ module NewRelic
 
         def test_add_broadcasting_attribute_adds_attr_to_span_when_conditions_true
           with_config(:simplify_action_cable_broadcast_metrics => true) do
-            in_transaction do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
               @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
               advance_process_time(1.0)
               @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
@@ -212,7 +215,8 @@ module NewRelic
 
         def test_add_broadcasting_attribute_does_not_add_attr_to_span_when_no_broadcasting_key
           with_config(:simplify_action_cable_broadcast_metrics => true) do
-            in_transaction do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
               @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
               advance_process_time(1.0)
               @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
@@ -228,7 +232,8 @@ module NewRelic
 
         def test_add_broadcasting_attribute_does_not_add_attr_to_span_when_config_false
           with_config(:simplify_action_cable_broadcast_metrics => false) do
-            in_transaction do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
               @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
               advance_process_time(1.0)
               @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
@@ -277,6 +282,7 @@ module NewRelic
           data = {'action' => 'do_it'}
 
           in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
             channel.perform_action(data)
           end
 
