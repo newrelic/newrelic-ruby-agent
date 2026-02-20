@@ -45,9 +45,11 @@ module NewRelic
           end
         end
 
-        def self.scoped_metric_for(product, operation, collection = nil)
+        def self.scoped_metric_for(product, operation, collection = nil, query_name = nil)
           if collection
-            statement_metric_for(product, collection, operation)
+            base_metric = statement_metric_for(product, collection, operation)
+            # Append query name if present: "MySQL/users/select - [GetUserById]"
+            query_name ? "#{base_metric} - [#{query_name}]" : base_metric
           else
             operation_metric_for(product, operation)
           end
@@ -81,13 +83,13 @@ module NewRelic
           [product, operation, collection]
         end
 
-        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host = nil, port_path_or_id = nil)
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host = nil, port_path_or_id = nil, query_name = nil)
           product, operation, collection = product_operation_collection_for(product, operation, collection, generic_product)
 
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
-          metrics.unshift(scoped_metric_for(product, operation, collection))
+          metrics.unshift(scoped_metric_for(product, operation, collection, query_name))
 
           metrics
         end

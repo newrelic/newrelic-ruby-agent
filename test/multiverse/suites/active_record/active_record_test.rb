@@ -504,6 +504,93 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     )
   end
 
+  # Query naming tests
+  def test_explicit_query_naming_with_raw_sql
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      in_web_transaction do
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: GetOrderByName */")
+      end
+
+      assert_metrics_recorded({
+        "Datastore/statement/#{current_product}/#{Order.table_name}/select - [GetOrderByName]" => {:call_count => 1},
+        "Datastore/operation/#{current_product}/select" => {},
+        'Datastore/allWeb' => {},
+        'Datastore/all' => {}
+      })
+    end
+  end
+
+  def test_explicit_query_naming_with_forward_slash
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      in_web_transaction do
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: Orders/GetByName */")
+      end
+
+      # Forward slashes should be replaced with pipes
+      assert_metrics_recorded({
+        "Datastore/statement/#{current_product}/#{Order.table_name}/select - [Orders|GetByName]" => {:call_count => 1}
+      })
+    end
+  end
+
+  def test_query_without_explicit_name_uses_default_metric
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      in_web_transaction do
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE name = 'test'")
+      end
+
+      # Should use the default metric name without query name suffix
+      assert_metrics_recorded({
+        "Datastore/statement/#{current_product}/#{Order.table_name}/select" => {:call_count => 1}
+      })
+    end
+  end
+
+  def test_query_naming_disabled_ignores_comment
+    with_config(:'datastore_tracer.query_naming.enabled' => false) do
+      in_web_transaction do
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: ShouldBeIgnored */")
+      end
+
+      # Should use the default metric name, ignoring the query name comment
+      assert_metrics_recorded({
+        "Datastore/statement/#{current_product}/#{Order.table_name}/select" => {:call_count => 1}
+      })
+
+      # Ensure the named metric was NOT recorded
+      refute_metrics_recorded(["Datastore/statement/#{current_product}/#{Order.table_name}/select - [ShouldBeIgnored]"])
+    end
+  end
+
+  def test_explicit_query_naming_with_activerecord_query
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      in_web_transaction do
+        # This uses ActiveRecord's query interface, which may not preserve our comment
+        # depending on the AR version, but we should handle it gracefully
+        Order.where(:name => 'test').load
+      end
+
+      # Should still record standard metrics
+      assert_activerecord_metrics(Order, 'find')
+    end
+  end
+
+  def test_explicit_query_naming_with_multiple_queries
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      in_web_transaction do
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE id = 1 /* NewRelicQueryName: GetOrderById */")
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: GetOrderByName */")
+        Order.connection.execute("SELECT * FROM #{Order.table_name} WHERE id = 2 /* NewRelicQueryName: GetOrderById */")
+      end
+
+      # Should record separate metrics for different query names
+      assert_metrics_recorded({
+        "Datastore/statement/#{current_product}/#{Order.table_name}/select - [GetOrderById]" => {:call_count => 2},
+        "Datastore/statement/#{current_product}/#{Order.table_name}/select - [GetOrderByName]" => {:call_count => 1}
+      })
+    end
+  end
+
   ## helpers
 
   private

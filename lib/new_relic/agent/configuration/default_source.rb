@@ -1156,6 +1156,17 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `false`, the agent will not report datastore instance metrics, nor add `host` or `port_path_or_id` parameters to transaction or slow SQL traces.'
         },
+        :'datastore_tracer.query_naming.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables database query naming via SQL comments. ' \
+            'Queries can include `/* NewRelicQueryName: CustomName */` comments to assign explicit, ' \
+            'stable names for better tracking and identification. This allows developers to uniquely ' \
+            'identify and track specific database queries, especially useful during performance ' \
+            'regressions or incidents.'
+        },
         # Disabling
         :disable_action_cable_instrumentation => {
           :default => false,

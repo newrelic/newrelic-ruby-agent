@@ -160,6 +160,7 @@ module NewRelic
       ]
       OTHER_OPERATION = 'other'.freeze
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
+      QUERY_NAME_REGEX = Regexp.new('/\*\s*NewRelicQueryName:\s*(.*?)\*/', Regexp::MULTILINE).freeze
 
       def parse_operation_from_query(sql)
         sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, NewRelic::EMPTY_STR)
@@ -167,6 +168,29 @@ module NewRelic
 
         op = Regexp.last_match(1).downcase
         KNOWN_OPERATIONS.include?(op) ? op : OTHER_OPERATION
+      end
+
+      # Extracts an explicit query name from a SQL comment.
+      # Looks for comments in the format: /* NewRelicQueryName: CustomName */
+      # Returns the custom name with forward slashes replaced by pipes to avoid
+      # metric parsing issues, or nil if no query name comment is found.
+      #
+      # @param sql [String] the SQL query to parse
+      # @return [String, nil] the extracted query name or nil
+      def extract_query_name_from_sql(sql)
+        return unless sql
+        return unless Agent.config[:'datastore_tracer.query_naming.enabled']
+
+        sql = Helper.correctly_encoded(sql)
+        match = sql.match(QUERY_NAME_REGEX)
+        return unless match
+
+        query_name = match[1].strip
+        return if query_name.empty?
+
+        # Sanitize the query name: replace forward slashes with pipes
+        # to avoid metric parsing issues
+        query_name.tr('/', '|')
       end
 
       class ConnectionManager
@@ -208,7 +232,7 @@ module NewRelic
       class Statement
         include ExplainPlanHelpers
 
-        attr_accessor :sql, :config, :explainer, :binds, :name, :host, :port_path_or_id, :database_name
+        attr_accessor :sql, :config, :explainer, :binds, :name, :host, :port_path_or_id, :database_name, :query_name
 
         DEFAULT_QUERY_NAME = 'SQL'.freeze
 
@@ -221,6 +245,7 @@ module NewRelic
           @host = host
           @port_path_or_id = port_path_or_id
           @database_name = database_name
+          @query_name = Database.extract_query_name_from_sql(sql)
           @safe_sql = nil
         end
 

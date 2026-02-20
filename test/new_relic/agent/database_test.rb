@@ -578,4 +578,100 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     assert_nil statement.safe_sql
   end
+
+  # Query naming tests
+  def test_extract_query_name_from_sql_with_valid_comment
+    sql = "SELECT * FROM users WHERE id = ? /* NewRelicQueryName: GetUserById */"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_equal 'GetUserById', result
+    end
+  end
+
+  def test_extract_query_name_from_sql_with_spaces_in_comment
+    sql = "SELECT * FROM users WHERE id = ? /*   NewRelicQueryName:   GetUserById   */"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_equal 'GetUserById', result
+    end
+  end
+
+  def test_extract_query_name_from_sql_sanitizes_forward_slashes
+    sql = "SELECT * FROM users WHERE id = ? /* NewRelicQueryName: Users/GetById */"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_equal 'Users|GetById', result
+    end
+  end
+
+  def test_extract_query_name_from_sql_returns_nil_when_not_present
+    sql = "SELECT * FROM users WHERE id = ?"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_nil result
+    end
+  end
+
+  def test_extract_query_name_from_sql_returns_nil_when_empty
+    sql = "SELECT * FROM users WHERE id = ? /* NewRelicQueryName:  */"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_nil result
+    end
+  end
+
+  def test_extract_query_name_from_sql_returns_nil_for_nil_sql
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(nil)
+      assert_nil result
+    end
+  end
+
+  def test_extract_query_name_from_sql_returns_nil_when_disabled
+    sql = "SELECT * FROM users WHERE id = ? /* NewRelicQueryName: GetUserById */"
+    with_config(:'datastore_tracer.query_naming.enabled' => false) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_nil result
+    end
+  end
+
+  def test_extract_query_name_from_sql_with_multiple_comments
+    sql = "SELECT * FROM users /* comment */ WHERE id = ? /* NewRelicQueryName: GetUserById */"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(sql)
+      assert_equal 'GetUserById', result
+    end
+  end
+
+  def test_extract_query_name_from_sql_mis_encoded
+    query = (+"select \x80 /* NewRelicQueryName: TestQuery */").force_encoding('UTF-8')
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      result = NewRelic::Agent::Database.extract_query_name_from_sql(query)
+      assert_equal 'TestQuery', result
+    end
+  end
+
+  def test_statement_stores_query_name
+    sql = "SELECT * FROM users WHERE id = ? /* NewRelicQueryName: GetUserById */"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
+      assert_equal 'GetUserById', statement.query_name
+    end
+  end
+
+  def test_statement_query_name_nil_when_not_present
+    sql = "SELECT * FROM users WHERE id = ?"
+    with_config(:'datastore_tracer.query_naming.enabled' => true) do
+      statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
+      assert_nil statement.query_name
+    end
+  end
+
+  def test_statement_query_name_nil_when_disabled
+    sql = "SELECT * FROM users WHERE id = ? /* NewRelicQueryName: GetUserById */"
+    with_config(:'datastore_tracer.query_naming.enabled' => false) do
+      statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
+      assert_nil statement.query_name
+    end
+  end
 end
