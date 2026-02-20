@@ -178,15 +178,15 @@ opensource@newrelic.com.
 For more information about CLAs, please check out Alex Russell’s excellent post,
 [“Why Do I Need to Sign This?”](https://infrequently.org/2008/06/why-do-i-need-to-sign-this/).
 
-## Explorer's Hub
+## New Relic Support
 
 New Relic hosts and moderates an online forum where customers can interact with
 New Relic employees as well as other customers to get help and share best
 practices. Like all official New Relic open source projects, there's a related
-Community topic in the New Relic Explorers Hub. You can find this project's
+Community topic in the New Relic Support Forum. You can find this project's
 topic/threads under the "Ruby Agent" category here:
 
-[Explorer's Hub](https://forum.newrelic.com/s/category/Category__c/Default)
+[New Relic Support](https://support.newrelic.com/s/category/Category__c/Default)
 
 ## And Finally...
 
