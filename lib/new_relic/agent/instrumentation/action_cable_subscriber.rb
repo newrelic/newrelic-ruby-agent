@@ -36,6 +36,9 @@ module NewRelic
         end
 
         def metric_name(payload)
+          # The trailing / is added in the metric_name method to protect against
+          # double / characters in the name because there are some cases where
+          # metric_name will return nil
           if NewRelic::Agent.config[:simplify_action_cable_broadcast_metrics]
             "#{payload[:channel_class]}/" if payload[:channel_class]
           else
