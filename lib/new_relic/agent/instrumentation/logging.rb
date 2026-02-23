@@ -2,6 +2,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'logging/instrumentation'
+require_relative 'logging/chain'
+require_relative 'logging/prepend'
+
 DependencyDetection.defer do
   named :logging
 
@@ -10,13 +14,9 @@ DependencyDetection.defer do
   end
 
   executes do
-    require_relative 'logging/instrumentation'
-
     if use_prepend?
-      require_relative 'logging/prepend'
       prepend_instrument Logging::Logger, NewRelic::Agent::Instrumentation::Logging::Logger::Prepend, 'Logging'
     else
-      require_relative 'logging/chain'
       chain_instrument NewRelic::Agent::Instrumentation::Logging::Chain, 'Logging'
     end
   end
