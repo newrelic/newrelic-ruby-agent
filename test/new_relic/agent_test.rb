@@ -678,6 +678,16 @@ module NewRelic
       end
     end
 
+    def test_add_custom_transaction_log_attributes_logs_warning_if_argument_class_not_hash
+      logger = MiniTest::Mock.new
+      logger.expect :warn, nil, [/Bad argument/]
+
+      NewRelic::Agent.stub :logger, logger do
+        NewRelic::Agent.add_custom_transaction_log_attributes('this wont record')
+        logger.verify
+      end
+    end
+
     def test_record_instrumentation_invocation
       library = 'NewRelicFly'
       dummy_engine = NewRelic::Agent.agent.stats_engine

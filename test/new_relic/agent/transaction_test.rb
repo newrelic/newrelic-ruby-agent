@@ -1338,6 +1338,22 @@ module NewRelic::Agent
       end
     end
 
+    def test_log_attributes_lazy_initialization
+      in_transaction do |txn|
+        assert_nil txn.log_attributes
+      end
+    end
+
+    def test_add_custom_transaction_log_attributes_stores_attributes
+      in_transaction do |txn|
+        txn.add_custom_transaction_log_attributes({'key' => 'value', 'number' => 12345, :symbol_key => 'symbol_value'})
+
+        assert_equal 'value', txn.log_attributes.custom_attributes['key']
+        assert_equal 12345, txn.log_attributes.custom_attributes['number']
+        assert_equal 'symbol_value', txn.log_attributes.custom_attributes['symbol_key']
+      end
+    end
+
     def test_assigns_synthetics_to_intrinsic_attributes
       txn = in_transaction do |t|
         t.raw_synthetics_header = ''
