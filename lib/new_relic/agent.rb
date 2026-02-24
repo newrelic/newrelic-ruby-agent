@@ -921,6 +921,55 @@ module NewRelic
       end
     end
 
+    # Add transaction-scoped custom attributes to log events for the current transaction.
+    # These attributes will only be applied to logs created within the scope of the current transaction.
+    #
+    # @param [Hash] params    A Hash of attributes to attach to log
+    #                         events in the current transaction. The agent accepts
+    #                         up to 240 custom log event attributes per transaction.
+    #
+    #                         Keys will be coerced into Strings and must
+    #                         be less than 256 characters. Keys longer
+    #                         than 255 characters will be truncated.
+    #
+    #                         Values may be Strings, Symbols, numeric
+    #                         values or Booleans and must be less than
+    #                         4095 characters. If the value is a String
+    #                         or a Symbol, values longer than 4094
+    #                         characters will be truncated. If the value
+    #                         exceeds 4094 characters and is of a
+    #                         different class, the attribute pair will
+    #                         be dropped.
+    #
+    #                         This API can be called multiple times within
+    #                         a transaction. If the same key is passed more
+    #                         than once, the value associated with the last
+    #                         call will be preserved.
+    #
+    #                         Attribute pairs with empty or nil contents
+    #                         will be dropped.
+    #
+    #                         If called outside of a transaction context,
+    #                         the method will log a warning and return without
+    #                         adding attributes.
+    # @!scope class
+    # @api public
+    def add_custom_transaction_log_attributes(params)
+      record_api_supportability_metric(:add_custom_transaction_log_attributes)
+
+      unless params.is_a?(Hash)
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_transaction_log_attributes. Expected Hash but got #{params.class}")
+        return
+      end
+
+      transaction = Transaction.tl_current
+      if transaction
+        transaction.add_custom_transaction_log_attributes(params)
+      else
+        ::NewRelic::Agent.logger.warn('add_custom_transaction_log_attributes called outside of transaction context. Attributes will be ignored.')
+      end
+    end
+
     # Set the user id for the current transaction. When present, this value will be included in the agent attributes for transaction and error events as 'enduser.id'.
     #
     # @param [String] user_id    The user id to add to the current transaction attributes

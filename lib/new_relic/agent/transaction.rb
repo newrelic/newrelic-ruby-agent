@@ -6,6 +6,7 @@ require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/attributes'
+require 'new_relic/agent/log_event_attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracer'
@@ -250,6 +251,7 @@ module NewRelic
         @starting_segment_key = current_segment_key
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        @log_attributes = nil
 
         merge_request_parameters(@filtered_params)
 
@@ -920,6 +922,15 @@ module NewRelic
 
       def add_custom_attributes(p)
         attributes.merge_custom_attributes(p)
+      end
+
+      def add_custom_transaction_log_attributes(params)
+        @log_attributes ||= LogEventAttributes.new
+        @log_attributes.add_custom_attributes(params)
+      end
+
+      def log_attributes
+        @log_attributes
       end
 
       def add_log_event(event)

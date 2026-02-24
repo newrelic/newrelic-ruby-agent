@@ -154,8 +154,11 @@ module NewRelic
       def record_batch(txn, logs)
         # Ensure we have the same shared priority
         priority = LogPriority.priority_for(txn)
+        txn_attrs = txn.log_attributes&.custom_attributes
+
         logs.each do |log|
           log.first[PRIORITY_KEY] = priority
+          log.last.merge!(txn_attrs) if txn_attrs && !txn_attrs.empty?
         end
 
         @lock.synchronize do
