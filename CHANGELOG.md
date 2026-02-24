@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add new `NewRelic::Agent#add_custom_transaction_log_attributes` API**
+
+  A new API, `NewRelic::Agent#add_custom_transaction_log_attributes`, allows users to add transaction-scoped custom attributes to log events for the current transaction. These attributes will only be applied to logs created within the scope of the current transaction. [PR#3472](https://github.com/newrelic/newrelic-ruby-agent/pull/3472)
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
