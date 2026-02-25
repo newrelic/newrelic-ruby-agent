@@ -76,8 +76,8 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
     assert_equal 'INFO', events[0][1]['level']
     assert_equal 'test_logger', events[0][1]['name']
-    assert_equal 123, events[0][1]['user_id']
-    assert_equal 'login', events[0][1]['action']
+    assert_equal 123, events[0][1]['payload.user_id']
+    assert_equal 'login', events[0][1]['payload.action']
   end
 
   def test_logs_without_messages_are_not_recorded
@@ -224,11 +224,11 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
   def test_captures_backtrace_when_available
     in_transaction do
-      @logger.info('Message with backtrace', backtrace: caller)
+      @logger.error("Oops external call failed")
     end
     _, events = @aggregator.harvest!
 
-    assert_equal 'INFO', events[0][1]['level']
+    assert_equal 'ERROR', events[0][1]['level']
     assert events[0][1]['backtrace']
   end
 end
