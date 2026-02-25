@@ -2,9 +2,9 @@
 
 ## dev
 
-- **Feature: Add new `NewRelic::Agent#add_custom_transaction_log_attributes` API**
+- **Feature: Add new `NewRelic::Agent#add_transaction_log_attributes` API**
 
-  A new API, `NewRelic::Agent#add_custom_transaction_log_attributes`, allows users to add transaction-scoped custom attributes to log events for the current transaction. These attributes will only be applied to logs created within the scope of the current transaction. [PR#3472](https://github.com/newrelic/newrelic-ruby-agent/pull/3472)
+  A new API, `NewRelic::Agent#add_transaction_log_attributes`, allows users to add transaction-scoped custom attributes to log events for the current transaction. These attributes will only be applied to logs created within the scope of the current transaction. [PR#3472](https://github.com/newrelic/newrelic-ruby-agent/pull/3472)
 
 ## v10.2.0
 

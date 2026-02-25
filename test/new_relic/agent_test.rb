@@ -678,12 +678,12 @@ module NewRelic
       end
     end
 
-    def test_add_custom_transaction_log_attributes_logs_warning_if_argument_class_not_hash
+    def test_add_transaction_log_attributes_logs_warning_if_argument_class_not_hash
       logger = MiniTest::Mock.new
       logger.expect :warn, nil, [/Bad argument/]
 
       NewRelic::Agent.stub :logger, logger do
-        NewRelic::Agent.add_custom_transaction_log_attributes('this wont record')
+        NewRelic::Agent.add_transaction_log_attributes('this wont record')
         logger.verify
       end
     end

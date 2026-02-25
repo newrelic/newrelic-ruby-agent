@@ -786,12 +786,12 @@ module NewRelic::Agent
 
     def test_record_batch_with_transaction_attributes
       in_transaction do |txn|
-        txn.add_custom_transaction_log_attributes({'txn1_key' => 'txn1_value', 'txn1_another_key' => 'txn1_another_value'})
+        txn.add_transaction_log_attributes({'txn1_key' => 'txn1_value', 'txn1_another_key' => 'txn1_another_value'})
         @aggregator.record('Just some general information', 'INFO')
       end
 
       in_transaction do |txn|
-        txn.add_custom_transaction_log_attributes({'txn2_key' => 'txn2_value'})
+        txn.add_transaction_log_attributes({'txn2_key' => 'txn2_value'})
         @aggregator.record('Oh no!', 'FATAL')
       end
 

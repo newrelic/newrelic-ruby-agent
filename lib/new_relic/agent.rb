@@ -954,19 +954,19 @@ module NewRelic
     #                         adding attributes.
     # @!scope class
     # @api public
-    def add_custom_transaction_log_attributes(params)
-      record_api_supportability_metric(:add_custom_transaction_log_attributes)
+    def add_transaction_log_attributes(params)
+      record_api_supportability_metric(:add_transaction_log_attributes)
 
       unless params.is_a?(Hash)
-        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_transaction_log_attributes. Expected Hash but got #{params.class}")
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_transaction_log_attributes. Expected Hash but got #{params.class}")
         return
       end
 
       transaction = Transaction.tl_current
       if transaction
-        transaction.add_custom_transaction_log_attributes(params)
+        transaction.add_transaction_log_attributes(params)
       else
-        ::NewRelic::Agent.logger.warn('add_custom_transaction_log_attributes called outside of transaction context. Attributes will be ignored.')
+        ::NewRelic::Agent.logger.warn('add_transaction_log_attributes called outside of transaction context. Attributes will be ignored.')
       end
     end
 

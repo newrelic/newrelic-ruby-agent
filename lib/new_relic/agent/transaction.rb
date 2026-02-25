@@ -924,7 +924,7 @@ module NewRelic
         attributes.merge_custom_attributes(p)
       end
 
-      def add_custom_transaction_log_attributes(params)
+      def add_transaction_log_attributes(params)
         @log_attributes ||= LogEventAttributes.new
         @log_attributes.add_custom_attributes(params)
       end

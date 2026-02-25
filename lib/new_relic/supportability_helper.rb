@@ -15,7 +15,7 @@ module NewRelic
       :add_custom_attributes,
       :add_custom_log_attributes,
       :add_custom_span_attributes,
-      :add_custom_transaction_log_attributes,
+      :add_transaction_log_attributes,
       :add_instrumentation,
       :add_method_tracer,
       :add_transaction_tracer,
