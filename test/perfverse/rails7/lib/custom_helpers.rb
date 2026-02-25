@@ -33,7 +33,7 @@ module Custom
     add_transaction_tracer :custom_instance_method, category: :task
 
     def custom_instance_method_too
-      2 | 1 =~ 3
+      2 | 1 == 3
     end
     add_method_tracer :custom_instance_method_too, %w[Custom/CLMtesting/InstanceMethod]
   end
