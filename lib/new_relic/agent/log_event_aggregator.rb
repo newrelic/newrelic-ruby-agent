@@ -24,6 +24,7 @@ module NewRelic
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
       LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
+      SUPPORTED_LOGGING_LIBRARIES = %w[Logger LogStasher Logging SemanticLogger].freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
 
       named :LogEventAggregator
@@ -379,7 +380,7 @@ module NewRelic
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
           record_configuration_metric(LABELS_SUPPORTABILITY_FORMAT, LABELS_ENABLED_KEY)
-          %w[Logger LogStasher Logging SemanticLogger].each do |library|
+          SUPPORTED_LOGGING_LIBRARIES.each do |library|
             record_logs_supportability_metric(library, OVERALL_ENABLED_KEY)
           end
 
