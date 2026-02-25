@@ -6,6 +6,10 @@
 
   By default, the metrics for ActionCable broadcast method calls include the value of the broadcasting. This value can have very high cardinality. Now, the `:simplify_action_cable_broadcast_metrics` configuration option allows users to remove the broadcasting value from the metric name. This creates a metric that looks like: `Ruby/ActionCable/broadcast`. When this configuration option is enabled, the broadcasting value will be added as a span attribute. [PR#3463](https://github.com/newrelic/newrelic-ruby-agent/pull/3463)
 
+- **Bugfix: Remove dead 'digest/md5' require for FIPS/FedRAMP compliance**
+
+  In version 7.1.0 of the agent, MD5 usage was replaced with SHA1 for FIPS compliance [(PR)](https://github.com/newrelic/newrelic-ruby-agent/pull/686). However, the old require for 'digest/md5' was not removed. We have removed the require to help our FIPS/FedRAMP users. Thank you to [@ashleyboehs](https://github.com/ashleyboehs) for bringing this to our attention! [Issue#3469](https://github.com/newrelic/newrelic-ruby-agent/issues/3469) [PR#3470](https://github.com/newrelic/newrelic-ruby-agent/issues/3470)
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
