@@ -224,7 +224,7 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
   def test_captures_backtrace_when_available
     in_transaction do
-      @logger.error("Oops external call failed")
+      @logger.error('Oops external call failed')
     end
     _, events = @aggregator.harvest!
 
