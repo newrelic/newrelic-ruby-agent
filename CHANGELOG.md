@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add SemanticLogger instrumentation**
+
+  The agent now supports SemanticLogger log forwarding and decoration for SemanticLogger versions 4.6.0+. Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
