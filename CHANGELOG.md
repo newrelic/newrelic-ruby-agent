@@ -4,7 +4,7 @@
 
 - **Feature: Add SemanticLogger instrumentation**
 
-  The agent now supports SemanticLogger log forwarding and decoration for the `semantic_logger` gem versions 4.6.0+. If you were previously using SemanticLogger's built-in New Relic appender, it is recommended to choose one approach to avoid duplicate logs. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)
+  The agent now supports SemanticLogger log forwarding and decoration for the `semantic_logger` gem versions 4.6.0+. If you were previously using SemanticLogger's built-in New Relic appender, it is recommended to choose one approach to avoid duplicate logs. New Relic's SemanticLogger instrumentaion can be disabled by setting `instrumentation.semantic_logger` to `disabled`. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)
   
   Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation. 
 
