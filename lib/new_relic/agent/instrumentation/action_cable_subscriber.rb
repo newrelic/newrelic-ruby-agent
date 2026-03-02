@@ -17,8 +17,11 @@ module NewRelic
               category: :action_cable
             )
           else
-            Tracer.start_segment(name: metric_name_from_payload(name, payload))
+            segment = Tracer.start_segment(name: metric_name_from_payload(name, payload))
+            add_broadcasting_attribute(segment, payload)
+            segment
           end
+
           push_segment(id, finishable)
         end
 
@@ -29,11 +32,29 @@ module NewRelic
         end
 
         def metric_name_from_payload(name, payload)
-          "Ruby/ActionCable/#{metric_name(payload)}/#{action_name(name)}"
+          "Ruby/ActionCable/#{metric_name(payload)}#{action_name(name)}"
         end
 
         def metric_name(payload)
-          payload[:broadcasting] || payload[:channel_class]
+          # The trailing / is added in the metric_name method to protect against
+          # double / characters in the name because there are some cases where
+          # metric_name will return nil
+          if NewRelic::Agent.config[:simplify_action_cable_broadcast_metrics]
+            "#{payload[:channel_class]}/" if payload[:channel_class]
+          else
+            (payload[:broadcasting] || payload[:channel_class]) + '/'
+          end
+        end
+
+        def add_broadcasting_attribute(segment, payload)
+          return unless NewRelic::Agent.config[:simplify_action_cable_broadcast_metrics]
+          return unless payload.key?(:broadcasting)
+
+          segment.transaction.add_agent_attribute(
+            'broadcasting',
+            payload[:broadcasting],
+            AttributeFilter::DST_SPAN_EVENTS
+          )
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze

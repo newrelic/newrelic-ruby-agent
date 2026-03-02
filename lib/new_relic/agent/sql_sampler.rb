@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'zlib'
-require 'digest/md5'
 
 module NewRelic
   module Agent
