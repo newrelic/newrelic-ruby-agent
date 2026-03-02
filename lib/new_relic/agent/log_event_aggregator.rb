@@ -26,6 +26,7 @@ module NewRelic
       LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
       SUPPORTED_LOGGING_LIBRARIES = %w[Logger LogStasher Logging SemanticLogger].freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
+      SKIP_SEMANTIC_LOGGER_VARS = %w[@level @level_index @message @time @payload].freeze
 
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
@@ -353,11 +354,9 @@ module NewRelic
       end
 
       def add_semantic_logger_instance_variables(event, log)
-        # Skip attributes handled elsewhere or that we don't want reported i.e. level_index
-        skip_vars = %w[@level @level_index @message @time @payload]
-
         log.instance_variables.each do |var|
-          next if skip_vars.include?(var.to_s)
+          # Skip attributes handled elsewhere or that we don't want reported i.e. level_index
+          next if SKIP_SEMANTIC_LOGGER_VARS.include?(var.to_s)
 
           value = log.instance_variable_get(var)
           next if empty_value?(value)

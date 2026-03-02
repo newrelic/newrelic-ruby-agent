@@ -60,12 +60,14 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     assert_equal 'WARN', events[3][1]['level']
     assert_equal 'ERROR', events[4][1]['level']
     assert_equal 'FATAL', events[5][1]['level']
-    assert_metrics_recorded(%w[Logging/lines/TRACE])
-    assert_metrics_recorded(%w[Logging/lines/DEBUG])
-    assert_metrics_recorded(%w[Logging/lines/INFO])
-    assert_metrics_recorded(%w[Logging/lines/WARN])
-    assert_metrics_recorded(%w[Logging/lines/ERROR])
-    assert_metrics_recorded(%w[Logging/lines/FATAL])
+    assert_metrics_recorded(%w[
+      Logging/lines/TRACE
+      Logging/lines/DEBUG
+      Logging/lines/INFO
+      Logging/lines/WARN
+      Logging/lines/ERROR
+      Logging/lines/FATAL
+    ])
   end
 
   def test_semantic_logger_attributes_are_recorded
