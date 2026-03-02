@@ -107,7 +107,6 @@ jobs:
           iterations: ${{ inputs.iterations }}
           run_label: run_four
 
-
   run_perf_tests_disabled:
     runs-on: ubuntu-latest
     if: ${{ inputs.agent_test_agent_disabled }}

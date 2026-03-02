@@ -45,7 +45,7 @@ def read_from_container(client, log, container_id):
         print(f"Time: {stat['read']} Container: {container_id} name: {stat['name']}", flush=True)
         output_stats(log, stat)
 
-    
+
 def sigterm_handler(signum, frame):
     print("SIGTERM received, exiting gracefully...")
     sys.exit(0)
@@ -53,7 +53,7 @@ def sigterm_handler(signum, frame):
 if __name__ == "__main__":
     # Register the signal handler for SIGTERM
     signal.signal(signal.SIGTERM, sigterm_handler)
-    
+
     client = docker.from_env()
 
     dockermon_output_dir = os.environ.get("DOCKER_MONITOR_OUTPUT_DIR")
