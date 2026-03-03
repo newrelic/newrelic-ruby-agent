@@ -319,7 +319,7 @@ jobs:
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # tag v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # tag v7.0.0
         with:
           name: coverage-report-combined-${{ matrix.ruby-version }}
           path: lib/coverage_results
