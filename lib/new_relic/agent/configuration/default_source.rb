@@ -1852,6 +1852,13 @@ module NewRelic
                            '`to_app` method in `Rack::Builder` to find gems to instrument during ' \
                            'application startup. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.rack.ignore_middlewares' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => 'A list of Rack middleware class or module names the agent should ignore. Example: ["Rack::Cors", "Rack::]'
+        },
         :'instrumentation.rack_urlmap' => {
           :default => 'auto',
           :documentation_default => 'auto',

@@ -6,7 +6,11 @@
 
   The agent now supports Semantic Logger log forwarding and decoration for the `semantic_logger` gem versions 4.6.0+. If you were previously using Semantic Logger's built-in New Relic appender, it is recommended to choose one approach to avoid sending duplicate logs. New Relic's Semantic Logger instrumentation can be disabled by setting `instrumentation.semantic_logger` to `disabled`. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)
 
-  Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation. 
+  Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation.
+
+- **Feature: Add new 'instrumentation.rack.ignore_middlewares' configuration**
+
+  A new configuration option, `instrumentation.rack.ignore_middlewares`, allows users to exclude specific middlewares from instrumentation (ex. Rack::Cors). It defaults to an empty array. [Issue#1814](https://github.com/newrelic/newrelic-ruby-agent/issues/1814) [PR#3481](https://github.com/newrelic/newrelic-ruby-agent/pull/3481)
 
 - **Feature: Add new `NewRelic::Agent.add_transaction_log_attributes` API**
 

@@ -4,6 +4,11 @@
 
 require_relative '../../../test_helper'
 
+# These classes are used in test_does_not_wrap_multiple_ignored_middlewares
+class First; end
+class Second; end
+class Third; end
+
 class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   def setup
     NewRelic::Agent.drop_buffered_data
@@ -122,6 +127,32 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app)
 
     assert_same(app, wrapped)
+  end
+
+  def test_does_not_wrap_ignored_middleware
+    with_config(:'instrumentation.rack.ignore_middlewares' => ['Module']) do
+      ignored_middleware = Module.new
+
+      wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(ignored_middleware)
+
+      assert_same(ignored_middleware, wrapped)
+    end
+  end
+
+  def test_does_not_wrap_multiple_ignored_middlewares
+    with_config(:'instrumentation.rack.ignore_middlewares' => %w[First Second]) do
+      first_ignored = First.new
+      second_ignored = Second.new
+      third_kept = Third.new
+
+      first_wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(first_ignored)
+      second_wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(second_ignored)
+      third_wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(third_kept)
+
+      assert_same(first_ignored, first_wrapped)
+      assert_same(second_ignored, second_wrapped)
+      refute_same(third_kept, third_wrapped)
+    end
   end
 
   def test_should_wrap_non_instrumented_middlewares
