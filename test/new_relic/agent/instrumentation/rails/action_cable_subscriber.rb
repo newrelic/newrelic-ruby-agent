@@ -23,6 +23,7 @@ module NewRelic
           @stats_engine.clear_stats
           NewRelic::Agent.manual_start
           NewRelic::Agent::Tracer.clear_state
+          harvest_span_events!
         end
 
         def teardown
@@ -107,6 +108,27 @@ module NewRelic
           refute_nil(find_node_with_name(sample, metric_name), "Expected trace to have node with name: #{metric_name}")
         end
 
+        def test_creates_tt_node_for_transmit_when_simplify_config_is_true
+          # the simplify config should not change the way the metric is named
+          # for non-broadcast notifications
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
+
+            assert_predicate NewRelic::Agent::Tracer.current_transaction, :recording_web_transaction?
+            @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
+            advance_process_time(1.0)
+            @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
+            @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
+
+            sample = last_transaction_trace
+
+            assert_equal('Controller/ActionCable/TestChannel/test_action', sample.transaction_name)
+            metric_name = 'Ruby/ActionCable/TestChannel/transmit'
+
+            refute_nil(find_node_with_name(sample, metric_name), "Expected trace to have node with name: #{metric_name}")
+          end
+        end
+
         def test_does_not_record_unscoped_metrics_nor_create_trace_for_transmit_outside_of_active_txn
           @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
           advance_process_time(1.0)
@@ -126,29 +148,111 @@ module NewRelic
           sample = last_transaction_trace
 
           assert_nil sample, 'Did not expect a transaction to be created for broadcast'
-          refute_metrics_recorded ['Ruby/ActionCable/TestBroadcasting/broadcast']
+          refute_metrics_recorded ['Ruby/ActionCable/tasks_964944192/broadcast']
         end
 
         def test_actual_call_to_broadcast_method_records_segment_in_txn
           in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
             @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
             advance_process_time(1.0)
             @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
           end
 
-          metric_name = 'Ruby/ActionCable/TestBroadcasting/broadcast'
+          metric_name = 'Ruby/ActionCable/tasks_964944192/broadcast'
 
           assert_metrics_recorded metric_name
           assert find_node_with_name(last_transaction_trace, metric_name),
             'Could not find a node with desired name.'
         end
 
+        def test_actual_call_to_broadcast_method_records_segment_in_txn_with_simplify_config
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+              advance_process_time(1.0)
+              @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+            end
+
+            metric_name = 'Ruby/ActionCable/broadcast'
+
+            assert_metrics_recorded metric_name
+            assert find_node_with_name(last_transaction_trace, metric_name),
+              'Could not find a node with desired name.'
+          end
+        end
+
         def test_metric_name_correctly_names_payload_for_broadcast
-          assert_equal 'TestBroadcasting', @subscriber.send(:metric_name, payload_for_broadcast)
+          # The trailing / is added in the metric_name method to protect against
+          # double / characters in the name because there are some cases where
+          # metric_name will return nil
+          assert_equal 'tasks_964944192/', @subscriber.send(:metric_name, payload_for_broadcast)
+        end
+
+        def test_metric_name_returns_nil_for_payload_from_broadcast_with_simplify_config
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            assert_nil @subscriber.send(:metric_name, payload_for_broadcast)
+          end
+        end
+
+        def test_add_broadcasting_attribute_adds_attr_to_span_when_conditions_true
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+              advance_process_time(1.0)
+              @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+            end
+
+            spans = harvest_span_events!
+            action_cable_span = spans[1][0]
+
+            assert_equal 'Ruby/ActionCable/broadcast', action_cable_span[0]['name'], 'First span has wrong name'
+            assert_equal 'tasks_964944192', action_cable_span[2]['broadcasting'], 'broadcasting not found in agent attributes'
+          end
+        end
+
+        def test_add_broadcasting_attribute_does_not_add_attr_to_span_when_no_broadcasting_key
+          with_config(:simplify_action_cable_broadcast_metrics => true) do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
+              advance_process_time(1.0)
+              @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
+            end
+
+            spans = harvest_span_events!
+            action_cable_span = spans[1][0]
+
+            assert_includes action_cable_span[0]['name'], 'ActionCable', 'First span not from Action Cable'
+            refute action_cable_span[2].key?('broadcasting'), 'broadcasting key found in agent attributes'
+          end
+        end
+
+        def test_add_broadcasting_attribute_does_not_add_attr_to_span_when_config_false
+          with_config(:simplify_action_cable_broadcast_metrics => false) do
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+              advance_process_time(1.0)
+              @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+            end
+
+            spans = harvest_span_events!
+            action_cable_span = spans[1][0]
+
+            assert_includes action_cable_span[0]['name'], 'ActionCable', 'First span not from Action Cable'
+            refute action_cable_span[2].key?('broadcasting'), 'broadcasting key found in agent attributes'
+          end
         end
 
         def test_metric_name_correctly_names_payload_for_channel
-          assert_equal 'TestChannel', @subscriber.send(:metric_name, payload_for_perform_action)
+          # The slash is added by the metric_name method because metric_name
+          # will be nil if called with the broadcast notification since it
+          # does not have a :channel_class attribute in the payload.
+          # This way, we don't end up with double slashes for broadcast metrics.
+          assert_equal 'TestChannel/', @subscriber.send(:metric_name, payload_for_perform_action)
         end
 
         def test_actual_call_to_action_cable
@@ -178,6 +282,7 @@ module NewRelic
           data = {'action' => 'do_it'}
 
           in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
             channel.perform_action(data)
           end
 
@@ -200,11 +305,21 @@ module NewRelic
         end
 
         def payload_for_broadcast
-          {
-            broadcasting: 'TestBroadcasting',
-            message: {message: 'test_message'},
-            coder: 'idk-we-dont-save-this'
-          }
+          {broadcasting: 'tasks_964944192',
+           message:
+            {action: 'created',
+             task:
+              {'id' => 629957653,
+               'name' => 'Go for a run',
+               'description' => 'Week 9 C25k',
+               'created_at' =>
+                '2026-02-18T21:47:55.096Z',
+               'updated_at' =>
+                '2026-02-18T21:47:55.096Z',
+               'status' => 'in_progress',
+               'group_id' => 964944192},
+             user: 'one@example.com'},
+           coder: ActiveSupport::JSON}
         end
       end
     end
