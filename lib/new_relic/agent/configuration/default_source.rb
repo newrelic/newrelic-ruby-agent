@@ -1031,6 +1031,7 @@ module NewRelic
             Rails::Command::RoutesCommand
             Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand
+            Rails::Command::TestCommand
             Rails::Console
             Rails::DBConsole].join(','),
           :public => true,
@@ -1536,6 +1537,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.semantic_logger' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the semantic_logger library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.parallel' => {
           :default => 'auto',

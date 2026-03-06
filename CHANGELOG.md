@@ -6,6 +6,16 @@
 
   A new configuration option has been added, `datastore_tracer.query_naming.enabled`, which allows database queries to be explicitly named using SQL comments. Queries can include `/* NewRelicQueryName: CustomName */` comments to assign stable names for better tracking and identification. This is especially useful for tracking specific database queries during performance regressions or incidents. The configuration defaults to `true`. [PR#3480](https://github.com/newrelic/newrelic-ruby-agent/pull/3480)
 
+- **Feature: Add Semantic Logger instrumentation**
+
+  The agent now supports Semantic Logger log forwarding and decoration for the `semantic_logger` gem versions 4.6.0+. If you were previously using Semantic Logger's built-in New Relic appender, it is recommended to choose one approach to avoid sending duplicate logs. New Relic's Semantic Logger instrumentation can be disabled by setting `instrumentation.semantic_logger` to `disabled`. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)
+
+  Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation. 
+
+- **Feature: Add new `NewRelic::Agent.add_transaction_log_attributes` API**
+
+  A new API, `NewRelic::Agent.add_transaction_log_attributes`, allows users to add transaction-scoped custom attributes to log events for the current transaction. These attributes will only be applied to logs created within the scope of the current transaction. [PR#3472](https://github.com/newrelic/newrelic-ruby-agent/pull/3472)
+
 - **Bugfix: Provide config option to reduce cardinality of ActionCable broadcast metrics**
 
   By default, the metrics for ActionCable broadcast method calls include the value of the broadcasting. This value can have very high cardinality. Now, the `:simplify_action_cable_broadcast_metrics` configuration option allows users to remove the broadcasting value from the metric name. This creates a metric that looks like: `Ruby/ActionCable/broadcast`. When this configuration option is enabled, the broadcasting value will be added as a span attribute. [PR#3463](https://github.com/newrelic/newrelic-ruby-agent/pull/3463)
@@ -13,6 +23,10 @@
 - **Bugfix: Remove dead 'digest/md5' require for FIPS/FedRAMP compliance**
 
   In version 7.1.0 of the agent, MD5 usage was replaced with SHA1 for FIPS compliance [(PR)](https://github.com/newrelic/newrelic-ruby-agent/pull/686). However, the old require for 'digest/md5' was not removed. We have removed the require to help our FIPS/FedRAMP users. Thank you to [@ashleyboehs](https://github.com/ashleyboehs) for bringing this to our attention! [Issue#3469](https://github.com/newrelic/newrelic-ruby-agent/issues/3469) [PR#3470](https://github.com/newrelic/newrelic-ruby-agent/issues/3470)
+
+- **Bugfix: Prevent agent from starting during `rails test` to avoid shutdown delay**
+
+  Previously, the agent would cause a ~3 second shutdown delay when running the `rails test` command. The `Rails::Command::TestCommand` constant has been added to the default `autostart.denylisted_constants` list to prevent the agent from starting during Rails test runs. Thanks to [@varyform](https://github.com/varyform) for bringing this to our attention. [PR#3478](https://github.com/newrelic/newrelic-ruby-agent/issues/3478)
 
 ## v10.2.0
 

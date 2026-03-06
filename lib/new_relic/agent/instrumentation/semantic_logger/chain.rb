@@ -5,16 +5,16 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module Logging::Chain
+  module SemanticLogger::Logger::Chain
     def self.instrument!
-      ::Logging::Logger.class_eval do
-        include NewRelic::Agent::Instrumentation::Logging::Logger
+      ::SemanticLogger::Logger.class_eval do
+        include NewRelic::Agent::Instrumentation::SemanticLogger::Logger
 
-        alias_method(:log_event_without_new_relic, :log_event)
+        alias_method(:log_without_new_relic, :log)
 
-        def log_event(event)
-          log_event_with_new_relic(event) do
-            log_event_without_new_relic(event)
+        def log(log)
+          log_with_new_relic(log) do
+            log_without_new_relic(log)
           end
         end
       end
