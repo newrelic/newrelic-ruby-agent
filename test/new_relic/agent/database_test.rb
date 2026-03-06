@@ -648,5 +648,4 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     assert_nil statement.query_name
   end
-
 end
