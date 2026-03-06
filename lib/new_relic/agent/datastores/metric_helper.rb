@@ -48,7 +48,6 @@ module NewRelic
         def self.scoped_metric_for(product, operation, collection = nil, query_name = nil)
           if collection
             base_metric = statement_metric_for(product, collection, operation)
-            # Append query name if present: "MySQL/users/select - [GetUserById]"
             query_name ? "#{base_metric} - [#{query_name}]" : base_metric
           else
             operation_metric_for(product, operation)
