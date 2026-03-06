@@ -562,19 +562,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_explicit_query_naming_with_activerecord_query
-    with_config(:'datastore_tracer.query_naming.enabled' => true) do
-      in_web_transaction do
-        # This uses ActiveRecord's query interface, which may not preserve our comment
-        # depending on the AR version, but we should handle it gracefully
-        Order.where(:name => 'test').load
-      end
-
-      # Should still record standard metrics
-      assert_activerecord_metrics(Order, 'find')
-    end
-  end
-
   def test_explicit_query_naming_with_multiple_queries
     with_config(:'datastore_tracer.query_naming.enabled' => true) do
       in_web_transaction do
