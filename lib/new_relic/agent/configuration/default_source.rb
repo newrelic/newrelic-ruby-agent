@@ -1031,6 +1031,7 @@ module NewRelic
             Rails::Command::RoutesCommand
             Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand
+            Rails::Command::TestCommand
             Rails::Console
             Rails::DBConsole].join(','),
           :public => true,

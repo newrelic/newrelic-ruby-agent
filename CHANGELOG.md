@@ -14,6 +14,10 @@
 
   In version 7.1.0 of the agent, MD5 usage was replaced with SHA1 for FIPS compliance [(PR)](https://github.com/newrelic/newrelic-ruby-agent/pull/686). However, the old require for 'digest/md5' was not removed. We have removed the require to help our FIPS/FedRAMP users. Thank you to [@ashleyboehs](https://github.com/ashleyboehs) for bringing this to our attention! [Issue#3469](https://github.com/newrelic/newrelic-ruby-agent/issues/3469) [PR#3470](https://github.com/newrelic/newrelic-ruby-agent/issues/3470)
 
+- **Bugfix: Prevent agent from starting during `rails test` to avoid shutdown delay**
+
+  Previously, the agent would cause a ~3 second shutdown delay when running the `rails test` command. The `Rails::Command::TestCommand` constant has been added to the default `autostart.denylisted_constants` list to prevent the agent from starting during Rails test runs. Thanks to [@varyform](https://github.com/varyform) for bringing this to our attention. [PR#3478](https://github.com/newrelic/newrelic-ruby-agent/issues/3478)
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
