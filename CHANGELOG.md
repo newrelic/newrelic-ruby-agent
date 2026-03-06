@@ -5,8 +5,12 @@
 - **Feature: Add Semantic Logger instrumentation**
 
   The agent now supports Semantic Logger log forwarding and decoration for the `semantic_logger` gem versions 4.6.0+. If you were previously using Semantic Logger's built-in New Relic appender, it is recommended to choose one approach to avoid sending duplicate logs. New Relic's Semantic Logger instrumentation can be disabled by setting `instrumentation.semantic_logger` to `disabled`. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)
-  
+
   Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation. 
+
+- **Feature: Add new `NewRelic::Agent.add_transaction_log_attributes` API**
+
+  A new API, `NewRelic::Agent.add_transaction_log_attributes`, allows users to add transaction-scoped custom attributes to log events for the current transaction. These attributes will only be applied to logs created within the scope of the current transaction. [PR#3472](https://github.com/newrelic/newrelic-ruby-agent/pull/3472)
 
 - **Bugfix: Provide config option to reduce cardinality of ActionCable broadcast metrics**
 

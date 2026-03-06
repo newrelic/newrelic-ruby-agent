@@ -789,6 +789,44 @@ module NewRelic::Agent
       assert_labels(config, expected_label_attributes)
     end
 
+    def test_record_batch_with_transaction_attributes
+      in_transaction do |txn|
+        txn.add_transaction_log_attributes({'txn1_key' => 'txn1_value', 'txn1_another_key' => 'txn1_another_value'})
+        @aggregator.record('Just some general information', 'INFO')
+      end
+
+      in_transaction do |txn|
+        txn.add_transaction_log_attributes({'txn2_key' => 'txn2_value'})
+        @aggregator.record('Oh no!', 'FATAL')
+      end
+
+      _, events = @aggregator.harvest!
+
+      assert_equal(2, events.size)
+
+      fatal_event = events.find { |event| event[1]['message'] == 'Oh no!' }
+      info_event = events.find { |event| event[1]['message'] == 'Just some general information' }
+
+      assert_equal('txn1_value', info_event[1]['txn1_key'])
+      assert_equal('txn1_another_value', info_event[1]['txn1_another_key'])
+      assert_equal('txn2_value', fatal_event[1]['txn2_key'])
+    end
+
+    def test_multiple_logs_in_same_transaction_get_same_attributes
+      in_transaction do |txn|
+        txn.add_transaction_log_attributes({'user_id' => '12345'})
+        @aggregator.record('A debug message', 'DEBUG')
+        @aggregator.record('Here is some info', 'INFO')
+        @aggregator.record('Oh no!', 'WARN')
+      end
+
+      _, events = @aggregator.harvest!
+
+      assert_equal('12345', events[0][1]['user_id'])
+      assert_equal('12345', events[1][1]['user_id'])
+      assert_equal('12345', events[2][1]['user_id'])
+    end
+
     private
 
     def assert_labels(config, expected_attributes = {})
