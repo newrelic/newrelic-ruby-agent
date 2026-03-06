@@ -179,7 +179,6 @@ module NewRelic
       # @return [String, nil] the extracted query name or nil
       def extract_query_name_from_sql(sql)
         return unless sql
-        return unless Agent.config[:'datastore_tracer.query_naming.enabled']
 
         sql = Helper.correctly_encoded(sql)
         match = sql.match(QUERY_NAME_REGEX)

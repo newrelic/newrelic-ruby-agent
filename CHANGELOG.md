@@ -4,7 +4,7 @@
 
 - **Feature: Add database query naming via SQL comments**
 
-  A new configuration option has been added, `datastore_tracer.query_naming.enabled`, which allows database queries to be explicitly named using SQL comments. Queries can include `/* NewRelicQueryName: CustomName */` comments to assign stable names for better tracking and identification. This is especially useful for tracking specific database queries during performance regressions or incidents. The configuration defaults to `true`. [PR#3480](https://github.com/newrelic/newrelic-ruby-agent/pull/3480)
+  Database queries can now be explicitly named using SQL comments. Queries can include `/* NewRelicQueryName: CustomName */` comments to assign stable names for better tracking and identification. This is especially useful for tracking specific database queries during performance regressions or incidents. [PR#3480](https://github.com/newrelic/newrelic-ruby-agent/pull/3480)
 
 - **Feature: Add Semantic Logger instrumentation**
 
