@@ -5,11 +5,11 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module <%= @class_name %>::Prepend
-    include NewRelic::Agent::Instrumentation::<%= @class_name %>
+  module SemanticLogger::Logger::Prepend
+    include NewRelic::Agent::Instrumentation::SemanticLogger::Logger
 
-    def <%= @method.downcase %><%= "(#{@args})" unless @args.empty? %>
-      <%= @method.downcase %>_with_new_relic<%= "(#{@args})" unless @args.empty? %> { super }
+    def log(log)
+      log_with_new_relic(log) { super }
     end
   end
 end
