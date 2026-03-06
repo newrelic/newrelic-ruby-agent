@@ -130,7 +130,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_does_not_wrap_ignored_middleware
-    with_config(:'instrumentation.rack.ignore_middlewares' => ['Module']) do
+    with_config(:ignored_middleware_classes => ['Module']) do
       ignored_middleware = Module.new
 
       wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(ignored_middleware)
@@ -140,7 +140,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_does_not_wrap_multiple_ignored_middlewares
-    with_config(:'instrumentation.rack.ignore_middlewares' => %w[First Second]) do
+    with_config(:ignored_middleware_classes => %w[First Second]) do
       first_ignored = First.new
       second_ignored = Second.new
       third_kept = Third.new

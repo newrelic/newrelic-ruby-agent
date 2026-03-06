@@ -8,9 +8,9 @@
 
   Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation.
 
-- **Feature: Add new 'instrumentation.rack.ignore_middlewares' configuration**
+- **Feature: Add new 'ignored_middleware_classes' configuration**
 
-  A new configuration option, `instrumentation.rack.ignore_middlewares`, allows users to exclude specific middlewares from instrumentation (ex. Rack::Cors). It defaults to an empty array. [Issue#1814](https://github.com/newrelic/newrelic-ruby-agent/issues/1814) [PR#3481](https://github.com/newrelic/newrelic-ruby-agent/pull/3481)
+  A new configuration option, `ignored_middleware_classes`, allows users to exclude specific middlewares from instrumentation (ex. Rack::Cors). It defaults to an empty array. [Issue#1814](https://github.com/newrelic/newrelic-ruby-agent/issues/1814) [PR#3481](https://github.com/newrelic/newrelic-ruby-agent/pull/3481)
 
 - **Feature: Add new `NewRelic::Agent.add_transaction_log_attributes` API**
 
