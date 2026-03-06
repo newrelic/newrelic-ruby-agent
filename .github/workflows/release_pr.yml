@@ -6,7 +6,7 @@ on:
       - closed
 
 jobs:
-  create_prerelease:
+  create_release_pr:
     if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
     runs-on: ubuntu-22.04
     permissions:

@@ -43,13 +43,3 @@ jobs:
         TITLE: "Prerelease ${{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml (if it needs updating). This is an automated PR."
         LABEL: prerelease
-
-    - name: Create pre release tag
-      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # tag v2.5.0
-      with:
-        tag_name: ${{ env.prerelease_tag }}
-        name: ${{ env.prerelease_tag }}
-        target_commitish: prerelease_updates_${{ env.prerelease_tag }}
-        prerelease: true
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
