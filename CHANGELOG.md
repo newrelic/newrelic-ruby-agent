@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add database query naming via SQL comments**
+
+  Database queries can now be explicitly named using SQL comments. Queries can include `/* NewRelicQueryName: CustomName */` comments to assign stable names for better tracking and identification. This is especially useful for tracking specific database queries during performance regressions or incidents. [PR#3480](https://github.com/newrelic/newrelic-ruby-agent/pull/3480)
+
 - **Feature: Add Semantic Logger instrumentation**
 
   The agent now supports Semantic Logger log forwarding and decoration for the `semantic_logger` gem versions 4.6.0+. If you were previously using Semantic Logger's built-in New Relic appender, it is recommended to choose one approach to avoid sending duplicate logs. New Relic's Semantic Logger instrumentation can be disabled by setting `instrumentation.semantic_logger` to `disabled`. [PR#3467](https://github.com/newrelic/newrelic-ruby-agent/pull/3467)

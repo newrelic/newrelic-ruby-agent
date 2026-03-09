@@ -71,8 +71,8 @@ services:
       POSTGRES_PASSWORD: postgres_password
     volumes:
       - postgres:/var/lib/postgresql/data
-    expose:
-      - "5432"
+    ports:
+      - "5432:5432"
   redis:
     image: redis:6.2.6
     restart: always
