@@ -13,7 +13,7 @@ module NewRelic
       class DatastoreSegment < Segment
         UNKNOWN = NewRelic::UNKNOWN_LOWER
 
-        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
+        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id, :query_name
         attr_accessor :database_name, :record_sql
 
         def initialize(product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil)
@@ -22,6 +22,7 @@ module NewRelic
           @collection = collection
           @sql_statement = nil
           @nosql_statement = nil
+          @query_name = nil
           @record_sql = true
           set_instance_info(host, port_path_or_id)
           @database_name = database_name&.to_s
@@ -65,6 +66,7 @@ module NewRelic
           return unless record_sql?
 
           @sql_statement = Database::Statement.new(sql, config, explainer, binds, name, host, port_path_or_id, database_name)
+          @query_name = @sql_statement.query_name
         end
 
         # Method for simplifying attaching non-SQL data statements to a
@@ -99,6 +101,7 @@ module NewRelic
         private
 
         def segment_complete
+          update_segment_name_with_query_name if query_name
           notice_sql_statement if sql_statement
           notice_statement if nosql_statement
           add_instance_parameters
@@ -106,6 +109,11 @@ module NewRelic
           add_backtrace_parameter
 
           super
+        end
+
+        def update_segment_name_with_query_name
+          # Update the segment name to include the explicit query name
+          self.name = Datastores::MetricHelper.scoped_metric_for(product, operation, collection, query_name)
         end
 
         def add_instance_parameters
