@@ -24,6 +24,10 @@
 
   Previously, the agent would cause a ~3 second shutdown delay when running the `rails test` command. The `Rails::Command::TestCommand` constant has been added to the default `autostart.denylisted_constants` list to prevent the agent from starting during Rails test runs. Thanks to [@varyform](https://github.com/varyform) for bringing this to our attention. [PR#3478](https://github.com/newrelic/newrelic-ruby-agent/issues/3478)
 
+- **Bugfix: Fix "Unable to calculate elapsed transaction time" warnings when using Falcon web server**
+
+  The agent now uses `Fiber.current.object_id` instead of `Thread.current.object_id` to track transaction state when running under Falcon, preventing collisions from concurrent requests sharing the same thread. Also fixes a NameError: uninitialized constant `Async::HTTP::VERSION` when using Falcon. Thanks to [@97jaz](https://github.com/97jaz) and [@gsar](https://github.com/gsar) for bringing this to our attention. [PR#3483](https://github.com/newrelic/newrelic-ruby-agent/issues/3483)
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
