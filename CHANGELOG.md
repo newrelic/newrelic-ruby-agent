@@ -28,6 +28,10 @@
 
   Previously, the agent would cause a ~3 second shutdown delay when running the `rails test` command. The `Rails::Command::TestCommand` constant has been added to the default `autostart.denylisted_constants` list to prevent the agent from starting during Rails test runs. Thanks to [@varyform](https://github.com/varyform) for bringing this to our attention. [PR#3478](https://github.com/newrelic/newrelic-ruby-agent/issues/3478)
 
+- **Bugfix: Fix typo in harvest.rb causing NoMethodError**
+
+  A typo in `lib/new_relic/agent/agent_helpers/harvest.rb` caused a `NoMethodError: undefined method 'agent' for NewRelic:Module`. Thanks to [@oakbow](https://github.com/oakbow) for reporting this issue. [PR#3484](https://github.com/newrelic/newrelic-ruby-agent/issues/3484)
+
 ## v10.2.0
 
 - **Feature: Introduce Hybrid Agent for OpenTelemetry Tracing Support**
