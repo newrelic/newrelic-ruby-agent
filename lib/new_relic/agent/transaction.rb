@@ -247,7 +247,7 @@ module NewRelic
         @sampled = nil
         @priority = nil
 
-        @starting_thread_id = TransactionTimeAggregator.current_execution_context_id    
+        @starting_thread_id = TransactionTimeAggregator.current_execution_context_id
         @starting_segment_key = current_segment_key
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
