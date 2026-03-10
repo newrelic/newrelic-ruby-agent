@@ -580,6 +580,56 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_activerecord_metrics(Order, 'find')
   end
 
+  # Query naming tests
+  def test_explicit_query_naming_with_raw_sql
+    in_web_transaction do
+      Order.find_by_sql("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: GetOrderByName */")
+    end
+
+    assert_metrics_recorded({
+      "Datastore/statement/#{current_product}/Order/find - [GetOrderByName]" => {:call_count => 1},
+      "Datastore/operation/#{current_product}/find" => {},
+      'Datastore/allWeb' => {},
+      'Datastore/all' => {}
+    })
+  end
+
+  def test_explicit_query_naming_with_forward_slash
+    in_web_transaction do
+      Order.find_by_sql("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: Orders/GetByName */")
+    end
+
+    # Forward slashes should be replaced with pipes
+    assert_metrics_recorded({
+      "Datastore/statement/#{current_product}/Order/find - [Orders|GetByName]" => {:call_count => 1}
+    })
+  end
+
+  def test_query_without_explicit_name_uses_default_metric
+    in_web_transaction do
+      Order.find_by_sql("SELECT * FROM #{Order.table_name} WHERE name = 'test'")
+    end
+
+    # Should use the default metric name without query name suffix
+    assert_metrics_recorded({
+      "Datastore/statement/#{current_product}/Order/find" => {:call_count => 1}
+    })
+  end
+
+  def test_explicit_query_naming_with_multiple_queries
+    in_web_transaction do
+      Order.find_by_sql("SELECT * FROM #{Order.table_name} WHERE id = 1 /* NewRelicQueryName: GetOrderById */")
+      Order.find_by_sql("SELECT * FROM #{Order.table_name} WHERE name = 'test' /* NewRelicQueryName: GetOrderByName */")
+      Order.find_by_sql("SELECT * FROM #{Order.table_name} WHERE id = 2 /* NewRelicQueryName: GetOrderById */")
+    end
+
+    # Should record separate metrics for different query names
+    assert_metrics_recorded({
+      "Datastore/statement/#{current_product}/Order/find - [GetOrderById]" => {:call_count => 2},
+      "Datastore/statement/#{current_product}/Order/find - [GetOrderByName]" => {:call_count => 1}
+    })
+  end
+
   ## helpers
   private
 
