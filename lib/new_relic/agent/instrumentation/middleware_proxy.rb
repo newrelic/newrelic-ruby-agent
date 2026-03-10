@@ -46,7 +46,8 @@ module NewRelic
         def self.needs_wrapping?(target)
           (
             !target.respond_to?(:_nr_has_middleware_tracing) &&
-            !is_sinatra_app?(target)
+              !NewRelic::Agent.config[:ignored_middleware_classes].include?(target.class.to_s) &&
+              !is_sinatra_app?(target)
           )
         end
 

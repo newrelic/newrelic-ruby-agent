@@ -1452,6 +1452,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, `worker.3`). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, `worker`).'
         },
+        :ignored_middleware_classes => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => 'A list of middleware class or module names the agent should ignore. Example: ["Rack::Cors", "ActionDispatch::Reloader"]'
+        },
         # Infinite tracing
         :'infinite_tracing.trace_observer.host' => {
           :default => '',
