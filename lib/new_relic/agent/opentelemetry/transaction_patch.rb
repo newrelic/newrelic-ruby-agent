@@ -10,7 +10,7 @@ module NewRelic
           @current_segment_lock.synchronize do
             if new_segment&.respond_to?(:transaction) && new_segment.transaction
               span = find_or_create_span(new_segment)
-              Thread.current[:nr_otel_current_span] = span
+              otel_current_storage[:nr_otel_current_span] = span
             end
           end
 
@@ -18,20 +18,28 @@ module NewRelic
         end
 
         def remove_current_segment_by_thread_id(id)
-          if id == Thread.current.object_id
-            Thread.current[:nr_otel_current_span] = nil
+          if id == NewRelic::Agent::TransactionTimeAggregator.current_execution_context_id
+            otel_current_storage[:nr_otel_current_span] = nil
           end
 
           super
         end
 
         def finish
-          Thread.current[:nr_otel_current_span] = nil
+          otel_current_storage[:nr_otel_current_span] = nil
 
           super
         end
 
         private
+
+        def otel_current_storage
+          if NewRelic::Agent.config[:dispatcher] == :falcon
+            Fiber.current
+          else
+            Thread.current
+          end
+        end
 
         def find_or_create_span(segment)
           if segment.instance_variable_defined?(:@otel_span)
