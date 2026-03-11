@@ -67,12 +67,14 @@ class HealthyUrlsTest < Minitest::Test
   IGNORED_URL_PATTERN = %r{(?:\{|\(|\$|169\.254|\.\.\.|learn\.|metadata\.google|honeyryderchuck\.gitlab\.io/httpx|https?://(?:lambda\.)?#)}
   TIMEOUT = 5
   DEBUG = false
+  REQUEST_DELAY = 0.5 # seconds between requests to avoid rate limiting
 
   def test_all_urls
     skip_unless_special_ci
 
     urls = gather_urls
     errors = urls.each_with_object({}) do |(url, _files), hash|
+      sleep(REQUEST_DELAY) # Avoid rate limiting
       error = verify_url(url)
       hash[url] = error if error
     end
