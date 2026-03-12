@@ -16,13 +16,13 @@
 
   Thanks to [@jdelStrother](https://github.com/jdelStrother) for providing valuable feedback that helped shape this instrumentation.
 
-- **Feature: Add new 'ignored_middleware_classes' configuration**
-
-  A new configuration option, `ignored_middleware_classes`, allows users to exclude specific middlewares from instrumentation (ex. Rack::Cors). It defaults to an empty array. [Issue#1814](https://github.com/newrelic/newrelic-ruby-agent/issues/1814) [PR#3481](https://github.com/newrelic/newrelic-ruby-agent/pull/3481)
-
 - **Feature: Add new `NewRelic::Agent.add_transaction_log_attributes` API**
 
   A new API, `NewRelic::Agent.add_transaction_log_attributes`, allows users to add transaction-scoped custom attributes to log events for the current transaction. These attributes will only be applied to logs created within the scope of the current transaction. [PR#3472](https://github.com/newrelic/newrelic-ruby-agent/pull/3472)
+
+- **Feature: Add sidekiq.force_new_transaction configuration**
+
+  The `sidekiq.force_new_transaction` configuration option forces a new transaction to start when Sidekiq's server instrumentation is invoked to make sure every job starts its own transaction. This prevents Sidekiq jobs from being nested within web transactions that initiatied them. [PR#3489](https://github.com/newrelic/newrelic-ruby-agent/pull/3489)
 
 - **Bugfix: Provide config option to reduce cardinality of ActionCable broadcast metrics**
 
