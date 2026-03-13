@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
+
+  The agent now uses an alternative approach instead of the deprecated `ObjectSpace._id2ref` method, eliminating deprecation warnings when running on Ruby 4.0+. [PR#3490](https://github.com/newrelic/newrelic-ruby-agent/pull/3490)
+
 - **Feature: Add database query naming via SQL comments**
 
   Database queries can now be explicitly named using SQL comments. Queries can include `/* NewRelicQueryName: CustomName */` comments to assign stable names for better tracking and identification. This is especially useful for tracking specific database queries during performance regressions or incidents. [PR#3480](https://github.com/newrelic/newrelic-ruby-agent/pull/3480)
