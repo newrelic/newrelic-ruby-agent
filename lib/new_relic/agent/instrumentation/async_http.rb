@@ -11,6 +11,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Async::HTTP) &&
+      defined?(Async::HTTP::VERSION) &&
       NewRelic::Helper.version_satisfied?(Async::HTTP::VERSION, '>=', '0.59.0') &&
       !defined?(Traces::Backend::NewRelic) # defined in the traces-backend-newrelic gem
   end

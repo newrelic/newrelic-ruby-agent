@@ -30,7 +30,7 @@ module NewRelic
         def initialize(name = nil, start_time = nil)
           @name = name
           @starting_segment_key = NewRelic::Agent::Tracer.current_segment_key
-          @thread_id = Thread.current.object_id
+          @thread_id = NewRelic::Agent::TransactionTimeAggregator.current_execution_context_id
           @transaction_name = nil
           @transaction = nil
           @guid = NewRelic::Agent::GuidGenerator.generate_guid
