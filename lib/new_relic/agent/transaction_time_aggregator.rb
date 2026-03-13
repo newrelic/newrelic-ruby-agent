@@ -118,7 +118,11 @@ module NewRelic
           require 'objspace'
 
           def thread_by_id(thread_id)
-            ObjectSpace._id2ref(thread_id)
+            obj = Thread.list.detect { |t| t.object_id == thread_id }
+            return obj if obj
+
+            # Thread.list is significantly faster than ObjectSpace.each_object, but Fibers do not have that method.
+            ObjectSpace.each_object(Fiber).detect { |f| f.object_id == thread_id }
           end
         end
 
