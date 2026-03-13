@@ -30,7 +30,7 @@
 
 - **Bugfix: Fix "Unable to calculate elapsed transaction time" warnings when using Falcon web server**
 
-  The agent now uses `Fiber.current.object_id` instead of `Thread.current.object_id` to track transaction state when running under Falcon, preventing collisions from concurrent requests sharing the same thread. Also fixes a NameError: uninitialized constant `Async::HTTP::VERSION` when using Falcon. Thanks to [@97jaz](https://github.com/97jaz) and [@gsar](https://github.com/gsar) for bringing this to our attention. [PR#3483](https://github.com/newrelic/newrelic-ruby-agent/issues/3483)
+  The agent now uses `Fiber.current.object_id` instead of `Thread.current.object_id` to track transaction state when running under Falcon, preventing collisions from concurrent requests sharing the same thread. Also fixes a "NameError: uninitialized constant `Async::HTTP::VERSION`" when using Falcon. Thanks to [@97jaz](https://github.com/97jaz) and [@gsar](https://github.com/gsar) for bringing this to our attention. [PR#3483](https://github.com/newrelic/newrelic-ruby-agent/issues/3483)
 
 - **Bugfix: Fix typo in harvest.rb causing NoMethodError**
 
