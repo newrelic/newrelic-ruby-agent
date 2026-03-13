@@ -1,0 +1,19 @@
+# URLs containing template variables or placeholders
+.*\{.*
+.*\(.*\).*
+.*\$.*
+.*\.\.\..*
+
+# AWS metadata endpoints
+169\.254\..*
+
+# URLs that require authentication or have access restrictions
+learn\..*
+metadata\.google\..*
+
+# Known problematic URLs
+honeyryderchuck\.gitlab\.io/httpx
+
+# Lambda placeholder URLs
+https?://lambda\.#
+https?://#

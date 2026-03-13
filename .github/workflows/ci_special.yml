@@ -5,45 +5,53 @@ on:
     - cron: '0 9 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  unit_tests:
+  link_check:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby 3.4
-        uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # tag v1.288.0
+      - name: Restore lychee cache
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # tag: v5.0.3
+        id: cache-restore
         with:
-          ruby-version: 3.4
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
 
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: 3.4
-
-      - name: Run Unit Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+      - name: Run link check
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # tag: v2.8.0
         with:
-          timeout_minutes: 30
-          max_attempts: 2
-          command:  TEST=test/new_relic/healthy_urls_test bundle exec rake test
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SPECIAL_CI: true
+          fail: true
+          args: >-
+            --cache
+            --max-cache-age 1d
+            --threads 1
+            --max-concurrency 1
+            --verbose
+            --retry-wait-time 5
+            --max-retries 3
+            --timeout 60
+            --no-progress
+            --exclude-path '**/test/**'
+            --exclude-path '**/coverage/**'
+            '.'
 
+      - name: Save lychee cache
+        if: always()
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # tag: v5.0.3
+        with:
+          path: .lycheecache
+          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
 
   notify_slack_fail:
     name: Notify slack fail
-    needs: [unit_tests]
+    needs: [link_check]
     runs-on: ubuntu-22.04
     if: always()
     permissions:
@@ -63,7 +71,7 @@ jobs:
 
   notify_slack_success:
     name: Notify slack success
-    needs: [unit_tests]
+    needs: [link_check]
     runs-on: ubuntu-22.04
     if: always()
     permissions:
