@@ -18,6 +18,7 @@ class SidekiqForceNewTransactionTest < Minitest::Test
 
   # TODO: Do we need to add active job to reproduce the behavior this feature intends to fix?
   # TODO: Do we need to add tests related to DT headers? Recheck what the customer's concern about that was
+  # TODO: Are we able to use perform_action_with_newrelic_trace or do we need to use start_new_transaction?
 
   def test_sidekiq_force_new_transaction_default_value
     refute NewRelic::Agent.config[:'sidekiq.force_new_transaction'],
@@ -39,8 +40,9 @@ class SidekiqForceNewTransactionTest < Minitest::Test
   end
 
   def test_sidekiq_job_added_to_existing_web_transaction_when_false
-    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
-    skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
+    # Sidekiq version 6.x's perform_inline invokes String#constantize, which is only
+    # delivered by ActiveSupport, which this test suite doesn't currently include.
+    skip 'Test requires Sidekiq v7+' unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
 
     with_config(:'sidekiq.force_new_transaction' => false) do
       config = if Sidekiq::VERSION.split('.').first.to_i >= 7
@@ -79,8 +81,9 @@ class SidekiqForceNewTransactionTest < Minitest::Test
   end
 
   def test_sidekiq_job_not_added_to_existing_web_transaction_when_true
-    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
-    skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
+    # Sidekiq version 6.x's perform_inline invokes String#constantize, which is only
+    # delivered by ActiveSupport, which this test suite doesn't currently include.
+    skip 'Test requires Sidekiq v7+' unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
 
     with_config(:'sidekiq.force_new_transaction' => true) do
       config = if Sidekiq::VERSION.split('.').first.to_i >= 7
@@ -102,8 +105,9 @@ class SidekiqForceNewTransactionTest < Minitest::Test
   end
 
   def test_sidekiq_job_part_of_new_transaction_when_true
-    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
-    skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
+    # Sidekiq version 6.x's perform_inline invokes String#constantize, which is only
+    # delivered by ActiveSupport, which this test suite doesn't currently include.
+    skip 'Test requires Sidekiq v7+' unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
 
     with_config(:'sidekiq.force_new_transaction' => true) do
       config = if Sidekiq::VERSION.split('.').first.to_i >= 7

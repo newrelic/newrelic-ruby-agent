@@ -2143,7 +2143,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => %Q(If `true`, the agent will force a new transaction to be started when Sidekiq's server instrumentation is invoked. This will prevent Sidekiq jobs from being nested within existing Web transactions.)
+          :description => %Q(If `true`, the agent forces a new transaction to start when Sidekiq's server instrumentation invokes. This prevents Sidekiq jobs from being nested within web transactions.)
         },
         # Slow SQL
         :'slow_sql.enabled' => {

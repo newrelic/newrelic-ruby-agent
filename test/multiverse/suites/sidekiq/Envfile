@@ -5,7 +5,8 @@
 SIDEKIQ_VERSIONS = [
   [nil, 3.2],
   ['7.3.9', 2.7],
-  ['6.4.0'],
+  # 6.4.2 has a known incompatibility with Ruby 4.0's connection_pool gem
+  ['6.4.0', 2.6, 3.4],
   ['5.0.3', 2.6, 2.6]
 ]
 
