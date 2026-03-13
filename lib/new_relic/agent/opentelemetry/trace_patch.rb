@@ -9,16 +9,16 @@ module NewRelic
         def current_span(context = nil)
           return super if context
 
-          thread = Thread.current
-          return super if thread[:nr_otel_recursion_guard]
+          storage = NewRelic::Agent::TransactionTimeAggregator.current_execution_context
+          return super if storage[:nr_otel_recursion_guard]
 
-          nr_span = thread[:nr_otel_current_span]
+          nr_span = storage[:nr_otel_current_span]
           return nr_span if nr_span
 
           # Fallback with recursion protection
-          thread[:nr_otel_recursion_guard] = true
+          storage[:nr_otel_recursion_guard] = true
           result = super
-          thread[:nr_otel_recursion_guard] = nil
+          storage[:nr_otel_recursion_guard] = nil
 
           result
         rescue => e

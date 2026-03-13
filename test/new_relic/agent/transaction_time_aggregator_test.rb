@@ -135,4 +135,18 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
 
     assert_equal 0, stats.size, 'Aggregator did not cull dead threads'
   end
+
+  def test_current_execution_context_id_returns_thread_id_by_default
+    result = NewRelic::Agent::TransactionTimeAggregator.current_execution_context_id
+
+    assert_equal Thread.current.object_id, result
+  end
+
+  def test_current_execution_context_id_returns_fiber_id_for_falcon
+    with_config(dispatcher: :falcon) do
+      result = NewRelic::Agent::TransactionTimeAggregator.current_execution_context_id
+
+      assert_equal Fiber.current.object_id, result
+    end
+  end
 end
