@@ -42,7 +42,7 @@ runs:
               "rails": "norails,rails61,rails70,rails71,rails72"
             },
             "3.2.8": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81"
             },
             "3.3.8": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81,railsedge"
