@@ -58,7 +58,7 @@ class HTTPTest < Minitest::Test
       if is_unsupported_1x?
         HTTP::Request.new(*options.values)
       else
-        HTTP::Request.new(options)
+        HTTP::Request.new(**options)
       end
 
     ::NewRelic::Agent::HTTPClients::HTTPRequest.new(httprb_req)
@@ -73,7 +73,7 @@ class HTTPTest < Minitest::Test
       request: HTTP::Request.new(uri: 'http://newrelic.com', verb: :get)
     }
 
-    httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(options)
+    httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(**options)
 
     NewRelic::Agent::HTTPClients::HTTPResponse.new(httprb_resp)
   end
