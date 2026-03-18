@@ -26,7 +26,7 @@
 
 - **Feature: Add sidekiq.force_new_transaction configuration**
 
-  The `sidekiq.force_new_transaction` configuration option forces a new transaction to start when Sidekiq's server instrumentation is invoked to make sure every job starts its own transaction. This prevents Sidekiq jobs from being nested within web transactions that initiatied them. [PR#3489](https://github.com/newrelic/newrelic-ruby-agent/pull/3489)
+  The `sidekiq.force_new_transaction` configuration option forces a new transaction to start when Sidekiq's server instrumentation is invoked to make sure every job starts its own transaction. This prevents the duration of Sidekiq jobs from being included in the duration of the web transactions that started them. [PR#3489](https://github.com/newrelic/newrelic-ruby-agent/pull/3489)
 
 - **Bugfix: Provide config option to reduce cardinality of ActionCable broadcast metrics**
 
