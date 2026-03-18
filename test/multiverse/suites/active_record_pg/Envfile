@@ -12,8 +12,8 @@ end
 serialize!
 
 ACTIVERECORD_VERSIONS = [
-  # TODO: RAILS 8.1 Run migrations for 8.1 to get tests working
-  # [nil, 3.2],
+  [nil, 3.2],
+  ['8.1.0', 3.2],
   ['8.0.0', 3.2],
   ['7.2.0', 3.1],
   ['7.1.0', 2.7],
@@ -24,11 +24,6 @@ ACTIVERECORD_VERSIONS = [
   ['5.1.0', 2.6, 2.6],
   ['5.0.0', 2.6, 2.7]
 ]
-
-# There's a problem where if Rails 8.1 runs first, it'll create migrations
-# that stick around and cause db:migrate to fail on Rails 8.0
-# Let's just skip Rails edge until this gets sorted out.
-# unshift_rails_edge(ACTIVERECORD_VERSIONS)
 
 def gem_list(activerecord_version = nil)
   <<~RB

@@ -14,7 +14,7 @@ class Minitest::Test
 end
 
 def current_active_record_migration_version
-  ActiveRecord::VERSION::STRING >= '5.0.0' ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
+  ActiveRecord::VERSION::STRING >= '5.0.0' ? ActiveRecord::Migration[ActiveRecord::Migration.current_version] : ActiveRecord::Migration
 end
 
 module MultiverseHelpers

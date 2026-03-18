@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'fileutils'
+
 def redefine_mysql_primary_key(const_str)
   const = Object.const_get(const_str) rescue return
   const[:primary_key] = 'int(11) auto_increment PRIMARY KEY'
@@ -12,6 +14,13 @@ begin
   # ActiveRecord::EnvironmentMismatchError when switching between the
   # default_env and test environments
   ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK'] = 'true'
+
+  # There's a problem where if Rails 8.1 runs first, it'll create migrations
+  # that stick around and cause db:migrate to fail on Rails 8.0
+  # Previously we skipped rails edge when this started happening,
+  # but since this behavior still exists, we just need to work around it
+  schema_path = File.expand_path('../db/schema.rb', __FILE__)
+  FileUtils.rm_f(schema_path)
 
   load('Rakefile')
   Rake::Task['db:drop'].invoke
