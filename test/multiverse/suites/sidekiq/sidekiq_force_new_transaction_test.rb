@@ -140,7 +140,7 @@ class SidekiqForceNewTransactionTest < Minitest::Test
       _, all_spans = harvest_span_events!
       spans = all_spans[1].select { |span| span['name'] }
 
-      sidekiq_span = spans.find { |s| s['name'] =~ /SidekiqJob\/NRDeadEndJob\/perform/ }
+      sidekiq_span = spans.find { |s| s['name'].include?('SidekiqJob/NRDeadEndJob/perform') }
 
       assert sidekiq_span, 'Expected to find sidekiq job span'
       assert sidekiq_span['nr.entryPoint'],
