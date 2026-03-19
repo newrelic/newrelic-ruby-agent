@@ -231,6 +231,21 @@ if Rails::VERSION::STRING >= '4.2.0'
       assert_metrics_recorded(['Errors/all'])
     end
 
+    def test_continuations_config_backwards_compatible
+      # Verify the disable_activejob_step_names config works on all Rails versions
+      # including those without Continuations support
+      with_config(:disable_activejob_step_names => true) do
+        in_web_transaction do
+          MyJob.perform_later
+        end
+      end
+
+      # Should record normal metrics without /step suffix
+      assert_metrics_recorded("#{PERFORM_PREFIX}/default/MyJob")
+      # Should not record any step-related metrics
+      assert_no_metrics_match(/\/step/)
+    end
+
     # Rails 8.1+ Continuations tests
     if defined?(ActiveJob::Continuable)
       def test_continuations_step_names_in_metrics
@@ -273,6 +288,26 @@ if Rails::VERSION::STRING >= '4.2.0'
         assert_metrics_recorded([PERFORM_TRANSACTION_ROLLUP,
           PERFORM_TRANSACTION_NAME])
         assert_metrics_not_recorded('Ruby/ActiveJob/default/MyJob/step')
+      end
+
+      def test_continuations_config_disables_step_names
+        # Test that disable_activejob_step_names config option works
+        with_config(:disable_activejob_step_names => true) do
+          MyContinuableJob.perform_later(record_count: 3)
+
+          # Should record generic step metrics without step names
+          assert_metrics_recorded([
+            'Ruby/ActiveJob/default/MyContinuableJob/step',
+            'Ruby/ActiveJob/default/MyContinuableJob/step_started'
+          ])
+
+          # Should NOT record step-specific metrics
+          assert_metrics_not_recorded([
+            'Ruby/ActiveJob/default/MyContinuableJob/step/first_step',
+            'Ruby/ActiveJob/default/MyContinuableJob/step/second_step',
+            'Ruby/ActiveJob/default/MyContinuableJob/step/third_step'
+          ])
+        end
       end
     end
   end
