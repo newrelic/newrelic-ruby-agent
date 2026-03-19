@@ -44,6 +44,38 @@ if Rails::VERSION::STRING >= '4.2.0'
     end
   end
 
+  # Rails 8.1+ Continuations test job
+  if defined?(ActiveJob::Continuable)
+    class MyContinuableJob < ActiveJob::Base
+      include ActiveJob::Continuable
+
+      def self.last_cursor
+        @@last_cursor
+      end
+
+      def perform(record_count: 5)
+        step(:first_step) do
+          # First step does something
+        end
+
+        step(:second_step) do |step|
+          (0...record_count).each do |i|
+            step.advance!(from: i + 1)
+          end
+          @@last_cursor = step.cursor
+        end
+
+        step(:third_step)
+      end
+
+      private
+
+      def third_step
+        # Third step as a method
+      end
+    end
+  end
+
   class ActiveJobTest < Minitest::Test
     include MultiverseHelpers
 
@@ -197,6 +229,51 @@ if Rails::VERSION::STRING >= '4.2.0'
       end
 
       assert_metrics_recorded(['Errors/all'])
+    end
+
+    # Rails 8.1+ Continuations tests
+    if defined?(ActiveJob::Continuable)
+      def test_continuations_step_names_in_metrics
+        MyContinuableJob.perform_later(record_count: 3)
+
+        assert_metrics_recorded([
+          'Ruby/ActiveJob/default/MyContinuableJob/step/first_step',
+          'Ruby/ActiveJob/default/MyContinuableJob/step/second_step',
+          'Ruby/ActiveJob/default/MyContinuableJob/step/third_step'
+        ])
+      end
+
+      def test_continuations_step_started_metrics
+        MyContinuableJob.perform_later(record_count: 3)
+
+        assert_metrics_recorded([
+          'Ruby/ActiveJob/default/MyContinuableJob/step_started/first_step',
+          'Ruby/ActiveJob/default/MyContinuableJob/step_started/second_step',
+          'Ruby/ActiveJob/default/MyContinuableJob/step_started/third_step'
+        ])
+      end
+
+      def test_continuations_backwards_compatibility
+        # Ensure the changes don't break jobs without continuations
+        MyJob.perform_later
+
+        # Regular job metrics should still be recorded
+        assert_metrics_recorded([
+          PERFORM_TRANSACTION_NAME
+        ])
+
+        # Should not create step metrics for regular jobs
+        assert_metrics_not_recorded('Ruby/ActiveJob/default/MyJob/step')
+      end
+
+      def test_continuations_doesnt_break_regular_jobs
+        # Ensure regular jobs without continuations still work
+        MyJob.perform_later
+
+        assert_metrics_recorded([PERFORM_TRANSACTION_ROLLUP,
+          PERFORM_TRANSACTION_NAME])
+        assert_metrics_not_recorded('Ruby/ActiveJob/default/MyJob/step')
+      end
     end
   end
 
