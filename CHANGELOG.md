@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add instrumentation for Rails 8.1 ActiveJob Continuations**
+
+  The agent now instruments Rails 8.1+ ActiveJob Continuations, providing visibility into individual step execution within long-running jobs. Step names are included in segment metrics (e.g., `Ruby/ActiveJob/default/MyJob/step/process_records`) and step-specific attributes like cursor position, resumed status, and interrupted status are captured. A new configuration option, `disable_activejob_step_names`, allows users to exclude step names from metric names to reduce metric cardinality if needed (defaults to `false`). [PR#3493](https://github.com/newrelic/newrelic-ruby-agent/pull/3493)
+
 - **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
 
   The agent now uses an alternative approach instead of the deprecated `ObjectSpace._id2ref` method, eliminating deprecation warnings when running on Ruby 4.0+. [PR#3490](https://github.com/newrelic/newrelic-ruby-agent/pull/3490)
