@@ -1216,7 +1216,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Job instrumentation.'
         },
-        :disable_activejob_step_names => {
+        :disable_active_job_step_names => {
           :default => false,
           :public => true,
           :type => Boolean,
