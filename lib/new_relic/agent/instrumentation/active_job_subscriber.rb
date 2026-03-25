@@ -51,7 +51,7 @@ module NewRelic
           # Include step name for Rails 8.1+ Continuations (unless disabled via config)
           if (method == 'step' || method == 'step_started') &&
               payload[:step]&.respond_to?(:name) &&
-              !NewRelic::Agent.config[:disable_activejob_step_names]
+              !NewRelic::Agent.config[:disable_active_job_step_names]
             step_name = payload[:step].name
             "Ruby/ActiveJob/#{queue}/#{job_class}/#{method}/#{step_name}"
           else
