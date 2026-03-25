@@ -1221,7 +1221,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, step names from Rails 8.1+ ActiveJob Continuations will not be included in metric names. ' \
+          :description => 'If `true`, step names from Rails Active Job Continuations will not be included in metric names. ' \
             'This reduces metric cardinality but also reduces visibility into individual step performance. ' \
             'Only set this to `true` if you are experiencing metric cardinality issues due to jobs with many steps or dynamically-named steps.'
         },
