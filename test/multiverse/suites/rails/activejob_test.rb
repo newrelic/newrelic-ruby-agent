@@ -234,7 +234,7 @@ if Rails::VERSION::STRING >= '4.2.0'
     def test_continuations_config_backwards_compatible
       # Verify the disable_active_job_step_names config works on all Rails versions
       # including those without Continuations support
-      with_config(:disable_activejob_step_names => true) do
+      with_config(:disable_active_job_step_names => true) do
         in_web_transaction do
           MyJob.perform_later
         end
@@ -291,8 +291,8 @@ if Rails::VERSION::STRING >= '4.2.0'
       end
 
       def test_continuations_config_disables_step_names
-        # Test that disable_activejob_step_names config option works
-        with_config(:disable_activejob_step_names => true) do
+        # Test that disable_active_job_step_names config option works
+        with_config(:disable_active_job_step_names => true) do
           MyContinuableJob.perform_later(record_count: 3)
 
           # Should record generic step metrics without step names
