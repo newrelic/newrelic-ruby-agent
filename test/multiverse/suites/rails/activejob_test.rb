@@ -232,7 +232,7 @@ if Rails::VERSION::STRING >= '4.2.0'
     end
 
     def test_continuations_config_backwards_compatible
-      # Verify the disable_activejob_step_names config works on all Rails versions
+      # Verify the disable_active_job_step_names config works on all Rails versions
       # including those without Continuations support
       with_config(:disable_activejob_step_names => true) do
         in_web_transaction do
