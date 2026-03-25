@@ -1,15 +1,17 @@
 name: Create Release PR
 
 on:
+  workflow_dispatch:
   pull_request:
     types:
       - closed
 
 jobs:
   create_prerelease_tag:
-    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    if: ${{ ((github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease'))) || (github.event_name == 'workflow_dispatch') }}
     permissions:
       contents: write
+      pull-requests: write
     runs-on: ubuntu-22.04
     steps:
     - name: Install Ruby 3.4
@@ -30,7 +32,7 @@ jobs:
       with:
         tag_name: ${{ env.prerelease_tag }}
         name: ${{ env.prerelease_tag }}
-        target_commitish: prerelease_updates_${{ env.prerelease_tag }}
+        target_commitish: dev
         prerelease: true
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
