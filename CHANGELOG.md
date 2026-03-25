@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.3.0
 
 - **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
 
