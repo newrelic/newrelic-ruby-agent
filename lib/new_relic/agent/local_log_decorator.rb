@@ -18,6 +18,7 @@ module NewRelic
           return
         end
 
+        message = message.to_s unless message.is_a?(String)
         formatted_metadata = " NR-LINKING|#{metadata[ENTITY_GUID_KEY]}|#{metadata[HOSTNAME_KEY]}|" \
                              "#{metadata[TRACE_ID_KEY]}|#{metadata[SPAN_ID_KEY]}|" \
                              "#{escape_entity_name(metadata[ENTITY_NAME_KEY])}|"
