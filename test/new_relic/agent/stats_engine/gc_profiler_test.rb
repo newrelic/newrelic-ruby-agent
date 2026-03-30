@@ -24,8 +24,7 @@ class NewRelic::Agent::StatsEngine
       ::GC.stubs(:time)
       ::GC.stubs(:collections)
 
-      assert_equal(GCProfiler::RailsBenchProfiler,
-        GCProfiler.init.class)
+      assert_instance_of(GCProfiler::RailsBenchProfiler, GCProfiler.init)
     end
 
     def test_init_profiler_for_ruby_19_and_greater
@@ -34,8 +33,7 @@ class NewRelic::Agent::StatsEngine
 
       ::GC::Profiler.stubs(:enabled?).returns(true)
 
-      assert_equal(GCProfiler::CoreGCProfiler,
-        GCProfiler.init.class)
+      assert_instance_of(GCProfiler::CoreGCProfiler, GCProfiler.init)
     end
 
     def test_record_delta_returns_nil_when_snapshots_are_nil
