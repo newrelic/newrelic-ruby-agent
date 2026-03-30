@@ -470,7 +470,7 @@ module NewRelic
       def severity_too_low?(severity)
         severity_constant = format_log_level_constant(severity)
         # always record custom log levels
-        return false unless Logger::Severity.constants.include?(severity_constant)
+        return false unless Logger::Severity.const_defined?(severity_constant)
 
         Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(configured_log_level_constant)
       end

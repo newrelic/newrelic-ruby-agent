@@ -91,7 +91,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     end
 
     def test_sampler_queue_depth_with_default_queue
-      return unless Delayed::Job.instance_methods.include?(:queue)
+      return unless Delayed::Job.method_defined?(:queue)
 
       IWantToWait.new.delay.take_action
 
@@ -104,7 +104,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     end
 
     def test_sampler_queue_depth_with_alternate_queues
-      return unless Delayed::Job.instance_methods.include?(:queue)
+      return unless Delayed::Job.method_defined?(:queue)
 
       IWantToWait.new.delay(:queue => 'cue').take_action
       IWantToWait.new.delay(:queue => 'cute').take_action
@@ -119,7 +119,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     end
 
     def test_sampler_queue_depth_with_queues_and_priorities
-      return unless Delayed::Job.instance_methods.include?(:queue)
+      return unless Delayed::Job.method_defined?(:queue)
 
       IWantToWait.new.delay(:priority => 1, :queue => 'cue').take_action
       IWantToWait.new.delay(:priority => 1, :queue => 'cute').take_action
