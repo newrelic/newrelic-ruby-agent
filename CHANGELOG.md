@@ -2,10 +2,6 @@
 
 ## v10.3.0
 
-- **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
-
-  The agent now uses an alternative approach instead of the deprecated `ObjectSpace._id2ref` method, eliminating deprecation warnings when running on Ruby 4.0+. [PR#3490](https://github.com/newrelic/newrelic-ruby-agent/pull/3490)
-
 - **Feature: Add database query naming via SQL comments**
 
   Database queries can now be explicitly named using SQL comments. Queries can include `/* NewRelicQueryName: CustomName */` comments to assign stable names for better tracking and identification. This is especially useful for tracking specific database queries during performance regressions or incidents. [PR#3480](https://github.com/newrelic/newrelic-ruby-agent/pull/3480)
@@ -43,6 +39,14 @@
 - **Bugfix: Fix typo in harvest.rb causing NoMethodError**
 
   A typo in `lib/new_relic/agent/agent_helpers/harvest.rb` caused a `NoMethodError: undefined method 'agent' for NewRelic:Module`. Thanks to [@oakbow](https://github.com/oakbow) for reporting this issue. [PR#3484](https://github.com/newrelic/newrelic-ruby-agent/issues/3484)
+
+- **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
+
+  The agent now uses an alternative approach instead of the deprecated `ObjectSpace._id2ref` method, eliminating deprecation warnings when running on Ruby 4.0+. [PR#3490](https://github.com/newrelic/newrelic-ruby-agent/pull/3490)
+
+- **Bugfix: Fix NoMethoError in Logging instrumentation**
+
+  Previously, when the Logging gem instrumentation attempted to decorate local logs, it would raise a `NoMethodError` if it encountered a non-string object. This is now fixed. [PR#3501](https://github.com/newrelic/newrelic-ruby-agent/pull/3501)
 
 ## v10.2.0
 
