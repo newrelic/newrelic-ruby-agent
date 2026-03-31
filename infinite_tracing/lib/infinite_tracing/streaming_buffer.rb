@@ -12,6 +12,7 @@ module NewRelic::Agent
       include Constants
       include Enumerable
       extend Forwardable
+
       def_delegators :@queue, :empty?, :num_waiting, :push
 
       DEFAULT_QUEUE_SIZE = 10_000

@@ -12,6 +12,7 @@ class InstrumentActiveRecordMethods < Minitest::Test
   extend Multiverse::Color
 
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def test_basic_creation

@@ -88,6 +88,7 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_only
       parent = Class.new do
         include ControllerInstrumentation
+
         newrelic_ignore(:only => :foo)
       end
 
@@ -106,6 +107,7 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except
       parent = Class.new do
         include ControllerInstrumentation
+
         newrelic_ignore(:except => :foo)
       end
 
@@ -124,6 +126,7 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except_and_only
       parent = Class.new do
         include ControllerInstrumentation
+
         newrelic_ignore(:only => :foo)
       end
 

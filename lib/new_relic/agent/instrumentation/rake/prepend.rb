@@ -6,6 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Rake
     module Prepend
       include NewRelic::Agent::Instrumentation::Rake::Tracer
+
       def invoke(*args)
         invoke_with_newrelic_tracing(*args) { super }
       end

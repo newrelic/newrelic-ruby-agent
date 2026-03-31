@@ -5,6 +5,7 @@
 module NewRelic
   module DelayedJobInjection
     extend self
+
     attr_accessor :worker_name
   end
 end

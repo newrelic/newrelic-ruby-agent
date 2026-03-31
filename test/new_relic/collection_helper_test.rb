@@ -18,6 +18,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   include NewRelic::CollectionHelper
+
   def test_string
     val = (('A'..'Z').to_a.join * 1024).to_s
 

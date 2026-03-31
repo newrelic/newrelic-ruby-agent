@@ -11,6 +11,7 @@ module NewRelic
         module Server
           module RpcServerPrepend
             include NewRelic::Agent::Instrumentation::GRPC::Server
+
             def add_http2_port(*args)
               add_http2_port_with_tracing(*args) { super }
             end

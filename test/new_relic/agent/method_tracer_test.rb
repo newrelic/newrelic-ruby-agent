@@ -30,6 +30,7 @@ end
 module NewRelic
   module Agent
     extend self
+
     def module_method_to_be_traced(x, testcase)
       testcase.assert_equal 'x', x
     end
@@ -48,6 +49,7 @@ module TestModuleWithLog
     end
 
     include NewRelic::Agent::MethodTracer
+
     add_method_tracer :other_method, 'Custom/foo/bar'
   end
 end
@@ -59,6 +61,7 @@ with_config(:'code_level_metrics.enabled' => true) do
 
     class << self
       include NewRelic::Agent::MethodTracer
+
       add_method_tracer :class_method
     end
   end
@@ -69,6 +72,7 @@ with_config(:'code_level_metrics.enabled' => true) do
 
     class << self
       include NewRelic::Agent::MethodTracer
+
       add_method_tracer :module_method
     end
   end
@@ -225,6 +229,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       Class.new do
         def instance_method; end
         include NewRelic::Agent::MethodTracer
+
         add_method_tracer :instance_method
       end
     end

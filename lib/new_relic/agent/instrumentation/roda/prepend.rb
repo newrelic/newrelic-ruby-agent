@@ -15,6 +15,7 @@ module NewRelic::Agent::Instrumentation
     module Build
       module Prepend
         include ::NewRelic::Agent::Instrumentation::Roda::Tracer
+
         def build_rack_app
           build_rack_app_with_tracing { super }
         end

@@ -6,6 +6,7 @@ require 'active_support'
 
 class ActiveSupportLoggerTest < Minitest::Test
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def setup
