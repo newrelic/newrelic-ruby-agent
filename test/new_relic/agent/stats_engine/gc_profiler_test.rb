@@ -73,19 +73,21 @@ class NewRelic::Agent::StatsEngine
       def test_gc_profiler_clear_does_not_reset_count
         skip unless defined?(::GC::Profiler)
 
-        GC::Profiler.enable
+        begin
+          GC::Profiler.enable
 
-        count_before_allocations = GC.count
-        100000.times { +'' }
-        GC.start
-        count_after_allocations = GC.count
-        GC::Profiler.clear
-        count_after_clear = GC.count
+          count_before_allocations = GC.count
+          100000.times { +'' }
+          GC.start
+          count_after_allocations = GC.count
+          GC::Profiler.clear
+          count_after_clear = GC.count
 
-        assert_operator count_before_allocations, :<=, count_after_allocations
-        assert_operator count_after_allocations, :<=, count_after_clear
-      ensure
-        GC::Profiler.disable if defined?(::GC::Profiler)
+          assert_operator count_before_allocations, :<=, count_after_allocations
+          assert_operator count_after_allocations, :<=, count_after_clear
+        ensure
+          GC::Profiler.disable
+        end
       end
 
       def test_take_snapshot_should_return_snapshot
