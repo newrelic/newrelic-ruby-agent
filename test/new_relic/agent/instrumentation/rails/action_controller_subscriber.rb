@@ -101,9 +101,9 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_records_scoped_metrics_for_evented_child_txn
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.start('process_action.action_controller', :id, @entry_payload \
+    @subscriber.start('process_action.action_controller', :id, @entry_payload
                         .merge(:action => 'child', :path => '/child'))
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload \
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload
                          .merge(:action => 'child', :path => '/child'))
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
@@ -117,9 +117,9 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     controller.perform_action_with_newrelic_trace(:category => :controller,
       :name => 'index',
       :class_name => 'test') do
-      @subscriber.start('process_action.action_controller', :id, @entry_payload \
+      @subscriber.start('process_action.action_controller', :id, @entry_payload
                           .merge(:action => 'child', :path => '/child'))
-      @subscriber.finish('process_action.action_controller', :id, @exit_payload \
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload
                            .merge(:action => 'child', :path => '/child'))
     end
 

@@ -45,9 +45,8 @@ module NewRelic
             trace_id: nil,
             trace_flags: nil,
             trace_state: nil)
-
             trace_parent_header = trace_parent_header_for_format(format)
-            carrier[trace_parent_header] = format_trace_parent( \
+            carrier[trace_parent_header] = format_trace_parent(
               trace_id: trace_id,
               parent_id: parent_id,
               trace_flags: trace_flags
@@ -181,10 +180,10 @@ module NewRelic
               trace_state_entries: nil,
               trace_state_size: 0,
               trace_state_vendors: nil)
-              new(trace_parent, \
-                trace_state_payload, \
-                trace_state_entries, \
-                trace_state_size, \
+              new(trace_parent,
+                trace_state_payload,
+                trace_state_entries,
+                trace_state_size,
                 trace_state_vendors)
             end
           end

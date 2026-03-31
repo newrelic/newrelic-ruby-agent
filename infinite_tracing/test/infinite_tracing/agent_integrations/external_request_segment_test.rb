@@ -23,7 +23,7 @@ module NewRelic
               in_transaction('wat') do |txn|
                 txn.stubs(:sampled?).returns(true)
 
-                segment = Transaction::ExternalRequestSegment.new( \
+                segment = Transaction::ExternalRequestSegment.new(
                   'Typhoeus',
                   'http://remotehost.com/blogs/index',
                   'GET'
@@ -74,7 +74,7 @@ module NewRelic
               in_transaction('wat') do |txn|
                 txn.stubs(:sampled?).returns(false)
 
-                segment = Transaction::ExternalRequestSegment.new( \
+                segment = Transaction::ExternalRequestSegment.new(
                   'Typhoeus',
                   'http://remotehost.com/blogs/index',
                   'GET'
@@ -97,7 +97,7 @@ module NewRelic
               in_transaction('wat') do |txn|
                 txn.stubs(:ignore?).returns(true)
 
-                segment = Transaction::ExternalRequestSegment.new( \
+                segment = Transaction::ExternalRequestSegment.new(
                   'Typhoeus',
                   'http://remotehost.com/blogs/index',
                   'GET'

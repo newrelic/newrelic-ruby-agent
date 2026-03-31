@@ -31,7 +31,7 @@ class PipeServiceTest < Minitest::Test
   end
 
   def test_write_to_missing_pipe_logs_error
-    ::NewRelic::Agent.logger.expects(:error) \
+    ::NewRelic::Agent.logger.expects(:error)
       .with(regexp_matches(/No communication channel to parent process/)).once
     service = NewRelic::Agent::PipeService.new(:non_existant)
     service.metric_data({})
@@ -144,7 +144,7 @@ class PipeServiceTest < Minitest::Test
       data_from_forked_process do
         @service.shutdown
 
-        assert_predicate NewRelic::Agent::PipeChannelManager \
+        assert_predicate NewRelic::Agent::PipeChannelManager
           .channels[:pipe_service_test], :closed?
       end
     end

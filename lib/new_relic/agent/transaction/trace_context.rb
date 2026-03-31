@@ -58,7 +58,7 @@ module NewRelic
         def insert_trace_context_header(header, format = NewRelic::FORMAT_NON_RACK)
           return unless Agent.config[:'distributed_tracing.enabled']
 
-          NewRelic::Agent::DistributedTracing::TraceContext.insert( \
+          NewRelic::Agent::DistributedTracing::TraceContext.insert(
             format: format,
             carrier: header,
             trace_id: transaction.trace_id.rjust(32, '0').downcase,
@@ -82,7 +82,7 @@ module NewRelic
           payload = create_trace_state_payload
 
           if payload
-            entry = NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry( \
+            entry = NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry(
               entry_key,
               payload.to_s
             )
@@ -102,7 +102,7 @@ module NewRelic
           span_guid = Agent.config[:'span_events.enabled'] ? transaction.current_segment.guid : nil
           transaction_guid = Agent.config[:'transaction_events.enabled'] ? transaction.guid : nil
 
-          TraceContextPayload.create( \
+          TraceContextPayload.create(
             parent_account_id: Agent.config[:account_id],
             parent_app_id: Agent.config[:primary_application_id],
             transaction_id: transaction_guid,

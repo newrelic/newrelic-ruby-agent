@@ -483,7 +483,7 @@ module NewRelic::Agent
         with_config(distributed_tracing_config) do
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
-            segment = NewRelic::Agent::Tracer.start_external_request_segment( \
+            segment = NewRelic::Agent::Tracer.start_external_request_segment(
               library: 'Typhoeus',
               uri: "http://#{'a' * 300}.com",
               procedure: 'GET'

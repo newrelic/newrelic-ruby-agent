@@ -67,7 +67,7 @@ module NewRelic::Agent
             parent.sampled = false
             payload = parent.distributed_tracer.create_trace_state_payload
             trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
-            parent_trace_context_header_data = make_trace_context_header_data( \
+            parent_trace_context_header_data = make_trace_context_header_data(
               trace_parent: trace_parent,
               trace_state_payload: payload
             )
@@ -132,7 +132,7 @@ module NewRelic::Agent
             parent.sampled = true
             payload = parent.distributed_tracer.create_trace_state_payload
             trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
-            parent_trace_context_header_data = make_trace_context_header_data( \
+            parent_trace_context_header_data = make_trace_context_header_data(
               trace_parent: trace_parent,
               trace_state_payload: payload,
               trace_state: []
@@ -184,7 +184,7 @@ module NewRelic::Agent
             txn.distributed_tracer.insert_trace_context_header(carrier)
           end
 
-          trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse( \
+          trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             carrier: carrier,
             trace_state_entry_key: AccountHelpers.trace_state_entry_key
           )
@@ -222,7 +222,7 @@ module NewRelic::Agent
           uncache_trusted_account_key
 
           with_config(account_two) do
-            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse( \
+            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
               carrier: carrier,
               trace_state_entry_key: AccountHelpers.trace_state_entry_key
             )
@@ -265,7 +265,7 @@ module NewRelic::Agent
           uncache_trusted_account_key
 
           with_config(account_two) do
-            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse( \
+            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
               carrier: carrier,
               trace_state_entry_key: AccountHelpers.trace_state_entry_key
             )
@@ -424,7 +424,7 @@ module NewRelic::Agent
             'tracestate' => '190@nr=0-1-212311-51424-0996096a36a1cd29----1482959525577'
           }
 
-          trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse( \
+          trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             carrier: carrier,
             trace_state_entry_key: '190@nr'
           )

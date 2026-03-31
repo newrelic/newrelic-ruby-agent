@@ -49,7 +49,7 @@ end
 def assert_has_traced_error(error_class)
   errors = harvest_error_traces!
 
-  refute_nil errors.find { |e| e.exception_class_name == error_class.name }, \
+  refute_nil errors.find { |e| e.exception_class_name == error_class.name },
     "Didn't find error of class #{error_class}"
 end
 

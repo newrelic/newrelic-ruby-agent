@@ -11,7 +11,7 @@ module NewRelic::Agent
       def stub
         NewRelic::Agent.logger.debug("Infinite Tracer Opening Channel to #{host_and_port}")
 
-        Com::Newrelic::Trace::V1::IngestService::Stub.new( \
+        Com::Newrelic::Trace::V1::IngestService::Stub.new(
           host_and_port,
           credentials,
           channel_override: channel,

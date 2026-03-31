@@ -154,7 +154,7 @@ module NewRelic
 
         def set_noticed_error(noticed_error)
           if @noticed_error
-            NewRelic::Agent.logger.debug( \
+            NewRelic::Agent.logger.debug(
               "Segment: #{name} overwriting previously noticed " \
               "error: #{@noticed_error.inspect} with: #{noticed_error.inspect}"
             )
@@ -164,7 +164,7 @@ module NewRelic
 
         def notice_error(exception, options = {})
           if Agent.config[:high_security]
-            NewRelic::Agent.logger.debug( \
+            NewRelic::Agent.logger.debug(
               "Segment: #{name} ignores notice_error for " \
               "error: #{exception.inspect} because :high_security is enabled"
             )

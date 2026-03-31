@@ -23,7 +23,7 @@ class TraceContext < Performance::TestCase
     }
 
     measure(ITERATIONS) do
-      NewRelic::Agent::DistributedTracing::TraceContext.parse( \
+      NewRelic::Agent::DistributedTracing::TraceContext.parse(
         carrier: carrier,
         trace_state_entry_key: '33@nr'
       )
@@ -38,7 +38,7 @@ class TraceContext < Performance::TestCase
     trace_state = 'k1=asdf,k2=qwerty'
 
     measure(ITERATIONS) do
-      NewRelic::Agent::DistributedTracing::TraceContext.insert( \
+      NewRelic::Agent::DistributedTracing::TraceContext.insert(
         carrier: carrier,
         trace_id: trace_id,
         parent_id: parent_id,

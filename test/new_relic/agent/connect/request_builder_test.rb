@@ -11,7 +11,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
     NewRelic::Agent.reset_config
     @event_harvest_config = NewRelic::Agent.agent.event_harvest_config
     @environment_report = []
-    @request_builder = NewRelic::Agent::Connect::RequestBuilder.new( \
+    @request_builder = NewRelic::Agent::Connect::RequestBuilder.new(
       @service,
       NewRelic::Agent.config,
       @event_harvest_config,

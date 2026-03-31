@@ -306,7 +306,6 @@ module NewRelic
         def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
           code_header: nil, code_footer: nil, record_metrics: true,
           visibility: :public, code_information: {})
-
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?

@@ -27,7 +27,6 @@ module NewRelic
           sampled: nil,
           priority: nil,
           timestamp: now_ms)
-
           new(version, parent_type, parent_account_id, parent_app_id, id,
             transaction_id, sampled, priority, timestamp)
         end
@@ -37,7 +36,7 @@ module NewRelic
         def from_s(payload_string)
           attrs = payload_string.split(DELIMITER)
 
-          payload = create( \
+          payload = create(
             version: int!(attrs[0]),
             parent_type: int!(attrs[1]),
             parent_account_id: attrs[2],

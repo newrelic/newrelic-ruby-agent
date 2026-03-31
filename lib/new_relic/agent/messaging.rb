@@ -61,7 +61,6 @@ module NewRelic
         headers: nil,
         parameters: nil,
         start_time: nil)
-
         Tracer.start_message_broker_segment(
           action: action,
           library: library,
@@ -123,7 +122,6 @@ module NewRelic
         reply_to: nil,
         correlation_id: nil,
         action: nil)
-
         state = Tracer.state
         return yield if state.current_transaction
 
@@ -194,7 +192,6 @@ module NewRelic
         reply_to: nil,
         correlation_id: nil,
         exchange_type: nil)
-
         # The following line needs else branch coverage
         original_headers = headers.nil? ? nil : headers.dup # rubocop:disable Style/SafeNavigation
 
@@ -253,7 +250,6 @@ module NewRelic
         exchange_type: nil,
         queue_name: nil,
         start_time: nil)
-
         segment = Tracer.start_message_broker_segment(
           action: :consume,
           library: library,
@@ -315,7 +311,6 @@ module NewRelic
         exchange_type: nil,
         queue_name: nil,
         &block)
-
         wrap_message_broker_consume_transaction(library: library,
           destination_type: :exchange,
           destination_name: Instrumentation::Bunny.exchange_name(destination_name),
