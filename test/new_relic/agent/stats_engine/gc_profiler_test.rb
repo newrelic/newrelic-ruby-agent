@@ -19,7 +19,7 @@ class NewRelic::Agent::StatsEngine
     end
 
     def test_init_profiler_for_rails_bench
-      return unless defined?(::GC) && ::GC.respond_to?(:collections)
+      skip unless defined?(::GC) && ::GC.respond_to?(:collections)
 
       ::GC.stubs(:time)
       ::GC.stubs(:collections)
@@ -28,8 +28,8 @@ class NewRelic::Agent::StatsEngine
     end
 
     def test_init_profiler_for_ruby_19_and_greater
-      return unless defined?(::GC::Profiler)
-      return if NewRelic::LanguageSupport.jruby?
+      skip unless defined?(::GC::Profiler)
+      skip if NewRelic::LanguageSupport.jruby?
 
       ::GC::Profiler.stubs(:enabled?).returns(true)
 
@@ -71,7 +71,7 @@ class NewRelic::Agent::StatsEngine
       # the language implementation currently in use behaves in the way we assume.
       # Specifically, we expect that GC::Profiler.clear will *not* reset GC.count.
       def test_gc_profiler_clear_does_not_reset_count
-        return unless defined?(::GC::Profiler)
+        skip unless defined?(::GC::Profiler)
 
         GC::Profiler.enable
 
