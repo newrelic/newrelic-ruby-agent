@@ -92,7 +92,7 @@ module HttpClientTestCases
     instance = request_instance
     instance[header_key] = 'Charles Petrescu'
 
-    assert instance.headers.is_a?(Hash)
+    assert_kind_of Hash, instance.headers
     assert instance.headers.any? { |k, v| k.casecmp?(header_key) }
   end
 

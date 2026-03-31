@@ -82,7 +82,7 @@ module NewRelic
         # This doesn't use the more convenient #last and #sort_by to avoid
         # additional array allocations (and abundant alliteration)
         def truncate_samples
-          @samples.sort! { |a, b| a.duration <=> b.duration }
+          @samples.sort_by!(&:duration)
           @samples.slice!(0..-(max_capacity + 1))
         end
 
