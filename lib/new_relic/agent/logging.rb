@@ -167,12 +167,12 @@ module NewRelic
         # We pivot on Ruby 2.7 for widest supportability with least amount of hassle.
         if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
           def initialize(*args)
-            super(*args)
+            super
             self.formatter = DecoratingFormatter.new
           end
         else
           def initialize(*args, **kwargs)
-            super(*args, **kwargs)
+            super
             self.formatter = DecoratingFormatter.new
           end
         end

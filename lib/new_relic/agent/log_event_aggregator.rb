@@ -46,7 +46,7 @@ module NewRelic
       attr_reader :attributes
 
       def initialize(events)
-        super(events)
+        super
         @counter_lock = Mutex.new
         @seen = 0
         @seen_by_severity = Hash.new(0)

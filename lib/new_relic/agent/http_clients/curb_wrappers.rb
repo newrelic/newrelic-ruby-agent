@@ -49,7 +49,7 @@ module NewRelic
 
       class CurbResponse < AbstractResponse
         def initialize(wrapped_response)
-          super(wrapped_response)
+          super
           @headers = {}
         end
 
