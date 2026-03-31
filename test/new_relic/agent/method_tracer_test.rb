@@ -196,7 +196,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.class_method', attributes['code.function']
-      assert_equal 57, attributes['code.lineno']
+      assert_equal 59, attributes['code.lineno']
       assert_equal 'MyClass', attributes['code.namespace']
     end
   end
@@ -219,7 +219,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.module_method', attributes['code.function']
-      assert_equal 67, attributes['code.lineno']
+      assert_equal 70, attributes['code.lineno']
       assert_equal 'MyModule', attributes['code.namespace']
     end
   end
@@ -257,7 +257,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'instance_method', attributes['code.function']
-      assert_equal 226, attributes['code.lineno']
+      assert_equal 230, attributes['code.lineno']
       assert_equal '(Anonymous)', attributes['code.namespace']
     end
   end
