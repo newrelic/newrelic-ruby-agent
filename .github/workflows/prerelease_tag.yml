@@ -28,7 +28,7 @@ jobs:
       run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
 
     - name: Make tag
-      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # tag v2.5.0
+      uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # tag v2.6.1
       with:
         tag_name: ${{ env.prerelease_tag }}
         name: ${{ env.prerelease_tag }}
