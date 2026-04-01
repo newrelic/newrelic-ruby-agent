@@ -60,6 +60,7 @@ module NewRelic
           headers: nil,
           parameters: nil,
           start_time: nil)
+
           @action = action
           @library = library
           @destination_type = destination_type

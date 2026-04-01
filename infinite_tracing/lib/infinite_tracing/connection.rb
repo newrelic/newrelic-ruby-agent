@@ -30,7 +30,7 @@ module NewRelic::Agent
         begin
           Connection.instance.notify_agent_started
         rescue => error
-          NewRelic::Agent.logger.error(
+          NewRelic::Agent.logger.error( \
             'Error during notify :server_source_configuration_added event',
             error
           )

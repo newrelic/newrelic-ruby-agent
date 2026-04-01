@@ -29,7 +29,7 @@ DependencyDetection.defer do
       NewRelic::Agent::PrependSupportability.record_metrics_for(self)
     end
 
-    NewRelic::Agent::Instrumentation::ActionControllerSubscriber
+    NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
 
     subs = %w[exist_fragment?
@@ -44,7 +44,7 @@ DependencyDetection.defer do
       unpermitted_parameters].map { |s| Regexp.escape(s) }
 
     # have to double escape period because its going from string -> regex
-    NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber
+    NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber \
       .subscribe(Regexp.new("^(?:#{subs.join('|')})\\.action_controller$"))
   end
 end

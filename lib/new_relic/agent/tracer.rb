@@ -91,6 +91,7 @@ module NewRelic
           partial_name: nil,
           category:,
           options: {})
+
           finishable = start_transaction_or_segment(
             name: name,
             partial_name: partial_name,
@@ -134,6 +135,7 @@ module NewRelic
           partial_name: nil,
           category:,
           options: {})
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           if name
@@ -162,6 +164,7 @@ module NewRelic
           name: nil,
           partial_name: nil,
           **options)
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           return current_transaction if current_transaction
@@ -235,6 +238,7 @@ module NewRelic
           unscoped_metrics: nil,
           start_time: nil,
           parent: nil)
+
           segment = Transaction::Segment.new(name, unscoped_metrics, start_time)
           start_and_add_segment(segment, parent)
         rescue ArgumentError
@@ -289,6 +293,7 @@ module NewRelic
           database_name: nil,
           start_time: nil,
           parent: nil)
+
           product ||= UNKNOWN
           operation ||= OTHER
 
@@ -332,6 +337,7 @@ module NewRelic
           procedure:,
           start_time: nil,
           parent: nil)
+
           segment = Transaction::ExternalRequestSegment.new(library, uri, procedure, start_time)
           start_and_add_segment(segment, parent)
         rescue ArgumentError
@@ -364,6 +370,7 @@ module NewRelic
           parameters: nil,
           start_time: nil,
           parent: nil)
+
           segment = Transaction::MessageBrokerSegment.new(
             action: action,
             library: library,

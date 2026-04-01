@@ -106,7 +106,7 @@ module NewRelic
 
           payload = nil
           in_transaction('test_txn') do |txn|
-            NewRelic::Agent::Tracer
+            NewRelic::Agent::Tracer \
               .start_external_request_segment(library: 'net/http',
                 uri: 'http://docs.newrelic.com',
                 procedure: 'GET')

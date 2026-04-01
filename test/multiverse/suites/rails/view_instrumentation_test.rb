@@ -79,9 +79,9 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     # ActiveSupport testing keeps blowing away my subscribers on
     # teardown for some reason.  Have to keep putting it back.
     if Rails::VERSION::MAJOR.to_i == 4
-      NewRelic::Agent::Instrumentation::ActionViewSubscriber
+      NewRelic::Agent::Instrumentation::ActionViewSubscriber \
         .subscribe(/render_.+\.action_view$/)
-      NewRelic::Agent::Instrumentation::ActionControllerSubscriber
+      NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
         .subscribe(/^process_action.action_controller$/)
     end
   end

@@ -528,6 +528,7 @@ module NewRelic
       category: nil,
       message: nil,
       metadata: NewRelic::EMPTY_HASH)
+
       record_api_supportability_metric(:record_llm_feedback_event)
       unless NewRelic::Agent.config[:'distributed_tracing.enabled']
         return NewRelic::Agent.logger.error('Distributed tracing must be enabled to record LLM feedback')

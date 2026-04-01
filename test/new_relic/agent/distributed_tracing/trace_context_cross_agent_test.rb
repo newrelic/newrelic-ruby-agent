@@ -99,7 +99,7 @@ module NewRelic
           inbound_headers = headers_for(test_case)
           inbound_headers << nil if inbound_headers.empty?
           inbound_headers.each do |carrier|
-            DistributedTracing.accept_distributed_trace_headers(
+            DistributedTracing.accept_distributed_trace_headers( \
               rack_format(test_case, carrier),
               test_case['transport_type']
             )
@@ -344,7 +344,7 @@ module NewRelic
 
         def trace_context_headers_to_hash(carrier)
           entry_key = NewRelic::Agent::Transaction::TraceContext::AccountHelpers.trace_state_entry_key
-          header_data = TraceContext.parse(
+          header_data = TraceContext.parse( \
             carrier: carrier,
             trace_state_entry_key: entry_key
           )

@@ -57,7 +57,7 @@ module NewRelic
         end
 
         def append_payload(payload)
-          DistributedTraceAttributes.copy_from_transaction(
+          DistributedTraceAttributes.copy_from_transaction( \
             transaction,
             trace_state_payload || distributed_trace_payload,
             payload

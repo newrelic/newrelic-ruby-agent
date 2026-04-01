@@ -36,7 +36,7 @@ class NewRelic::Control::Frameworks::RailsTest < Minitest::Test
   private
 
   def reset_installed_instance_variable
-    return unless
+    return unless \
       NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_SINGLETON.instance_variable_defined?(
         NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_VARIABLE
       )
