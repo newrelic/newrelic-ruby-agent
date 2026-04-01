@@ -454,6 +454,8 @@ module NewRelic
       end
 
       def truncate_message(message)
+        message = message.to_s unless message.is_a?(String)
+
         return message if message.bytesize <= MAX_BYTES
 
         message.byteslice(0...MAX_BYTES)
