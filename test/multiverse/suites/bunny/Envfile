@@ -9,7 +9,7 @@ end
 instrumentation_methods :chain, :prepend
 
 BUNNY_VERSIONS = [
-  [nil],
+  [nil, 3.1],
   ['2.9.1']
 ]
 
@@ -18,7 +18,6 @@ def gem_list(bunny_version = nil)
     gem 'rack'
     gem 'bunny'#{bunny_version}
     gem 'amq-protocol'
-    
   RB
 end
 
