@@ -920,6 +920,10 @@ Security/IoMethods:
 # Standard/BlockSingleLineBraces:
 #   Enabled: true
 
+# Prefer style of this cop disabled
+Minitest/AssertOperator:
+  Enabled: false
+
 # Will incorrectly raise on test helper methods
 Minitest/TestMethodName:
   Enabled: false

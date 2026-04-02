@@ -47,26 +47,6 @@ Lint/UselessConstantScoping:
 Metrics/AbcSize:
   Max: 87
 
-# Offense count: 23
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertOperator:
-  Exclude:
-    - 'test/multiverse/suites/agent_only/rum_instrumentation_test.rb'
-    - 'test/multiverse/suites/agent_only/thread_profiling_test.rb'
-    - 'test/multiverse/suites/bunny/bunny_test.rb'
-    - 'test/multiverse/suites/rails/gc_instrumentation_test.rb'
-    - 'test/multiverse/suites/typhoeus/typhoeus_test.rb'
-    - 'test/new_relic/agent/adaptive_sampler_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/agent/datastores/redis_test.rb'
-    - 'test/new_relic/agent/health_check_test.rb'
-    - 'test/new_relic/agent/instrumentation/task_instrumentation_test.rb'
-    - 'test/new_relic/agent/messaging_test.rb'
-    - 'test/new_relic/agent/sql_sampler_test.rb'
-    - 'test/new_relic/agent/transaction/attributes_test.rb'
-    - 'test/new_relic/environment_report_test.rb'
-    - 'test/new_relic/rack/browser_monitoring_test.rb'
-
 # Offense count: 4
 Minitest/AssertRaisesCompoundBody:
   Exclude:
