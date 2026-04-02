@@ -41,7 +41,7 @@ runs:
         RUBY_VERSION: ${{ inputs.ruby-version }}
 
     - name: Run Multiverse Tests
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # tag v4.0.0
       with:
         timeout_minutes: 60
         max_attempts: ${{ inputs.number_of_attempts }}
