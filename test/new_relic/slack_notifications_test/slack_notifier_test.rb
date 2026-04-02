@@ -12,6 +12,7 @@ rescue LoadError
 end
 
 if defined?(HTTParty)
+  gem 'minitest'
   require 'minitest/autorun'
   require 'minitest/mock'
   require_relative '../../../.github/workflows/scripts/slack_notifications/slack_notifier'
