@@ -2,6 +2,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+# The rake test glob pattern `test/new_relic/**/*_test.rb` includes this file,
+# but HTTParty is excluded in CI env tests. This allows for a graceful skip.
+# A dedicated CI cron job runs these tests.
 begin
   require 'httparty'
 rescue LoadError
