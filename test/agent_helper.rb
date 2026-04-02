@@ -662,7 +662,7 @@ def constant_path(name, opts = {})
   path = [Object]
   parts = name.gsub(/^::/, '').split('::')
   parts.each do |part|
-    if !path.last.const_defined?(part.to_sym)
+    if !path.last.constants.include?(part.to_sym)
       return allow_partial ? path : nil
     end
 
@@ -681,7 +681,7 @@ def undefine_constant(constant_symbol)
   const_str = constant_symbol.to_s
   parent = get_parent(const_str)
   const_name = const_str.gsub(/.*::/, '')
-  return yield unless parent&.const_defined?(const_name.to_sym)
+  return yield unless parent&.constants&.include?(const_name.to_sym)
 
   removed_constant = parent.send(:remove_const, const_name)
   yield

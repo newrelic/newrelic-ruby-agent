@@ -158,8 +158,9 @@ Layout/EmptyLinesAroundClassBody:
 Layout/EmptyLinesAroundExceptionHandlingKeywords:
   Enabled: true
 
+# Team prefers the look of empty lines around method body
 Layout/EmptyLinesAroundMethodBody:
-  Enabled: true
+  Enabled: false
 
 Layout/EmptyLinesAroundModuleBody:
   Enabled: true
@@ -919,6 +920,10 @@ Security/IoMethods:
 # Standard/BlockSingleLineBraces:
 #   Enabled: true
 
+# Will incorrectly raise on test helper methods
+Minitest/TestMethodName:
+  Enabled: false
+
 Style/AccessModifierDeclarations:
   Enabled: false
 
@@ -1014,6 +1019,11 @@ Style/ColonMethodDefinition:
   Enabled: true
 
 Style/CombinableLoops:
+  Enabled: false
+
+# Disabling for we need the specificity in instrumentations
+# ie depends_on { defined?(Rake) && defined?(Rake::VERSION) }
+Style/CombinableDefined:
   Enabled: false
 
 # Disabling for now
@@ -1483,6 +1493,10 @@ Style/RedundantFreeze:
 
 # Disabling for now
 Style/RedundantInterpolation:
+  Enabled: false
+
+# TODO: MAJOR VERSION: enable when support for 2.6 is dropped
+Style/RedundantLineContinuation:
   Enabled: false
 
 # Disabling for now
