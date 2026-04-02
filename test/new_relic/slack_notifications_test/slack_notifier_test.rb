@@ -4,7 +4,7 @@
 
 # The rake test glob pattern `test/new_relic/**/*_test.rb` includes this file,
 # but HTTParty is excluded in CI env tests. This allows for a graceful skip.
-# A dedicated CI cron job runs these tests. 
+# A dedicated CI cron job runs these tests.
 begin
   require 'httparty'
 rescue LoadError
