@@ -297,9 +297,7 @@ jobs:
       - run: bundle install
       - run: gem install httparty
       - name: Run Slack Notifications Tests
-        run: >
-          bundle exec rake test:newrelic
-          file=test/new_relic/slack_notifications_test/slack_notifier_test.rb,test/new_relic/slack_notifications_test/gem_notifier_test.rb
+        run: bundle exec rake test:newrelic file=test/new_relic/slack_notifications_test/slack_notifier_test.rb,test/new_relic/slack_notifications_test/gem_notifier_test.rb
 
   infinite_tracing:
     runs-on: ubuntu-22.04
