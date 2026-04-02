@@ -295,6 +295,7 @@ jobs:
         with:
           ruby-version: 4.0.0
       - run: bundle install
+      - run: gem install httparty
       - name: Run Slack Notifications Tests
         run: >
           bundle exec rake test:newrelic

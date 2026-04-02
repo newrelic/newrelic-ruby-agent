@@ -53,7 +53,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI']
-  s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
+  s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.16'
