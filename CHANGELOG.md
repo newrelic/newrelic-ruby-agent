@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add sidekiq.separate_transactions configuration option**
+
+  A new configuration option, `sidekiq.separate_transactions`, allows Sidekiq jobs executed during a web transaction to run in their own separate transaction. When enabled, this prevents Sidekiq job execution time from being included in web transaction metrics, providing more accurate performance data. The feature is opt-in (default: false) to maintain backward compatibility. This only affects jobs executed during active web transactions; jobs starting independently or nested within other background jobs are unaffected. [Issue#3364](https://github.com/newrelic/newrelic-ruby-agent/issues/3364) [PR#3514](https://github.com/newrelic/newrelic-ruby-agent/pull/3514)
+
 - **Bugfix: Update regexes that may have been vulnerable to ReDOS attacks**
 
   Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
