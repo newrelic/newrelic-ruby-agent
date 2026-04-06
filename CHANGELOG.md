@@ -8,6 +8,10 @@
 
   Bravo to [@thebravoman](https://github.com/thebravoman) for the report! [Issue#3509](https://github.com/newrelic/newrelic-ruby-agent/issues/3509) [PR#3510](https://github.com/newrelic/newrelic-ruby-agent/pull/3510)
 
+- **Bugfix: Make Transaction#finish idempotent**
+
+  Previously, if the Transaction#finish method was called multiple times, more than one transaction could be created for the same operation. Now, a mutex protects calls to Transaction#finish to make sure finish operations only run once. [PR#3513](https://github.com/newrelic/newrelic-ruby-agent/pull/3513)
+
 ## v10.3.0
 
 - **Feature: Add database query naming via SQL comments**
