@@ -25,6 +25,7 @@ def gem_list(httprb_version = nil)
     gem 'http'#{httprb_version}
     gem 'rack'
     gem 'ffi'#{ffi_version}
+    gem 'sqlite3'
   RB
 end
 
