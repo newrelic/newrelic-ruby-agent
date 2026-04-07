@@ -287,6 +287,8 @@ jobs:
 
   slack_notifications_tests:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
