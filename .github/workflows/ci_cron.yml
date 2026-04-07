@@ -294,7 +294,7 @@ jobs:
       - uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # tag v1.288.0
         with:
           ruby-version: 4.0.0
-      - run: gem install httparty minitest
+      - run: gem install httparty minitest minitest-mock
       - name: Run Slack Notifications Tests
         run: |
           ruby test/new_relic/slack_notifications_test/slack_notifier_test.rb
