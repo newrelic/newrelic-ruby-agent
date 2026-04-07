@@ -25,23 +25,6 @@ Lint/SharedMutableDefault:
     - 'lib/new_relic/agent/instrumentation/roda/ignorer.rb'
     - 'lib/new_relic/agent/instrumentation/sinatra/ignorer.rb'
 
-# Offense count: 21
-Lint/UselessConstantScoping:
-  Exclude:
-    - 'infinite_tracing/lib/infinite_tracing/transformer.rb'
-    - 'lib/new_relic/agent/agent_logger.rb'
-    - 'lib/new_relic/agent/database.rb'
-    - 'lib/new_relic/agent/instrumentation/action_cable_subscriber.rb'
-    - 'lib/new_relic/agent/instrumentation/mongodb_command_subscriber.rb'
-    - 'lib/new_relic/agent/samplers/delayed_job_sampler.rb'
-    - 'lib/new_relic/agent/transaction/datastore_segment.rb'
-    - 'lib/new_relic/agent/transaction/tracing.rb'
-    - 'lib/new_relic/agent/utilization/vendor.rb'
-    - 'test/new_relic/agent/distributed_tracing/distributed_tracing_cross_agent_test.rb'
-    - 'test/new_relic/agent/distributed_tracing/trace_context_cross_agent_test.rb'
-    - 'test/new_relic/agent/transaction_sampler_test.rb'
-    - 'test/new_relic/newrelicyml_test.rb'
-
 # Offense count: 574
 # Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes.
 Metrics/AbcSize:
