@@ -40,6 +40,9 @@ module NewRelic
           end
         end
 
+        SUCCESS = '200'.freeze
+        VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/
+
         attr_reader :metadata
 
         def initialize
@@ -49,8 +52,6 @@ module NewRelic
         [:vendor_name, :endpoint, :headers, :keys, :key_transforms].each do |method_name|
           define_method(method_name) { self.class.send(method_name) }
         end
-
-        SUCCESS = '200'.freeze
 
         def detect
           response = request_metadata
@@ -126,8 +127,6 @@ module NewRelic
             false
           end
         end
-
-        VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/
 
         def valid_chars?(value)
           value.each_char do |ch|

@@ -14,6 +14,14 @@ module NewRelic
     class AgentLogger
       include LogOnce
 
+      LOG_LEVELS = {
+        'debug' => ::Logger::DEBUG,
+        'info' => ::Logger::INFO,
+        'warn' => ::Logger::WARN,
+        'error' => ::Logger::ERROR,
+        'fatal' => ::Logger::FATAL
+      }
+
       def initialize(root = '', override_logger = nil)
         @already_logged_lock = Mutex.new
         clear_already_logged
@@ -150,14 +158,6 @@ module NewRelic
       def set_log_level!
         @log.level = AgentLogger.log_level_for(::NewRelic::Agent.config[:log_level])
       end
-
-      LOG_LEVELS = {
-        'debug' => ::Logger::DEBUG,
-        'info' => ::Logger::INFO,
-        'warn' => ::Logger::WARN,
-        'error' => ::Logger::ERROR,
-        'fatal' => ::Logger::FATAL
-      }
 
       def self.log_level_for(level)
         LOG_LEVELS.fetch(level.to_s.downcase, ::Logger::INFO)

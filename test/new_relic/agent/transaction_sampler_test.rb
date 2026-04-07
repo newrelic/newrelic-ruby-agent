@@ -7,6 +7,11 @@ require_relative '../data_container_tests'
 
 module NewRelic::Agent
   class TransactionSamplerTest < Minitest::Test
+    SAMPLE_DEFAULTS = {
+      :threshold => 1.0,
+      :transaction_name => nil
+    }
+
     module MockGCStats
       def time
         return 0 if @@values.empty?
@@ -372,11 +377,6 @@ module NewRelic::Agent
     end
 
     private
-
-    SAMPLE_DEFAULTS = {
-      :threshold => 1.0,
-      :transaction_name => nil
-    }
 
     def sample_with(incoming_opts = {})
       opts = SAMPLE_DEFAULTS.dup

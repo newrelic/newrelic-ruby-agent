@@ -10,6 +10,9 @@ module NewRelic
       class MongodbCommandSubscriber
         MONGODB = 'MongoDB'.freeze
         COLLECTION = 'collection'.freeze
+        ERROR_KEYS = %w[writeErrors writeConcernError writeConcernErrors].freeze
+        UNKNOWN = NewRelic::UNKNOWN_LOWER
+        LOCALHOST = 'localhost'.freeze
 
         def started(event)
           begin
@@ -20,8 +23,6 @@ module NewRelic
             log_notification_error('started', e)
           end
         end
-
-        ERROR_KEYS = %w[writeErrors writeConcernError writeConcernErrors].freeze
 
         def error_key_present?(event)
           if reply = event.reply
@@ -105,9 +106,6 @@ module NewRelic
             event.command
           )
         end
-
-        UNKNOWN = NewRelic::UNKNOWN_LOWER
-        LOCALHOST = 'localhost'.freeze
 
         def host_from_address(address)
           if unix_domain_socket?(address.host)

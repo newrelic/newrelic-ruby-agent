@@ -12,6 +12,7 @@ module NewRelic
     class Transaction
       class DatastoreSegment < Segment
         UNKNOWN = NewRelic::UNKNOWN_LOWER
+        NEWLINE = "\n".freeze
 
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id, :query_name
         attr_accessor :database_name, :record_sql
@@ -124,8 +125,6 @@ module NewRelic
         def add_database_name_parameter
           params[:database_name] = database_name if database_name
         end
-
-        NEWLINE = "\n".freeze
 
         def add_backtrace_parameter
           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']

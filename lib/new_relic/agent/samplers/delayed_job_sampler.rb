@@ -16,6 +16,10 @@ module NewRelic
       # versions of DJ where distinct queues are supported, it breaks it out by queue name.
       #
       class DelayedJobSampler < NewRelic::Agent::Sampler
+        FAILED_QUERY = 'failed_at is not NULL'.freeze
+        LOCKED_QUERY = 'locked_by is not NULL'.freeze
+        QUEUE_QUERY_CONDITION = 'run_at <= ? and failed_at is NULL'.freeze
+
         named :delayed_job
 
         # DelayedJob supports multiple backends, only some of which we can
@@ -37,9 +41,6 @@ module NewRelic
         def record_locked_jobs(value)
           NewRelic::Agent.record_metric('Workers/DelayedJob/locked_jobs', value)
         end
-
-        FAILED_QUERY = 'failed_at is not NULL'.freeze
-        LOCKED_QUERY = 'locked_by is not NULL'.freeze
 
         def failed_jobs
           count(FAILED_QUERY)
@@ -80,8 +81,6 @@ module NewRelic
           all_metric = 'Workers/DelayedJob/queue_length/all'
           NewRelic::Agent.record_metric(all_metric, counts.max)
         end
-
-        QUEUE_QUERY_CONDITION = 'run_at <= ? and failed_at is NULL'.freeze
 
         def record_counts_by(column_name, metric_node = column_name)
           all_count = 0

@@ -8,6 +8,8 @@ require 'json'
 module NewRelic::Agent
   module DistributedTracing
     class DistributedTracingCrossAgentTest < Minitest::Test
+      ALLOWED_EVENT_TYPES = %w[Transaction TransactionError Span]
+
       def setup
         NewRelic::Agent.instance.stubs(:connected?).returns(true)
         NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
@@ -142,8 +144,6 @@ module NewRelic::Agent
 
         merged
       end
-
-      ALLOWED_EVENT_TYPES = %w[Transaction TransactionError Span]
 
       def intrinsics_for_event(test_case, event_type)
         unless ALLOWED_EVENT_TYPES.include?(event_type)

@@ -231,9 +231,17 @@ module NewRelic
       class Statement
         include ExplainPlanHelpers
 
-        attr_accessor :sql, :config, :explainer, :binds, :name, :host, :port_path_or_id, :database_name, :query_name
-
         DEFAULT_QUERY_NAME = 'SQL'.freeze
+        NEWLINE = "\n".freeze
+        POSTGIS_PREFIX = 'postgis'.freeze
+        POSTGRES_PREFIX = 'postgres'.freeze
+        MYSQL_PREFIX = 'mysql'.freeze
+        MYSQL2_PREFIX = 'mysql2'.freeze
+        SQLITE_PREFIX = 'sqlite'.freeze
+        TRILOGY_PREFIX = 'trilogy'.freeze
+        REDSHIFT_PREFIX = 'redshift'.freeze
+
+        attr_accessor :sql, :config, :explainer, :binds, :name, :host, :port_path_or_id, :database_name, :query_name
 
         def initialize(sql, config = {}, explainer = nil, binds = nil, name = DEFAULT_QUERY_NAME, host = nil, port_path_or_id = nil, database_name = nil)
           @sql = Database.capture_query(sql)
@@ -286,8 +294,6 @@ module NewRelic
           end
         end
 
-        NEWLINE = "\n".freeze
-
         def append_sql(new_sql)
           return if new_sql.empty?
 
@@ -295,14 +301,6 @@ module NewRelic
         end
 
         private
-
-        POSTGIS_PREFIX = 'postgis'.freeze
-        POSTGRES_PREFIX = 'postgres'.freeze
-        MYSQL_PREFIX = 'mysql'.freeze
-        MYSQL2_PREFIX = 'mysql2'.freeze
-        SQLITE_PREFIX = 'sqlite'.freeze
-        TRILOGY_PREFIX = 'trilogy'.freeze
-        REDSHIFT_PREFIX = 'redshift'.freeze
 
         def symbolized_adapter(adapter)
           if adapter.start_with?(POSTGRES_PREFIX) || adapter == POSTGIS_PREFIX || adapter == REDSHIFT_PREFIX

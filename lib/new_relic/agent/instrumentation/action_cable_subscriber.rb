@@ -9,6 +9,7 @@ module NewRelic
     module Instrumentation
       class ActionCableSubscriber < NotificationsSubscriber
         PERFORM_ACTION = 'perform_action.action_cable'.freeze
+        DOT_ACTION_CABLE = '.action_cable'.freeze
 
         def start_segment(name, id, payload) # THREAD_LOCAL_ACCESS
           finishable = if name == PERFORM_ACTION
@@ -56,8 +57,6 @@ module NewRelic
             AttributeFilter::DST_SPAN_EVENTS
           )
         end
-
-        DOT_ACTION_CABLE = '.action_cable'.freeze
 
         def action_name(name)
           name.gsub(DOT_ACTION_CABLE, NewRelic::EMPTY_STR)

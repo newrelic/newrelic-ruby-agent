@@ -5,6 +5,17 @@
 module NewRelic::Agent
   module InfiniteTracing
     module Transformer
+      KLASS_TO_ARG = {
+        String => :string_value,
+        TrueClass => :bool_value,
+        FalseClass => :bool_value,
+        Integer => :int_value,
+        Float => :double_value
+      }
+      if defined? BigDecimal
+        KLASS_TO_ARG[BigDecimal] = :double_value
+      end
+
       extend self
 
       def transform(span_event)
@@ -18,17 +29,6 @@ module NewRelic::Agent
       end
 
       private
-
-      KLASS_TO_ARG = {
-        String => :string_value,
-        TrueClass => :bool_value,
-        FalseClass => :bool_value,
-        Integer => :int_value,
-        Float => :double_value
-      }
-      if defined? BigDecimal
-        KLASS_TO_ARG[BigDecimal] = :double_value
-      end
 
       def safe_param_name(value)
         KLASS_TO_ARG[value.class] || raise("Unhandled class #{value.class.name}")
