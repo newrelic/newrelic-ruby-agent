@@ -2,9 +2,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# The glob pattern `test/new_relic/**/*_test.rb` includes this file, but HTTParty
-# is not always available. This pattern allows graceful skipping. A dedicated cron job
-# installs HTTParty and runs these tests.
+# HTTParty is only installed by the slack_notifications_tests CI job, not bundled with
+# the main test suite. This check ensures these tests run in that job but are skipped
+# when the test file is picked up by the glob pattern during regular test runs.
 begin
   require 'httparty'
 rescue LoadError
