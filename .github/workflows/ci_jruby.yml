@@ -5,9 +5,14 @@ on:
     - cron: '0 9 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   jruby_unit_tests:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
     steps:
@@ -125,8 +130,6 @@ jobs:
     needs: [jruby_unit_tests, jruby_multiverse, jruby_sidekiq]
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion
@@ -145,8 +148,6 @@ jobs:
     needs: [jruby_unit_tests, jruby_multiverse, jruby_sidekiq]
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion

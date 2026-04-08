@@ -8,6 +8,8 @@ on:
 jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # tag v1.288.0
         with:

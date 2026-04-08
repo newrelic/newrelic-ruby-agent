@@ -9,6 +9,9 @@ on:
     - cron: '0 9 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   run_rubocop:
     runs-on: ubuntu-22.04
@@ -310,8 +313,6 @@ jobs:
     needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion
@@ -330,8 +331,6 @@ jobs:
     needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion

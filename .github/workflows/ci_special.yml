@@ -5,10 +5,12 @@ on:
     - cron: '0 9 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   unit_tests:
     runs-on: ubuntu-22.04
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -46,8 +48,6 @@ jobs:
     needs: [unit_tests]
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion
@@ -66,8 +66,6 @@ jobs:
     needs: [unit_tests]
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion
