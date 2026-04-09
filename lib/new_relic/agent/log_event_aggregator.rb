@@ -20,14 +20,13 @@ module NewRelic
       DROPPED_METRIC = 'Logging/Forwarding/Dropped'.freeze
       SEEN_METRIC = 'Supportability/Logging/Forwarding/Seen'.freeze
       SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
-      LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
-      LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
-      LOGGING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logging/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
       LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
+      SUPPORTED_LOGGING_LIBRARIES = %w[Logger LogStasher Logging SemanticLogger].freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
+      SKIP_SEMANTIC_LOGGER_VARS = %w[@level @level_index @message @time @payload].freeze
 
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
@@ -134,6 +133,29 @@ module NewRelic
         nil
       end
 
+      def record_semantic_logger(log)
+        return unless semantic_logger_enabled?
+        return if log.message.nil? || log.message.empty?
+
+        severity = log.level.to_s.upcase
+        increment_event_counters(severity)
+
+        return unless monitoring_conditions_met?(severity)
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
+        return txn.add_log_event(create_semantic_logger_event(priority, severity, log)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_semantic_logger_event(priority, severity, log)
+          end
+        end
+      rescue
+        nil
+      end
+
       def monitoring_conditions_met?(severity)
         !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
       end
@@ -154,8 +176,11 @@ module NewRelic
       def record_batch(txn, logs)
         # Ensure we have the same shared priority
         priority = LogPriority.priority_for(txn)
+        txn_attrs = txn.log_attributes&.custom_attributes
+
         logs.each do |log|
           log.first[PRIORITY_KEY] = priority
+          log.last.merge!(txn_attrs) if txn_attrs && !txn_attrs.empty?
         end
 
         @lock.synchronize do
@@ -228,6 +253,19 @@ module NewRelic
         event
       end
 
+      def create_semantic_logger_event(priority, severity, log)
+        formatted_message = truncate_message(log.message)
+        event = add_event_metadata(formatted_message, severity)
+        add_semantic_logger_event_attributes(event, log)
+
+        create_prioritized_event(priority, event)
+      end
+
+      def add_semantic_logger_event_attributes(event, log)
+        add_payload_attributes(event, log)
+        add_semantic_logger_instance_variables(event, log)
+      end
+
       def add_mdc_data_to_event(event, mdc_data)
         mdc_data.each do |key, value|
           event["context.mdc.#{key}"] = value
@@ -287,44 +325,88 @@ module NewRelic
       end
 
       def logger_enabled?
-        @enabled && @instrumentation_logger_enabled
+        application_logging_and_instrumentation_enabled?(@instrumentation_logger_enabled)
       end
 
       def logstasher_enabled?
-        @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::LogStasher.enabled?)
       end
 
       def logging_enabled?
-        @enabled && NewRelic::Agent::Instrumentation::Logging::Logger.enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::Logging::Logger.enabled?)
+      end
+
+      def semantic_logger_enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::SemanticLogger::Logger.enabled?)
       end
 
       private
+
+      def application_logging_and_instrumentation_enabled?(instrumentation_enabled)
+        @enabled && instrumentation_enabled
+      end
+
+      def add_payload_attributes(event, log)
+        return unless log.respond_to?(:payload) && log.payload.is_a?(Hash)
+
+        log.payload.each do |key, value|
+          next if empty_value?(value)
+
+          event["payload.#{key}"] = value
+        end
+      end
+
+      def add_semantic_logger_instance_variables(event, log)
+        log.instance_variables.each do |var|
+          # Skip attributes handled elsewhere or that we don't want reported i.e. level_index
+          next if SKIP_SEMANTIC_LOGGER_VARS.include?(var.to_s)
+
+          value = log.instance_variable_get(var)
+          next if empty_value?(value)
+
+          key = var.to_s.delete_prefix('@')
+          event[key] = value
+        end
+      end
+
+      def empty_value?(value)
+        value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      end
 
       # We record once-per-connect metrics for enabled/disabled state at the
       # point we consider the configuration stable (i.e. once we've gotten SSC)
       def register_for_done_configuring(events)
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
-          record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
-          record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
-          record_configuration_metric(LOGGING_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
           record_configuration_metric(LABELS_SUPPORTABILITY_FORMAT, LABELS_ENABLED_KEY)
+          SUPPORTED_LOGGING_LIBRARIES.each do |library|
+            record_logs_supportability_metric(library, OVERALL_ENABLED_KEY)
+          end
 
           add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
         end
       end
 
       def record_configuration_metric(format, key)
+        label = supportability_label_for(key)
+        NewRelic::Agent.increment_metric(format % label)
+      end
+
+      def record_logs_supportability_metric(library, key)
+        label = supportability_label_for(key)
+        NewRelic::Agent.increment_metric("Supportability/Logging/Ruby/#{library}/#{label}")
+      end
+
+      def supportability_label_for(key)
         state = NewRelic::Agent.config[key]
-        label = if !enabled?
+        if !enabled?
           'disabled'
         else
           state ? 'enabled' : 'disabled'
         end
-        NewRelic::Agent.increment_metric(format % label)
       end
 
       def after_harvest(metadata)
@@ -372,6 +454,8 @@ module NewRelic
       end
 
       def truncate_message(message)
+        message = message.to_s unless message.is_a?(String)
+
         return message if message.bytesize <= MAX_BYTES
 
         message.byteslice(0...MAX_BYTES)

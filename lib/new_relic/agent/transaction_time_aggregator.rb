@@ -74,10 +74,24 @@ module NewRelic
         result
       end
 
+      def current_execution_context
+        if NewRelic::Agent.config[:dispatcher] == :falcon
+          Fiber.current
+        else
+          Thread.current
+        end
+      end
+
+      def current_execution_context_id
+        current_execution_context.object_id
+      end
+
       module_function :reset!,
         :transaction_start,
         :transaction_stop,
-        :harvest!
+        :harvest!,
+        :current_execution_context,
+        :current_execution_context_id
 
       class << self
         private
@@ -96,7 +110,7 @@ module NewRelic
         end
 
         def current_thread
-          Thread.current.object_id
+          TransactionTimeAggregator.current_execution_context_id
         end
 
         def thread_is_alive?(thread_id)
@@ -118,7 +132,11 @@ module NewRelic
           require 'objspace'
 
           def thread_by_id(thread_id)
-            ObjectSpace._id2ref(thread_id)
+            obj = Thread.list.detect { |t| t.object_id == thread_id }
+            return obj if obj
+
+            # Thread.list is significantly faster than ObjectSpace.each_object, but Fibers do not have that method.
+            ObjectSpace.each_object(Fiber).detect { |f| f.object_id == thread_id }
           end
         end
 

@@ -1031,6 +1031,7 @@ module NewRelic
             Rails::Command::RoutesCommand
             Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand
+            Rails::Command::TestCommand
             Rails::Console
             Rails::DBConsole].join(','),
           :public => true,
@@ -1163,6 +1164,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
+        },
+        :simplify_action_cable_broadcast_metrics => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, metrics for Action Cable broadcast calls will not include the `broadcasting` value for a given broadcast. Defaults to `false`. The default may change in a future major version release.'
         },
         # TODO: by subscribing to process_middleware.action_dispatch events,
         #       we duplicate the efforts already performed by non-notifications
@@ -1444,6 +1452,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, `worker.3`). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, `worker`).'
         },
+        :ignored_middleware_classes => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => 'A list of middleware class or module names the agent should ignore. Example: ["Rack::Cors", "ActionDispatch::Reloader"]'
+        },
         # Infinite tracing
         :'infinite_tracing.trace_observer.host' => {
           :default => '',
@@ -1518,6 +1533,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.semantic_logger' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the semantic_logger library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.parallel' => {
           :default => 'auto',
