@@ -13,7 +13,7 @@ class SequelSafetyTest < Minitest::Test
 
     u = User.create(:login => 'jrandom', :firstname => 'J. Random', :lastname => 'Hacquer')
 
-    assert u.is_a?(User), "#{u} isn't a User"
+    assert_kind_of User, u, "#{u} isn't a User"
   end
 
   # The oldest version of Sequel that we test against does not define a VERSION

@@ -6,6 +6,7 @@ require_relative 'openai_helpers'
 
 class RubyOpenAIInstrumentationTest < Minitest::Test
   include OpenAIHelpers
+
   def setup # ai_monitoring.enabled is false by default. We've enabled it in this suite's newrelic.yml for testing
     @aggregator = NewRelic::Agent.agent.custom_event_aggregator
     NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback) if NewRelic::Agent.instance_variable_defined?(:@llm_token_count_callback)

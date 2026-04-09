@@ -22,7 +22,7 @@ module NewRelic
         assert_equal 'Controller/whatever', intrinsics['name']
         refute intrinsics['error']
         assert_in_delta(0.1, intrinsics['duration'])
-        assert intrinsics['priority'].is_a?(Numeric)
+        assert_kind_of Numeric, intrinsics['priority']
       end
 
       def test_event_includes_synthetics

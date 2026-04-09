@@ -97,7 +97,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_does_not_crash_when_no_distributed_trace_headers_are_present
+      def test_does_not_crash_when_no_distributed_trace_headers_are_present
         in_transaction do |txn|
           txn.distributed_tracer.accept_incoming_request({})
 
@@ -106,7 +106,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_outbound_distributed_trace_headers_present_when_exclude_is_false
+      def test_outbound_distributed_trace_headers_present_when_exclude_is_false
         env = build_distributed_trace_header(build_trace_context_header)
 
         assert env['HTTP_NEWRELIC']

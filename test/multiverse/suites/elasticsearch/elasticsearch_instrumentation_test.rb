@@ -51,7 +51,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   def test_datastore_segment_created
     search
 
-    assert_equal NewRelic::Agent::Transaction::DatastoreSegment, @segment.class
+    assert_instance_of NewRelic::Agent::Transaction::DatastoreSegment, @segment
   end
 
   def test_segment_elasticsearch_product

@@ -8,6 +8,7 @@ require 'new_relic/agent/configuration/yaml_source'
 
 class TestClass
   include NewRelic::Control::InstanceMethods
+
   def stdout
     @stdout ||= StringIO.new
   end

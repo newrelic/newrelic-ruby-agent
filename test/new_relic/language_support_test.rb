@@ -6,7 +6,7 @@ require_relative '../test_helper'
 
 class NewRelic::LanguageSupportTest < Minitest::Test
   def test_object_space_usable_on_jruby_with_object_space_enabled
-    return unless NewRelic::LanguageSupport.jruby?
+    skip unless NewRelic::LanguageSupport.jruby?
 
     require 'jruby'
     JRuby.objectspace = true
@@ -15,7 +15,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   end
 
   def test_object_space_not_usable_on_jruby_with_object_space_disabled
-    return unless NewRelic::LanguageSupport.jruby?
+    skip unless NewRelic::LanguageSupport.jruby?
 
     require 'jruby'
     JRuby.objectspace = false
@@ -30,7 +30,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   end
 
   def test_gc_profiler_unavailable_on_jruby
-    return unless NewRelic::LanguageSupport.jruby?
+    skip unless NewRelic::LanguageSupport.jruby?
 
     refute_predicate NewRelic::LanguageSupport, :gc_profiler_usable?
   end
@@ -70,7 +70,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   end
 
   def test_gc_profiler_disabled_on_jruby
-    return unless defined?(::GC::Profiler) && NewRelic::LanguageSupport.jruby?
+    skip unless defined?(::GC::Profiler) && NewRelic::LanguageSupport.jruby?
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
 

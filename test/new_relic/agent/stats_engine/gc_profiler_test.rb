@@ -19,23 +19,21 @@ class NewRelic::Agent::StatsEngine
     end
 
     def test_init_profiler_for_rails_bench
-      return unless defined?(::GC) && ::GC.respond_to?(:collections)
+      skip unless defined?(::GC) && ::GC.respond_to?(:collections)
 
       ::GC.stubs(:time)
       ::GC.stubs(:collections)
 
-      assert_equal(GCProfiler::RailsBenchProfiler,
-        GCProfiler.init.class)
+      assert_instance_of(GCProfiler::RailsBenchProfiler, GCProfiler.init)
     end
 
     def test_init_profiler_for_ruby_19_and_greater
-      return unless defined?(::GC::Profiler)
-      return if NewRelic::LanguageSupport.jruby?
+      skip unless defined?(::GC::Profiler)
+      skip if NewRelic::LanguageSupport.jruby?
 
       ::GC::Profiler.stubs(:enabled?).returns(true)
 
-      assert_equal(GCProfiler::CoreGCProfiler,
-        GCProfiler.init.class)
+      assert_instance_of(GCProfiler::CoreGCProfiler, GCProfiler.init)
     end
 
     def test_record_delta_returns_nil_when_snapshots_are_nil
@@ -73,21 +71,23 @@ class NewRelic::Agent::StatsEngine
       # the language implementation currently in use behaves in the way we assume.
       # Specifically, we expect that GC::Profiler.clear will *not* reset GC.count.
       def test_gc_profiler_clear_does_not_reset_count
-        return unless defined?(::GC::Profiler)
+        skip unless defined?(::GC::Profiler)
 
-        GC::Profiler.enable
+        begin
+          GC::Profiler.enable
 
-        count_before_allocations = GC.count
-        100000.times { +'' }
-        GC.start
-        count_after_allocations = GC.count
-        GC::Profiler.clear
-        count_after_clear = GC.count
+          count_before_allocations = GC.count
+          100000.times { +'' }
+          GC.start
+          count_after_allocations = GC.count
+          GC::Profiler.clear
+          count_after_clear = GC.count
 
-        assert_operator count_before_allocations, :<=, count_after_allocations
-        assert_operator count_after_allocations, :<=, count_after_clear
-      ensure
-        GC::Profiler.disable if defined?(::GC::Profiler)
+          assert_operator count_before_allocations, :<=, count_after_allocations
+          assert_operator count_after_allocations, :<=, count_after_clear
+        ensure
+          GC::Profiler.disable
+        end
       end
 
       def test_take_snapshot_should_return_snapshot

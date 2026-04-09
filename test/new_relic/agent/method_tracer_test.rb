@@ -30,6 +30,7 @@ end
 module NewRelic
   module Agent
     extend self
+
     def module_method_to_be_traced(x, testcase)
       testcase.assert_equal 'x', x
     end
@@ -48,6 +49,7 @@ module TestModuleWithLog
     end
 
     include NewRelic::Agent::MethodTracer
+
     add_method_tracer :other_method, 'Custom/foo/bar'
   end
 end
@@ -59,6 +61,7 @@ with_config(:'code_level_metrics.enabled' => true) do
 
     class << self
       include NewRelic::Agent::MethodTracer
+
       add_method_tracer :class_method
     end
   end
@@ -69,6 +72,7 @@ with_config(:'code_level_metrics.enabled' => true) do
 
     class << self
       include NewRelic::Agent::MethodTracer
+
       add_method_tracer :module_method
     end
   end
@@ -192,7 +196,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.class_method', attributes['code.function']
-      assert_equal 57, attributes['code.lineno']
+      assert_equal 59, attributes['code.lineno']
       assert_equal 'MyClass', attributes['code.namespace']
     end
   end
@@ -215,7 +219,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.module_method', attributes['code.function']
-      assert_equal 67, attributes['code.lineno']
+      assert_equal 70, attributes['code.lineno']
       assert_equal 'MyModule', attributes['code.namespace']
     end
   end
@@ -225,6 +229,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       Class.new do
         def instance_method; end
         include NewRelic::Agent::MethodTracer
+
         add_method_tracer :instance_method
       end
     end
@@ -252,7 +257,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'instance_method', attributes['code.function']
-      assert_equal 226, attributes['code.lineno']
+      assert_equal 230, attributes['code.lineno']
       assert_equal '(Anonymous)', attributes['code.namespace']
     end
   end

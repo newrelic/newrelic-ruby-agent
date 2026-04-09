@@ -18,6 +18,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   include NewRelic::CollectionHelper
+
   def test_string
     val = (('A'..'Z').to_a.join * 1024).to_s
 
@@ -52,13 +53,13 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     s = MyString.new('This is a string')
 
     assert_equal 'This is a string', s.to_s
-    assert_equal MyString, s.class
-    assert_equal String, s.to_s.class
+    assert_instance_of MyString, s
+    assert_instance_of String, s.to_s
     params = normalize_params(:val => [s])
 
-    assert_equal String, params[:val][0].class
-    assert_equal String, flatten(s).class
-    assert_equal String, truncate(s, 2).class
+    assert_instance_of String, params[:val][0]
+    assert_instance_of String, flatten(s)
+    assert_instance_of String, truncate(s, 2)
   end
 
   def test_number
@@ -89,10 +90,10 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     nh = normalize_params(custom_params)
     myhash = custom_params[:one][:myhash]
 
-    assert_equal MyHash, myhash.class
+    assert_instance_of MyHash, myhash
     myhash = nh[:one][:myhash]
 
-    assert_equal Hash, myhash.class
+    assert_instance_of Hash, myhash
   end
 
   def test_enumerable

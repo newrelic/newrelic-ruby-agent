@@ -17,7 +17,7 @@ end
 
 class BadGateway < ActiveMerchant::Billing::BogusGateway
   def purchase(*args)
-    super(*args)
+    super
     raise StandardError.new('whoops!')
   end
 end

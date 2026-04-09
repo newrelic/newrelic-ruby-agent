@@ -399,7 +399,7 @@ module NewRelic
         NewRelic::Agent.config.stubs(:finished_configuring?).returns(false).then.returns(true)
         @agent.send(:connect, :force_reconnect => true)
 
-        refute old_filter == @agent.attribute_filter, "#{@agent.attribute_filter} should not be equal to\n#{old_filter}"
+        refute_equal old_filter, @agent.attribute_filter, "#{@agent.attribute_filter} should not be equal to\n#{old_filter}"
       end
 
       def test_connect_replaces_transaction_rules
@@ -409,7 +409,7 @@ module NewRelic
         @agent.service.expects(:connect).returns({})
         @agent.send(:connect, :force_reconnect => true)
 
-        refute old_rules == @agent.transaction_rules, "#{@agent.transaction_rules} should not be equal to\n#{old_rules}"
+        refute_equal old_rules, @agent.transaction_rules, "#{@agent.transaction_rules} should not be equal to\n#{old_rules}"
       end
 
       def test_connect_replaces_stats_engine_metric_rules
@@ -419,7 +419,7 @@ module NewRelic
         @agent.service.expects(:connect).returns({})
         @agent.send(:connect, :force_reconnect => true)
 
-        refute old_rules == @agent.stats_engine.metric_rules, "#{@agent.stats_engine.metric_rules} should not be equal to\n#{old_rules}"
+        refute_equal old_rules, @agent.stats_engine.metric_rules, "#{@agent.stats_engine.metric_rules} should not be equal to\n#{old_rules}"
       end
 
       def test_wait_on_connect
