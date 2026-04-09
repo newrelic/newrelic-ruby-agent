@@ -386,7 +386,7 @@ module NewRelic
             begin
               yield
             rescue => e
-              NewRelic::Agent.notice_error(e)
+              NewRelic::Agent.notice_error(e) unless trace_options[:notice_error] == false
               raise
             end
           ensure
