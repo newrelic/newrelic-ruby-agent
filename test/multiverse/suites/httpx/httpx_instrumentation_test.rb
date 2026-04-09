@@ -29,6 +29,17 @@ class HTTPXInstrumentationTest < Minitest::Test
     PhonySession.new.nr_finish_segment.call(nil, nil)
   end
 
+  # Regression test: https://github.com/newrelic/newrelic-ruby-agent/issues/3509
+  def test_nr_start_segment_does_not_raise_no_method_error
+    # raise an error while the start_external_request_segment method is running
+    # start_and_add_segment is called by start_external_request_segment
+    NewRelic::Agent::Tracer.stub(:start_and_add_segment, ->(arg1, arg2) { raise 'kaboom!' }) do
+      response = get_response
+
+      assert_kind_of HTTPX::Response, response
+    end
+  end
+
   def test_finish_with_error
     request = Minitest::Mock.new
     2.times { request.expect :response, :the_response }
