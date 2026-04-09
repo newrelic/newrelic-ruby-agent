@@ -38,6 +38,16 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
     end
   end
 
+  def test_obtains_a_class_name_from_parameterized_singleton_class_string
+    with_config(:'code_level_metrics.enabled' => true) do
+      # Simulate Active Record parameterized class format
+      parameterized_class_string = '#<Class:The::Example(id: integer, name: string)>'
+      name = NewRelic::Agent::MethodTracerHelpers.send(:klass_name, parameterized_class_string)
+
+      assert_equal 'The::Example', name
+    end
+  end
+
   def test_gets_at_an_underlying_class_from_a_singleton_class
     with_config(:'code_level_metrics.enabled' => true) do
       klass = NewRelic::Agent::MethodTracerHelpers.send(:klassify_singleton, The::Example.singleton_class)

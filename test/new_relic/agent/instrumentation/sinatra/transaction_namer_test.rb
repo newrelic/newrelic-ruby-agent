@@ -51,6 +51,14 @@ module NewRelic
             assert_transaction_name 'hello/([^/?#]+)', "\A/hello/([^/?#]+)\z"
           end
 
+          def test_transaction_name_with_extremely_long_route_to_prevent_redos_attacks
+            long_route = '^/' + 'a' * 1100 + '$'
+            result = TransactionNamer.transaction_name(long_route, nil)
+
+            assert_operator result.length, :<, 1100, 'Route should be truncated'
+            assert_match(/^a+$/, result, 'Route should contain only expected characters')
+          end
+
           def assert_transaction_name(expected, original)
             assert_equal expected, TransactionNamer.transaction_name(original, nil)
           end

@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Update regexes that may have been vulnerable to ReDOS attacks**
+
+  Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
+
 ## v10.3.0
 
 - **Feature: Add database query naming via SQL comments**

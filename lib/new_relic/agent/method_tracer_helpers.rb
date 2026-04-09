@@ -71,8 +71,16 @@ module NewRelic
       # '#<Class:MyModule::MyClass>', or '#<Class:MyModule::MyClass(id: integer, attribute: string)>'
       # Return the 'MyModule::MyClass' part of that string
       def klass_name(object)
-        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:([\w:]+).*>$/
-        return name if name
+        string = object.to_s
+        # Use string methods instead of regex to avoid ReDoS concerns
+        if string.start_with?('#<Class:') && string.end_with?('>')
+          start_index = 8 # length of '#<Class:'
+          # Find opening parenthesis (for parameterized classes)
+          paren_index = string.index('(', start_index)
+          # Extract class name up to '(' or up to '>' (excluding it)
+          name = paren_index ? string[start_index...paren_index] : string[start_index..-2]
+          return name if name && !name.empty?
+        end
 
         raise "Unable to glean a class name from string '#{object}'"
       end
