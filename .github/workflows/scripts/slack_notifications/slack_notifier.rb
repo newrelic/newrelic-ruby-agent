@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'httparty'
+require 'json'
 
 class SlackNotifier
   CYCLE = 24 * 60 * 60 # Period in seconds to check for updates that need to be Slacked.
