@@ -1,0 +1,38 @@
+name: Test Prerelease Token Logic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test_token_switching:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
+
+    - name: Push test branch
+      run: |
+        git checkout -b "test-prerelease-tokens-$(date +%s)"
+        echo "Test file for prerelease token validation" > test-prerelease.txt
+        git add test-prerelease.txt
+        git config --global user.email ${{ secrets.EMAIL }}
+        git config --global user.name 'newrelic-ruby-agent-bot'
+        git commit -m "test: verify bot token triggers CI"
+        git push --set-upstream origin HEAD
+      env:
+        GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+
+    - name: Create test pull request
+      run: gh pr create --label "test" --title "$TITLE" --body "$BODY"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TITLE: "Test: Prerelease Token Switching"
+        BODY: |
+          This is a test PR to verify:
+          - Bot token allows CI workflows to trigger
+          - Default token can create and label PRs
+
+          **This PR should be closed without merging.**
