@@ -9,6 +9,9 @@ on:
     - cron: '0 9 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   run_rubocop:
     runs-on: ubuntu-22.04
@@ -335,8 +338,6 @@ jobs:
       - slack_notifications_tests
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion
@@ -364,8 +365,6 @@ jobs:
       - slack_notifications_tests
     runs-on: ubuntu-22.04
     if: always()
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion

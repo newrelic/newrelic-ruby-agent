@@ -54,6 +54,8 @@ jobs:
     name: Delete branch on fail
     needs: [send-pull-requests]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     if: failure()
     steps:
       - name: Checkout agent repository

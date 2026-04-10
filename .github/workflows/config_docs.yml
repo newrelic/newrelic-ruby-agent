@@ -54,6 +54,8 @@ jobs:
     name: Delete branch on fail
     needs: [regenerate_config_docs]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     if: failure()
     steps:
       - name: Checkout agent repository
