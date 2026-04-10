@@ -30,8 +30,8 @@ def fake_guid(length = 16)
   NewRelic::Agent::GuidGenerator.generate_guid(length)
 end
 
-def assert_between(floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}")
-  assert((floor <= value && value <= ceiling), message)
+def assert_between(floor, ceiling, value, message = "expected #{value} to be between #{floor} and #{ceiling}")
+  assert((value.between?(floor, ceiling)), message)
 end
 
 def assert_in_delta(expected, actual, delta)
