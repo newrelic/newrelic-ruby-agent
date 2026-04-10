@@ -319,19 +319,6 @@ module NewRelic
             \t\t- a.third.event
           DESCRIPTION
         },
-        :'instrumentation.rails_event_logger.event_names' => {
-          :default => [],
-          :public => true,
-          :type => Array,
-          :allowed_from_server => false,
-          :description => <<~DESCRIPTION
-            An array of Rails.event names to capture as structured log events (Rails 8.1+). For example,
-            \t\t- user.signup
-            \t\t- payment.processed
-            \t\t- order.created
-            Leave empty to capture all Rails.event notifications. Events are logged with level UNKNOWN (ensuring they're never filtered) unless overridden via :level key in the event payload.
-          DESCRIPTION
-        },
         :'ai_monitoring.enabled' => {
           :default => false,
           :public => true,
@@ -1795,6 +1782,19 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Controls instrumentation of Rails.event as structured logs (Rails 8.1+)'
+        },
+        :'instrumentation.rails_event_logger.event_names' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+            An array of Rails.event names to capture as structured log events (Rails 8.1+). For example,
+            \t\t- user.signup
+            \t\t- payment.processed
+            \t\t- order.created
+            Leave empty to capture all Rails.event notifications. Events are logged with level UNKNOWN (ensuring they're never filtered) unless overridden via :level key in the event payload.
+          DESCRIPTION
         },
         :'instrumentation.memcache' => {
           :default => 'auto',
