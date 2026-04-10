@@ -19,7 +19,7 @@ runs:
       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
     - name: Install Ruby ${{ inputs.ruby-version }}
-      uses: ruby/setup-ruby@ae195bbe749a7cef685ac729197124a48305c1cb # tag v1.276.0
+      uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # tag v1.299.0
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
@@ -70,7 +70,7 @@ runs:
         CI_FOR_PR: true
 
     - name: Run Unit Tests
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # tag v4.0.0
       with:
         timeout_minutes: 30
         max_attempts: 2

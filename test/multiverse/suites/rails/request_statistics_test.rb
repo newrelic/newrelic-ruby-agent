@@ -22,6 +22,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   extend Multiverse::Color
 
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   #

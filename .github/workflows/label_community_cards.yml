@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  Check_contributor_handle:
+  check_contributor_handle:
     runs-on: ubuntu-latest
     steps:
       - name: Label community issue

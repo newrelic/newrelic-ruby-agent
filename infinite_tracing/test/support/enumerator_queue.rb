@@ -5,6 +5,7 @@
 # An EnumeratorQueue wraps a Queue to yield the items added to it.
 class EnumeratorQueue
   extend Forwardable
+
   def_delegators :@queue, :push, :empty?
 
   def initialize

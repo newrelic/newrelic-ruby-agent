@@ -33,6 +33,7 @@ if defined?(Dalli)
     # exposes the assign_instance_to method so we can easily test it
     module DalliTracerHelper
       include NewRelic::Agent::Instrumentation::Memcache::Tracer
+
       module_function :assign_instance_to
     end
 

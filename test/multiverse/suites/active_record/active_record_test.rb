@@ -6,6 +6,7 @@ require_relative 'app/models/models'
 
 class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def after_setup

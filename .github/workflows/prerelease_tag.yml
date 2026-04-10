@@ -1,19 +1,21 @@
 name: Create Release PR
 
 on:
+  workflow_dispatch:
   pull_request:
     types:
       - closed
 
 jobs:
   create_prerelease_tag:
-    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    if: ${{ ((github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease'))) || (github.event_name == 'workflow_dispatch') }}
     permissions:
       contents: write
+      pull-requests: write
     runs-on: ubuntu-22.04
     steps:
     - name: Install Ruby 3.4
-      uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c # tag v1.287.0
+      uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # tag v1.299.0
       with:
         ruby-version: 3.4
 
@@ -26,11 +28,11 @@ jobs:
       run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
 
     - name: Make tag
-      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # tag v2.5.0
+      uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # tag v2.6.1
       with:
         tag_name: ${{ env.prerelease_tag }}
         name: ${{ env.prerelease_tag }}
-        target_commitish: prerelease_updates_${{ env.prerelease_tag }}
+        target_commitish: dev
         prerelease: true
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

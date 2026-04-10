@@ -14,7 +14,7 @@ class TransactionEventsTest < Minitest::Test
 
     intrinsics, _, _ = last_transaction_event
 
-    assert intrinsics['priority'].is_a?(Numeric), 'Expected event to have priority'
+    assert_kind_of Numeric, intrinsics['priority'], 'Expected event to have priority'
   end
 
   def test_transaction_event_error_flag_is_set

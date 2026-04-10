@@ -137,6 +137,27 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     assert_instance_of Float, elapsed
   end
 
+  # TODO: MAJOR VERSION - this warning should be removed on our next major
+  # release
+  def test_wrap_logs_warning_only_once
+    logdev = with_array_logger(:warn) do
+      notice = proc do |*args|
+        # no-op
+      end
+
+      NewRelic::Agent::Datastores.wrap('MyFirstDatabase', 'op', 'coll', notice) do
+        'yo'
+      end
+      NewRelic::Agent::Datastores.wrap('MySecondDatabase', 'op', 'coll', notice) do
+        'sup'
+      end
+    end
+
+    found = logdev.array.select { |l| l.match?('The NewRelic::Agent::Datastores.wrap method is changing.') }
+
+    assert_equal 1, found.size, 'Expected warning to be logged exactly once'
+  end
+
   def test_notice_sql
     query = 'SELECT * FROM SomeThings'
     elapsed = 1.0

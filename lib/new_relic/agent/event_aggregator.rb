@@ -130,7 +130,7 @@ module NewRelic
         events.subscribe(:server_source_configuration_added) {
           @enabled = self.class.enabled_fn.call
           reset! if @enabled == false
-          ::NewRelic::Agent.logger.debug("#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service.")
+          ::NewRelic::Agent.logger.debug("#{self.class.named} will #{'not ' unless @enabled}be sent to the New Relic service.")
         }
       end
 

@@ -130,7 +130,7 @@ module NewRelic::Agent::Configuration
     def test_dotted_hash_to_hash_is_plain_hash
       dotted = NewRelic::Agent::Configuration::DottedHash.new({})
 
-      assert_equal(::Hash, dotted.to_hash.class)
+      assert_instance_of(::Hash, dotted.to_hash)
     end
 
     def test_to_collector_hash
@@ -150,7 +150,7 @@ module NewRelic::Agent::Configuration
       @manager.delete_all_configs_for_testing
       @manager.add_config_for_testing(:eins => proc { self[:one] })
 
-      assert_equal(::Hash, @manager.to_collector_hash.class)
+      assert_instance_of(::Hash, @manager.to_collector_hash)
     end
 
     def test_to_collector_hash_scrubs_private_settings

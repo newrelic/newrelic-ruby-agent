@@ -24,7 +24,7 @@ class NewRelic::ControlTest < Minitest::Test
 
   def test_root
     assert File.directory?(NewRelic::Control.newrelic_root)
-    return unless defined?(Rails::VERSION)
+    skip unless defined?(Rails::VERSION)
 
     assert File.directory?(File.join(NewRelic::Control.newrelic_root, 'lib'))
   end
