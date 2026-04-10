@@ -26,7 +26,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
 
     - name: Create test pull request
-      run: gh pr create --label "test" --title "$TITLE" --body "$BODY"
+      run: gh pr create --label "github" --title "$TITLE" --body "$BODY"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TITLE: "Test: Prerelease Token Switching"
