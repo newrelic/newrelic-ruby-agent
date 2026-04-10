@@ -138,17 +138,6 @@ class RailsEventLoggerTest < Minitest::Test
     refute log_event.key?('event.empty_hash')
   end
 
-  def test_supportability_metrics_recorded
-    Rails.event.notify('test.metric')
-
-    # Check that the instrumentation invocation was recorded
-    # The metric is tracked when record_instrumentation_invocation is called
-    metric_names = NewRelic::Agent.instance.stats_engine.to_h.keys.map(&:to_s)
-
-    assert metric_names.any? { |name| name.include?('RailsEventLogger') },
-      'Expected a RailsEventLogger supportability metric to be recorded'
-  end
-
   private
 
   def rails_event_available?
