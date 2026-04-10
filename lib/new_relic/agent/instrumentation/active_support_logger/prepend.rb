@@ -5,6 +5,7 @@
 module NewRelic::Agent::Instrumentation
   module ActiveSupportLogger::Prepend
     include NewRelic::Agent::Instrumentation::ActiveSupportLogger
+
     def broadcast(logger)
       broadcast_with_tracing(logger) { super }
     end

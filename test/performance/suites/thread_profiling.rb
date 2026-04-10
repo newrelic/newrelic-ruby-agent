@@ -6,6 +6,7 @@ require 'mocha/api'
 
 class ThreadProfiling < Performance::TestCase
   include Mocha::API
+
   ITERATIONS_BACKTRACES = 2_000
   ITERATIONS_SUBSCRIBED = 100_000
   ITERATIONS_TRACES = 15

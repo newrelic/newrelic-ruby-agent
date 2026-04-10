@@ -19,7 +19,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
-      - uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # tag v1.288.0
+      - uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # tag v1.299.0
         with:
           ruby-version: 4.0.0
       - run: bundle install
@@ -288,6 +288,22 @@ jobs:
           group: services_mysql_pg
           pr-ci: false
 
+  slack_notifications_tests:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
+      - uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # tag v1.288.0
+        with:
+          ruby-version: 4.0.0
+      - run: gem install httparty minitest minitest-mock
+      - name: Run Slack Notifications Tests
+        run: |
+          ruby test/new_relic/slack_notifications_test/slack_notifier_test.rb
+          ruby test/new_relic/slack_notifications_test/gem_notifier_test.rb
 
   infinite_tracing:
     runs-on: ubuntu-22.04
@@ -310,7 +326,16 @@ jobs:
 
   notify_slack_fail:
     name: Notify slack fail
-    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
+    needs:
+      - unit_tests
+      - multiverse
+      - infinite_tracing
+      - multiverse_services_1
+      - multiverse_services_2
+      - multiverse_elasticsearch
+      - multiverse_services_kafka
+      - multiverse_services_mysql_pg
+      - slack_notifications_tests
     runs-on: ubuntu-22.04
     if: always()
     steps:
@@ -328,14 +353,23 @@ jobs:
 
   notify_slack_success:
     name: Notify slack success
-    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
+    needs:
+      - unit_tests
+      - multiverse
+      - infinite_tracing
+      - multiverse_services_1
+      - multiverse_services_2
+      - multiverse_elasticsearch
+      - multiverse_services_kafka
+      - multiverse_services_mysql_pg
+      - slack_notifications_tests
     runs-on: ubuntu-22.04
     if: always()
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
       - uses: ./.github/actions/workflow-conclusion
       - run: echo ${{ github.event_name }}
-      - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
+      - uses: Mercymeilya/last-workflow-status@f86bce177498d6fdd3bda4113d7d93266cfc3fca # tag v0.3.5
         id: last_status
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

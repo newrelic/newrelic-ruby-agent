@@ -74,7 +74,7 @@ module NewRelic
 
         def record_queue_length_metrics
           counts = []
-          counts << record_counts_by('queue', 'name') if ::Delayed::Job.instance_methods.include?(:queue)
+          counts << record_counts_by('queue', 'name') if ::Delayed::Job.method_defined?(:queue)
           counts << record_counts_by('priority')
 
           all_metric = 'Workers/DelayedJob/queue_length/all'

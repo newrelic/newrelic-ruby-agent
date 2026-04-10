@@ -28,6 +28,7 @@ end
 
 class ParameterCaptureTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def test_no_params_captured_on_errors_when_disabled

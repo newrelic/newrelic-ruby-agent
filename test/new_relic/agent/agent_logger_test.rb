@@ -253,7 +253,7 @@ class AgentLoggerTest < Minitest::Test
   def test_log_exception_gets_backtrace_for_system_stack_error
     # This facility compensates for poor SystemStackError traces on MRI < v3.4.
     # JRuby and MRI v3.4+ raise errors with good backtraces, so skip this test.
-    return if NewRelic::LanguageSupport.jruby? || ruby_version_float >= 3.4
+    skip if NewRelic::LanguageSupport.jruby? || ruby_version_float >= 3.4
 
     logger = create_basic_logger
 

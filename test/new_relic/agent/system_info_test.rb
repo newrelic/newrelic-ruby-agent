@@ -6,6 +6,7 @@ require_relative '../../test_helper'
 
 class NewRelic::Agent::SystemInfoTest < Minitest::Test
   include Mocha::API
+
   def setup
     NewRelic::Agent.instance.stats_engine.clear_stats
     @sysinfo = ::NewRelic::Agent::SystemInfo

@@ -8,7 +8,7 @@ module NewRelic::Agent::Instrumentation
       include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
       def post(*args, &task)
-        return super(*args, &task) unless NewRelic::Agent::Tracer.tracing_enabled?
+        return super unless NewRelic::Agent::Tracer.tracing_enabled?
 
         traced_task = add_task_tracing(&task)
         super(*args, &traced_task)

@@ -6,6 +6,12 @@
 
   Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
 
+- **Bugfix: Prevent crashes during HTTPX segment creation**
+
+  Previously, if `start_external_request_segment` encountered an error and returned `nil`, the agent would trigger a `NoMethodError` when attempting to add headers to the missing segment. We've added a guard check to ensure the instrumentation handles these cases gracefully.
+
+  Bravo to [@thebravoman](https://github.com/thebravoman) for the report! [Issue#3509](https://github.com/newrelic/newrelic-ruby-agent/issues/3509) [PR#3510](https://github.com/newrelic/newrelic-ruby-agent/pull/3510)
+
 ## v10.3.0
 
 - **Feature: Add database query naming via SQL comments**

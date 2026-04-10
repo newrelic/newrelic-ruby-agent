@@ -18,6 +18,7 @@ end
 
 class BadInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def test_unbalanced_tt_stack_should_not_cause_request_to_fail

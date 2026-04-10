@@ -15,6 +15,7 @@ module NewRelic
     # NewRelic::Control::Framework classes that are actually instantiated
     module InstanceMethods
       include PrivateInstanceMethods
+
       # The env is the setting used to identify which section of the newrelic.yml
       # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
       # but can be overridden as long as you set it before calling #init_plugin

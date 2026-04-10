@@ -10,6 +10,7 @@ module NewRelic::Agent
     class SuspendedStreamingBuffer
       include Constants
       extend Forwardable
+
       def_delegators :@empty_buffer, :empty?, :push
 
       def initialize(max_size = DEFAULT_QUEUE_SIZE)

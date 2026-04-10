@@ -26,6 +26,7 @@ end
 
 class ViewComponentInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   FAKE_CLASS = DummyViewComponentInstrumentationClass.new

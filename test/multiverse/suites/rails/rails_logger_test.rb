@@ -8,6 +8,7 @@ require_relative 'app'
 # This test makes sure that our code doesn't send two log events to New Relic.
 class RailsLoggerTest < Minitest::Test
   include MultiverseHelpers
+
   setup_and_teardown_agent
   DEFAULT_LOG_PATH = 'log/development.log'
 

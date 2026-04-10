@@ -9,6 +9,7 @@ module NewRelic::Agent::Instrumentation
   class DelayedJobInstrumentationTest < Minitest::Test
     class DummyPayload
       include NewRelic::Agent::Instrumentation::DelayedJob::Naming
+
       attr_accessor :object
     end
 

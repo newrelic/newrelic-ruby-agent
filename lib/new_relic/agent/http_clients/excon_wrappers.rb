@@ -9,7 +9,7 @@ module NewRelic
     module HTTPClients
       class ExconHTTPResponse < AbstractResponse
         def initialize(wrapped_response)
-          super(wrapped_response)
+          super
 
           # Since HTTP headers are case-insensitive, we normalize all of them to
           # upper case here, and then also in our [](key) implementation.
