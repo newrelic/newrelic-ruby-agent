@@ -44,6 +44,7 @@ class HTTPXInstrumentationTest < Minitest::Test
     request = Minitest::Mock.new
     2.times { request.expect :response, :the_response }
     request.expect :hash, 1138
+    request.expect :connection=, nil, [nil]
 
     error = if NewRelic::Helper.version_satisfied?(::HTTPX::VERSION, '>=', '1.3.0')
       request.expect :options, ::HTTPX::Options.new({})
