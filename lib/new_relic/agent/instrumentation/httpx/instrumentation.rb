@@ -23,6 +23,11 @@ module NewRelic::Agent::Instrumentation::HTTPX
       uri: wrapped_request.uri,
       procedure: wrapped_request.method
     )
+
+    # If an exception occurs during segment creation, segment will be nil
+    # See: https://github.com/newrelic/newrelic-ruby-agent/issues/3509
+    return unless segment
+
     segment.add_request_headers(wrapped_request)
 
     request.on(:response) { nr_finish_segment.call(request, segment) }

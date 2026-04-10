@@ -41,6 +41,7 @@ module NewRelic
         attr_reader :defaults
 
         extend Forwardable
+
         def_delegators :@defaults, :has_key?, :each, :merge, :delete, :keys, :[], :to_hash
 
         def initialize

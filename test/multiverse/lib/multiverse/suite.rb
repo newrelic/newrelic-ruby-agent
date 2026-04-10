@@ -25,6 +25,7 @@ require_relative 'shell_utils'
 module Multiverse
   class Suite
     include Color
+
     attr_accessor :directory, :opts
 
     def initialize(directory, opts = {})

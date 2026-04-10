@@ -9,6 +9,7 @@ require_relative '../../../helpers/misc'
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
   class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test
     include MultiverseHelpers
+
     setup_and_teardown_agent
 
     class FakeClient

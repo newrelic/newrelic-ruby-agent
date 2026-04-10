@@ -46,7 +46,7 @@ module NewRelic
       attr_reader :attributes
 
       def initialize(events)
-        super(events)
+        super
         @counter_lock = Mutex.new
         @seen = 0
         @seen_by_severity = Hash.new(0)
@@ -454,6 +454,8 @@ module NewRelic
       end
 
       def truncate_message(message)
+        message = message.to_s unless message.is_a?(String)
+
         return message if message.bytesize <= MAX_BYTES
 
         message.byteslice(0...MAX_BYTES)

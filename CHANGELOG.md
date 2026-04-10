@@ -6,9 +6,25 @@
 
   The agent now instruments Rails Active Job Continuations, providing visibility into individual step execution within long-running jobs. Step names are included in segment metrics (e.g., `Ruby/ActiveJob/default/MyJob/step/process_records`) and step-specific attributes like cursor position, resumed status, and interrupted status are captured. A new configuration option, `disable_active_job_step_names`, allows users to exclude step names from metric names to reduce metric cardinality if needed (defaults to `false`). [PR#3493](https://github.com/newrelic/newrelic-ruby-agent/pull/3493)
 
-- **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
+- **Bugfix: Update regexes that may have been vulnerable to ReDOS attacks**
 
-  The agent now uses an alternative approach instead of the deprecated `ObjectSpace._id2ref` method, eliminating deprecation warnings when running on Ruby 4.0+. [PR#3490](https://github.com/newrelic/newrelic-ruby-agent/pull/3490)
+  Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
+
+- **Bugfix: Prevent crashes during HTTPX segment creation**
+
+  Previously, if `start_external_request_segment` encountered an error and returned `nil`, the agent would trigger a `NoMethodError` when attempting to add headers to the missing segment. We've added a guard check to ensure the instrumentation handles these cases gracefully.
+
+  Bravo to [@thebravoman](https://github.com/thebravoman) for the report! [Issue#3509](https://github.com/newrelic/newrelic-ruby-agent/issues/3509) [PR#3510](https://github.com/newrelic/newrelic-ruby-agent/pull/3510)
+
+- **Bugfix: Make Transaction#finish idempotent**
+
+  Previously, if the Transaction#finish method was called multiple times, more than one transaction could be created for the same operation. Now, a mutex protects calls to Transaction#finish to make sure finish operations only run once. [PR#3513](https://github.com/newrelic/newrelic-ruby-agent/pull/3513)
+
+- **Bugfix: Log deprecation warning for Datastores.wrap API once**
+
+  Previously, this warning was being logged on every call to Datastores.wrap. Now, it will be logged only on the first call. In addition, the documentation has been updated to note the deprecated status of the second and third callback arguments. [Issue#3516](https://github.com/newrelic/newrelic-ruby-agent/issues/3516) [PR#3519](https://github.com/newrelic/newrelic-ruby-agent/pull/3519)
+
+## v10.3.0
 
 - **Feature: Add database query naming via SQL comments**
 
@@ -47,6 +63,14 @@
 - **Bugfix: Fix typo in harvest.rb causing NoMethodError**
 
   A typo in `lib/new_relic/agent/agent_helpers/harvest.rb` caused a `NoMethodError: undefined method 'agent' for NewRelic:Module`. Thanks to [@oakbow](https://github.com/oakbow) for reporting this issue. [PR#3484](https://github.com/newrelic/newrelic-ruby-agent/issues/3484)
+
+- **Bugfix: Remove usage of deprecated ObjectSpace._id2ref**
+
+  The agent now uses an alternative approach instead of the deprecated `ObjectSpace._id2ref` method, eliminating deprecation warnings when running on Ruby 4.0+. [PR#3490](https://github.com/newrelic/newrelic-ruby-agent/pull/3490)
+
+- **Bugfix: Fix NoMethoError in Logging instrumentation**
+
+  Previously, when the Logging gem instrumentation attempted to decorate local logs, it would raise a `NoMethodError` if it encountered a non-string object. This is now fixed. [PR#3501](https://github.com/newrelic/newrelic-ruby-agent/pull/3501)
 
 ## v10.2.0
 

@@ -127,7 +127,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     e = Exception.new({:non => :string})
     error = NewRelic::NoticedError.new(@path, e, @time)
 
-    assert_equal(String, error.message.class)
+    assert_instance_of(String, error.message)
   end
 
   def test_strips_message_from_exceptions_in_high_security_mode

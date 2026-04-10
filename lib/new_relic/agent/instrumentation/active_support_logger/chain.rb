@@ -8,6 +8,7 @@ module NewRelic::Agent::Instrumentation
       def instrument!
         ::ActiveSupport::Logger.module_eval do
           include NewRelic::Agent::Instrumentation::ActiveSupportLogger
+
           def broadcast_with_new_relic(logger)
             broadcast_with_tracing(logger) {
               broadcast_without_newrelic(logger)

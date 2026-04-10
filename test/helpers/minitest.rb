@@ -31,7 +31,7 @@ MiniTest::Unit.prepend(Module.new do
     if fail_fast? && !e.is_a?(MiniTest::Skip)
       puke_fast(klass, meth, e)
     else
-      super(klass, meth, e)
+      super
     end
   end
 

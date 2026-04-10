@@ -9,6 +9,7 @@ require 'rack'
 
 class UnicornTest < Minitest::Test
   include MultiverseHelpers
+
   attr_accessor :server
 
   def setup

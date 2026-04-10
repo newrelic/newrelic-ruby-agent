@@ -39,6 +39,7 @@ module NewRelic
         module ActionView
           module NewRelic
             extend self
+
             def template_metric(identifier, options = {})
               if options[:file]
                 'file'
@@ -111,6 +112,7 @@ DependencyDetection.defer do
   executes do
     ActionView::TemplateRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
+
       # namespaced helper methods
 
       def render_with_newrelic(context, options)

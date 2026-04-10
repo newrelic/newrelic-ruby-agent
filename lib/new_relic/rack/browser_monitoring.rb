@@ -128,7 +128,7 @@ module NewRelic
         return true if headers && headers['Transfer-Encoding'] == 'chunked'
 
         defined?(ActionController::Live) &&
-          env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
+          env['action_controller.instance'].class.include?(ActionController::Live)
       end
 
       def source_injection(source, insertion_index, js_to_inject)

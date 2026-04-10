@@ -505,6 +505,13 @@ module NewRelic::Agent
       assert_equal(message, event[1]['message'])
     end
 
+    def test_truncate_message_converts_exception_to_string
+      exception = RuntimeError.new('Something went wrong')
+      result = @aggregator.send(:truncate_message, exception)
+
+      assert_equal('Something went wrong', result)
+    end
+
     def test_does_not_record_if_message_is_nil
       @aggregator.record(nil, 'DEBUG')
       _, events = @aggregator.harvest!

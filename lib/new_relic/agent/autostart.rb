@@ -54,7 +54,7 @@ module NewRelic
       end
 
       def denylisted?(value, &block)
-        value.split(/\s*,\s*/).any?(&block)
+        value.split(',').map(&:strip).any?(&block)
       end
 
       def in_denylisted_rake_task?

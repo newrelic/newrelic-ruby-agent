@@ -122,6 +122,14 @@ module NewRelic::Agent
 
         assert_equal expected, hash, 'Expected no errors and no hash modifications for a frozen hash'
       end
+
+      def test_decorate_converts_exception_to_string
+        metadata_stubs
+        exception = RuntimeError.new('Something went wrong')
+        result = LocalLogDecorator.decorate(exception)
+
+        assert_equal "Something went wrong #{METADATA_STRING}", result
+      end
     end
   end
 end
