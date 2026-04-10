@@ -10,10 +10,10 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-    - name: Install Ruby 3.4
+    - name: Install Ruby 4.0
       uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # tag v1.299.0
       with:
-        ruby-version: 3.4
+        ruby-version: 4.0
 
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
@@ -29,7 +29,7 @@ jobs:
     - name: Set tag name
       run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
 
-    - name: Create pull request
+    - name: Push branch and create pull request
       run: |
         git checkout -b "prerelease_updates_${{ env.prerelease_tag }}"
         git add --all
@@ -37,9 +37,14 @@ jobs:
         git config --global user.name 'newrelic-ruby-agent-bot'
         git commit -m "bump version"
         git push --set-upstream origin "prerelease_updates_${{ env.prerelease_tag }}"
-        gh pr create --label $LABEL --title "$TITLE" --body "$BODY"
+        PR_URL=$(gh pr create --title "$TITLE" --body "$BODY")
+        echo "pr_url=$PR_URL" >> $GITHUB_ENV
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
         TITLE: "Prerelease ${{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml (if it needs updating). This is an automated PR."
-        LABEL: prerelease
+
+    - name: Add label to pull request
+      run: gh pr edit "${{ env.pr_url }}" --add-label prerelease
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
