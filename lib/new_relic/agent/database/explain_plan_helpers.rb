@@ -80,7 +80,7 @@ module NewRelic
           unless NewRelic::Agent::Database.record_sql_method == :raw
             query_plan_string = NewRelic::Agent::Database::PostgresExplainObfuscator.obfuscate(query_plan_string)
           end
-          values = query_plan_string.split("\n").map { |line| [line] }
+          values = query_plan_string.split("\n").zip
 
           [[QUERY_PLAN], values]
         end

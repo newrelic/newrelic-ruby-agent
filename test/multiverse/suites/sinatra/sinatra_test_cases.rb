@@ -189,7 +189,7 @@ module SinatraTestCases
     default_middlewares = app.newrelic_middlewares
     # mock up the return value of Sinatra's #middleware method, which returns an
     # Array of Arrays.
-    middleware_info = default_middlewares.map { |m| [m] }
+    middleware_info = default_middlewares.zip
     app.stubs(:middleware).returns(middleware_info)
 
     app.expects(:use).never
