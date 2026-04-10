@@ -29,7 +29,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   def test_sampler_classes_should_be_an_array
     sampler_classes = NewRelic::Agent::Sampler.instance_variable_get(:@sampler_classes)
 
-    assert(sampler_classes.is_a?(Array), 'Sampler classes should be saved as an array')
+    assert_kind_of(Array, sampler_classes, 'Sampler classes should be saved as an array')
     assert_includes(sampler_classes, NewRelic::Agent::Samplers::CpuSampler, 'Sampler classes should include the CPU sampler')
   end
 

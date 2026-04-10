@@ -274,6 +274,7 @@ module NewRelic
 
     class Transactor
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
       def txn
         yield
       end

@@ -10,7 +10,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     # basic smoke test
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
 
-    assert_equal NewRelic::Agent::Transaction::TraceNode, s.class
+    assert_instance_of NewRelic::Agent::Transaction::TraceNode, s
   end
 
   def test_readers

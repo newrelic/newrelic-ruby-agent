@@ -6,6 +6,7 @@ require_relative 'sidekiq_delay_extensions_test_helpers'
 
 class SidekiqInstrumentationTest < Minitest::Test
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def after_setup

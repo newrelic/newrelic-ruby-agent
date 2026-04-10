@@ -351,6 +351,7 @@ module NewRelic::Agent
 
     class Dummy
       include Instrumentation::ControllerInstrumentation
+
       def run(n)
         n.times do
           perform_action_with_newrelic_trace(:name => 'smile') do

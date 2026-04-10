@@ -21,10 +21,12 @@ class StandaloneInstrumentationTest < Minitest::Test
     end
 
     include NewRelic::Agent::MethodTracer
+
     add_method_tracer :instance_method
 
     class << self
       include ::NewRelic::Agent::MethodTracer
+
       add_method_tracer :class_method
     end
   end

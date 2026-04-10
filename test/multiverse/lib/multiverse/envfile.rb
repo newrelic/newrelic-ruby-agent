@@ -104,6 +104,7 @@ module Multiverse
     end
 
     include Enumerable
+
     def each(&block)
       @gemfiles.each(&block)
     end

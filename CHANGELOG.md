@@ -2,6 +2,12 @@
 
 ## dev
 
+- **Bugfix: Prevent crashes during HTTPX segment creation**
+
+  Previously, if `start_external_request_segment` encountered an error and returned `nil`, the agent would trigger a `NoMethodError` when attempting to add headers to the missing segment. We've added a guard check to ensure the instrumentation handles these cases gracefully.
+
+  Bravo to [@thebravoman](https://github.com/thebravoman) for the report! [Issue#3509](https://github.com/newrelic/newrelic-ruby-agent/issues/3509) [PR#3510](https://github.com/newrelic/newrelic-ruby-agent/pull/3510)
+
 - **Bugfix: Log deprecation warning for Datastores.wrap API once**
 
   Previously, this warning was being logged on every call to Datastores.wrap. Now, it will be logged only on the first call. In addition, the documentation has been updated to note the deprecated status of the second and third callback arguments. [Issue#3516](https://github.com/newrelic/newrelic-ruby-agent/issues/3516) [PR#3519](https://github.com/newrelic/newrelic-ruby-agent/pull/3519)

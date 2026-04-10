@@ -16,7 +16,7 @@ module NewRelic
           end
 
           def test_tracer_returns_a_tracer
-            assert @tracer_provider.tracer('test_tracer').is_a?(NewRelic::Agent::OpenTelemetry::Trace::Tracer)
+            assert_kind_of NewRelic::Agent::OpenTelemetry::Trace::Tracer, @tracer_provider.tracer('test_tracer')
           end
 
           def test_tracer_returns_a_tracer_with_name_and_version

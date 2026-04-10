@@ -7,7 +7,7 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       def call(env)
         begin
-          super(env)
+          super
         ensure
           Grape::Instrumentation.capture_transaction(env, self)
         end

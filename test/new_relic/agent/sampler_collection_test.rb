@@ -24,7 +24,7 @@ class SamplerCollectionTest < Minitest::Test
     @collection.add_sampler(DummySampler)
 
     assert_equal(1, @collection.to_a.size)
-    assert_equal(DummySampler, @collection.to_a.first.class)
+    assert_instance_of(DummySampler, @collection.to_a.first)
   end
 
   def test_add_sampler_does_add_non_dups

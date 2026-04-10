@@ -147,7 +147,7 @@ class CurbTest < Minitest::Test
 
   # https://github.com/newrelic/newrelic-ruby-agent/issues/1033
   def test_method_with_tracing_passes_the_verb_downstream
-    assert Curl::Easy.new.method(:to_s).call.is_a?(String), 'Failed to create #to_s method'
+    assert_kind_of String, Curl::Easy.new.method(:to_s).call, 'Failed to create #to_s method'
   end
 
   def test_a_noticeable_error_is_created_on_failure_if_a_segment_exists

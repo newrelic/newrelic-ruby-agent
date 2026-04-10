@@ -100,7 +100,7 @@ module NewRelic::Agent::Llm
       end
 
       assert_truthy harvest_transaction_events![1][0][2][:llm]
-      assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
+      assert_instance_of NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0]
     end
 
     def test_error_attributes
