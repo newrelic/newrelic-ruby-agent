@@ -2,6 +2,17 @@
 
 ## dev
 
+- **Feature: Add Rails.event instrumentation for structured logging (Rails 8.1+)**
+
+  The agent now supports Rails.event (introduced in Rails 8.1) as structured log events. When enabled, events published via `Rails.event.notify` are captured and forwarded to New Relic as log events. Event payloads, tags, context, timestamps, and source locations are automatically captured as log attributes.
+
+  This instrumentation can be configured with the following options:
+
+  - `instrumentation.rails_event_logger` - Controls whether Rails.event instrumentation is enabled. Defaults to use the value of `application_logging.enabled`.
+  - `instrumentation.rails_event_logger.event_names` - An array of specific event names to capture. When empty (default), all Rails.event notifications are captured. Use this to filter events by name, for example: `['user.signup', 'payment.processed']`.
+
+  [PR#3526](https://github.com/newrelic/newrelic-ruby-agent/pull/3526)
+
 - **Bugfix: Update regexes that may have been vulnerable to ReDOS attacks**
 
   Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
