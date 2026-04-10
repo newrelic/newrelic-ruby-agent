@@ -47,6 +47,11 @@ Bundler/OrderedGems:
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+  Exclude:
+    - 'test/**/Gemfile'
+
 Gemspec/DuplicatedAssignment:
   Enabled: true
   Include:
@@ -541,6 +546,10 @@ Lint/LambdaWithoutLiteralBlock:
 Lint/LiteralAsCondition:
   Enabled: true
 
+Lint/LiteralAssignmentInCondition:
+  Exclude:
+    - 'test/multiverse/suites/rake/rake_test.rb'
+
 Lint/LiteralInInterpolation:
   Enabled: true
 
@@ -923,6 +932,11 @@ Security/IoMethods:
 # Prefer style of this cop disabled
 Minitest/AssertOperator:
   Enabled: false
+
+Minitest/TestFileName:
+  Exclude:
+    - 'test/new_relic/agent/instrumentation/rails/*'
+    - 'test/performance/suites/*'
 
 # Will incorrectly raise on test helper methods
 Minitest/TestMethodName:

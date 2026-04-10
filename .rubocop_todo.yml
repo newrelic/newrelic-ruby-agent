@@ -6,19 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 33
-# Configuration parameters: EnforcedStyle, AllowedGems.
-# SupportedStyles: Gemfile, gems.rb, gemspec
-Gemspec/DevelopmentDependencies:
-  Exclude:
-    - 'infinite_tracing/newrelic-infinite_tracing.gemspec'
-    - 'newrelic_rpm.gemspec'
-
-# Offense count: 2
-Lint/LiteralAssignmentInCondition:
-  Exclude:
-    - 'test/multiverse/suites/rake/rake_test.rb'
-
 # Offense count: 2
 Lint/SharedMutableDefault:
   Exclude:
@@ -63,10 +50,6 @@ Minitest/DuplicateTestRun:
 Minitest/MultipleAssertions:
   Max: 28
 
-# Offense count: 19
-Minitest/TestFileName:
-  Enabled: false
-
 # Offense count: 7
 Minitest/UselessAssertion:
   Exclude:
@@ -98,32 +81,6 @@ Naming/PredicateMethod:
     - 'test/new_relic/agent/method_interrobang_test.rb'
     - 'test/new_relic/agent/method_tracer_test.rb'
     - 'test/new_relic/agent/transaction_interrobang_test.rb'
-
-# Offense count: 2
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Performance/ZipWithoutBlock:
-  Exclude:
-    - 'lib/new_relic/agent/database/explain_plan_helpers.rb'
-    - 'test/multiverse/suites/sinatra/sinatra_test_cases.rb'
-
-# Offense count: 6
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Style/BitwisePredicate:
-  Exclude:
-    - 'test/new_relic/agent/attribute_filter_test.rb'
-
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Style/ComparableBetween:
-  Exclude:
-    - 'test/agent_helper.rb'
-
-# Offense count: 8
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Style/ConcatArrayLiterals:
-  Exclude:
-    - 'lib/new_relic/agent/error_collector.rb'
-    - 'test/new_relic/agent/sql_sampler_test.rb'
 
 # Offense count: 10
 # This cop supports unsafe autocorrection (--autocorrect-all).
