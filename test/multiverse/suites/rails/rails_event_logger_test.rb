@@ -6,6 +6,7 @@ require_relative 'app'
 
 class RailsEventLoggerTest < Minitest::Test
   include MultiverseHelpers
+
   setup_and_teardown_agent
 
   def setup
