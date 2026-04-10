@@ -12,6 +12,10 @@
 
   Bravo to [@thebravoman](https://github.com/thebravoman) for the report! [Issue#3509](https://github.com/newrelic/newrelic-ruby-agent/issues/3509) [PR#3510](https://github.com/newrelic/newrelic-ruby-agent/pull/3510)
 
+- **Bugfix: Make Transaction#finish idempotent**
+
+  Previously, if the Transaction#finish method was called multiple times, more than one transaction could be created for the same operation. Now, a mutex protects calls to Transaction#finish to make sure finish operations only run once. [PR#3513](https://github.com/newrelic/newrelic-ruby-agent/pull/3513)
+
 - **Bugfix: Log deprecation warning for Datastores.wrap API once**
 
   Previously, this warning was being logged on every call to Datastores.wrap. Now, it will be logged only on the first call. In addition, the documentation has been updated to note the deprecated status of the second and third callback arguments. [Issue#3516](https://github.com/newrelic/newrelic-ruby-agent/issues/3516) [PR#3519](https://github.com/newrelic/newrelic-ruby-agent/pull/3519)
