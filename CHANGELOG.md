@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add instrumentation for Rails Active Job Continuations**
+
+  The agent now instruments Rails Active Job Continuations, providing visibility into individual step execution within long-running jobs. Step names are included in segment metrics (e.g., `Ruby/ActiveJob/default/MyJob/step/process_records`) and step-specific attributes like cursor position, resumed status, and interrupted status are captured. A new configuration option, `disable_active_job_step_names`, allows users to exclude step names from metric names to reduce metric cardinality if needed (defaults to `false`). [PR#3493](https://github.com/newrelic/newrelic-ruby-agent/pull/3493)
+
 - **Bugfix: Update regexes that may have been vulnerable to ReDOS attacks**
 
   Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
