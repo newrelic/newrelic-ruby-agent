@@ -596,9 +596,11 @@ module NewRelic::Agent
 
     def test_format_log_level_constant_caches_results
       result1 = @aggregator.send(:format_log_level_constant, 'debug')
+
       assert_equal :DEBUG, result1
 
       cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
       assert cache.key?('debug')
       assert_equal :DEBUG, cache['debug']
     end
@@ -611,14 +613,17 @@ module NewRelic::Agent
       assert_equal :DEBUG, debug_upper
 
       cache = @aggregator.instance_variable_get(:@severity_constant_cache)
-      assert_equal 2, cache.select { |k, v| v == :DEBUG }.size
+
+      assert_equal 2, cache.count { |k, v| v == :DEBUG }
     end
 
     def test_format_log_level_constant_handles_custom_levels
       custom = @aggregator.send(:format_log_level_constant, 'custom')
+
       assert_equal :CUSTOM, custom
 
       cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
       assert cache.key?('custom')
     end
 
