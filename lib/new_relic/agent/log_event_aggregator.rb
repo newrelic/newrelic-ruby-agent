@@ -53,6 +53,7 @@ module NewRelic
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
         @attributes = NewRelic::Agent::LogEventAttributes.new
+        @severity_constant_cache = {}
 
         register_for_done_configuring(events)
       end
@@ -320,6 +321,8 @@ module NewRelic
           @seen = 0
           @seen_by_severity.clear
         end
+        @severity_constant_cache.clear
+        @configured_log_level_constant = nil
 
         super
       end
@@ -462,11 +465,11 @@ module NewRelic
       end
 
       def configured_log_level_constant
-        format_log_level_constant(NewRelic::Agent.config[LOG_LEVEL_KEY])
+        @configured_log_level_constant ||= format_log_level_constant(NewRelic::Agent.config[LOG_LEVEL_KEY])
       end
 
       def format_log_level_constant(log_level)
-        log_level.upcase.to_sym
+        @severity_constant_cache[log_level] ||= log_level.upcase.to_sym
       end
 
       def severity_too_low?(severity)
