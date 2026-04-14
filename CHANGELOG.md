@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add instrumentation for Rails Active Job Continuations**
+
+  The agent now instruments Rails Active Job Continuations, providing visibility into individual step execution within long-running jobs. Step names are included in segment metrics (e.g., `Ruby/ActiveJob/default/MyJob/step/process_records`) and step-specific attributes like cursor position, resumed status, and interrupted status are captured. A new configuration option, `disable_active_job_step_names`, allows users to exclude step names from metric names to reduce metric cardinality if needed (defaults to `false`). [PR#3493](https://github.com/newrelic/newrelic-ruby-agent/pull/3493)
+
 - **Feature: Add sidekiq.separate_transactions configuration option**
 
   A new configuration option, `sidekiq.separate_transactions`, allows Sidekiq jobs executed during a web transaction to run in their own separate transaction. When enabled, this prevents Sidekiq job execution time from being included in web transaction metrics, providing more accurate performance data. The feature is opt-in (default: false) to maintain backward compatibility. This only affects jobs executed during active web transactions; jobs starting independently or nested within other background jobs are unaffected. [Issue#3364](https://github.com/newrelic/newrelic-ruby-agent/issues/3364) [PR#3514](https://github.com/newrelic/newrelic-ruby-agent/pull/3514)

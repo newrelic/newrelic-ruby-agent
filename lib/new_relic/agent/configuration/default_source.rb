@@ -1217,6 +1217,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Job instrumentation.'
         },
+        :disable_active_job_step_names => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, step names from Rails Active Job Continuations will not be included in metric names. ' \
+            'This reduces metric cardinality but also reduces visibility into individual step performance. ' \
+            'Only set this to `true` if you are experiencing metric cardinality issues due to jobs with many steps or dynamically-named steps.'
+        },
         :disable_active_storage => {
           :default => false,
           :public => true,
