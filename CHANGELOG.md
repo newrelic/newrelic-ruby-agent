@@ -2,9 +2,9 @@
 
 ## dev
 
-- **Feature: Add Rails.event instrumentation for structured logging (Rails 8.1+)**
+- **Feature: Add Rails.event instrumentation for structured logging**
 
-  The agent now supports Rails.event (introduced in Rails 8.1) as structured log events. When enabled, events published via `Rails.event.notify` are captured and forwarded to New Relic as log events. Event payloads, tags, context, timestamps, and source locations are automatically captured as log attributes.
+  The agent now supports Rails.event as structured log events. When enabled, events published via `Rails.event.notify` are captured and forwarded to New Relic as log events. Event payloads, tags, context, timestamps, and source locations are automatically captured as log attributes.
 
   This instrumentation can be configured with the following options:
 

@@ -1790,7 +1790,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Controls instrumentation of Rails.event as structured logs (Rails 8.1+)'
+          :description => 'Controls instrumentation of Rails.event as structured logs'
         },
         :'instrumentation.rails_event_logger.event_names' => {
           :default => [],
@@ -1798,7 +1798,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            An array of Rails.event names to capture as structured log events (Rails 8.1+). For example,
+            An array of Rails.event names to capture as structured log events. For example,
             \t\t- user.signup
             \t\t- payment.processed
             \t\t- order.created
