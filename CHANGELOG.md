@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.4.0
 
 - **Feature: Add Rails.event instrumentation for structured logging**
 
