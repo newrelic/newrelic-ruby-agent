@@ -2,6 +2,17 @@
 
 ## dev
 
+- **Feature: Add Rails.event instrumentation for structured logging**
+
+  The agent now supports Rails.event as structured log events. When enabled, events published via `Rails.event.notify` are captured and forwarded to New Relic as log events. Event payloads, tags, context, timestamps, and source locations are automatically captured as log attributes.
+
+  This instrumentation can be configured with the following options:
+
+  - `instrumentation.rails_event_logger` - Controls whether Rails.event instrumentation is enabled. Defaults to use the value of `application_logging.enabled`.
+  - `instrumentation.rails_event_logger.event_names` - An array of specific event names to capture. When empty (default), all Rails.event notifications are captured. Use this to filter events by name, for example: `['user.signup', 'payment.processed']`.
+
+  [PR#3526](https://github.com/newrelic/newrelic-ruby-agent/pull/3526)
+
 - **Feature: Add instrumentation for Rails Active Job Continuations**
 
   The agent now instruments Rails Active Job Continuations, providing visibility into individual step execution within long-running jobs. Step names are included in segment metrics (e.g., `Ruby/ActiveJob/default/MyJob/step/process_records`) and step-specific attributes like cursor position, resumed status, and interrupted status are captured. A new configuration option, `disable_active_job_step_names`, allows users to exclude step names from metric names to reduce metric cardinality if needed (defaults to `false`). [PR#3493](https://github.com/newrelic/newrelic-ruby-agent/pull/3493)

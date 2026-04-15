@@ -24,9 +24,10 @@ module NewRelic
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
       LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
-      SUPPORTED_LOGGING_LIBRARIES = %w[Logger LogStasher Logging SemanticLogger].freeze
+      SUPPORTED_LOGGING_LIBRARIES = %w[Logger LogStasher Logging SemanticLogger RailsEventLogger].freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
       SKIP_SEMANTIC_LOGGER_VARS = %w[@level @level_index @message @time @payload].freeze
+      SKIP_RAILS_EVENT_KEYS = %w[message level].freeze
 
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
@@ -150,6 +151,30 @@ module NewRelic
         @lock.synchronize do
           @buffer.append(priority: priority) do
             create_semantic_logger_event(priority, severity, log)
+          end
+        end
+      rescue
+        nil
+      end
+
+      def record_rails_event(event)
+        return unless rails_event_logger_enabled?
+
+        payload = event[:payload] || {}
+
+        severity = determine_rails_event_severity(payload)
+
+        increment_event_counters(severity)
+        return unless monitoring_conditions_met?(severity)
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
+        return txn.add_log_event(create_rails_event_log(priority, severity, event)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_rails_event_log(priority, severity, event)
           end
         end
       rescue
@@ -340,10 +365,79 @@ module NewRelic
         application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::SemanticLogger::Logger.enabled?)
       end
 
+      def rails_event_logger_enabled?
+        application_logging_and_instrumentation_enabled?(NewRelic::Agent::Instrumentation::RailsEventLogSubscriber.enabled?)
+      end
+
       private
 
       def application_logging_and_instrumentation_enabled?(instrumentation_enabled)
         @enabled && instrumentation_enabled
+      end
+
+      def extract_message(name, payload)
+        return payload[:message] if payload[:message]
+        return payload['message'] if payload['message']
+
+        # Default to event name
+        name
+      end
+
+      def determine_rails_event_severity(payload)
+        level = payload[:level] || payload['level']
+        return level.to_s.upcase if level
+
+        # Default to UNKNOWN
+        'UNKNOWN'
+      end
+
+      def create_rails_event_log(priority, severity, event)
+        message = extract_message(event[:name], event[:payload] || {})
+        formatted_message = truncate_message(message)
+
+        log_event = add_event_metadata(formatted_message, severity)
+        add_rails_event_attributes(log_event, event)
+
+        create_prioritized_event(priority, log_event)
+      end
+
+      def add_rails_event_attributes(log_event, event)
+        log_event['event.name'] = event[:name]
+
+        # Convert to milliseconds for consistency with other log events
+        # (Rails.event provides nanosecond timestamp)
+        if event[:timestamp]
+          log_event['event.timestamp'] = (event[:timestamp] / 1_000_000).to_i
+        end
+
+        if event[:source_location]
+          loc = event[:source_location]
+          log_event['source.file'] = loc[:filepath] if loc[:filepath]
+          log_event['source.line'] = loc[:lineno] if loc[:lineno]
+          log_event['source.label'] = loc[:label] if loc[:label]
+        end
+
+        payload = event[:payload] || {}
+        payload.each do |key, value|
+          key_str = key.to_s
+
+          next if SKIP_RAILS_EVENT_KEYS.include?(key_str)
+          next if empty_value?(value)
+
+          log_event["event.#{key_str}"] = value
+        end
+
+        if event[:tags] && !event[:tags].empty?
+          event[:tags].each do |tag_key, tag_value|
+            log_event["tag.#{tag_key}"] = tag_value unless empty_value?(tag_value)
+          end
+        end
+
+        if event[:context] && !event[:context].empty?
+          event[:context].each do |ctx_key, ctx_value|
+            log_event["context.#{ctx_key}"] = ctx_value unless empty_value?(ctx_value)
+          end
+        end
       end
 
       def add_payload_attributes(event, log)
