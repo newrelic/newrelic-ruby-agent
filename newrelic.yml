@@ -276,6 +276,13 @@ common: &default_settings
   # If true, disables Action Mailer instrumentation.
   # disable_action_mailer: false
 
+  # If true, step names from Rails Active Job Continuations will not be included
+  # in metric names. This reduces metric cardinality but also reduces visibility
+  # into individual step performance. Only set this to true if you are
+  # experiencing metric cardinality issues due to jobs with many steps or
+  # dynamically-named steps.
+  # disable_active_job_step_names: false
+
   # If true, disables Active Record instrumentation.
   # disable_active_record_instrumentation: false
 
@@ -644,6 +651,19 @@ common: &default_settings
   # auto, prepend, chain, disabled.
   # instrumentation.rack_urlmap: auto
 
+  # Controls instrumentation of Rails.event as structured logs
+  # instrumentation.rails_event_logger: true
+
+  # An array of Rails.event names to capture as structured log events. For
+  # example,
+  # - user.signup
+  # - payment.processed
+  # - order.created
+  # Leave empty to capture all Rails.event notifications. Events are logged with
+  # level UNKNOWN (ensuring they're never filtered) unless overridden via :level
+  # key in the event payload.
+  # instrumentation.rails_event_logger.event_names: []
+
   # Controls auto-instrumentation of rake at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.rake: auto
@@ -836,6 +856,11 @@ common: &default_settings
   # If true, the agent will ignore exceptions raised during Sidekiq's retry
   # attempts and will only report the error if the job permanently fails.
   # sidekiq.ignore_retry_errors: false
+
+  # If true, the agent starts a new transaction when a Sidekiq job is executed
+  # during a web transaction. This prevents Sidekiq job execution time from being
+  # included in web transaction metrics.
+  # sidekiq.separate_transactions: false
 
   # If true, metrics for Action Cable broadcast calls will not include the
   # broadcasting value for a given broadcast. Defaults to false. The default may
