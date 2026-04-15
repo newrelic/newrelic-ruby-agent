@@ -2148,6 +2148,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
         },
+        :'sidekiq.separate_transactions' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent starts a new transaction when a Sidekiq job is executed during a web transaction. This prevents Sidekiq job execution time from being included in web transaction metrics.'
+        },
         # Slow SQL
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),

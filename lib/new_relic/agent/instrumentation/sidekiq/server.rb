@@ -27,6 +27,15 @@ module NewRelic::Agent::Instrumentation::Sidekiq
 
       trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
 
+      if NewRelic::Agent.config[:'sidekiq.separate_transactions']
+        current_txn = NewRelic::Agent::Tracer.current_transaction
+        # Only finish if there's an active unfinished web transaction
+        # This preserves normal behavior for background-to-background nesting
+        if current_txn&.recording_web_transaction? && !current_txn.finished?
+          current_txn.finish
+        end
+      end
+
       execution_block = proc do
         NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
           NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
