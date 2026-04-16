@@ -1,5 +1,44 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.4.0
+
+- **Feature: Add Rails.event instrumentation for structured logging**
+
+  The agent now supports Rails.event as structured log events. When enabled, events published via `Rails.event.notify` are captured and forwarded to New Relic as log events. Event payloads, tags, context, timestamps, and source locations are automatically captured as log attributes.
+
+  This instrumentation can be configured with the following options:
+
+  - `instrumentation.rails_event_logger` - Controls whether Rails.event instrumentation is enabled. Defaults to use the value of `application_logging.enabled`.
+  - `instrumentation.rails_event_logger.event_names` - An array of specific event names to capture. When empty (default), all Rails.event notifications are captured. Use this to filter events by name, for example: `['user.signup', 'payment.processed']`.
+
+  [PR#3526](https://github.com/newrelic/newrelic-ruby-agent/pull/3526)
+
+- **Feature: Add instrumentation for Rails Active Job Continuations**
+
+  The agent now instruments Rails Active Job Continuations, providing visibility into individual step execution within long-running jobs. Step names are included in segment metrics (e.g., `Ruby/ActiveJob/default/MyJob/step/process_records`) and step-specific attributes like cursor position, resumed status, and interrupted status are captured. A new configuration option, `disable_active_job_step_names`, allows users to exclude step names from metric names to reduce metric cardinality if needed (defaults to `false`). [PR#3493](https://github.com/newrelic/newrelic-ruby-agent/pull/3493)
+
+- **Feature: Add sidekiq.separate_transactions configuration option**
+
+  A new configuration option, `sidekiq.separate_transactions`, allows Sidekiq jobs executed during a web transaction to run in their own separate transaction. When enabled, this prevents Sidekiq job execution time from being included in web transaction metrics, providing more accurate performance data. The feature is opt-in (default: false) to maintain backward compatibility. This only affects jobs executed during active web transactions; jobs starting independently or nested within other background jobs are unaffected. [Issue#3364](https://github.com/newrelic/newrelic-ruby-agent/issues/3364) [PR#3514](https://github.com/newrelic/newrelic-ruby-agent/pull/3514)
+
+- **Bugfix: Update regexes that may have been vulnerable to ReDOS attacks**
+
+  Previously, the agent had a few regexes identified as possible targets for polynomial time complexity (ReDOS) attacks. Those regexes are now updated to address the concerns. [PR#3520](https://github.com/newrelic/newrelic-ruby-agent/pull/3520)
+
+- **Bugfix: Prevent crashes during HTTPX segment creation**
+
+  Previously, if `start_external_request_segment` encountered an error and returned `nil`, the agent would trigger a `NoMethodError` when attempting to add headers to the missing segment. We've added a guard check to ensure the instrumentation handles these cases gracefully.
+
+  Bravo to [@thebravoman](https://github.com/thebravoman) for the report! [Issue#3509](https://github.com/newrelic/newrelic-ruby-agent/issues/3509) [PR#3510](https://github.com/newrelic/newrelic-ruby-agent/pull/3510)
+
+- **Bugfix: Make Transaction#finish idempotent**
+
+  Previously, if the Transaction#finish method was called multiple times, more than one transaction could be created for the same operation. Now, a mutex protects calls to Transaction#finish to make sure finish operations only run once. [PR#3513](https://github.com/newrelic/newrelic-ruby-agent/pull/3513)
+
+- **Bugfix: Log deprecation warning for Datastores.wrap API once**
+
+  Previously, this warning was being logged on every call to Datastores.wrap. Now, it will be logged only on the first call. In addition, the documentation has been updated to note the deprecated status of the second and third callback arguments. [Issue#3516](https://github.com/newrelic/newrelic-ruby-agent/issues/3516) [PR#3519](https://github.com/newrelic/newrelic-ruby-agent/pull/3519)
+
 ## v10.3.0
 
 - **Feature: Add database query naming via SQL comments**

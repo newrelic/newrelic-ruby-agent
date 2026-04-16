@@ -16,7 +16,7 @@ require_relative 'rails3_app/app_rails3_plus'
 module RequestHelpersCompatibility
   [:get, :post, :put, :patch, :delete, :head].each do |method_name|
     define_method method_name do |path, **args| # def get path, **args
-      super path, args[:params], args[:headers] #   super path, args[:params], args[:headers]
+      super(path, args[:params], args[:headers]) #   super path, args[:params], args[:headers]
     end # end
   end
 end

@@ -34,7 +34,7 @@ class AttributePreFilteringTest < Minitest::Test
     with_stubbed_config(config) do
       union = NewRelic::Agent::AttributePreFiltering.formulate_regexp_union(option)
 
-      assert union.is_a?(Regexp)
+      assert_kind_of Regexp, union
       assert_match union, 'up', "Expected the Regexp union to match 'up'"
       assert_match union, 'lift', "Expected the Regexp union to match 'lift'"
     end
@@ -46,7 +46,7 @@ class AttributePreFilteringTest < Minitest::Test
     with_stubbed_config(config) do
       union = NewRelic::Agent::AttributePreFiltering.formulate_regexp_union(option)
 
-      assert union.is_a?(Regexp)
+      assert_kind_of Regexp, union
       assert_match union, '4x4 set 20', "Expected the Regexp union to match '4x4 set 20'"
     end
   end

@@ -57,8 +57,8 @@ class NewRelicServiceTest < Minitest::Test
         assert(@service.http_connection)
 
         # check we get the same object back each time we call http_connection in the block
-        assert_equal(@service.http_connection.object_id, handle1.object_id)
-        assert_equal(@service.http_connection.object_id, handle1.object_id)
+        assert_same(@service.http_connection, handle1)
+        assert_same(@service.http_connection, handle1)
       end
     end
 
@@ -73,8 +73,8 @@ class NewRelicServiceTest < Minitest::Test
     handle2 = create_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
 
-    assert_equal(@service.http_connection.object_id, handle1.object_id)
-    assert_equal(@service.http_connection.object_id, handle2.object_id)
+    assert_same(@service.http_connection, handle1)
+    assert_same(@service.http_connection, handle2)
   end
 
   # Calling start on a Net::HTTP instance results in connection keep-alive

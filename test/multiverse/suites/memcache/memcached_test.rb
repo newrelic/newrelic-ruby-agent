@@ -54,7 +54,7 @@ if defined?(Memcached)
     end
 
     def test_get_multi_in_web
-      return unless NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
+      skip unless NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
 
       key = set_key_for_testcase
 
@@ -130,7 +130,7 @@ if defined?(Memcached)
     end
 
     def test_get_multi_in_background
-      return unless NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
+      skip unless NewRelic::Helper.version_satisfied?(Memcached::VERSION, '>=', '1.8.0')
 
       key = set_key_for_testcase
 

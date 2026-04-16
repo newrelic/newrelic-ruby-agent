@@ -13,10 +13,10 @@ class SidekiqInstrumentationTest < Minitest::Test
 
     assert_predicate segment, :finished?
     assert_predicate segment, :record_metrics?
-    assert segment.duration.is_a?(Float)
-    assert segment.start_time.is_a?(Float)
-    assert segment.end_time.is_a?(Float)
-    assert segment.time_range.is_a?(Range)
+    assert_kind_of Float, segment.duration
+    assert_kind_of Float, segment.start_time
+    assert_kind_of Float, segment.end_time
+    assert_kind_of Range, segment.time_range
   end
 
   def test_disributed_tracing_for_sidekiq

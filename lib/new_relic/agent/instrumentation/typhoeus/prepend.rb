@@ -6,6 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Typhoeus
     module Prepend
       include NewRelic::Agent::Instrumentation::Typhoeus
+
       def run(*args)
         with_tracing { super }
       end

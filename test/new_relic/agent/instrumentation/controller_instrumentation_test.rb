@@ -88,6 +88,7 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_only
       parent = Class.new do
         include ControllerInstrumentation
+
         newrelic_ignore(:only => :foo)
       end
 
@@ -106,6 +107,7 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except
       parent = Class.new do
         include ControllerInstrumentation
+
         newrelic_ignore(:except => :foo)
       end
 
@@ -124,6 +126,7 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except_and_only
       parent = Class.new do
         include ControllerInstrumentation
+
         newrelic_ignore(:only => :foo)
       end
 
@@ -371,6 +374,75 @@ module NewRelic::Agent::Instrumentation
       request_path = clazz.new.doit
 
       assert_nil request_path
+    end
+
+    def test_error_raised_and_noticed_if_notice_error_key_absent_from_trace_options
+      host_class = Class.new do
+        include ControllerInstrumentation
+
+        def doit
+          perform_action_with_newrelic_trace({}) do
+            raise UserError.new
+          end
+        end
+      end
+
+      NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+
+      host = host_class.new
+      assert_raises(UserError) do
+        host.doit
+      end
+
+      _, errors = harvest_error_events!
+
+      assert_equal 1, errors.size
+    end
+
+    def test_error_raised_and_noticed_if_notice_error_key_true_in_trace_options
+      host_class = Class.new do
+        include ControllerInstrumentation
+
+        def doit
+          perform_action_with_newrelic_trace({:notice_error => true}) do
+            raise UserError.new
+          end
+        end
+      end
+
+      NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+
+      host = host_class.new
+      assert_raises(UserError) do
+        host.doit
+      end
+
+      _, errors = harvest_error_events!
+
+      assert_equal 1, errors.size
+    end
+
+    def test_error_raised_and_not_noticed_if_notice_error_key_false_in_trace_options
+      host_class = Class.new do
+        include ControllerInstrumentation
+
+        def doit
+          perform_action_with_newrelic_trace({:notice_error => false}) do
+            raise UserError.new
+          end
+        end
+      end
+
+      NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+
+      host = host_class.new
+      assert_raises(UserError) do
+        host.doit
+      end
+
+      _, errors = harvest_error_events!
+
+      assert_empty errors
     end
   end
 end

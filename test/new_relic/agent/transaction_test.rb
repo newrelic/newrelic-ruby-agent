@@ -1900,5 +1900,80 @@ module NewRelic::Agent
       assert_nil txn.initial_segment
       refute_predicate txn, :finished?
     end
+
+    def test_finish_is_idempotent
+      txn = Tracer.start_transaction(name: 'test', category: :controller)
+      state = Tracer.state
+
+      # First finish should work
+      txn.finish
+
+      assert_predicate txn, :finished?
+
+      # Second finish should be a no-op (no exception raised)
+      txn.finish
+
+      assert_predicate txn, :finished?
+
+      state.reset
+    end
+
+    def test_finish_prevents_transaction_from_double_recording
+      txn = Tracer.start_transaction(name: 'test', category: :controller)
+      state = Tracer.state
+
+      txn.expects(:commit!).once
+
+      txn.finish
+      txn.finish
+
+      state.reset
+    end
+
+    def test_finish_is_thread_safe
+      txn = Tracer.start_transaction(name: 'test', category: :controller)
+      state = Tracer.state
+
+      txn.expects(:commit!).once
+
+      threads = Array.new(10) do
+        Thread.new { txn.finish }
+      end
+
+      threads.each(&:join)
+
+      state.reset
+    end
+
+    def test_finish_uses_mutex_for_thread_safety
+      txn = Tracer.start_transaction(name: 'test', category: :controller)
+      state = Tracer.state
+
+      mutex = txn.instance_variable_get(:@finish_mutex)
+
+      assert_kind_of Mutex, mutex, 'Transaction should have a @finish_mutex'
+
+      # Verify the mutex is used during finish by checking it's locked during execution
+      mutex_used = false
+      original_synchronize = mutex.method(:synchronize)
+      mutex.define_singleton_method(:synchronize) do |&block|
+        mutex_used = true
+        original_synchronize.call(&block)
+      end
+
+      txn.finish
+
+      assert mutex_used, 'Transaction#finish should use the mutex'
+
+      state.reset
+    end
+
+    def test_finish_with_no_initial_segment_returns_early
+      txn = Transaction.new(:web, {})
+
+      txn.finish
+
+      refute_predicate txn, :finished?
+    end
   end
 end

@@ -33,6 +33,11 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
       NewRelic::Agent.drop_buffered_data
     end
 
+    def teardown
+      NewRelic::Agent.drop_buffered_data
+      @database.drop_collection(@collection_name)
+    end
+
     def test_noticed_error_at_segment_and_txn_when_violating_unique_constraints
       expected_error_class = 'Mongo::OperationFailure'
       txn = nil
@@ -86,11 +91,6 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
       result = @collection.save(@tribble)
 
       refute_nil result
-    end
-
-    def teardown
-      NewRelic::Agent.drop_buffered_data
-      @database.drop_collection(@collection_name)
     end
   end
 end

@@ -36,7 +36,7 @@ module NewRelic
           eh = SpanEventPrimitive::error_attributes(segment)
 
           assert segment.noticed_error, 'segment.noticed_error should NOT be nil!'
-          assert eh.is_a?(Hash), 'expected a Hash when error present on segment'
+          assert_kind_of Hash, eh, 'expected a Hash when error present on segment'
           assert_equal 'oops!', eh['error.message']
           assert_equal 'RuntimeError', eh['error.class']
         end
@@ -47,7 +47,7 @@ module NewRelic
           _, _, attrs = SpanEventPrimitive.for_segment(segment)
 
           assert segment.noticed_error, 'segment.noticed_error should NOT be nil!'
-          assert attrs.is_a?(Hash), 'expected a Hash when error present on segment'
+          assert_kind_of Hash, attrs, 'expected a Hash when error present on segment'
           assert_equal 'oops!', attrs['error.message']
           assert_equal 'RuntimeError', attrs['error.class']
         end
@@ -70,7 +70,7 @@ module NewRelic
             eh = SpanEventPrimitive::error_attributes(segment)
 
             assert segment.noticed_error, 'segment.noticed_error should NOT be nil!'
-            assert eh.is_a?(Hash), 'expected a Hash when error present on segment'
+            assert_kind_of Hash, eh, 'expected a Hash when error present on segment'
             assert eh['error.message'].start_with?('Message removed by')
             assert_equal 'RuntimeError', eh['error.class']
           end

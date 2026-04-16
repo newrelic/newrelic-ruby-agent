@@ -72,6 +72,7 @@ end
 
 class ViewInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
+
   RENDERING_OPTIONS = [:js_render, :xml_render, :json_render]
 
   setup_and_teardown_agent do
