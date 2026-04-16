@@ -8,11 +8,32 @@ module NewRelic
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
           attr_accessor :finishable
+          attr_accessor :events
           attr_reader :status
+
+          def add_event(name, attributes: nil, timestamp: nil)
+            # can't accept more than 100 events on a span
+            # export structure: [{intrinsic},{user},{agent}]
+            # intrinsic: trace.id, span.id, type (SpanEvent), name, timestamp
+            # SDK example
+            # event = Event.new(name, truncate_attribute_values(attributes, @span_limits.event_attribute_length_limit), relative_timestamp(timestamp))
+
+            # @mutex.synchronize do
+            #   if @ended
+            #     OpenTelemetry.logger.warn('Calling add_event on an ended Span.')
+            #   else
+            #     @events ||= []
+            #     @events = append_event(@events, event)
+            #     @total_recorded_events += 1
+            #   end
+            # end
+            # self
+          end
 
           def finish(end_timestamp: nil)
             update_client_span
             update_server_span
+            create_span_events
             finishable&.finish
           end
 
