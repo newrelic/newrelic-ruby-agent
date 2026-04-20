@@ -92,12 +92,6 @@ module NewRelic
             assert_equal 'SELECT * FROM users WHERE users.id = ? and users.email = ?', agent['db.statement']
           end
 
-          # TODO: The only custom attributes that should be attached
-          # are values that aren't present in the other attribute categories.
-          # All attributes are represented here so that a test fails when the
-          # change is made.
-          # Expected custom attributes to remain are:
-          # db.name, db.user, peer.service, db.instance.id
           def test_db_system_segment_v_1_17_custom_attributes
             start_db_client_segment
 
@@ -105,14 +99,12 @@ module NewRelic
             span = spans[1][0]
             custom = span[1]
 
-            assert_equal db_attrs['db.system'], custom['db.system']
-            assert_equal db_attrs['db.statement'], custom['db.statement']
-            assert_equal db_attrs['db.name'], custom['db.name']
+            keys_assigned_elsewhere = %w[db.system db.name net.peer.name net.peer.port db.statement]
+
+            assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal db_attrs['db.user'], custom['db.user']
             assert_equal db_attrs['peer.service'], custom['peer.service']
             assert_equal db_attrs['db.instance.id'], custom['db.instance.id']
-            assert_equal db_attrs['net.peer.name'], custom['net.peer.name']
-            assert_equal db_attrs['net.peer.port'], custom['net.peer.port']
           end
         end
       end

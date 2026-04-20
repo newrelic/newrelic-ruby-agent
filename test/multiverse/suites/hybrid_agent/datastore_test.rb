@@ -5,12 +5,15 @@
 module NewRelic
   module Agent
     class DatastoreTest < Minitest::Test
-      class TestClass
-        include NewRelic::Agent::OpenTelemetry::Segments::Datastore
+      def setup
+        @test_instance = NewRelic::Agent::OpenTelemetry::DatastoreTranslator.new
       end
 
-      def setup
-        @test_instance = TestClass.new
+      def test_parse_operation_returns_db_operation_name_when_present
+        attributes = {'db.operation.name' => 'SELECT'}
+        result = @test_instance.parse_operation('some_name', attributes)
+
+        assert_equal 'SELECT', result
       end
 
       def test_parse_operation_returns_db_operation_when_present
@@ -18,6 +21,13 @@ module NewRelic
         result = @test_instance.parse_operation('some_name', attributes)
 
         assert_equal 'SELECT', result
+      end
+
+      def test_parse_operation_prefers_db_operation_name_over_db_operation
+        attributes = {'db.operation.name' => 'insert', 'db.operation' => 'select'}
+        result = @test_instance.parse_operation('some_name', attributes)
+
+        assert_equal 'insert', result
       end
 
       def test_parse_operation_prefers_db_operation_over_name
@@ -53,6 +63,23 @@ module NewRelic
         result = @test_instance.parse_operation('select', attributes)
 
         assert_equal 'select', result
+      end
+
+      def test_parse_operation_parses_from_db_query_text_for_unknown_name
+        attributes = {'db.query.text' => 'SELECT * FROM users WHERE id = 1'}
+        result = @test_instance.parse_operation('unknown', attributes)
+
+        assert_equal 'select', result
+      end
+
+      def test_parse_operation_prefers_db_query_text_over_db_statement
+        attributes = {
+          'db.query.text' => 'INSERT INTO orders VALUES (?)',
+          'db.statement' => 'SELECT * FROM users'
+        }
+        result = @test_instance.parse_operation('unknown', attributes)
+
+        assert_equal 'insert', result
       end
 
       def test_parse_operation_parses_from_db_statement_for_unknown_name
