@@ -554,10 +554,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
     end
 
-    spans = harvest_span_events!
-    datastore_span = spans[1].find { |s| s[0]['name']&.include?('Datastore') }
+    expected = "Datastore/statement/#{current_product}/animals/find"
+    span_names = harvest_span_events![1].map { |s| s[0]['name'] }
 
-    assert_equal "Datastore/statement/#{current_product}/animals/find", datastore_span[0]['name']
+    assert_includes span_names, expected
   end
 
   def test_active_record_use_table_name_updates_transaction_trace_segment_name
