@@ -38,4 +38,6 @@ end
 class Animal < ActiveRecord::Base
 end
 
-class Dog < Animal; end
+module Animals
+  class Dog < Animal; end
+end
