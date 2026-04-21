@@ -130,6 +130,7 @@ module NewRelic::Agent::Instrumentation
       ActiveRecordHelper.stub(:resolve_table_name, ->(_) { raise 'should not be called' }) do
         with_config(active_record_metrics_use_table_name: true) do
           _product, _operation, collection = ActiveRecordHelper.product_operation_collection_for('Animals::Dog Load', nil, nil)
+
           assert_equal 'animals', collection
         end
       end
