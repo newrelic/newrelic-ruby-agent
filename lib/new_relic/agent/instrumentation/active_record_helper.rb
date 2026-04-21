@@ -22,7 +22,7 @@ module NewRelic
             def newrelic_collection_name
               ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.class.table_name : self.class.name
             end
-            private :newrelic_collection_name
+            private(:newrelic_collection_name)
 
             alias_method(:save_without_newrelic, :save)
 
@@ -47,7 +47,7 @@ module NewRelic
             def newrelic_collection_name
               ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.klass.table_name : self.name
             end
-            private :newrelic_collection_name
+            private(:newrelic_collection_name)
 
             alias_method(:update_all_without_newrelic, :update_all)
 
