@@ -39,5 +39,6 @@ class Minitest::Test
     Alias.delete_all if defined?(Alias)
     Order.delete_all if defined?(Order)
     Shipment.delete_all if defined?(Shipment)
+    Animal.delete_all if defined?(Animal)
   end
 end
