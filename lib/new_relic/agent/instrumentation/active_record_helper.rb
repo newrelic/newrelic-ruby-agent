@@ -106,7 +106,7 @@ module NewRelic
         OTHER = 'other'.freeze
         MAKARA_SUFFIX = '_makara'.freeze
         TABLE_NAME_CACHE = {}
-        TABLE_NAME_CACHE_LOCK = Mutex.new
+        @table_name_cache_lock = Mutex.new
 
         # convert vendor (makara, etc.) wrapper names to their bare names
         # ex: postgresql_makara -> postgresql
@@ -146,7 +146,7 @@ module NewRelic
         def table_name_for(model_name)
           return TABLE_NAME_CACHE[model_name] if TABLE_NAME_CACHE.key?(model_name)
 
-          TABLE_NAME_CACHE_LOCK.synchronize do
+          @table_name_cache_lock.synchronize do
             TABLE_NAME_CACHE[model_name] = resolve_table_name(model_name) unless TABLE_NAME_CACHE.key?(model_name)
             TABLE_NAME_CACHE[model_name]
           end
