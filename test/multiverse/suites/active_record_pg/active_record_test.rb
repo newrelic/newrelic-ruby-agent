@@ -631,6 +631,36 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     })
   end
 
+  def test_active_record_metrics_use_table_name_save_uses_table_name
+    with_config(active_record_metrics_use_table_name: true) do
+      in_web_transaction do
+        Dog.create!(name: 'Oliver')
+      end
+    end
+
+    assert_activerecord_metrics('animals', 'create')
+  end
+
+  def test_active_record_metrics_use_table_name_find_uses_table_name
+    with_config(active_record_metrics_use_table_name: true) do
+      in_web_transaction do
+        Dog.first
+      end
+    end
+
+    assert_activerecord_metrics('animals', 'find')
+  end
+
+  def test_active_record_metrics_use_table_name_update_uses_table_name
+    with_config(active_record_metrics_use_table_name: true) do
+      in_web_transaction do
+        Dog.update_all(name: 'Sammie')
+      end
+    end
+
+    assert_activerecord_metrics('animals', 'update')
+  end
+
   ## helpers
   private
 

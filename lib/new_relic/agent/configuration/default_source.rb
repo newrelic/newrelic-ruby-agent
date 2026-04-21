@@ -319,6 +319,13 @@ module NewRelic
             \t\t- a.third.event
           DESCRIPTION
         },
+        :active_record_metrics_use_table_name => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent will use the Active Record model\'s table name instead of the class name when naming Active Record metrics. This can reduce metric cardinality when multiple models share a database table. Defaults to `false`.'
+        },
         :'ai_monitoring.enabled' => {
           :default => false,
           :public => true,
