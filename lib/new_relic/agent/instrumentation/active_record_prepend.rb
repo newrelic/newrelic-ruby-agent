@@ -42,7 +42,7 @@ module NewRelic
           private
 
           def newrelic_collection_name
-            ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.class.table_name : self.class.name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
           end
         end
 
@@ -69,7 +69,7 @@ module NewRelic
           private
 
           def newrelic_collection_name
-            ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.class.table_name : self.class.name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
           end
         end
 
@@ -107,7 +107,7 @@ module NewRelic
           private
 
           def newrelic_collection_name
-            ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.klass.table_name : self.name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.klass.table_name : self.name
           end
         end
       end

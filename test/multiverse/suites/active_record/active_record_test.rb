@@ -505,8 +505,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     )
   end
 
-  def test_active_record_metrics_use_table_name_save_uses_table_name
-    with_config(active_record_metrics_use_table_name: true) do
+  def test_active_record_use_table_name_save_uses_table_name
+    with_config(active_record_use_table_name: true) do
       in_web_transaction do
         Animals::Dog.create!(name: 'Oliver')
       end
@@ -515,8 +515,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_activerecord_metrics('animals', 'create')
   end
 
-  def test_active_record_metrics_use_table_name_find_uses_table_name
-    with_config(active_record_metrics_use_table_name: true) do
+  def test_active_record_use_table_name_find_uses_table_name
+    with_config(active_record_use_table_name: true) do
       in_web_transaction do
         Animals::Dog.first
       end
@@ -525,8 +525,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_activerecord_metrics('animals', 'find')
   end
 
-  def test_active_record_metrics_use_table_name_update_uses_table_name
-    with_config(active_record_metrics_use_table_name: true) do
+  def test_active_record_use_table_name_update_uses_table_name
+    with_config(active_record_use_table_name: true) do
       in_web_transaction do
         Animals::Dog.update_all(name: 'Sammie')
       end
@@ -535,8 +535,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_activerecord_metrics('animals', 'update')
   end
 
-  def test_active_record_metrics_use_table_name_replaces_class_name
-    with_config(active_record_metrics_use_table_name: true) do
+  def test_active_record_use_table_name_replaces_class_name
+    with_config(active_record_use_table_name: true) do
       in_web_transaction do
         Animals::Dog.first
       end
@@ -544,6 +544,33 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     assert_metrics_recorded(["Datastore/statement/#{current_product}/animals/find"])
     assert_metrics_not_recorded(["Datastore/statement/#{current_product}/Animals::Dog/find"])
+  end
+
+  def test_active_record_use_table_name_updates_span_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do |txn|
+        txn.stubs(:sampled?).returns(true)
+        Animals::Dog.first
+      end
+    end
+
+    spans = harvest_span_events!
+    datastore_span = spans[1].find { |s| s[0]['name']&.include?('Datastore') }
+
+    assert_equal "Datastore/statement/#{current_product}/animals/find", datastore_span[0]['name']
+  end
+
+  def test_active_record_use_table_name_updates_transaction_trace_segment_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do
+        Animals::Dog.first
+      end
+    end
+
+    metric = "Datastore/statement/#{current_product}/animals/find"
+    node = find_node_with_name(last_transaction_trace, metric)
+
+    assert_equal metric, node.metric_name
   end
 
   ## helpers

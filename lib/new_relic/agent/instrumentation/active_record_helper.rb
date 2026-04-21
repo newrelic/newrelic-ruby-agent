@@ -20,7 +20,7 @@ module NewRelic
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
             def newrelic_collection_name
-              ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.class.table_name : self.class.name
+              ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
             end
             private(:newrelic_collection_name)
 
@@ -45,7 +45,7 @@ module NewRelic
         def instrument_relation_methods
           ::ActiveRecord::Relation.class_eval do
             def newrelic_collection_name
-              ::NewRelic::Agent.config[:active_record_metrics_use_table_name] ? self.klass.table_name : self.name
+              ::NewRelic::Agent.config[:active_record_use_table_name] ? self.klass.table_name : self.name
             end
             private(:newrelic_collection_name)
 
@@ -138,7 +138,7 @@ module NewRelic
           return unless splits.length == 2
 
           model_name = splits.first
-          return model_name unless NewRelic::Agent.config[:active_record_metrics_use_table_name]
+          return model_name unless NewRelic::Agent.config[:active_record_use_table_name]
 
           table_name_for(model_name) || model_name
         end
