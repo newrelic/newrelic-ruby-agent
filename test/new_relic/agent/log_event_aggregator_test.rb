@@ -599,6 +599,39 @@ module NewRelic::Agent
       end
     end
 
+    def test_format_log_level_constant_caches_results
+      result1 = @aggregator.send(:format_log_level_constant, 'debug')
+
+      assert_equal :DEBUG, result1
+
+      cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
+      assert cache.key?('debug')
+      assert_equal :DEBUG, cache['debug']
+    end
+
+    def test_format_log_level_constant_handles_different_cases
+      debug_lower = @aggregator.send(:format_log_level_constant, 'debug')
+      debug_upper = @aggregator.send(:format_log_level_constant, 'DEBUG')
+
+      assert_equal :DEBUG, debug_lower
+      assert_equal :DEBUG, debug_upper
+
+      cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
+      assert_equal 2, cache.count { |k, v| v == :DEBUG }
+    end
+
+    def test_format_log_level_constant_handles_custom_levels
+      custom = @aggregator.send(:format_log_level_constant, 'custom')
+
+      assert_equal :CUSTOM, custom
+
+      cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
+      assert cache.key?('custom')
+    end
+
     def test_record_json_sets_severity_when_given_level
       @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'yikes!'})
       _, events = @aggregator.harvest!
