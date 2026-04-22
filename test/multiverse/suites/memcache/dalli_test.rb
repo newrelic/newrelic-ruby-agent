@@ -54,6 +54,49 @@ if defined?(Dalli)
         end
       end
 
+      if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_read_multi_req?
+        # In dalli 5.0+, single-server get_multi uses the single_server_get_multi optimization,
+        # which calls read_multi_req on Dalli::Protocol::Meta directly instead of pipelined_get
+        # on Dalli::Protocol::Base. These tests explicitly exercise that path.
+
+        def test_get_multi_in_web_via_read_multi_req
+          keys = Array.new(3) { set_key_for_testcase }
+          expected_metrics = expected_web_metrics(:get_multi)
+
+          in_web_transaction("Controller/#{self.class}/action") do
+            @cache.get_multi(*keys)
+          end
+
+          assert_memcache_metrics_recorded expected_metrics
+        end
+
+        def test_get_multi_in_background_via_read_multi_req
+          keys = Array.new(3) { set_key_for_testcase }
+          expected_metrics = expected_bg_metrics(:get_multi)
+
+          in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
+            @cache.get_multi(*keys)
+          end
+
+          assert_memcache_metrics_recorded expected_metrics
+        end
+
+        def test_get_multi_with_multiple_keys_and_capture_memcache_keys_via_read_multi_req
+          with_config(:capture_memcache_keys => true) do
+            keys = Array.new(3) { set_key_for_testcase }
+
+            in_web_transaction("Controller/#{self.class}/action") do
+              @cache.get_multi(*keys)
+            end
+
+            trace = last_transaction_trace
+            segment = find_node_with_name(trace, 'Datastore/operation/Memcached/get_multi_request')
+
+            keys.each { |key| assert_includes segment[:statement], key }
+          end
+        end
+      end
+
       def test_assign_instance_to_with_ip_and_port
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('127.0.0.1', 11211)
