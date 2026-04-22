@@ -54,8 +54,8 @@ services:
   memcached:
     image: memcached:1.6.12
     restart: always
-    expose:
-      - "11211"
+    ports:
+      - "11211:11211"
   mongodb:
     image: mongo:5.0.4
     restart: always

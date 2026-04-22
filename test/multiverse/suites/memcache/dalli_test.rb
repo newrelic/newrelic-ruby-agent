@@ -10,7 +10,9 @@ if defined?(Dalli)
     include MemcacheTestCases
 
     MULTI_OPERATIONS = [:get_multi, :get_multi_cas]
-    DALLI_SERVER_PROTOCOL = if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_binary_protocol?
+    DALLI_SERVER_PROTOCOL = if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_meta_protocol?
+      ::Dalli::Protocol::Meta
+    elsif ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_binary_protocol?
       ::Dalli::Protocol::Binary
     else
       ::Dalli::Server
@@ -113,7 +115,8 @@ if defined?(Dalli)
     end
   end
 
-  if NewRelic::Helper.version_satisfied?(Dalli::VERSION, '>=', '2.7')
+  if NewRelic::Helper.version_satisfied?(Dalli::VERSION, '>=', '2.7') &&
+      NewRelic::Helper.version_satisfied?(Dalli::VERSION, '<', '5.0')
     require 'dalli/cas/client'
     DependencyDetection.detect!
 

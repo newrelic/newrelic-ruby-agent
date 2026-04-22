@@ -16,6 +16,7 @@ module NewRelic
               instrument_methods(::Dalli::Client, dalli_methods)
               instrument_multi_method(:get_multi)
               instrument_send_multiget
+              instrument_read_multi_req if supports_read_multi_req?
               instrument_server_for_key
             else
               instrument_methods(::Dalli::Client, client_methods)
@@ -50,8 +51,22 @@ module NewRelic
             end
           end
 
+          def instrument_read_multi_req
+            ::Dalli::Protocol::Meta.class_eval do
+              include NewRelic::Agent::Instrumentation::Memcache::Tracer
+
+              alias_method(:read_multi_req_without_newrelic_trace, :read_multi_req)
+
+              def read_multi_req(keys)
+                send_multiget_with_newrelic_tracing(keys) { read_multi_req_without_newrelic_trace(keys) }
+              end
+            end
+          end
+
           def instrument_send_multiget
-            if supports_binary_protocol?
+            if supports_meta_protocol?
+              ::Dalli::Protocol::Base
+            elsif supports_binary_protocol?
               ::Dalli::Protocol::Binary
             else
               ::Dalli::Server
