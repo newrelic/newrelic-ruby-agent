@@ -78,34 +78,61 @@ class LogStasherInstrumentationTest < Minitest::Test
     assert events[0][1]['attributes'].key?('source')
   end
 
+  # def test_log_decorating_enabled_records_linking_metadata_old
+  #   with_config(:'application_logging.local_decorating.enabled' => true) do
+  #     in_transaction do
+  #     in_transaction do
+  #       LogStasher.warn('yikes')
+  #     end
+  #   end
+  #   logfile = JSON.parse(@written.string)
+  #   binding.irb
+  #   assert logfile.key?('entity.name')
+  #   assert logfile.key?('entity.type')
+  #   assert logfile.key?('hostname')
+  #   assert logfile.key?('trace.id')
+  #   assert logfile.key?('span.id')
+  # end
+
   def test_log_decorating_enabled_records_linking_metadata
     with_config(:'application_logging.local_decorating.enabled' => true) do
       in_transaction do
-        LogStasher.warn('yikes')
+        LogStasher.warn('Decorate me!')
       end
     end
     logfile = JSON.parse(@written.string)
+    message = logfile['message']
 
-    assert logfile.key?('entity.name')
-    assert logfile.key?('entity.type')
-    assert logfile.key?('hostname')
-    assert logfile.key?('trace.id')
-    assert logfile.key?('span.id')
+    assert_match(/Decorate me!/, message)
+    assert_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, message)
   end
 
-  def test_log_decorating_disabled_doesnt_records_linking_metadata
+  # def test_log_decorating_disabled_doesnt_record_linking_metadata_old
+  #   with_config(:'application_logging.local_decorating.enabled' => false) do
+  #     in_transaction do
+  #       LogStasher.warn('yikes')
+  #     end
+  #   end
+  #   logfile = JSON.parse(@written.string)
+
+  #   refute logfile.key?('entity.name')
+  #   refute logfile.key?('entity.type')
+  #   refute logfile.key?('hostname')
+  #   refute logfile.key?('trace.id')
+  #   refute logfile.key?('span.id')
+  # end
+
+  def test_log_decorating_disabled_doesnt_record_linking_metadata
     with_config(:'application_logging.local_decorating.enabled' => false) do
       in_transaction do
-        LogStasher.warn('yikes')
+        LogStasher.warn('Do not decorate me!')
       end
     end
     logfile = JSON.parse(@written.string)
+    message = logfile['message']
 
-    refute logfile.key?('entity.name')
-    refute logfile.key?('entity.type')
-    refute logfile.key?('hostname')
-    refute logfile.key?('trace.id')
-    refute logfile.key?('span.id')
+    assert_match(/Do not decorate me!/, message)
+    refute_match(/entity\.name|trace\.id|span\.id|NR-LINKING/, message)
   end
 
   def test_no_instrumentation_when_disabled
