@@ -12,10 +12,8 @@ rescue LoadError
 end
 
 if defined?(HTTParty)
-  gem 'minitest'
-  gem 'minitest-mock'
+  gem 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   require 'minitest/autorun'
-  require 'minitest/mock'
   require_relative '../../../.github/workflows/scripts/slack_notifications/slack_notifier'
 
   class SlackNotifierTests < Minitest::Test
