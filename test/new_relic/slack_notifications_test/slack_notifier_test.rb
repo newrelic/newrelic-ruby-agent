@@ -12,7 +12,9 @@ rescue LoadError
 end
 
 if defined?(HTTParty)
-  gem 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
+  # TODO: MAJOR VERSION - Remove this version constraint when we update the
+  # minitest version in the gemspec
+  gem 'minitest', '5.3.3'
   require 'minitest/autorun'
   require_relative '../../../.github/workflows/scripts/slack_notifications/slack_notifier'
 
