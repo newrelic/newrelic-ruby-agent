@@ -7,7 +7,6 @@ require_relative 'base_translator'
 module NewRelic
   module Agent
     module OpenTelemetry
-
       class RpcTranslator < BaseTranslator
         def mappings_hash
           RPC_MAPPINGS
@@ -21,11 +20,16 @@ module NewRelic
         end
 
         def build_uri(attributes)
-          host = attributes['server.address'] || attributes['net.peer.name']
+          host = attributes['server.address'] || attributes['net.peer.name'] || attributes['net.sock.peer.addr']
+          service = attributes['rpc.service']
           method = attributes['rpc.method']
           return unless host && method
 
-          "grpc://#{host}/#{method}"
+          if host && service && method
+            "grpc://#{host}/#{service}/#{method}"
+          else
+            "grpc://#{host}/#{method}"
+          end
         end
       end
     end

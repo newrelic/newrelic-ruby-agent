@@ -22,7 +22,7 @@ module NewRelic
 
           # The name and attributes are based on gRPC client instrumentation
           # in the opentelmetry-instrumentation-grpc gem
-          def name
+          def span_name
             'support.proto.PingServer/RequestResponsePing'
           end
 
@@ -37,34 +37,36 @@ module NewRelic
               'rpc.service' => 'support.proto.PingServer',
               'rpc.method' => 'RequestResponsePing',
               'rpc.type' => 'request_response',
-              'net.sock.peer.addr' => '???' # todo - what do the otel spans spit out?
+              'net.sock.peer.addr' => '???' # TODO: - what do the otel spans spit out?
             }
           end
 
+          # Using an array instead of a hash to mimic the instrumentation
+          # which calls set_attribute. That method requires two args,
+          # the key and the value.
           def res_attrs
-            {
-              'rpc.grpc.status_code' => 0
-            }
+            ['rpc.grpc.status_code', 0]
           end
 
           def run_grpc_client_segment
             in_transaction(category: :web) do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              @tracer.in_span(name, attributes: req_attrs, kind: :client) do |span|
-                span.set_attribute(res_attrs)
+              @tracer.in_span(span_name, attributes: req_attrs, kind: :client) do |span|
+                span.set_attribute(*res_attrs)
               end
             end
           end
 
-          def test_transaction_name
+          def test_segment_name
             run_grpc_client_segment
 
-            txns = harvest_transaction_events!
-            txn = txns[1][0]
-            intrinsics = txn[0]
+            spans = harvest_span_events!
+            span = spans[1][0]
+            intrinsics = span[0]
 
-            assert_equal 'Controller/OTelClient/GET /sustainable-spuds', intrinsics['name']
+            # `External/${net.sock.peer.addr}/${rpc.service}/${rpc.method}`
+            assert_equal "External/???/support.proto.PingServer/RequestResponsePing", intrinsics['name']
           end
 
           def test_transaction_metrics
@@ -74,7 +76,7 @@ module NewRelic
               'HttpDispatcher',
               'Controller/OTelClient/GET /sustainable-spuds',
               'WebTransactionTotalTime',
-              'WebTransactionTotalTime/Controller/OTelClient/GET /sustainable-spuds'
+              'support.proto.PingServer/RequestResponsePing'
             ])
           end
 
@@ -86,7 +88,7 @@ module NewRelic
             txn = txns[1][0]
             agent = txn[2]
 
-            expected_uri = 'grpc://host/method'
+            expected_uri = 'grpc://???/service/method'
 
             assert_equal expected_uri, agent['request.uri']
             assert_equal attrs['server.address'], agent['request.headers.host']
@@ -97,13 +99,13 @@ module NewRelic
 
           def test_span_custom_attributes
             attrs = req_attrs
-            run_grpc_client_segment(name, attrs, res_attrs)
+            run_grpc_client_segment
 
             spans = harvest_span_events!
             span = spans[1][0]
             custom = span[1]
 
-            keys_assigned_elsewhere = %w[rpc.method server.address http.user_agent http.target http.status_code]
+            keys_assigned_elsewhere = %w[rpc.method server.address rpc.status_code]
 
             assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal attrs['rpc.service'], custom['rpc.service']

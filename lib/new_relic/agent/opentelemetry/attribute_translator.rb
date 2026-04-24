@@ -6,6 +6,7 @@ require_relative 'translators/datastore_translator'
 require_relative 'translators/http_client_translator'
 require_relative 'translators/http_server_translator'
 require_relative 'translators/generic_translator'
+require_relative 'translators/rpc_translator'
 
 module NewRelic
   module Agent

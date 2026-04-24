@@ -117,24 +117,26 @@ module NewRelic
         RPC_MAPPINGS = { # v1.23, v1.17 client, v1.20 server
           # not currently captured by NR
           'grpc.statusCode' => {
-            otel_keys: ['rpc.grpc.status_code']
+            otel_keys: ['rpc.grpc.status_code'],
             instance_variable: :http_status_code
             # tbd
           },
           'library' => {
-            otel_keys: ['rpc.system']
+            otel_keys: ['rpc.system'],
             segment_field: :library
           },
           'procedure' => {
-            otel_keys: ['rpc.method']
+            otel_keys: ['rpc.method'],
             segment_field: :procedure
           },
-          'host' => { # not sent by gRPC OTel instrumentation
-            otel_keys: ['server.address', 'net.peer.name']
+          'host' => {
+            # traditional host keys aren't sent by otel grpc instrumentation
+            # so we use net.sock.peer.address to fill the host field
+            otel_keys: ['net.sock.peer.addr', 'server.address', 'net.peer.name'],
             segment_field: :host
           },
           'port' => { # not sent by gRPC OTel instrumentation
-            otel_keys: ['server.port', 'net.peer.port']
+            otel_keys: ['server.port', 'net.peer.port'],
             segment_field: :port
           }
         }.freeze
