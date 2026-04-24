@@ -16,15 +16,15 @@ module NewRelic
             'opentelemetry-instrumentation-http' => HttpClientTranslator,
             'opentelemetry-instrumentation-trilogy' => DatastoreTranslator,
             'opentelemetry-instrumentation-pg' => DatastoreTranslator,
-            'opentelemetry-instrumentation-mysql2' => DatastoreTranslator
-            # 'opentelemetry-instrumentation-grpc' => RpcTranslator,
+            'opentelemetry-instrumentation-mysql2' => DatastoreTranslator,
+            'opentelemetry-instrumentation-grpc' => RpcTranslator
             # 'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
           },
           discriminating_attribute: {
             'db.system' => DatastoreTranslator,
-            'db.system.name' => DatastoreTranslator
+            'db.system.name' => DatastoreTranslator,
+            'rpc.system' => RpcTranslator
             # 'messaging.system' => MessagingTranslator,
-            # 'rpc.system' => RpcTranslator,
           },
           span_kind: {
             client: HttpClientTranslator,

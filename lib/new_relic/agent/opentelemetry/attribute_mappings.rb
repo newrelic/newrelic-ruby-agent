@@ -112,6 +112,32 @@ module NewRelic
             destinations: DEFAULT_DESTINATIONS
           }
         }.freeze
+
+        # use start_external_request_segment API for client
+        RPC_MAPPINGS = { # v1.23, v1.17 client, v1.20 server
+          # not currently captured by NR
+          'grpc.statusCode' => {
+            otel_keys: ['rpc.grpc.status_code']
+            instance_variable: :http_status_code
+            # tbd
+          },
+          'library' => {
+            otel_keys: ['rpc.system']
+            segment_field: :library
+          },
+          'procedure' => {
+            otel_keys: ['rpc.method']
+            segment_field: :procedure
+          },
+          'host' => { # not sent by gRPC OTel instrumentation
+            otel_keys: ['server.address', 'net.peer.name']
+            segment_field: :host
+          },
+          'port' => { # not sent by gRPC OTel instrumentation
+            otel_keys: ['server.port', 'net.peer.port']
+            segment_field: :port
+          }
+        }.freeze
       end
     end
   end
