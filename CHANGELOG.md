@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
+
+  The agent now supports Dalli 5.0+, which removed `Dalli::Protocol::Binary` in favor of the meta protocol exclusively. For Dalli 3.2.0+, `pipelined_get` instrumentation now correctly targets `Dalli::Protocol::Base` (where the method is defined) rather than `Dalli::Protocol::Binary`, fixing a gap where `get_multi` calls went uninstrumented when using the meta protocol. For Dalli 5.0+, the agent additionally instruments `Dalli::Protocol::Meta#read_multi_req`, which is invoked by Dalli's single-server `get_multi` optimizatio [PR#3541](https://github.com/newrelic/newrelic-ruby-agent/pull/3541)
+
 ## v10.4.0
 
 - **Feature: Add Rails.event instrumentation for structured logging**
