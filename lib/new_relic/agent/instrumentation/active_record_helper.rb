@@ -19,15 +19,15 @@ module NewRelic
 
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
-            def newrelic_collection_name
+            def newrelic_model_collection_name
               ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
             end
-            private(:newrelic_collection_name)
+            private(:newrelic_model_collection_name)
 
             alias_method(:save_without_newrelic, :save)
 
             def save(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 save_without_newrelic(*args, &blk)
               end
             end
@@ -35,7 +35,7 @@ module NewRelic
             alias_method(:save_without_newrelic!, :save!)
 
             def save!(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 save_without_newrelic!(*args, &blk)
               end
             end
@@ -44,15 +44,15 @@ module NewRelic
 
         def instrument_relation_methods
           ::ActiveRecord::Relation.class_eval do
-            def newrelic_collection_name
+            def newrelic_relation_collection_name
               ::NewRelic::Agent.config[:active_record_use_table_name] ? self.klass.table_name : self.name
             end
-            private(:newrelic_collection_name)
+            private(:newrelic_relation_collection_name)
 
             alias_method(:update_all_without_newrelic, :update_all)
 
             def update_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
                 update_all_without_newrelic(*args, &blk)
               end
             end
@@ -61,13 +61,13 @@ module NewRelic
 
             if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
               def delete_all(*args, &blk)
-                ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+                ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
                   delete_all_without_newrelic(*args, &blk)
                 end
               end
             else
               def delete_all(*args, **kwargs, &blk)
-                ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+                ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
                   delete_all_without_newrelic(*args, **kwargs, &blk)
                 end
               end
@@ -76,7 +76,7 @@ module NewRelic
             alias_method(:destroy_all_without_newrelic, :destroy_all)
 
             def destroy_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
                 destroy_all_without_newrelic(*args, &blk)
               end
             end
@@ -84,7 +84,7 @@ module NewRelic
             alias_method(:calculate_without_newrelic, :calculate)
 
             def calculate(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
                 calculate_without_newrelic(*args, &blk)
               end
             end
@@ -93,7 +93,7 @@ module NewRelic
               alias_method(:pluck_without_newrelic, :pluck)
 
               def pluck(*args, &blk)
-                ::NewRelic::Agent.with_database_metric_name(newrelic_collection_name, nil, ACTIVE_RECORD) do
+                ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
                   pluck_without_newrelic(*args, &blk)
                 end
               end
