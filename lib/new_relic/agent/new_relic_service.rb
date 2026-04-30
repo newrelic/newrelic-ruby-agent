@@ -450,8 +450,12 @@ module NewRelic
              Net::HTTPExpectationFailed,
              Net::HTTPRequestHeaderFieldsTooLarge
           handle_unrecoverable_server_exception(response, endpoint)
-        when Net::HTTPConflict,
-             Net::HTTPUnauthorized
+        when Net::HTTPConflict
+          handle_unauthorized_error_response(response, endpoint)
+          raise ForceRestartException, "#{response.code}: #{response.message}"
+        when Net::HTTPUnauthorized
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
+          ::NewRelic::Agent.logger.error("Invalid license key: #{redacted_license_key}")
           handle_unauthorized_error_response(response, endpoint)
           raise ForceRestartException, "#{response.code}: #{response.message}"
         when Net::HTTPGone
@@ -678,7 +682,12 @@ module NewRelic
       end
 
       def filtered_uri(uri)
-        uri.gsub(license_key, ASTERISK * license_key.size)
+        uri.gsub(license_key, redacted_license_key)
+      end
+
+      def redacted_license_key
+        key = license_key
+        key.size > 10 ? key[0, 10] + ASTERISK * (key.size - 10) : ASTERISK * key.size
       end
     end
   end
