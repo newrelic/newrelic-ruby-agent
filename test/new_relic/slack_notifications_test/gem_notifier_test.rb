@@ -12,10 +12,10 @@ rescue LoadError
 end
 
 if defined?(HTTParty)
-  gem 'minitest'
-  gem 'minitest-mock'
+  # TODO: MAJOR VERSION - Remove this version constraint when we update the
+  # minitest version in the gemspec
+  gem 'minitest', '5.3.3'
   require 'minitest/autorun'
-  require 'minitest/mock'
   require_relative '../../../.github/workflows/scripts/slack_notifications/gem_notifier'
 
   class GemNotifierTests < Minitest::Test
