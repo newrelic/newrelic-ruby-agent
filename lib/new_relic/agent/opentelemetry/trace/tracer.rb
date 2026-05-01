@@ -2,19 +2,13 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../segments/http_external'
-require_relative '../segments/datastore'
-require_relative '../segments/server'
+require_relative '../attribute_translator'
 
 module NewRelic
   module Agent
     module OpenTelemetry
       module Trace
         class Tracer < ::OpenTelemetry::Trace::Tracer
-          include NewRelic::Agent::OpenTelemetry::Segments::HttpExternal
-          include NewRelic::Agent::OpenTelemetry::Segments::Datastore
-          include NewRelic::Agent::OpenTelemetry::Segments::Server
-
           VALID_KINDS = [:server, :client, :consumer, :producer, :internal, nil].freeze
           KINDS_THAT_START_TRANSACTIONS = %i[server consumer].freeze
           KINDS_THAT_DO_NOT_START_TXNS_WITHOUT_REMOTE_PARENT = [:client, :producer, :internal, nil].freeze
@@ -29,19 +23,23 @@ module NewRelic
 
             return ::OpenTelemetry::Trace::Span::INVALID if should_not_create_telemetry?(parent_otel_context, kind)
 
+            translated = AttributeTranslator.translate(span_kind: kind, attributes: attributes, instrumentation_scope: @name, name: name)
+
             finishable = if can_start_transaction?(parent_otel_context, kind)
-              start_transaction_from_otel(name, parent_otel_context, kind, attributes: attributes)
+              start_transaction_from_otel(name, parent_otel_context, kind, translated: translated)
             else
-              start_segment_from_otel(name: name, attributes: attributes, start_timestamp: start_timestamp, kind: kind)
+              start_segment_from_otel(name: name, translated: translated, start_timestamp: start_timestamp, kind: kind)
             end
 
             otel_span = get_otel_span_from_finishable(finishable)
 
             otel_span.finishable = finishable
             otel_span.status = ::OpenTelemetry::Trace::Status.unset
+            otel_span.translator = translated[:translator]
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
             otel_span.add_instrumentation_scope(@name, @version)
-            otel_span.add_attributes(attributes) if attributes
+            otel_span.apply_translated_attributes(translated)
+
             otel_span
           end
 
@@ -60,66 +58,52 @@ module NewRelic
 
           private
 
-          def start_segment_from_otel(name:, attributes: nil, start_timestamp: nil, kind: nil)
+          def start_segment_from_otel(name:, translated: nil, start_timestamp: nil, kind: nil)
+            segment_api_params = translated[:for_segment_api]
+
             case kind
             when :client
-              start_otel_client_segment(name: name, attributes: attributes, start_timestamp: start_timestamp, kind: kind)
+              if segment_api_params[:uri] # HTTP Client
+                NewRelic::Agent::Tracer.start_external_request_segment(
+                  library: @name,
+                  uri: segment_api_params[:uri],
+                  procedure: segment_api_params[:procedure],
+                  start_time: start_timestamp
+                )
+              elsif segment_api_params[:product] # Datastore
+                segment = NewRelic::Agent::Tracer.start_datastore_segment(
+                  product: segment_api_params[:product],
+                  operation: segment_api_params[:operation],
+                  collection: segment_api_params[:collection],
+                  host: segment_api_params[:host],
+                  port_path_or_id: segment_api_params[:port_path_or_id],
+                  database_name: segment_api_params[:database_name],
+                  start_time: start_timestamp
+                )
+
+                segment&._notice_sql(segment_api_params[:sql])
+
+                segment
+              else
+                NewRelic::Agent::Tracer.start_segment(name: name)
+              end
             else
               NewRelic::Agent::Tracer.start_segment(name: name)
             end
           end
 
-          def start_otel_client_segment(name:, attributes: nil, start_timestamp: nil, kind: nil)
-            attributes = NewRelic::EMPTY_HASH if attributes.nil?
-
-            return start_db_client_segment(name: name, attributes: attributes) if attributes.key?('db.system')
-
-            uri = create_uri(attributes)
-
-            # We need to have a URI to create an External Request Segment
-            return NewRelic::Agent::Tracer.start_segment(name: name) if uri.nil? || uri.empty?
-
-            procedure = attributes['http.request.method'] || attributes['http.method']
-
-            NewRelic::Agent::Tracer.start_external_request_segment(
-              library: @name,
-              uri: uri,
-              procedure: procedure,
-              start_time: start_timestamp,
-              parent: nil
-            )
-          end
-
-          # TODO: Connection spans from PG instrumentation don't have
-          # db.system attributes until after they've started,
-          # so they won't be datastore segments.
-          def start_db_client_segment(name:, attributes:, start_timestamp: nil)
-            operation = parse_operation(name, attributes)
-            segment = NewRelic::Agent::Tracer.start_datastore_segment(
-              product: attributes['db.system'],
-              operation: operation,
-              collection: attributes['db.collection.name'],
-              host: attributes['net.peer.name'],
-              port_path_or_id: attributes['net.peer.port'],
-              database_name: attributes['db.name'],
-              start_time: start_timestamp
-            )
-
-            segment._notice_sql(attributes['db.statement'])
-
-            segment
-          end
-
-          def start_transaction_from_otel(name, parent_otel_context, kind, attributes: {})
+          def start_transaction_from_otel(name, parent_otel_context, kind, translated: {})
             nr_item = nil
+            segment_api_params = translated[:for_segment_api]
 
             case kind
             when :server
-              name = create_server_transaction_name(name, @name, attributes)
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web, options: {request: attributes})
-              update_request_attributes(nr_item, attributes)
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
+                name: segment_api_params[:name] || name,
+                category: :web
+              )
             when :client
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web, options: {request: attributes})
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
             when :consumer, :producer, :internal, nil
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
