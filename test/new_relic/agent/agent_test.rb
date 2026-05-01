@@ -361,6 +361,17 @@ module NewRelic
         assert_predicate(@agent, :disconnected?)
       end
 
+      def test_agent_health_status_set_to_invalid_license_key
+        # stub a valid health check, by setting @continue = true
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.service.expects(:connect).raises(NewRelic::Agent::LicenseException)
+        @agent.send(:connect)
+
+        assert_predicate(@agent, :disconnected?)
+
+        assert_equal NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY, @agent.health_check.instance_variable_get(:@status)
+      end
+
       def test_connect_does_not_reconnect_by_default
         @agent.stubs(:connected?).returns(true)
         @agent.service.expects(:connect).never
