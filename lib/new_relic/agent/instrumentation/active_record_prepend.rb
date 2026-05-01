@@ -13,30 +13,36 @@ module NewRelic
         module BaseExtensions
           if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
             def save(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 super
               end
             end
 
             def save!(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 super
               end
             end
 
           else
             def save(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 super
               end
             end
 
             def save!(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 super
               end
             end
 
+          end
+
+          private
+
+          def newrelic_model_collection_name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
           end
         end
 
@@ -48,48 +54,60 @@ module NewRelic
           #
           if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
             def touch(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 super
               end
             end
           else
             def touch(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              ::NewRelic::Agent.with_database_metric_name(newrelic_model_collection_name, nil, ACTIVE_RECORD) do
                 super
               end
             end
+          end
+
+          private
+
+          def newrelic_model_collection_name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
           end
         end
 
         module RelationExtensions
           def update_all(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
               super
             end
           end
 
           def delete_all(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
               super
             end
           end
 
           def destroy_all(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
               super
             end
           end
 
           def calculate(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
               super
             end
           end
 
           def pluck(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+            ::NewRelic::Agent.with_database_metric_name(newrelic_relation_collection_name, nil, ACTIVE_RECORD) do
               super
             end
+          end
+
+          private
+
+          def newrelic_relation_collection_name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.klass.table_name : self.name
           end
         end
       end

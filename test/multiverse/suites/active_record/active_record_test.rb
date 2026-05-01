@@ -505,6 +505,74 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     )
   end
 
+  def test_active_record_use_table_name_save_uses_table_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do
+        Animals::Dog.create!(name: 'Oliver')
+      end
+    end
+
+    assert_activerecord_metrics('animals', 'create')
+  end
+
+  def test_active_record_use_table_name_find_uses_table_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do
+        Animals::Dog.first
+      end
+    end
+
+    assert_activerecord_metrics('animals', 'find')
+  end
+
+  def test_active_record_use_table_name_update_uses_table_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do
+        Animals::Dog.update_all(name: 'Sammie')
+      end
+    end
+
+    assert_activerecord_metrics('animals', 'update')
+  end
+
+  def test_active_record_use_table_name_replaces_class_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do
+        Animals::Dog.first
+      end
+    end
+
+    assert_metrics_recorded(["Datastore/statement/#{current_product}/animals/find"])
+    assert_metrics_not_recorded(["Datastore/statement/#{current_product}/Animals::Dog/find"])
+  end
+
+  def test_active_record_use_table_name_updates_span_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do |txn|
+        txn.stubs(:sampled?).returns(true)
+        Animals::Dog.first
+      end
+    end
+
+    expected = "Datastore/statement/#{current_product}/animals/find"
+    span_names = harvest_span_events![1].map { |s| s[0]['name'] }
+
+    assert_includes span_names, expected
+  end
+
+  def test_active_record_use_table_name_updates_transaction_trace_segment_name
+    with_config(active_record_use_table_name: true) do
+      in_web_transaction do
+        Animals::Dog.first
+      end
+    end
+
+    metric = "Datastore/statement/#{current_product}/animals/find"
+    node = find_node_with_name(last_transaction_trace, metric)
+
+    assert_equal metric, node.metric_name
+  end
+
   ## helpers
 
   private
