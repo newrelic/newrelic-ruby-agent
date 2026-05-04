@@ -20,14 +20,11 @@ module NewRelic
             # spans start, so they would be incorrectly assigned
             # the HttpClientTranslator
             'opentelemetry-instrumentation-pg' => DatastoreTranslator,
-            'opentelemetry-instrumentation-mysql2' => DatastoreTranslator
-            # 'opentelemetry-instrumentation-grpc' => RpcTranslator,
             # 'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
           },
           discriminating_attribute: {
             'db.system' => DatastoreTranslator,
             'db.system.name' => DatastoreTranslator
-            # 'messaging.system' => MessagingTranslator,
             # 'rpc.system' => RpcTranslator,
           },
           span_kind: {
@@ -67,8 +64,7 @@ module NewRelic
               GenericTranslator
             end
 
-          # TODO: Decide if we want instances or not
-          translator.new.translate(attributes: attributes, name: name, instrumentation_scope: instrumentation_scope)
+          translator.translate(attributes: attributes, name: name, instrumentation_scope: instrumentation_scope)
         end
       end
     end

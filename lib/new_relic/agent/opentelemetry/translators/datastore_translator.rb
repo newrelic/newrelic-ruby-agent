@@ -8,26 +8,28 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class DatastoreTranslator < BaseTranslator
-        def mappings_hash
-          DATASTORE_MAPPINGS
-        end
+        class << self
+          def mappings_hash
+            AttributeMappings::DATASTORE_MAPPINGS
+          end
 
-        def extra_operations(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
-          operation = parse_operation(name, attributes)
-          result[:for_segment_api][:operation] = operation if operation
+          def extra_operations(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+            operation = parse_operation(name, attributes)
+            result[:for_segment_api][:operation] = operation if operation
 
-          result
-        end
+            result
+          end
 
-        def parse_operation(name, attributes)
-          operation = attributes['db.operation.name'] || attributes['db.operation']
-          return operation if operation
+          def parse_operation(name, attributes)
+            operation = attributes['db.operation.name'] || attributes['db.operation']
+            return operation if operation
 
-          name_downcased = name&.downcase
-          return name_downcased if NewRelic::Agent::Database::KNOWN_OPERATIONS.include?(name_downcased)
+            name_downcased = name&.downcase
+            return name_downcased if NewRelic::Agent::Database::KNOWN_OPERATIONS.include?(name_downcased)
 
-          sql = attributes['db.query.text'] || attributes['db.statement']
-          NewRelic::Agent::Database.parse_operation_from_query(sql) if sql
+            sql = attributes['db.query.text'] || attributes['db.statement']
+            NewRelic::Agent::Database.parse_operation_from_query(sql) if sql
+          end
         end
       end
     end

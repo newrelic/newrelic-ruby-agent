@@ -10,8 +10,10 @@ module NewRelic
       # The Generic translator will sends all attributes to custom attributes
       # because there are no known New Relic attributes to translate
       class GenericTranslator < BaseTranslator
-        def mappings_hash
-          {}
+        class << self
+          def mappings_hash
+            {}
+          end
         end
       end
     end

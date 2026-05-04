@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class ServerTest < Minitest::Test
       def setup
-        @test_instance = NewRelic::Agent::OpenTelemetry::HttpServerTranslator.new
+        @server_translator = NewRelic::Agent::OpenTelemetry::HttpServerTranslator
         harvest_transaction_events!
       end
 
@@ -22,7 +22,7 @@ module NewRelic
           'url.path' => '/api/users'
         }
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal 'Controller/MyTracer/GET /api/users', result
       end
@@ -35,7 +35,7 @@ module NewRelic
           'http.target' => '/api/posts'
         }
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal 'Controller/MyTracer/POST /api/posts', result
       end
@@ -50,7 +50,7 @@ module NewRelic
           'http.target' => '/old/path'
         }
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal 'Controller/MyTracer/PUT /stable/path', result
       end
@@ -63,7 +63,7 @@ module NewRelic
           'url.path' => '/api/users'
         }
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal original_name, result
       end
@@ -75,7 +75,7 @@ module NewRelic
           'http.request.method' => 'GET'
         }
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal original_name, result
       end
@@ -85,7 +85,7 @@ module NewRelic
         tracer_name = 'MyTracer'
         attributes = {}
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, attributes)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, attributes)
 
         assert_equal original_name, result
       end
@@ -94,7 +94,7 @@ module NewRelic
         original_name = 'GET'
         tracer_name = 'MyTracer'
 
-        result = @test_instance.create_server_transaction_name(original_name, tracer_name, nil)
+        result = @server_translator.create_server_transaction_name(original_name, tracer_name, nil)
 
         assert_equal original_name, result
       end

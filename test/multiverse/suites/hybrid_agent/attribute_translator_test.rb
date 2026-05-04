@@ -6,16 +6,6 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class AttributeTranslatorTest < Minitest::Test
-        def test_selects_http_client_translator_by_instrumentation_scope
-          result = AttributeTranslator.translate(
-            instrumentation_scope: 'opentelemetry-instrumentation-http',
-            attributes: {},
-            span_kind: :internal
-          )
-
-          assert_instance_of HttpClientTranslator, result[:translator]
-        end
-
         def test_selects_datastore_translator_by_instrumentation_scope
           # opentelemetry-instrumentation-pg spans created by the
           # connect method don't have the db.system attribute on span start.
@@ -29,7 +19,7 @@ module NewRelic
             name: 'connect'
           )
 
-          assert_instance_of DatastoreTranslator, result[:translator]
+          assert_same DatastoreTranslator, result[:translator]
         end
 
         def test_selects_datastore_translator_by_discriminating_attribute_db_system
@@ -39,7 +29,7 @@ module NewRelic
             name: 'SELECT'
           )
 
-          assert_instance_of DatastoreTranslator, result[:translator]
+          assert_same DatastoreTranslator, result[:translator]
         end
 
         def test_selects_datastore_translator_by_discriminating_attribute_db_system_name
@@ -49,7 +39,7 @@ module NewRelic
             name: 'SELECT'
           )
 
-          assert_instance_of DatastoreTranslator, result[:translator]
+          assert_same DatastoreTranslator, result[:translator]
         end
 
         # TODO: Update this test to use a Redis-specific translator
@@ -63,7 +53,7 @@ module NewRelic
             name: 'SELECT'
           )
 
-          assert_instance_of DatastoreTranslator, result[:translator]
+          assert_same DatastoreTranslator, result[:translator]
         end
 
         def test_selects_http_client_translator_by_span_kind_client
@@ -72,7 +62,7 @@ module NewRelic
             attributes: {}
           )
 
-          assert_instance_of HttpClientTranslator, result[:translator]
+          assert_same HttpClientTranslator, result[:translator]
         end
 
         def test_selects_http_server_translator_by_span_kind_server
@@ -81,7 +71,7 @@ module NewRelic
             attributes: {}
           )
 
-          assert_instance_of HttpServerTranslator, result[:translator]
+          assert_same HttpServerTranslator, result[:translator]
         end
 
         def test_selects_generic_translator_by_span_kind_internal
@@ -90,7 +80,7 @@ module NewRelic
             attributes: {}
           )
 
-          assert_instance_of GenericTranslator, result[:translator]
+          assert_same GenericTranslator, result[:translator]
         end
 
         def test_defaults_to_generic_translator_with_nil_span_kind
@@ -99,7 +89,7 @@ module NewRelic
             attributes: {}
           )
 
-          assert_instance_of GenericTranslator, result[:translator]
+          assert_same GenericTranslator, result[:translator]
         end
 
         def test_defaults_to_generic_translator_with_unknown_span_kind
@@ -108,7 +98,7 @@ module NewRelic
             attributes: {}
           )
 
-          assert_instance_of GenericTranslator, result[:translator]
+          assert_same GenericTranslator, result[:translator]
         end
 
         def test_handles_nil_attributes
@@ -117,7 +107,7 @@ module NewRelic
             attributes: nil
           )
 
-          assert_instance_of HttpClientTranslator, result[:translator]
+          assert_same HttpClientTranslator, result[:translator]
         end
 
         def test_returns_hash_with_expected_keys

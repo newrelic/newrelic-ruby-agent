@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class HttpExternalTest < Minitest::Test
       def setup
-        @test_instance = NewRelic::Agent::OpenTelemetry::HttpClientTranslator.new
+        @http_client_translator = NewRelic::Agent::OpenTelemetry::HttpClientTranslator
       end
 
       def test_build_uri_with_all_components_v_1_23
@@ -17,7 +17,7 @@ module NewRelic
           'url.path' => '/api/v1/users'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com:443/api/v1/users', result
       end
@@ -30,7 +30,7 @@ module NewRelic
           'http.target' => '/search?q=test'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'http://api.example.com:8080/search?q=test', result
       end
@@ -42,7 +42,7 @@ module NewRelic
           'server.port' => 443
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com:443/', result
       end
@@ -55,7 +55,7 @@ module NewRelic
           'url.full' => 'https://example.com/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com/api', result
       end
@@ -68,7 +68,7 @@ module NewRelic
           'http.url' => 'https://fallback.com/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://fallback.com/api', result
       end
@@ -81,7 +81,7 @@ module NewRelic
           'url.full' => 'https://example.com/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com/api', result
       end
@@ -95,7 +95,7 @@ module NewRelic
           'url.path' => '/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com:443/api', result
       end
@@ -109,7 +109,7 @@ module NewRelic
           'url.path' => '/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://primary.com:443/api', result
       end
@@ -123,7 +123,7 @@ module NewRelic
           'url.path' => '/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com:8443/api', result
       end
@@ -137,7 +137,7 @@ module NewRelic
           'http.target' => '/v1/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://example.com:443/v2/api', result
       end
@@ -148,7 +148,7 @@ module NewRelic
           'http.url' => 'https://secondary.com/api'
         }
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_equal 'https://primary.com/api', result
       end
@@ -156,7 +156,7 @@ module NewRelic
       def test_build_uri_returns_nil_when_no_attributes
         attributes = {}
 
-        result = @test_instance.build_uri(attributes)
+        result = @http_client_translator.build_uri(attributes)
 
         assert_nil result
       end

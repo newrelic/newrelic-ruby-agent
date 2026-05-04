@@ -10,12 +10,12 @@ module NewRelic
         # categories alongside segment_field mappings, making it a good
         # candidate for testing BaseTranslator#translate routing.
         def http_client_translator
-          HttpClientTranslator.new
+          HttpClientTranslator
         end
 
         # HttpServerTranslator has :agent and :instance_variable categories.
         def http_server_translator
-          HttpServerTranslator.new
+          HttpServerTranslator
         end
 
         def test_translate_routes_intrinsic_attributes
@@ -98,10 +98,10 @@ module NewRelic
           assert_empty result[:custom]
         end
 
-        def test_translate_returns_translator_reference
+        def test_translate_returns_translator_class
           result = http_client_translator.translate(attributes: {})
 
-          assert_instance_of HttpClientTranslator, result[:translator]
+          assert_same HttpClientTranslator, result[:translator]
         end
 
         def test_translate_uses_first_present_otel_key
@@ -133,9 +133,8 @@ module NewRelic
         end
 
         def test_generic_translator_puts_all_attributes_in_custom
-          translator = GenericTranslator.new
           attrs = {'any.key' => 'any_value', 'another' => 123}
-          result = translator.translate(attributes: attrs)
+          result = GenericTranslator.translate(attributes: attrs)
 
           assert_empty result[:intrinsic]
           assert_empty result[:agent]
