@@ -12,9 +12,13 @@ module NewRelic
     module OpenTelemetry
       class AttributeTranslator
         TRANSLATOR_REGISTRY = {
+          # Only use the instrumentation_scope category for scopes that
+          # will not be correctly assigned using discriminating attributes
+          # or span kind
           instrumentation_scope: {
-            'opentelemetry-instrumentation-http' => HttpClientTranslator,
-            'opentelemetry-instrumentation-trilogy' => DatastoreTranslator,
+            # pg instrumentation doesn't have db.system assigned when connect
+            # spans start, so they would be incorrectly assigned
+            # the HttpClientTranslator
             'opentelemetry-instrumentation-pg' => DatastoreTranslator,
             'opentelemetry-instrumentation-mysql2' => DatastoreTranslator
             # 'opentelemetry-instrumentation-grpc' => RpcTranslator,
@@ -35,6 +39,8 @@ module NewRelic
           }
         }.freeze
 
+        DISCRIMINATING_ATTRIBUTE_KEYS = TRANSLATOR_REGISTRY[:discriminating_attribute].keys.freeze
+
         # Identify the appropriate translator based on the provided arguments.
         # Then, call that translator's translate method.
         # The translator can be identified by instrumentation scope,
@@ -51,9 +57,9 @@ module NewRelic
         def self.translate(span_kind: nil, attributes: nil, instrumentation_scope: nil, name: nil)
           attributes ||= NewRelic::EMPTY_HASH
           translator =
-            if TRANSLATOR_REGISTRY[:instrumentation_scope].key?(instrumentation_scope)
+            if TRANSLATOR_REGISTRY[:instrumentation_scope][instrumentation_scope]
               TRANSLATOR_REGISTRY[:instrumentation_scope][instrumentation_scope]
-            elsif k = (attributes.keys & TRANSLATOR_REGISTRY[:discriminating_attribute].keys).first
+            elsif k = DISCRIMINATING_ATTRIBUTE_KEYS.find { |key| attributes.key?(key) }
               TRANSLATOR_REGISTRY[:discriminating_attribute][k]
             elsif TRANSLATOR_REGISTRY[:span_kind][span_kind]
               TRANSLATOR_REGISTRY[:span_kind][span_kind]
