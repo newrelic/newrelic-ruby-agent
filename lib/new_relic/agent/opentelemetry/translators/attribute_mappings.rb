@@ -21,6 +21,12 @@ module NewRelic
         # * :otel_keys (required) an array of strings with the semantic conventions to translate
         # * :category (optional) a symbol of the category to apply this attribute
         # available categories are :intrinsic, :agent, and :instance_variable
+        # **NOTE:** The :intrinsic category has erratic behavior. If the add_intrinsic_attribute
+        #   method is called on a segment, the assigned intrinsic attributes will be deleted
+        #   while the segment finishes. If the add_intrinsic_attribute method is called on a
+        #   transaction, the attributes will be correctly saved. Use this category with
+        #   caution. Most of the time, an :instance_variable category will suffice,
+        #   just make sure that the topmost key matches the instance variable you want to set.
         # * :segment_field (optional) the name of an argument used in a segment
         # API that is equal to this otel key
         # * destinations (optional) If the category is :agent, then the destinations
@@ -45,6 +51,11 @@ module NewRelic
             otel_keys: ['url.full', 'http.url'],
             segment_field: :uri
           },
+          # host and port are assigned through the URI that gets created with
+          # the build_uri method in the HttpClientTranslator. Though we try
+          # to apply them as intrinsic attributes, this behavior does not
+          # work for segments and they get deleted before the segment
+          # finishes.
           'host' => {
             otel_keys: ['server.address', 'net.peer.name'],
             category: :intrinsic
