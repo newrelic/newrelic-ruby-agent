@@ -14,6 +14,12 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     NewRelic::Agent.drop_buffered_data
   end
 
+  def after_teardown
+    super
+    helper = NewRelic::Agent::Instrumentation::ActiveRecordHelper
+    helper.remove_instance_variable(:@use_table_name) if helper.instance_variable_defined?(:@use_table_name)
+  end
+
   def test_metrics_for_calculation_methods
     in_web_transaction do
       Order.count
