@@ -12,7 +12,7 @@ module NewRelic
       class GenericTranslator < BaseTranslator
         class << self
           def mappings_hash
-            {}
+            NewRelic::EMPTY_HASH
           end
         end
       end

@@ -16,7 +16,7 @@ module NewRelic
           #  AttributesMappings module for the attribute type being translated
           def mappings_hash
             # no-op
-            {}
+            NewRelic::EMPTY_HASH
           end
 
           # The translate method iterates through the mappings_hash to assign the
