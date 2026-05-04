@@ -19,7 +19,7 @@ module NewRelic
             # pg instrumentation doesn't have db.system assigned when connect
             # spans start, so they would be incorrectly assigned
             # the HttpClientTranslator
-            'opentelemetry-instrumentation-pg' => DatastoreTranslator,
+            'opentelemetry-instrumentation-pg' => DatastoreTranslator
             # 'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
           },
           discriminating_attribute: {
