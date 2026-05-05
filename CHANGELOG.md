@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
+
+  The agent now supports Dalli 5.0+, which removed `Dalli::Protocol::Binary` in favor of the meta protocol exclusively. For Dalli 3.2.0+, `pipelined_get` instrumentation now correctly targets `Dalli::Protocol::Base` (where the method is defined) rather than `Dalli::Protocol::Binary`, fixing a gap where `get_multi` calls went uninstrumented when using the meta protocol. For Dalli 5.0+, the agent additionally instruments `Dalli::Protocol::Meta#read_multi_req`, which is invoked by Dalli's single-server `get_multi` optimization. [PR#3541](https://github.com/newrelic/newrelic-ruby-agent/pull/3541)
+
 - **Feature: Add active_record_use_table_name configuration option**
 
   A new configuration option, `active_record_use_table_name`, uses an Active Record model's table name instead of its class name when naming metrics, spans, and transaction trace segments. This can particularly be helpful to reduce cardinality in applications using single-table inheritance. The option defaults to `false` to preserve existing behavior. [PR#3540](https://github.com/newrelic/newrelic-ruby-agent/pull/3540)
