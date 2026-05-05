@@ -9,6 +9,7 @@ class CreateAnimals < current_active_record_migration_version
     create_table(:animals) do |t|
       t.string(:type)
       t.string(:name)
+      t.timestamps
     end
   end
 
