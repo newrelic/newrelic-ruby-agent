@@ -159,5 +159,29 @@ module NewRelic::Agent::Instrumentation
         assert_equal 'Unresolvable::Model', collection
       end
     end
+
+    def test_model_from_splits_returns_nil_when_splits_length_is_not_two
+      assert_nil ActiveRecordHelper.model_from_splits([])
+      assert_nil ActiveRecordHelper.model_from_splits(['One'])
+      assert_nil ActiveRecordHelper.model_from_splits(['One', 'Two', 'Three'])
+    end
+
+    def test_model_from_splits_returns_model_name_when_config_is_disabled
+      with_config(active_record_use_table_name: false) do
+        assert_equal 'Animals::Dog', ActiveRecordHelper.model_from_splits(['Animals::Dog', 'Load'])
+      end
+    end
+
+    def test_model_from_splits_returns_table_name_when_config_is_enabled
+      with_config(active_record_use_table_name: true) do
+        assert_equal 'animals', ActiveRecordHelper.model_from_splits(['Animals::Dog', 'Load'])
+      end
+    end
+
+    def test_model_from_splits_falls_back_to_model_name_when_unresolvable
+      with_config(active_record_use_table_name: true) do
+        assert_equal 'Unresolvable::Model', ActiveRecordHelper.model_from_splits(['Unresolvable::Model', 'Load'])
+      end
+    end
   end
 end
