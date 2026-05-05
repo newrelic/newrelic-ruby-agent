@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/prepend_supportability'
-require 'new_relic/agent/instrumentation/active_record_helper'
 
 module NewRelic
   module Agent
@@ -43,7 +42,7 @@ module NewRelic
           private
 
           def newrelic_model_collection_name
-            NewRelic::Agent::Instrumentation::ActiveRecordHelper.use_table_name? ? self.class.table_name : self.class.name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
           end
         end
 
@@ -70,7 +69,7 @@ module NewRelic
           private
 
           def newrelic_model_collection_name
-            NewRelic::Agent::Instrumentation::ActiveRecordHelper.use_table_name? ? self.class.table_name : self.class.name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.class.table_name : self.class.name
           end
         end
 
@@ -108,7 +107,7 @@ module NewRelic
           private
 
           def newrelic_relation_collection_name
-            NewRelic::Agent::Instrumentation::ActiveRecordHelper.use_table_name? ? self.klass.table_name : self.name
+            ::NewRelic::Agent.config[:active_record_use_table_name] ? self.klass.table_name : self.name
           end
         end
       end

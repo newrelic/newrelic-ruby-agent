@@ -17,9 +17,6 @@ module NewRelic::Agent::Instrumentation
   class ActiveRecordHelperTest < Minitest::Test
     def teardown
       ActiveRecordHelper::TABLE_NAME_CACHE.clear
-      if ActiveRecordHelper.instance_variable_defined?(:@use_table_name)
-        ActiveRecordHelper.remove_instance_variable(:@use_table_name)
-      end
     end
 
     def test_product_operation_collection_for_find
