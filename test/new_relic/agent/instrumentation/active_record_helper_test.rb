@@ -163,7 +163,7 @@ module NewRelic::Agent::Instrumentation
     def test_model_from_splits_returns_nil_when_splits_length_is_not_two
       assert_nil ActiveRecordHelper.model_from_splits([])
       assert_nil ActiveRecordHelper.model_from_splits(['One'])
-      assert_nil ActiveRecordHelper.model_from_splits(['One', 'Two', 'Three'])
+      assert_nil ActiveRecordHelper.model_from_splits(%w[One Two Three])
     end
 
     def test_model_from_splits_returns_model_name_when_config_is_disabled
