@@ -16,7 +16,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: ruby/setup-ruby@3ff19f5e2baf30647122352b96108b1fbe250c64 # tag v1.299.0
+    - uses: ruby/setup-ruby@c4e5b1316158f92e3d49443a9d58b31d25ac0f8f # tag v1.306.0
       with:
         ruby-version: 3.4
 
@@ -42,7 +42,7 @@ jobs:
         echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
 
     - name: Create github release
-      uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # tag v2.6.1
+      uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # tag v3.0.0
       if: $(git tag -l ${{ env.VERSION }}) == false
       with:
         tag_name: ${{ env.VERSION }}

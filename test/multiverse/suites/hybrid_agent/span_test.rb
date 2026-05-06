@@ -424,6 +424,48 @@ module NewRelic
 
             assert_equal '503', txn.http_response_code
           end
+
+          def test_add_attributes_returns_early_with_nil_attributes
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.add_attributes(nil)
+          end
+
+          def test_add_attributes_returns_early_with_empty_attributes
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+
+            assert_nil span.add_attributes({})
+          end
+
+          def test_add_attributes_without_translator_adds_all_as_custom_span_attributes
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+            attrs = {'some.key' => 'value', 'other.key' => 123}
+            recorded_attrs = nil
+
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              span.finishable = txn.segments.first
+
+              NewRelic::Agent.stub(:add_custom_span_attributes, ->(a) { recorded_attrs = a }) do
+                span.add_attributes(attrs)
+              end
+            end
+
+            assert_equal attrs, recorded_attrs
+          end
+
+          def test_set_attribute_routes_through_translator
+            # set_attribute now delegates to add_attributes, so a server span
+            # that gets set_attribute('http.response.status_code', 200) should
+            # set http_response_code on the transaction, not just add a custom attr
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+
+            span.set_attribute('http.response.status_code', 201)
+            span.finish
+
+            assert_equal 201, txn.http_response_code
+          end
         end
       end
     end
