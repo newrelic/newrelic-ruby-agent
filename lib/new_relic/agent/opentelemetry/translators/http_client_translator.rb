@@ -13,7 +13,7 @@ module NewRelic
             AttributeMappings::HTTP_CLIENT_MAPPINGS
           end
 
-          def extra_operations(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
             uri = build_uri(attributes)
             result[:for_segment_api][:uri] = uri if uri
 

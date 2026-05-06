@@ -52,7 +52,9 @@ module NewRelic
 
             # Call any methods unique to the category being translated to create
             # specialized attributes.
-            result.merge(extra_operations(result: result, name: name, attributes: attributes, instrumentation_scope: instrumentation_scope))
+            # This method will augment the working result hash, so it does not
+            # need to be merged.
+            add_specialized_attributes(result: result, name: name, attributes: attributes, instrumentation_scope: instrumentation_scope)
 
             # Assign any remaining attributes as custom attributes
             result[:custom] = working_attrs
@@ -69,7 +71,7 @@ module NewRelic
           # @param [optional, String] instrumentation_scope The instrumentation scope provided to the translate method
           #
           # @return [Hash] The augmented result hash
-          def extra_operations(result: {}, name: nil, attributes: {}, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: {}, instrumentation_scope: nil)
             # no-op
             {}
           end

@@ -13,7 +13,7 @@ module NewRelic
             AttributeMappings::DATASTORE_MAPPINGS
           end
 
-          def extra_operations(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
             operation = parse_operation(name, attributes)
             result[:for_segment_api][:operation] = operation if operation
 

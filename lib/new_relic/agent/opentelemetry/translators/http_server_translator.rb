@@ -13,7 +13,7 @@ module NewRelic
             AttributeMappings::HTTP_SERVER_MAPPINGS
           end
 
-          def extra_operations(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
             result[:for_segment_api][:name] = create_server_transaction_name(name, instrumentation_scope, attributes)
 
             result
