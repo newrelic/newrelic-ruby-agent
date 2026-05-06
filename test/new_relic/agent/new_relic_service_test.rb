@@ -566,6 +566,19 @@ class NewRelicServiceTest < Minitest::Test
       NewRelic::Agent.agent.health_check.instance_variable_get(:@status)
   end
 
+  def test_401_logs_invalid_license_key_error
+    @http_handle.respond_to(:metric_data, 'payload', :code => 401)
+
+    logger = with_array_logger(level = :error) do
+      assert_raises NewRelic::Agent::ForceRestartException do
+        stats_hash = NewRelic::Agent::StatsHash.new
+        @service.metric_data(stats_hash)
+      end
+    end
+
+    assert_log_contains logger, 'Invalid license key: license-ke*'
+  end
+
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
     NewRelic::Agent.drop_buffered_data

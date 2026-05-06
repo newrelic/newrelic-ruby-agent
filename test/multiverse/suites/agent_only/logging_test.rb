@@ -95,26 +95,6 @@ class LoggingTest < Minitest::Test
     teardown_agent
   end
 
-  def test_logs_invalid_license_key_when_collector_returns_401
-    setup_agent(:license_key => 'a' * 30) do |collector|
-      collector.stub('preconnect', {}, 401)
-    end
-
-    saw?("Invalid license key: #{'a' * 10}#{'*' * 20}")
-
-    teardown_agent
-  end
-
-  def test_logs_invalid_short_license_key_is_fully_redacted
-    setup_agent(:license_key => 'short') do |collector|
-      collector.stub('preconnect', {}, 401)
-    end
-
-    saw?("Invalid license key: #{'*' * 5}")
-
-    teardown_agent
-  end
-
   def test_logs_monitor_mode_disabled
     running_agent_writes_to_log(
       {:monitor_mode => false},
