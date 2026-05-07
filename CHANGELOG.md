@@ -10,6 +10,10 @@
 
   A new configuration option, `active_record_use_table_name`, uses an Active Record model's table name instead of its class name when naming metrics, spans, and transaction trace segments. This can particularly be helpful to reduce cardinality in applications using single-table inheritance. The option defaults to `false` to preserve existing behavior. [PR#3540](https://github.com/newrelic/newrelic-ruby-agent/pull/3540)
 
+- **Feature: Partially redact license keys in agent logs**
+
+  Previously, the agent would fully redact New Relic license keys in agent logs. Now, the first 10 characters are visible while the rest are replaced with `*`. This preserves enough to troubleshoot region-related issues without exposing the secret portion of the key. [PR#3547](https://github.com/newrelic/newrelic-ruby-agent/pull/3547)
+
 ## v10.4.0
 
 - **Feature: Add Rails.event instrumentation for structured logging**
