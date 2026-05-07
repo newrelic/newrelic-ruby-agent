@@ -687,7 +687,11 @@ module NewRelic
 
       def redacted_license_key
         key = license_key
-        key.size > 10 ? key[0, 10] + ASTERISK * (key.size - 10) : ASTERISK * key.size
+        if key.size > 10
+          key[0, 10] + ASTERISK * (key.size - 10)
+        else
+          ASTERISK * key.size
+        end
       end
     end
   end
