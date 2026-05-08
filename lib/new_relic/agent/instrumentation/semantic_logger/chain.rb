@@ -12,7 +12,9 @@ module NewRelic::Agent::Instrumentation
 
         alias_method(:log_without_new_relic, :log)
 
-        def log(log)
+        def log(log, *args)
+          return log_without_new_relic(log, *args) unless log.is_a?(::SemanticLogger::Log)
+
           log_with_new_relic(log) do
             log_without_new_relic(log)
           end

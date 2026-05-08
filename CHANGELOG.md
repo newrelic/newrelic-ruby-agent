@@ -14,6 +14,10 @@
 
   Previously, the agent would fully redact New Relic license keys in agent logs. Now, the first 10 characters are visible while the rest are replaced with `*`. This preserves enough to troubleshoot region-related issues without exposing the secret portion of the key. [PR#3547](https://github.com/newrelic/newrelic-ruby-agent/pull/3547)
 
+- **Bugfix: Fix Semantic Logger instrumentation incompatibility with `rails_semantic_logger`**
+
+  Previously, an `ArgumentError` would be raised when an exception reached `ActionDispatch::DebugExceptions` while using `rails_semantic_logger`. This has been fixed. Thank you to [@jdelStrother](https://github.com/jdelStrother) for reporting this! [PR#3548](https://github.com/newrelic/newrelic-ruby-agent/pull/3548)
+
 ## v10.4.0
 
 - **Feature: Add Rails.event instrumentation for structured logging**
