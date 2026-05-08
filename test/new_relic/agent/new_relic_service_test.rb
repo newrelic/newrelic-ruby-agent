@@ -275,13 +275,13 @@ class NewRelicServiceTest < Minitest::Test
     initial_connect_log = with_array_logger(level = :debug) { @service.connect }
 
     assert_log_contains initial_connect_log, 'Sending request to localhost'
-    assert_log_contains initial_connect_log, Regexp.escape('license_key=***********')
+    assert_log_contains initial_connect_log, Regexp.escape('license_key=license-ke*')
 
     # If we need to reconnect, preconnect should use the locally configured collector again
     reconnect_log = with_array_logger(level = :debug) { @service.preconnect }
 
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
-    assert_log_contains reconnect_log, Regexp.escape('license_key=***********')
+    assert_log_contains reconnect_log, Regexp.escape('license_key=license-ke*')
   end
 
   def test_high_security_mode_sent_on_preconnect
@@ -543,12 +543,41 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   # Some status codes may also eventually report other health checks
-  # Status code 401 is also invalid license key, but that will return a different health check value if that's the reason for the 401
-  # Status code 410 is also for forced disconnect, but that forced disconnect is handled where forced disconnect is rescued
-  # In this method, however, they should report HTTP_ERROR
+  # * 401 is INVALID_LICENSE_KEY and overwrites HTTP_ERROR in handle_error_response
+  # * 410 is FORCED_DISCONNECT and overwrites HTTP_ERROR later when ForceDisconnectException is rescued in handle_force_disconnect
+  # However in this method, codes should report HTTP_ERROR
   check_agent_health_status_updates([
-    400, 401, 403, 405, 407, 408, 409, 410, 411, 413, 415, 417, 429, 431
+    400, 403, 405, 407, 408, 409, 410, 411, 413, 415, 417, 429, 431
   ])
+
+  def test_401_updates_invalid_license_key_health_check
+    NewRelic::Agent.agent.health_check.instance_variable_set(:@continue, true)
+    NewRelic::Agent.agent.health_check.instance_variable_set(:@status, NewRelic::Agent::HealthCheck::HEALTHY)
+
+    begin
+      @http_handle.respond_to(:metric_data, 'payload', :code => 401)
+      stats_hash = NewRelic::Agent::StatsHash.new
+      @service.metric_data(stats_hash)
+    rescue
+      # no-op, raise the error
+    end
+
+    assert_equal NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY,
+      NewRelic::Agent.agent.health_check.instance_variable_get(:@status)
+  end
+
+  def test_401_logs_invalid_license_key_error
+    @http_handle.respond_to(:metric_data, 'payload', :code => 401)
+
+    logger = with_array_logger(level = :error) do
+      assert_raises NewRelic::Agent::ForceRestartException do
+        stats_hash = NewRelic::Agent::StatsHash.new
+        @service.metric_data(stats_hash)
+      end
+    end
+
+    assert_log_contains logger, 'Invalid license key: license-ke*'
+  end
 
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
@@ -977,7 +1006,15 @@ class NewRelicServiceTest < Minitest::Test
     base = 'https://cdpr_cp2077.com?license_key='
     filtered = @service.send(:filtered_uri, base + @service.send(:license_key))
 
-    assert_equal base + '***********', filtered
+    assert_equal base + 'license-ke*', filtered
+  end
+
+  def test_filtered_uri_short_license_key_is_fully_redacted
+    service = NewRelic::Agent::NewRelicService.new('shorty', @server)
+    base = 'https://example.com?license_key='
+    filtered = service.send(:filtered_uri, base + 'shorty')
+
+    assert_equal base + '******', filtered
   end
 
   def build_stats_hash(items = {})

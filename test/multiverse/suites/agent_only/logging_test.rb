@@ -116,13 +116,6 @@ class LoggingTest < Minitest::Test
     )
   end
 
-  def test_logs_invalid_license_key
-    running_agent_writes_to_log(
-      {:license_key => 'a' * 30},
-      'Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    )
-  end
-
   def test_logs_unknown_config_setting_from_environment
     env_var = 'NEW_RELIC_TOTORO'
     setting = env_var.gsub(/NEW_RELIC_|NEWRELIC_/, '').downcase
