@@ -8,7 +8,9 @@ module NewRelic::Agent::Instrumentation
   module SemanticLogger::Logger::Prepend
     include NewRelic::Agent::Instrumentation::SemanticLogger::Logger
 
-    def log(log)
+    def log(log, *args)
+      return super unless log.is_a?(::SemanticLogger::Log)
+
       log_with_new_relic(log) { super }
     end
   end

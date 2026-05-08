@@ -10,6 +10,10 @@
 
   A new configuration option, `active_record_use_table_name`, uses an Active Record model's table name instead of its class name when naming metrics, spans, and transaction trace segments. This can particularly be helpful to reduce cardinality in applications using single-table inheritance. The option defaults to `false` to preserve existing behavior. [PR#3540](https://github.com/newrelic/newrelic-ruby-agent/pull/3540)
 
+- **Bugfix: Fix Semantic Logger instrumentation incompatibility with `rails_semantic_logger`**
+
+  Previously, an `ArgumentError` would be raised when an exception reached `ActionDispatch::DebugExceptions` while using `rails_semantic_logger`. This has been fixed. Thank you to [@jdelStrother](https://github.com/jdelStrother) for reporting this! [PR#3548](https://github.com/newrelic/newrelic-ruby-agent/pull/3548)
+
 ## v10.4.0
 
 - **Feature: Add Rails.event instrumentation for structured logging**
