@@ -63,9 +63,9 @@ jobs:
 
   update-agent-metadata:
     needs: [release]
-    uses: ./.github/workflows/AgentMetadata.yml
+    uses: ./.github/workflows/agent_metadata.yml
     with:
-      version: ${{ github.event.release.tag_name }}
+      version: ${{ env.VERSION }}
     secrets:
       FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
       FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
