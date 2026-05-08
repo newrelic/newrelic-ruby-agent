@@ -6,8 +6,19 @@ on:
       - main
 
 jobs:
+  release_outputs:
+    runs-on: ubuntu-latest
+    outputs:
+      agent_version: ${{ steps.step1.outputs.agent_version }}
+    steps:
+    - name: Determine agent version
+      id: step1
+      run: |
+        echo "agent_version=$(bundle exec rake newrelic:version:current)" >> $GITHUB_OUTPUT
+
   release:
     runs-on: ubuntu-latest
+    needs: release_outputs
     permissions:
       contents: write
       repository-projects: write
@@ -37,15 +48,11 @@ jobs:
         gem build newrelic-infinite_tracing.gemspec
         cd ..
 
-    - name: Determine version
-      run: |
-        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
-
     - name: Create github release
       uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # tag v3.0.0
-      if: $(git tag -l ${{ env.VERSION }}) == false
+      if: $(git tag -l ${{ needs.release_outputs.outputs.agent_version }}) == false
       with:
-        tag_name: ${{ env.VERSION }}
+        tag_name: ${{ needs.release_outputs.outputs.agent_version }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,11 +68,12 @@ jobs:
     - name: Publish newrelic-infinite_tracing to rubygems.org
       run: ruby ./.github/workflows/scripts/rubygems-publish.rb infinite_tracing/newrelic-infinite_tracing
 
-    - name: Update agent metadata
-      uses: ./.github/workflows/agent_metadata.yml
-      with:
-        version: ${{ env.VERSION }}
-      secrets:
-        FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-        FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
-        APM_CONTROL_NR_LICENSE_KEY_STAGING: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}
+  update_agent_metadata:
+    needs: [release_outputs, release]
+    uses: ./.github/workflows/agent_metadata.yml
+    with:
+      version: ${{ needs.release_outputs.outputs.agent_version }}
+    secrets:
+      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
+      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
+      APM_CONTROL_NR_LICENSE_KEY_STAGING: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}
