@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.5.0
 
 - **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
 
