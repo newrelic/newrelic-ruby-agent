@@ -48,12 +48,6 @@ Metrics/AbcSize:
   Max: 87
 
 # Offense count: 4
-Minitest/AssertRaisesCompoundBody:
-  Exclude:
-    - 'test/new_relic/agent/collector_response_code_test.rb'
-    - 'test/new_relic/agent/new_relic_service_test.rb'
-
-# Offense count: 4
 Minitest/DuplicateTestRun:
   Exclude:
     - 'test/multiverse/suites/rails/error_tracing_test.rb'
