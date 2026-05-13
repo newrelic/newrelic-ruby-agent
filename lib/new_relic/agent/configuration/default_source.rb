@@ -1792,12 +1792,12 @@ module NewRelic
           :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.rails_event_logger' => {
-          :default => value_of(:'application_logging.enabled'),
-          :documentation_default => 'true',
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'enabled',
           :public => true,
-          :type => Boolean,
+          :type => String,
           :allowed_from_server => false,
-          :description => 'Controls instrumentation of Rails.event as structured logs'
+          :description => 'Controls instrumentation of Rails.event as structured logs. May be one of: `enabled`, `disabled`.'
         },
         :'instrumentation.rails_event_logger.event_names' => {
           :default => [],
