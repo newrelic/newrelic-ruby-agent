@@ -42,8 +42,6 @@ module NewRelic
           assert_same DatastoreTranslator, result[:translator]
         end
 
-        # TODO: Update this test to use a Redis-specific translator
-        # when we implement that translator
         def test_discriminating_attribute_takes_precedence_over_span_kind
           # :client span_kind maps to HttpClientTranslator,
           # but db.system discriminating attribute should win
@@ -53,7 +51,28 @@ module NewRelic
             name: 'SELECT'
           )
 
+          assert_same RedisDatastoreTranslator, result[:translator]
+        end
+
+        def test_non_specific_db_routes_to_generic_datastore_translator
+          result = AttributeTranslator.translate(
+            attributes: {'db.system' => 'some_database'},
+            span_kind: :client,
+            name: 'SELECT'
+          )
+
           assert_same DatastoreTranslator, result[:translator]
+        end
+
+        def test_redis_instrumentation_scope_routes_to_redis_translator
+          result = AttributeTranslator.translate(
+            instrumentation_scope: 'opentelemetry-instrumentation-redis',
+            attributes: {},
+            span_kind: :client,
+            name: 'GET'
+          )
+
+          assert_same RedisDatastoreTranslator, result[:translator]
         end
 
         def test_selects_http_client_translator_by_span_kind_client
