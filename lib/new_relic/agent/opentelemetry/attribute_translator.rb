@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'translators/datastore_translator'
+require_relative 'translators/redis_datastore_translator'
 require_relative 'translators/http_client_translator'
 require_relative 'translators/http_server_translator'
 require_relative 'translators/generic_translator'
@@ -19,13 +20,19 @@ module NewRelic
             # pg instrumentation doesn't have db.system assigned when connect
             # spans start, so they would be incorrectly assigned
             # the HttpClientTranslator
-            'opentelemetry-instrumentation-pg' => DatastoreTranslator
-            # 'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
+            'opentelemetry-instrumentation-pg' => DatastoreTranslator,
+            'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator
           },
           discriminating_attribute: {
-            'db.system' => DatastoreTranslator,
-            'db.system.name' => DatastoreTranslator
-            # 'rpc.system' => RpcTranslator,
+            'db.system' => {
+              'redis' => RedisDatastoreTranslator,
+              default: DatastoreTranslator
+            },
+            'db.system.name' => {
+              'redis' => RedisDatastoreTranslator,
+              default: DatastoreTranslator
+            }
+            # 'rpc.system' => {default: RpcTranslator},
           },
           span_kind: {
             client: HttpClientTranslator,
@@ -57,7 +64,8 @@ module NewRelic
             if TRANSLATOR_REGISTRY[:instrumentation_scope][instrumentation_scope]
               TRANSLATOR_REGISTRY[:instrumentation_scope][instrumentation_scope]
             elsif k = DISCRIMINATING_ATTRIBUTE_KEYS.find { |key| attributes.key?(key) }
-              TRANSLATOR_REGISTRY[:discriminating_attribute][k]
+              entry = TRANSLATOR_REGISTRY[:discriminating_attribute][k]
+              entry[attributes[k]] || entry[:default]
             elsif TRANSLATOR_REGISTRY[:span_kind][span_kind]
               TRANSLATOR_REGISTRY[:span_kind][span_kind]
             else
