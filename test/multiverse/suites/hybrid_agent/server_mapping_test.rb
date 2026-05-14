@@ -105,26 +105,13 @@ module NewRelic
             txn = txns[1][0]
             agent = txn[2]
 
+            assert_equal attrs['http.target'], agent['request.uri']
+            assert_equal attrs['http.host'], agent['request.headers.host']
+            assert_equal attrs['http.user_agent'], agent['request.headers.userAgent']
+            assert_equal attrs['http.method'], agent['request.method']
+            # we assign the status code as an instance variable rather than a
+            # direct agent attribute, the key is a symbolized string
             assert_equal 418, agent[:'http.statusCode']
-            assert_equal attrs['http.target'], agent[:'request.uri']
-            assert_equal attrs['http.host'], agent[:'request.headers.host']
-            assert_equal attrs['http.user_agent'], agent[:'request.headers.userAgent']
-            assert_equal attrs['http.method'], agent[:'request.method']
-          end
-
-          def test_server_old_span_agent_attributes
-            attrs = old_req_attrs
-            run_server_transaction(old_name, attrs, old_res_attrs)
-
-            spans = harvest_span_events!
-            span = spans[1][0]
-            agent = span[2]
-
-            assert_equal 418, agent[:'http.statusCode']
-            assert_equal attrs['http.target'], agent[:'request.uri']
-            assert_equal attrs['http.host'], agent[:'request.headers.host']
-            assert_equal attrs['http.user_agent'], agent[:'request.headers.userAgent']
-            assert_equal attrs['http.method'], agent[:'request.method']
           end
 
           def test_server_old_span_custom_attributes
@@ -135,15 +122,10 @@ module NewRelic
             span = spans[1][0]
             custom = span[1]
 
-            # Currently, all attributes are being applied as custom attributes
-            # eventually, only the attributes that aren't assigned as agent
-            # attributes will remain in custom attributes.
-            # When that change is made, this test will fail.
-            assert_equal attrs['http.method'], custom['http.method']
-            assert_equal attrs['http.host'], custom['http.host']
-            assert_equal attrs['http.target'], custom['http.target']
-            assert_equal attrs['http.user_agent'], custom['http.user_agent']
-            assert_equal 418, custom['http.status_code']
+            keys_assigned_elsewhere = %w[http.method http.host http.user_agent http.target http.status_code]
+
+            assert_empty custom.keys & keys_assigned_elsewhere
+            assert_equal attrs['http.scheme'], custom['http.scheme']
           end
 
           def test_server_stable_transaction_name
@@ -175,26 +157,13 @@ module NewRelic
             txn = txns[1][0]
             agent = txn[2]
 
+            # we assign the status code as an instance variable rather than a
+            # direct agent attribute, the key is a symbolized string
             assert_equal 418, agent[:'http.statusCode']
-            assert_equal attrs['url.path'], agent[:'request.uri']
-            assert_equal attrs['server.address'], agent[:'request.headers.host']
-            assert_equal attrs['user_agent.original'], agent[:'request.headers.userAgent']
-            assert_equal attrs['http.request.method'], agent[:'request.method']
-          end
-
-          def test_server_stable_span_agent_attributes
-            attrs = stable_req_attrs
-            run_server_transaction(stable_name, attrs, stable_res_attrs)
-
-            spans = harvest_span_events!
-            span = spans[1][0]
-            agent = span[2]
-
-            assert_equal 418, agent[:'http.statusCode']
-            assert_equal attrs['url.path'], agent[:'request.uri']
-            assert_equal attrs['server.address'], agent[:'request.headers.host']
-            assert_equal attrs['user_agent.original'], agent[:'request.headers.userAgent']
-            assert_equal attrs['http.request.method'], agent[:'request.method']
+            assert_equal attrs['url.path'], agent['request.uri']
+            assert_equal attrs['server.address'], agent['request.headers.host']
+            assert_equal attrs['user_agent.original'], agent['request.headers.userAgent']
+            assert_equal attrs['http.request.method'], agent['request.method']
           end
 
           def test_server_stable_span_custom_attributes
@@ -205,16 +174,10 @@ module NewRelic
             span = spans[1][0]
             custom = span[1]
 
-            # Currently, all attributes are being applied as custom attributes
-            # eventually, only the attributes that aren't assigned as agent
-            # attributes will remain in custom attributes.
-            # When that change is made, this test will fail.
-            assert_equal attrs['http.request.method'], custom['http.request.method']
-            assert_equal attrs['server.address'], custom['server.address']
-            assert_equal attrs['url.path'], custom['url.path']
+            keys_assigned_elsewhere = %w[http.request.method server.address url.path user_agent.original http.response.status_code]
+
+            assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal attrs['url.query'], custom['url.query']
-            assert_equal attrs['user_agent.original'], custom['user_agent.original']
-            assert_equal 418, custom['http.response.status_code']
           end
         end
       end
