@@ -469,6 +469,27 @@ class DependencyDetectionTest < Minitest::Test
     end
   end
 
+  def test_false_bool_to_string_instrumentation_config
+    name = :false_config_second_detect_test
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named(name)
+      depends_on { NewRelic::Agent.config[:"instrumentation.#{name}"] }
+      executes { executed = true }
+    end
+
+    with_config(:"instrumentation.#{name}" => false) do
+      DependencyDetection.detect!
+
+      assert_equal :disabled, dd.config_value
+
+      DependencyDetection.detect!
+
+      refute executed
+    end
+  end
+
   def test_already_executed_items_are_not_executed_again
     unexecuted = Minitest::Mock.new
     unexecuted.expect :executed, false
