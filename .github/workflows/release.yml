@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      agent_version: ${{ steps.version.outputs.agent_version }}
     permissions:
       contents: write
       repository-projects: write
@@ -38,14 +40,15 @@ jobs:
         cd ..
 
     - name: Determine version
+      id: version
       run: |
-        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
+        echo "agent_version=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
 
     - name: Create github release
       uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # tag v3.0.0
-      if: $(git tag -l ${{ env.VERSION }}) == false
+      if: $(git tag -l ${{ steps.version.outputs.agent_version }}) == false
       with:
-        tag_name: ${{ env.VERSION }}
+        tag_name: ${{ steps.version.outputs.agent_version }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -63,9 +66,9 @@ jobs:
 
   update-agent-metadata:
     needs: [release]
-    uses: ./.github/workflows/AgentMetadata.yml
+    uses: ./.github/workflows/agent_metadata.yml
     with:
-      version: ${{ github.event.release.tag_name }}
+      version: ${{ needs.release.version.outputs.agent_version }}
     secrets:
       FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
       FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}

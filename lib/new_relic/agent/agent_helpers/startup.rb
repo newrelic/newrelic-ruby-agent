@@ -59,6 +59,7 @@ module NewRelic
             @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
           end
 
+          NewRelic::Agent.record_metric("Supportability/AgentVersion/newrelic_rpm/#{NewRelic::VERSION::STRING}", 0.0)
           connect_in_foreground if Agent.config[:sync_startup]
           start_worker_thread(options)
         end
