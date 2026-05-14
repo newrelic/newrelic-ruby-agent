@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
     outputs:
-      agent_version: ${{ steps.version.outputs.agent_version }}
+      agent_version: ${{ steps.version.outputs.VERSION }}
     permissions:
       contents: write
       repository-projects: write
@@ -42,13 +43,14 @@ jobs:
     - name: Determine version
       id: version
       run: |
-        echo "agent_version=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
+        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
+        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
 
     - name: Create github release
       uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # tag v3.0.0
-      if: $(git tag -l ${{ steps.version.outputs.agent_version }}) == false
+      if: $(git tag -l ${{ env.VERSION }}) == false
       with:
-        tag_name: ${{ steps.version.outputs.agent_version }}
+        tag_name: ${{ env.VERSION }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
