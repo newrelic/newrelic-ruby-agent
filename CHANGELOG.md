@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
+
+  Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)
+
 ## v10.5.0
 
 - **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
