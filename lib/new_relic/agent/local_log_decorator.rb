@@ -14,7 +14,8 @@ module NewRelic
         metadata = NewRelic::Agent.linking_metadata
 
         if message.is_a?(Hash)
-          message.merge!(metadata) unless message.frozen?
+          message['nr_key'] = metadata unless message.frozen?
+          # message.merge!(metadata) unless message.frozen?
           return
         end
 
