@@ -7,6 +7,6 @@ require_relative '../../test_helper'
 class NewRelic::Agent::ApdexFromServerTest < Minitest::Test
   def test_true
     # we need tests in this file - TBD
-    assert true
+    assert true # rubocop:disable Minitest/UselessAssertion
   end
 end

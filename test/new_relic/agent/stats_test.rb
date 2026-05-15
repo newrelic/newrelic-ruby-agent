@@ -142,7 +142,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
       # the following should throw an exception because s1 is frozen
       s1.trace_call(20)
 
-      assert false
+      assert false # rubocop:disable Minitest/UselessAssertion -- this should never be hit
     rescue StandardError
       assert_predicate s1, :frozen?
       validate(stats: s1, count: 1, total: 10, min: 10, max: 10)
