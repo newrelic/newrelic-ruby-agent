@@ -81,7 +81,11 @@ module NewRelic
                   start_time: start_timestamp
                 )
 
-                segment&._notice_sql(segment_api_params[:sql])
+                if segment_api_params[:sql]
+                  segment&._notice_sql(segment_api_params[:sql])
+                elsif segment_api_params[:nosql_statement]
+                  segment&.notice_nosql_statement(segment_api_params[:nosql_statement])
+                end
 
                 segment
               else

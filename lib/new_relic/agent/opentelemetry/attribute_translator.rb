@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'translators/datastore_translator'
+require_relative 'translators/redis_datastore_translator'
 require_relative 'translators/http_client_translator'
 require_relative 'translators/http_server_translator'
 require_relative 'translators/generic_translator'
@@ -19,8 +20,8 @@ module NewRelic
             # pg instrumentation doesn't have db.system assigned when connect
             # spans start, so they would be incorrectly assigned
             # the HttpClientTranslator
-            'opentelemetry-instrumentation-pg' => DatastoreTranslator
-            # 'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
+            'opentelemetry-instrumentation-pg' => DatastoreTranslator,
+            'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator
           },
           discriminating_attribute: {
             'db.system' => DatastoreTranslator,
