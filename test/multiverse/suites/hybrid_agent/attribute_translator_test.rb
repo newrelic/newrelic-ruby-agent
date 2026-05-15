@@ -51,16 +51,6 @@ module NewRelic
             name: 'SELECT'
           )
 
-          assert_same RedisDatastoreTranslator, result[:translator]
-        end
-
-        def test_non_specific_db_routes_to_generic_datastore_translator
-          result = AttributeTranslator.translate(
-            attributes: {'db.system' => 'some_database'},
-            span_kind: :client,
-            name: 'SELECT'
-          )
-
           assert_same DatastoreTranslator, result[:translator]
         end
 

@@ -8,7 +8,7 @@ module NewRelic
       module Trace
         class RedisMappingTest < Minitest::Test
           def setup
-            @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('OTelClient')
+            @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('opentelemetry-instrumentation-redis')
             harvest_span_events!
             harvest_transaction_events!
           end
