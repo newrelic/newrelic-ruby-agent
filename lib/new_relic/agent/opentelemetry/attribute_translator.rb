@@ -4,6 +4,7 @@
 
 require_relative 'translators/datastore_translator'
 require_relative 'translators/redis_datastore_translator'
+require_relative 'translators/mongo_datastore_translator'
 require_relative 'translators/http_client_translator'
 require_relative 'translators/http_server_translator'
 require_relative 'translators/generic_translator'
@@ -21,7 +22,8 @@ module NewRelic
             # spans start, so they would be incorrectly assigned
             # the HttpClientTranslator
             'opentelemetry-instrumentation-pg' => DatastoreTranslator,
-            'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator
+            'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
+            'opentelemetry-instrumentation-mongo' => MongoDatastoreTranslator
           },
           discriminating_attribute: {
             'db.system' => DatastoreTranslator,
