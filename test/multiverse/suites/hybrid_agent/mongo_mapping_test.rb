@@ -24,7 +24,7 @@ module NewRelic
               'db.name' => 'customers',
               'db.statement' => '{"find":"users","filter":{"_id":42}}',
               'db.mongodb.collection' => 'users',
-              'db.user' => 'admin',
+              'peer.service' => 'example:mongo',
               'net.peer.name' => 'mongodb.example',
               'net.peer.port' => '27017'
             }
@@ -37,7 +37,7 @@ module NewRelic
               'db.namespace' => 'customers',
               'db.query.text' => '{"find":"users","filter":{"_id":42}}',
               'db.collection.name' => 'users',
-              'db.user' => 'admin',
+              'peer.service' => 'example:mongo',
               'server.address' => 'mongodb.example',
               'server.port' => '27017'
             }
@@ -117,7 +117,7 @@ module NewRelic
             keys_assigned_elsewhere = %w[db.system db.name db.operation db.statement db.mongodb.collection net.peer.name net.peer.port]
 
             assert_empty custom.keys & keys_assigned_elsewhere
-            assert_equal mongo_v_1_17_attrs['db.user'], custom['db.user']
+            assert_equal mongo_v_1_17_attrs['peer.service'], custom['peer.service']
           end
 
           def test_mongo_v_1_25_segment_properties
@@ -184,7 +184,7 @@ module NewRelic
             keys_assigned_elsewhere = %w[db.system.name db.operation.name db.namespace db.query.text db.collection.name server.address server.port]
 
             assert_empty custom.keys & keys_assigned_elsewhere
-            assert_equal mongo_v_1_25_attrs['db.user'], custom['db.user']
+            assert_equal mongo_v_1_25_attrs['peer.service'], custom['peer.service']
           end
         end
       end
