@@ -65,6 +65,17 @@ module NewRelic
           assert_same RedisDatastoreTranslator, result[:translator]
         end
 
+        def test_mongo_instrumentation_scope_routes_to_mongo_translator
+          result = AttributeTranslator.translate(
+            instrumentation_scope: 'opentelemetry-instrumentation-mongo',
+            attributes: {},
+            span_kind: :client,
+            name: 'GET'
+          )
+
+          assert_same MongoDatastoreTranslator, result[:translator]
+        end
+
         def test_selects_http_client_translator_by_span_kind_client
           result = AttributeTranslator.translate(
             span_kind: :client,

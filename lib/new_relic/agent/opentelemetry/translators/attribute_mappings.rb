@@ -124,6 +124,37 @@ module NewRelic
           }
         }.freeze
 
+        MONGO_MAPPINGS = { # v1.25, v1.17
+          'product' => {
+            otel_keys: ['db.system.name', 'db.system'],
+            segment_field: :product
+          },
+          'database_name' => {
+            otel_keys: ['db.namespace', 'db.name'],
+            segment_field: :database_name
+          },
+          'host' => {
+            otel_keys: ['server.address', 'net.peer.name'],
+            segment_field: :host
+          },
+          'port_path_or_id' => {
+            otel_keys: ['server.port', 'net.peer.port'],
+            segment_field: :port_path_or_id
+          },
+          'operation' => {
+            otel_keys: ['db.operation.name', 'db.operation'],
+            segment_field: :operation
+          },
+          'collection' => {
+            otel_keys: ['db.collection.name', 'db.mongodb.collection'],
+            segment_field: :collection
+          },
+          'nosql_statement' => {
+            otel_keys: ['db.statement', 'db.query.text'],
+            segment_field: :nosql_statement
+          }
+        }.freeze
+
         HTTP_SERVER_MAPPINGS = { # v1.23, v1.20
           'http_response_code' => {
             otel_keys: ['http.response.status_code', 'http.status_code'],
