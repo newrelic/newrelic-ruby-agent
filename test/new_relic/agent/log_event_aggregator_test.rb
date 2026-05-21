@@ -59,10 +59,6 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
