@@ -32,11 +32,15 @@ module NewRelic::Agent::Instrumentation
           yield(::Dalli::Client, dalli_client_prepender(dalli_methods))
           yield(::Dalli::Client, dalli_get_multi_prepender(:get_multi))
 
-          if supports_binary_protocol?
+          if supports_meta_protocol?
+            yield(::Dalli::Protocol::Base, dalli_server_prepender)
+          elsif supports_binary_protocol?
             yield(::Dalli::Protocol::Binary, dalli_server_prepender)
           else
             yield(::Dalli::Server, dalli_server_prepender)
           end
+
+          yield(::Dalli::Protocol::Meta, dalli_read_multi_req_prepender) if supports_read_multi_req?
 
           yield(::Dalli::Ring, dalli_ring_prepender)
         else
@@ -64,6 +68,17 @@ module NewRelic::Agent::Instrumentation
 
           define_method method_name do |*args, &block|
             get_multi_with_newrelic_tracing(method_name) { super(*args, &block) }
+          end
+        end
+      end
+
+      def dalli_read_multi_req_prepender
+        Module.new do
+          extend Helper
+          include NewRelic::Agent::Instrumentation::Memcache::Tracer
+
+          def read_multi_req(keys)
+            send_multiget_with_newrelic_tracing(keys) { super }
           end
         end
       end

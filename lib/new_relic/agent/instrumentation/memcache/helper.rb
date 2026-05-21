@@ -7,6 +7,8 @@ module NewRelic::Agent::Instrumentation
     module Helper
       DATASTORE_INSTANCES_SUPPORTED_VERSION = Gem::Version.new('2.6.4')
       BINARY_PROTOCOL_SUPPORTED_VERSION = Gem::Version.new('3.0.2')
+      META_PROTOCOL_SUPPORTED_VERSION = Gem::Version.new('3.2.0')
+      READ_MULTI_SUPPORTED_VERSION = Gem::Version.new('5.0.0')
 
       def supports_datastore_instances?
         NewRelic::Helper.version_satisfied?(DATASTORE_INSTANCES_SUPPORTED_VERSION, '<=', ::Dalli::VERSION)
@@ -14,6 +16,14 @@ module NewRelic::Agent::Instrumentation
 
       def supports_binary_protocol?
         NewRelic::Helper.version_satisfied?(BINARY_PROTOCOL_SUPPORTED_VERSION, '<=', ::Dalli::VERSION)
+      end
+
+      def supports_meta_protocol?
+        NewRelic::Helper.version_satisfied?(META_PROTOCOL_SUPPORTED_VERSION, '<=', ::Dalli::VERSION)
+      end
+
+      def supports_read_multi_req?
+        NewRelic::Helper.version_satisfied?(READ_MULTI_SUPPORTED_VERSION, '<=', ::Dalli::VERSION)
       end
 
       def client_methods

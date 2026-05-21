@@ -217,6 +217,7 @@ module NewRelic
         @current_segment_by_thread = {}
         @current_segment_lock = Mutex.new
         @segment_lock = Mutex.new
+        @finish_mutex = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -554,24 +555,30 @@ module NewRelic
       end
 
       def finish
-        return unless state.is_execution_traced? && initial_segment
+        @finish_mutex.synchronize do
+          # Guard against double-finishing to prevent duplicate transaction recording
+          # This can occur in multi-threaded/fiber environments or when finish is called
+          # explicitly before the wrapping code calls it again (e.g., Tracer.in_transaction)
+          return unless state.is_execution_traced? && initial_segment
+          return if finished?
 
-        @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
-        @duration = @end_time - @start_time
-        freeze_name_and_execute_if_not_ignored
+          @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+          @duration = @end_time - @start_time
+          freeze_name_and_execute_if_not_ignored
 
-        if nesting_max_depth == 1
-          initial_segment.name = @frozen_name
+          if nesting_max_depth == 1
+            initial_segment.name = @frozen_name
+          end
+
+          initial_segment.transaction_name = @frozen_name
+          assign_segment_dt_attributes
+          assign_agent_attributes
+          initial_segment.finish
+
+          NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
+
+          commit!(initial_segment.name) unless @ignore_this_transaction
         end
-
-        initial_segment.transaction_name = @frozen_name
-        assign_segment_dt_attributes
-        assign_agent_attributes
-        initial_segment.finish
-
-        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
-
-        commit!(initial_segment.name) unless @ignore_this_transaction
       rescue => e
         NewRelic::Agent.logger.error('Exception during Transaction#finish', e)
         nil

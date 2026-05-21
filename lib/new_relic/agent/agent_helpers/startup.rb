@@ -39,7 +39,7 @@ module NewRelic
           # some health statuses, such as invalid license key, are ran before
           # the agent officially starts
           @health_check.create_and_run_health_check_loop
-          return unless monitoring? && has_correct_license_key?
+          return unless monitoring? && has_license_key?
           return if using_forking_dispatcher?
 
           setup_and_start_agent
@@ -59,6 +59,7 @@ module NewRelic
             @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
           end
 
+          NewRelic::Agent.record_metric("Supportability/AgentVersion/newrelic_rpm/#{NewRelic::VERSION::STRING}", 0.0)
           connect_in_foreground if Agent.config[:sync_startup]
           start_worker_thread(options)
         end
@@ -149,24 +150,6 @@ module NewRelic
               'This often means your newrelic.yml file was not found, or it lacks a section for the running ' \
               "environment, '#{NewRelic::Control.instance.env}'. You may also want to try linting your newrelic.yml " \
               'to ensure it is valid YML.')
-            false
-          end
-        end
-
-        def has_correct_license_key?
-          has_license_key? && correct_license_length
-        end
-
-        # A license key is an arbitrary 40 character string,
-        # usually looks something like a SHA1 hash
-        def correct_license_length
-          key = Agent.config[:license_key]
-
-          if key.length == 40
-            true
-          else
-            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
-            ::NewRelic::Agent.logger.error("Invalid license key: #{key}")
             false
           end
         end

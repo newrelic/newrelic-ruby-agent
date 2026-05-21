@@ -924,9 +924,28 @@ Security/IoMethods:
 Minitest/AssertOperator:
   Enabled: false
 
+Minitest/DuplicateTestRun:
+  Exclude:
+    # This is intentional, to run the same tests with different collector configurations
+    - 'test/multiverse/suites/rails/error_tracing_test.rb'
+    # This is intentional, to run the same tests with different app configurations
+    - 'test/multiverse/suites/sinatra/ignoring_test.rb'
+
+# We like using multiple assertions in a test
+Minitest/MultipleAssertions:
+  Enabled: false
+
 # Will incorrectly raise on test helper methods
 Minitest/TestMethodName:
   Enabled: false
+
+# Our Rails instrumentation tests are intentionally structured in a way
+# where some of the tests are in files that don't end in _test.rb
+# Performance suites don't use minitest and do not need _test.rb endings
+Minitest/TestFileName:
+  Exclude:
+    - 'test/new_relic/agent/instrumentation/rails/*'
+    - 'test/performance/suites/*'
 
 Style/AccessModifierDeclarations:
   Enabled: false

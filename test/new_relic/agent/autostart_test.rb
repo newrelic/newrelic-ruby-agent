@@ -107,4 +107,40 @@ class AutostartTest < Minitest::Test
       refute_predicate ::NewRelic::Agent::Autostart, :agent_should_start?, "Agent shouldn't during denylisted rake task"
     end
   end
+
+  def test_denylisted_handles_no_spaces
+    result = ::NewRelic::Agent::Autostart.send(:denylisted?, 'mario,luigi,bowser') { |item| item == 'luigi' }
+
+    assert result, 'Should find luigi with no spaces'
+  end
+
+  def test_denylisted_handles_spaces_after_comma
+    result = ::NewRelic::Agent::Autostart.send(:denylisted?, 'mario, luigi, bowser') { |item| item == 'luigi' }
+
+    assert result, 'Should find luigi with spaces after comma'
+  end
+
+  def test_denylisted_handles_spaces_before_comma
+    result = ::NewRelic::Agent::Autostart.send(:denylisted?, 'mario ,luigi ,bowser') { |item| item == 'luigi' }
+
+    assert result, 'Should find luigi with spaces before comma'
+  end
+
+  def test_denylisted_handles_spaces_before_and_after_comma
+    result = ::NewRelic::Agent::Autostart.send(:denylisted?, 'mario , luigi , bowser') { |item| item == 'luigi' }
+
+    assert result, 'Should find luigi with spaces before and after comma'
+  end
+
+  def test_denylisted_handles_multiple_spaces_around_comma
+    result = ::NewRelic::Agent::Autostart.send(:denylisted?, 'mario  ,  luigi  ,  bowser') { |item| item == 'luigi' }
+
+    assert result, 'Should find luigi with multiple spaces'
+  end
+
+  def test_denylisted_does_not_find_items_that_arent_in_list
+    result = ::NewRelic::Agent::Autostart.send(:denylisted?, 'mario, luigi, bowser') { |item| item == 'peach' }
+
+    refute result, 'Should not find peach'
+  end
 end

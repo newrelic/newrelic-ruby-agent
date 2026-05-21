@@ -62,12 +62,17 @@ module NewRelic
             agent = span[2]
 
             assert_equal request_attrs['http.method'], intrinsics['http.method']
-            assert_equal 200, intrinsics['http.statusCode']
+            assert_equal request_attrs['http.method'], intrinsics['http.request.method']
             assert_equal request_attrs['net.peer.name'], intrinsics['server.address']
             assert_equal request_attrs['net.peer.port'], intrinsics['server.port']
+            assert_equal 200, intrinsics['http.statusCode']
+
             assert_equal request_attrs['http.scheme'], custom['http.scheme']
             assert_equal request_attrs['http.target'], custom['http.target']
+
             assert_equal request_attrs['http.url'], agent['http.url']
+            assert_equal 1, agent['status.code']
+            assert_equal 'OTelClient', agent['otel.scope.name']
           end
 
           # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
@@ -88,7 +93,6 @@ module NewRelic
             # the category will be Other.
             transaction = in_transaction(category: :web) do |txn|
               txn.stubs(:sampled?).returns(true)
-
               @tracer.in_span('GET', attributes: request_attrs.dup, kind: :client) do |span|
                 span.set_attribute('http.response.status_code', 200)
               end
@@ -109,19 +113,23 @@ module NewRelic
             ])
 
             spans = harvest_span_events!
-            # binding.irb
             span = spans[1][0]
             intrinsics = span[0]
             custom = span[1]
             agent = span[2]
 
             assert_equal request_attrs['http.request.method'], intrinsics['http.method']
-            assert_equal 200, intrinsics['http.statusCode']
+            assert_equal request_attrs['http.request.method'], intrinsics['http.request.method']
             assert_equal request_attrs['server.address'], intrinsics['server.address']
             assert_equal request_attrs['server.port'], intrinsics['server.port']
+            assert_equal 200, intrinsics['http.statusCode']
+
             assert_equal request_attrs['url.scheme'], custom['url.scheme']
             assert_equal request_attrs['url.path'], custom['url.path']
+
             assert_equal request_attrs['url.full'], agent['http.url']
+            assert_equal 1, agent['status.code']
+            assert_equal 'OTelClient', agent['otel.scope.name']
           end
         end
       end

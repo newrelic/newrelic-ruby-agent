@@ -29,7 +29,10 @@ module NewRelic
             verb = http_verb(request)
 
             route_text = route_text.source if route_text.is_a?(Regexp)
-            name = route_text.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
+            # Limit route text length to prevent ReDoS attacks on regex processing
+            # Sinatra routes are typically < 100 chars; 1000 is a generous limit
+            route_text = route_text[0, 1000] if route_text.length > 1000
+            name = route_text.gsub(%r{^[/^\\A]+|[/\$\?\\z]+$}, '')
             name = NewRelic::ROOT if name.empty?
             name = "#{verb} #{name}" unless verb.nil?
             name

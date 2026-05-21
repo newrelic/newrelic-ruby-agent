@@ -429,7 +429,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
         end
       end
 
-      assert false # should never get here
+      assert false # rubocop:disable Minitest/UselessAssertion -- should never get here
     rescue StandardError
     end
 

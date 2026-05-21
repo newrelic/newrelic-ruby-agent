@@ -33,7 +33,7 @@ namespace :newrelic do
       'custom_insights_events' => 'Custom Events [#custom-events]',
       'ai_monitoring' => 'AI Monitoring [#ai-monitoring]',
       'security_agent' => 'Security Agent [#security-agent]',
-      'opentelemetry' => 'OpenTelemetry'
+      'opentelemetry' => 'OpenTelemetry [#opentelemetry]'
     }
 
     desc 'Describe available New Relic configuration settings'

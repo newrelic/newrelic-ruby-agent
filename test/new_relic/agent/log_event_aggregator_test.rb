@@ -62,6 +62,7 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/SemanticLogger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
@@ -86,6 +87,7 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -380,6 +382,7 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/SemanticLogger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -415,6 +418,7 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -444,6 +448,7 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
           'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
@@ -592,6 +597,39 @@ module NewRelic::Agent
 
         assert_equal(log_message, events.first.last['message'])
       end
+    end
+
+    def test_format_log_level_constant_caches_results
+      result1 = @aggregator.send(:format_log_level_constant, 'debug')
+
+      assert_equal :DEBUG, result1
+
+      cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
+      assert cache.key?('debug')
+      assert_equal :DEBUG, cache['debug']
+    end
+
+    def test_format_log_level_constant_handles_different_cases
+      debug_lower = @aggregator.send(:format_log_level_constant, 'debug')
+      debug_upper = @aggregator.send(:format_log_level_constant, 'DEBUG')
+
+      assert_equal :DEBUG, debug_lower
+      assert_equal :DEBUG, debug_upper
+
+      cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
+      assert_equal 2, cache.count { |k, v| v == :DEBUG }
+    end
+
+    def test_format_log_level_constant_handles_custom_levels
+      custom = @aggregator.send(:format_log_level_constant, 'custom')
+
+      assert_equal :CUSTOM, custom
+
+      cache = @aggregator.instance_variable_get(:@severity_constant_cache)
+
+      assert cache.key?('custom')
     end
 
     def test_record_json_sets_severity_when_given_level

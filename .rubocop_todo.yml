@@ -47,36 +47,6 @@ Lint/UselessConstantScoping:
 Metrics/AbcSize:
   Max: 87
 
-# Offense count: 4
-Minitest/AssertRaisesCompoundBody:
-  Exclude:
-    - 'test/new_relic/agent/collector_response_code_test.rb'
-    - 'test/new_relic/agent/new_relic_service_test.rb'
-
-# Offense count: 4
-Minitest/DuplicateTestRun:
-  Exclude:
-    - 'test/multiverse/suites/rails/error_tracing_test.rb'
-    - 'test/multiverse/suites/sinatra/ignoring_test.rb'
-
-# Offense count: 341
-Minitest/MultipleAssertions:
-  Max: 28
-
-# Offense count: 19
-Minitest/TestFileName:
-  Enabled: false
-
-# Offense count: 7
-Minitest/UselessAssertion:
-  Exclude:
-    - 'test/intentional_fail.rb'
-    - 'test/multiverse/test/suite_examples/three/b/win_test.rb'
-    - 'test/new_relic/agent/agent_test.rb'
-    - 'test/new_relic/agent/apdex_from_server_test.rb'
-    - 'test/new_relic/agent/method_tracer_test.rb'
-    - 'test/new_relic/agent/stats_test.rb'
-
 # Offense count: 19
 # Configuration parameters: Mode, AllowedMethods, AllowedPatterns, AllowBangMethods, WaywardPredicates.
 # AllowedMethods: call

@@ -120,7 +120,7 @@ module NewRelic
       assert_includes content, 'subject: Ruby agent'
       assert_includes content, "releaseDate: '#{Date.today}'"
       assert_includes content, "version: #{NewRelic::VERSION::STRING}"
-      assert_includes content, "downloadLink: https://rubygems.org/downloads/newrelic_rpm-#{NewRelic::VERSION::STRING}.gem"
+      assert_includes content, "downloadLink: https://rubygems.org/gems/newrelic_rpm/versions/#{NewRelic::VERSION::STRING}"
       assert_includes content, 'features: ["Add support for new framework"]'
       assert_includes content, 'bugs: ["Fix memory leak in instrumentation"]'
       assert_includes content, 'security: ["Address potential XSS vulnerability"]'

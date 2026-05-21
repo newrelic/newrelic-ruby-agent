@@ -138,7 +138,7 @@ module NewRelicYML
     # remove callouts
     description = description.split("\n").reject { |line| line.match?('</?Callout') }.join("\n")
     # remove InlinePopover, keep the text inside type
-    description.gsub!(/<InlinePopover type="(.*)" \/>/, '\1')
+    description.gsub!(/<InlinePopover type="([^"]*)" \/>/, '\1')
     # remove hyperlinks
     description.gsub!(/\[([^\]]+)\]\([^\)]+\)/, '\1')
     # delete lines with code fences including the language
@@ -146,7 +146,7 @@ module NewRelicYML
     # remove single pairs of backticks
     description.gsub!(/`([^`]+)`/, '\1')
     # removed href links
-    description.gsub!(/<a href="(.*)">(.*)<\/a>/, '\2')
+    description.gsub!(/<a href="([^"]*)">(.*?)<\/a>/, '\2')
 
     description
   end

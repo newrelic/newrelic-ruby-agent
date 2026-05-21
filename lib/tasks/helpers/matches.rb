@@ -4,7 +4,7 @@
 
 module Matches
   def look_for_seed(tasks)
-    matches = tasks.map { |t| /(seed=.*?)[,\]]/.match(t) }.compact
+    matches = tasks.map { |t| /(seed=[^,\]]*)[,\]]/.match(t) }.compact
     if matches.any?
       matches.first[1]
     end

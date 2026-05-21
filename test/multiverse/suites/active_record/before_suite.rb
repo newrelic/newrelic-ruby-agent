@@ -35,5 +35,6 @@ class Minitest::Test
     Alias.delete_all
     Order.delete_all
     Shipment.delete_all
+    Animal.delete_all
   end
 end

@@ -142,7 +142,7 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
-  def test_init_plugin_records_agent_version_metric
+  def test_records_agent_version_metric_in_non_forking_environment
     reset_agent
 
     NewRelic::VERSION.stub_const(:STRING, '1.2.3') do
@@ -158,8 +158,35 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
+  def test_records_agent_version_metric_after_fork
+    reset_agent
+
+    NewRelic::VERSION.stub_const(:STRING, '1.2.3') do
+      with_config(:disable_samplers => true,
+        :disable_harvest_thread => true,
+        :agent_enabled          => true,
+        :monitor_mode           => true,
+        :license_key            => 'a' * 40,
+        :dispatcher             => :puma) do
+        NewRelic::Control.instance.init_plugin
+
+        # In a forking dispatcher, setup_and_start_agent is skipped in the master
+        # process, so the metric is not yet recorded.
+        assert_metrics_not_recorded('Supportability/AgentVersion/newrelic_rpm/1.2.3')
+
+        # After a worker forks, after_fork calls setup_and_start_agent in the child
+        # with a fresh stats engine. The metric must be recorded there so the
+        # worker's harvest thread can transmit it.
+        NewRelic::Agent.after_fork
+
+        assert_metrics_recorded('Supportability/AgentVersion/newrelic_rpm/1.2.3')
+      end
+    end
+  end
+
   def reset_agent
     NewRelic::Agent.shutdown
+    NewRelic::Agent.instance.stats_engine.reset!
     NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers).clear
     NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
     NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)

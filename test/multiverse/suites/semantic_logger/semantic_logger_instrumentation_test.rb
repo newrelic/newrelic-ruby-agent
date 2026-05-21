@@ -233,4 +233,16 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     assert_equal 'ERROR', events[0][1]['level']
     assert events[0][1]['backtrace']
   end
+
+  def test_log_called_with_level_and_message_does_not_raise
+    # rails_semantic_logger calls log(level, exception) via ActionDispatch::DebugExceptions so it needs to work like that
+    in_transaction do
+      assert_silent { @logger.log(:error, 'Exception message from DebugExceptions') }
+    end
+    _, events = @aggregator.harvest!
+
+    assert_equal 1, events.length
+    assert_equal 'ERROR', events[0][1]['level']
+    assert_equal 'Exception message from DebugExceptions', events[0][1]['message']
+  end
 end

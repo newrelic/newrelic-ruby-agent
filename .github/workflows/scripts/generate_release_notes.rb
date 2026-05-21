@@ -56,7 +56,7 @@ class GenerateReleaseNotes
       subject: Ruby agent
       releaseDate: '#{Date.today}'
       version: #{NewRelic::VERSION::STRING}
-      downloadLink: https://rubygems.org/downloads/newrelic_rpm-#{NewRelic::VERSION::STRING}.gem
+      downloadLink: https://rubygems.org/gems/newrelic_rpm/versions/#{NewRelic::VERSION::STRING}
       features: #{metadata[:features]}
       bugs: #{metadata[:bugs]}
       security: #{metadata[:security]}

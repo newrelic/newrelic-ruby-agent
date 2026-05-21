@@ -20,6 +20,11 @@
     "hostname": "collector.foo1234.nr-data.net"
   },
   {
+    "name": "region aware key with short identifier",
+    "config_file_key": "czxc637a29c3982469a3fe8d102c4a98FFFFNRAL",
+    "hostname": "collector.cz.nr-data.net"
+  },
+  {
     "name": "region aware key with abnormal identifier",
     "config_file_key": "20foox66c637a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.20foo.nr-data.net"

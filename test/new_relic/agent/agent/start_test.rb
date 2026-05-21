@@ -74,14 +74,14 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_check_config_and_start_agent_incorrect_key
     self.expects(:monitoring?).returns(true)
-    self.expects(:has_correct_license_key?).returns(false)
+    self.expects(:has_license_key?).returns(false)
     @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
   end
 
   def test_check_config_and_start_agent_forking
     self.expects(:monitoring?).returns(true)
-    self.expects(:has_correct_license_key?).returns(true)
+    self.expects(:has_license_key?).returns(true)
     self.expects(:using_forking_dispatcher?).returns(true)
     @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
@@ -189,38 +189,6 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_has_license_key_negative
     with_config(:license_key => false) do
       refute_predicate self, :has_license_key?
-    end
-  end
-
-  def test_has_correct_license_key_positive
-    self.expects(:has_license_key?).returns(true)
-    self.expects(:correct_license_length).returns(true)
-
-    assert_predicate self, :has_correct_license_key?
-  end
-
-  def test_has_correct_license_key_negative
-    self.expects(:has_license_key?).returns(false)
-
-    refute_predicate self, :has_correct_license_key?
-  end
-
-  def test_correct_license_length_positive
-    with_config(:license_key => 'a' * 40) do
-      assert correct_license_length
-    end
-  end
-
-  def test_correct_license_length_negative
-    with_config(:license_key => 'a' * 30) do
-      refute correct_license_length
-    end
-  end
-
-  def test_correct_license_length_negative_updates_health_status
-    with_config(:license_key => 'a' * 30) do
-      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
-      correct_license_length
     end
   end
 

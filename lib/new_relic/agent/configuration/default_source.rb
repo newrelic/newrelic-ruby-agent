@@ -319,6 +319,13 @@ module NewRelic
             \t\t- a.third.event
           DESCRIPTION
         },
+        :active_record_use_table_name => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent will use the Active Record model\'s table name instead of the class name when naming Active Record metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
+        },
         :'ai_monitoring.enabled' => {
           :default => false,
           :public => true,
@@ -1217,6 +1224,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Job instrumentation.'
         },
+        :disable_active_job_step_names => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, step names from Rails Active Job Continuations will not be included in metric names. ' \
+            'This reduces metric cardinality but also reduces visibility into individual step performance. ' \
+            'Only set this to `true` if you are experiencing metric cardinality issues due to jobs with many steps or dynamically-named steps.'
+        },
         :disable_active_storage => {
           :default => false,
           :public => true,
@@ -1775,6 +1791,27 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.rails_event_logger' => {
+          :default => value_of(:'application_logging.enabled'),
+          :documentation_default => 'true',
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Controls instrumentation of Rails.event as structured logs'
+        },
+        :'instrumentation.rails_event_logger.event_names' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+            An array of Rails.event names to capture as structured log events. For example,
+            \t\t- user.signup
+            \t\t- payment.processed
+            \t\t- order.created
+            Leave empty to capture all Rails.event notifications. Events are logged with level UNKNOWN (ensuring they're never filtered) unless overridden via :level key in the event payload.
+          DESCRIPTION
+        },
         :'instrumentation.memcache' => {
           :default => 'auto',
           :documentation_default => 'auto',
@@ -2138,6 +2175,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
+        },
+        :'sidekiq.separate_transactions' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent starts a new transaction when a Sidekiq job is executed during a web transaction. This prevents Sidekiq job execution time from being included in web transaction metrics.'
         },
         # Slow SQL
         :'slow_sql.enabled' => {

@@ -8,42 +8,44 @@ module NewRelic
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
           attr_accessor :finishable
+          attr_writer :translator
           attr_reader :status
 
           def finish(end_timestamp: nil)
-            update_client_span
-            update_server_span
             finishable&.finish
           end
 
-          # TODO: This method can probably be combined with update_client_span
-          # and turned into something more generic when we refactor the way
-          # attributes are stored on NR items
-          def update_server_span
-            if finishable.is_a?(NewRelic::Agent::Transaction) && finishable.category == :web
-              finishable_segment_attrs = finishable.segments.first.attributes.custom_attributes
-              code = finishable_segment_attrs['http.response.status_code'] || finishable_segment_attrs['http.status_code']
-              finishable.http_response_code = code if code
-            end
-          end
-
-          def update_client_span
-            if finishable.is_a?(NewRelic::Agent::Transaction::ExternalRequestSegment) &&
-                finishable.http_status_code.nil?
-              # TODO: Delete duplicate attrs from custom attributes
-              finishable_attrs = finishable.attributes.custom_attributes
-              code = finishable_attrs['http.response.status_code'] || finishable_attrs['http.status_code']
-
-              finishable.instance_variable_set(:@http_status_code, code) if code
-            end
-          end
-
           def set_attribute(key, value)
-            NewRelic::Agent.add_custom_span_attributes(key => value)
+            add_attributes(key => value)
           end
 
           def add_attributes(attributes)
-            NewRelic::Agent.add_custom_span_attributes(attributes)
+            return if attributes.nil? || attributes.empty?
+
+            if @translator
+              translated = @translator.translate(attributes: attributes)
+              apply_translated_attributes(translated)
+            else
+              # fallback to adding all attributes to the span as custom
+              NewRelic::Agent.add_custom_span_attributes(attributes)
+            end
+          end
+
+          def apply_translated_attributes(translated)
+            translated[:instance_variable].each do |key, value|
+              sym_key = "@#{key}".to_sym
+              finishable.instance_variable_set(sym_key, value)
+            end
+
+            translated[:intrinsic].each do |key, value|
+              finishable.attributes.add_intrinsic_attribute(key, value)
+            end
+
+            translated[:agent].each do |key, attr_data|
+              finishable.attributes.add_agent_attribute(key, attr_data[:value], attr_data[:destinations])
+            end
+
+            NewRelic::Agent.add_custom_span_attributes(translated[:custom]) unless translated[:custom].empty?
           end
 
           # TODO: do we need to add a condition for NewRelic::Agent::Tracer.capture_segment_error(segment) if finishable is a segment?
