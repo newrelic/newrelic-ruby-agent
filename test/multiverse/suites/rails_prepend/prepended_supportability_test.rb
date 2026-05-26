@@ -44,12 +44,17 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   def test_active_record_prepended_metrics
     # rails 5.0 prepends an anonymous module on to AR::Relation
     #
-    val = 1
-    val += 1 if ::Rails::VERSION::MAJOR.to_i == 5 and ::Rails::VERSION::MINOR.to_i == 0
+    ar_relation_prepended = 1
+    ar_relation_prepended += 1 if ::Rails::VERSION::MAJOR.to_i == 5 and ::Rails::VERSION::MINOR.to_i == 0
+
+    # rails 8.2 prepends Locking::Optimistic::DeferredTouch onto AR::Base
+    #
+    ar_base_prepended = 1
+    ar_base_prepended += 1 if ::Rails::VERSION::MAJOR.to_i == 8 && ::Rails::VERSION::MINOR.to_i >= 2
 
     assert_metrics_recorded({
-      'Supportability/PrependedModules/ActiveRecord::Base' => metric_values_for(1),
-      'Supportability/PrependedModules/ActiveRecord::Relation' => metric_values_for(val)
+      'Supportability/PrependedModules/ActiveRecord::Base' => metric_values_for(ar_base_prepended),
+      'Supportability/PrependedModules/ActiveRecord::Relation' => metric_values_for(ar_relation_prepended)
     })
   end
 
