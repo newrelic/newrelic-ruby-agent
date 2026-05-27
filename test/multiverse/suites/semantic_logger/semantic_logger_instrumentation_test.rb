@@ -245,4 +245,10 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
     assert_equal 'ERROR', events[0][1]['level']
     assert_equal 'Exception message from DebugExceptions', events[0][1]['message']
   end
+
+  def test_records_per_library_supportability_metric
+    NewRelic::Agent.config.notify_server_source_added
+
+    assert_metrics_recorded('Supportability/Logging/Ruby/SemanticLogger/enabled')
+  end
 end

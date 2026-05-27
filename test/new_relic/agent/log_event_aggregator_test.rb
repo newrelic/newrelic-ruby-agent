@@ -15,7 +15,6 @@ module NewRelic::Agent
 
       @enabled_config = {
         :'instrumentation.logger' => 'auto',
-        :'instrumentation.logstasher' => 'auto',
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true
       }
@@ -59,10 +58,10 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/SemanticLogger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/RailsEventLogger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
@@ -70,28 +69,6 @@ module NewRelic::Agent
         },
           :ignore_filter => %r{^Supportability/API/})
       end
-    end
-
-    def test_records_enabled_per_library_when_instrumentation_is_installed
-      # Drop cached :unsatisfied so each library reads as installed
-      cache = NewRelic::Agent.config.instance_variable_get(:@cache)
-      cache.delete_if { |_key, value| value == :unsatisfied }
-      NewRelic::Agent.config.notify_server_source_added
-
-      assert_metrics_recorded(
-        'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
-        'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
-        'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
-        'Supportability/Logging/Ruby/SemanticLogger/enabled' => {:call_count => 1},
-        'Supportability/Logging/Ruby/RailsEventLogger/enabled' => {:call_count => 1}
-      )
-    ensure
-      %i[
-        instrumentation.logstasher
-        instrumentation.logging
-        instrumentation.semantic_logger
-        instrumentation.rails_event_logger
-      ].each { |key| cache[key] = :unsatisfied }
     end
 
     def test_records_disabled_metrics_on_startup
@@ -401,6 +378,10 @@ module NewRelic::Agent
           'Logging/lines' => {:call_count => 9},
           'Logging/lines/DEBUG' => {:call_count => 9},
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},

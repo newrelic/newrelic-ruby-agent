@@ -271,4 +271,10 @@ class LoggingInstrumentationTest < Minitest::Test
       assert_equal 'ERROR', events[1][1]['level']
     end
   end
+
+  def test_records_per_library_supportability_metric
+    NewRelic::Agent.config.notify_server_source_added
+
+    assert_metrics_recorded('Supportability/Logging/Ruby/Logging/enabled')
+  end
 end
