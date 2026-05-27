@@ -134,4 +134,12 @@ class LogStasherInstrumentationTest < Minitest::Test
 
     assert_metrics_recorded('Supportability/Logging/Ruby/LogStasher/enabled')
   end
+
+  def test_records_logstasher_disabled_supportability_metric
+    with_config(:'instrumentation.logstasher' => 'disabled') do
+      NewRelic::Agent.config.notify_server_source_added
+
+      assert_metrics_recorded('Supportability/Logging/Ruby/LogStasher/disabled')
+    end
+  end
 end

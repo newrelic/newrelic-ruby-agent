@@ -144,6 +144,14 @@ class RailsEventLoggerTest < Minitest::Test
     assert_metrics_recorded('Supportability/Logging/Ruby/RailsEventLogger/enabled')
   end
 
+  def test_records_rails_event_logger_disabled_supportability_metric
+    with_config(:'instrumentation.rails_event_logger' => 'disabled') do
+      NewRelic::Agent.config.notify_server_source_added
+
+      assert_metrics_recorded('Supportability/Logging/Ruby/RailsEventLogger/disabled')
+    end
+  end
+
   private
 
   def rails_event_available?

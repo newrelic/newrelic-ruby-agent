@@ -182,6 +182,14 @@ class LoggerInstrumentationTest < Minitest::Test
     assert_metrics_recorded('Supportability/Logging/Ruby/Logger/enabled')
   end
 
+  def test_records_logger_disabled_supportability_metric
+    with_config(:'instrumentation.logger' => 'disabled') do
+      NewRelic::Agent.config.notify_server_source_added
+
+      assert_metrics_recorded('Supportability/Logging/Ruby/Logger/disabled')
+    end
+  end
+
   def refute_any_logging_instrumentation
     _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
 

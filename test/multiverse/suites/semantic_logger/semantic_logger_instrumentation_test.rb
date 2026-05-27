@@ -251,4 +251,12 @@ class SemanticLoggerInstrumentationTest < Minitest::Test
 
     assert_metrics_recorded('Supportability/Logging/Ruby/SemanticLogger/enabled')
   end
+
+  def test_records_semantic_logger_disabled_supportability_metric
+    with_config(:'instrumentation.semantic_logger' => 'disabled') do
+      NewRelic::Agent.config.notify_server_source_added
+
+      assert_metrics_recorded('Supportability/Logging/Ruby/SemanticLogger/disabled')
+    end
+  end
 end

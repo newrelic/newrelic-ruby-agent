@@ -46,7 +46,7 @@ module NewRelic::Agent
 
     include NewRelic::DataContainerTests
 
-    def test_records_enabled_metrics_on_startup
+    def test_records_supportability_metrics_on_startup
       # manually set cache values that with_config can't override
       cache = NewRelic::Agent.config.instance_variable_get(:@cache)
       %i[
