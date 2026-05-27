@@ -176,7 +176,7 @@ class LoggerInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_records_per_library_supportability_metric
+  def test_records_logger_supportability_metric
     NewRelic::Agent.config.notify_server_source_added
 
     assert_metrics_recorded('Supportability/Logging/Ruby/Logger/enabled')
