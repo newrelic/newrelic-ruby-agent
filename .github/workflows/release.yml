@@ -70,7 +70,7 @@ jobs:
     needs: [release]
     uses: ./.github/workflows/agent_metadata.yml
     with:
-      version: ${{ needs.release.version.outputs.agent_version }}
+      version: ${{ needs.release.outputs.agent_version }}
     secrets:
       FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
       FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
