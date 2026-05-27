@@ -6,8 +6,6 @@ module NewRelic
   module Agent
     module OpenTelemetry
       module Trace
-        # This class only tests gRPC client instrumentation.
-        # OpenTelemetry Ruby does not have gRPC instrumentation for server calls.
         class RpcMappingTest < Minitest::Test
           def setup
             # tracer would likely be:

@@ -66,12 +66,6 @@ module NewRelic
             when :client
               if segment_api_params[:uri] # HTTP Client and gRPC Client
                 NewRelic::Agent::Tracer.start_external_request_segment(
-                  # should we just change this to library for
-                  # both the HTTP client and gRPC client spans
-                  # by updating the translator?
-                  # cuz I'm not sure if @name is exactly right
-                  # if the tracer has opentelemetry-instrumentation
-                  # in @name
                   library: segment_api_params[:library] || @name,
                   uri: segment_api_params[:uri],
                   procedure: segment_api_params[:procedure],
@@ -108,7 +102,7 @@ module NewRelic
             segment_api_params = translated[:for_segment_api]
 
             case kind
-            when :server
+            when :server # HTTP or gRPC server calls
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
                 name: segment_api_params[:name] || name,
                 category: :web

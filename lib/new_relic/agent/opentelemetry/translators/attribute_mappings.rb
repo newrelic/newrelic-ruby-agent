@@ -172,7 +172,6 @@ module NewRelic
           'http_status_code' => {
             otel_keys: ['rpc.grpc.status_code'],
             category: :instance_variable
-            # tbd
           },
           # the value closest to library in intention is rpc.system. however,
           # to get the correct segment name, we need to set this to rpc.service
