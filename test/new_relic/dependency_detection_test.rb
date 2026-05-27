@@ -484,6 +484,7 @@ class DependencyDetectionTest < Minitest::Test
 
       assert_equal :disabled, dd.config_value
 
+      # the way the bug worked, it would get installed when it shouldn't be but only on the second time detect! was called
       DependencyDetection.detect!
 
       refute executed
