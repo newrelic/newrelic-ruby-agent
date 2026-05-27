@@ -9,7 +9,7 @@ module NewRelic
     module OpenTelemetry
       class RedisDatastoreTranslator < DatastoreTranslator
         class << self
-          def mappings_hash
+          def mappings_hash(_kind)
             AttributeMappings::REDIS_MAPPINGS
           end
         end

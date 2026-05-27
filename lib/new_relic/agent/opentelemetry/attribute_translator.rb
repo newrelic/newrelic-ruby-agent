@@ -66,7 +66,7 @@ module NewRelic
               GenericTranslator
             end
 
-          translator.translate(attributes: attributes, name: name, instrumentation_scope: instrumentation_scope)
+          translator.translate(attributes: attributes, name: name, instrumentation_scope: instrumentation_scope, kind: span_kind)
         end
       end
     end

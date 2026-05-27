@@ -10,6 +10,9 @@ module NewRelic
         # OpenTelemetry Ruby does not have gRPC instrumentation for server calls.
         class RpcMappingTest < Minitest::Test
           def setup
+            # tracer would likely be:
+            # opentelemetry-instrumentation-grpc
+            # opentelemetry-instrumentation-gruf
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('OTelClient')
             harvest_transaction_events!
             harvest_span_events!
@@ -19,13 +22,13 @@ module NewRelic
             mocha_teardown
           end
 
-          # The name and attributes are based on gRPC client instrumentation
-          # in the opentelmetry-instrumentation-grpc gem
-          def span_name
+          # The name and attributes for clients are based on gRPC client
+          # instrumentation in the opentelmetry-instrumentation-grpc gem
+          def client_span_name
             'support.proto.PingServer/RequestResponsePing'
           end
 
-          def req_attrs
+          def client_req_attrs
             {
               'rpc.system' => 'grpc',
               'rpc.service' => 'support.proto.PingServer',
@@ -35,25 +38,48 @@ module NewRelic
             }
           end
 
+          # The name and attributes for servers are based on the gruf server
+          # instrumentation in the opentelemetry-instrumentation-gruf gem
+          def server_span_name
+            '/proto.example.ExampleAPI/Example'
+          end
+
+          def server_req_attrs
+            {
+              'rpc.system' => 'grpc',
+              'rpc.service' => 'proto.example.ExampleAPI',
+              'rpc.method' => 'Example',
+              'rpc.type' => 'request_response'
+            }
+          end
+
           # Using an array instead of a hash to mimic the instrumentation
           # which calls set_attribute. That method requires two args,
-          # the key and the value.
+          # the key and the value. Both client and server instrumentation
+          # attach this value the same way.
           def res_attrs
             ['rpc.grpc.status_code', 0]
           end
 
-          def run_grpc_client_segment
+          def run_grpc_client_span
             in_transaction(category: :web) do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              @tracer.in_span(span_name, attributes: req_attrs, kind: :client) do |span|
+              @tracer.in_span(client_span_name, attributes: client_req_attrs, kind: :client) do |span|
                 span.set_attribute(*res_attrs)
               end
             end
           end
 
-          def test_segment_name
-            run_grpc_client_segment
+          def run_grpc_server_span
+            span = @tracer.start_span(server_span_name, attributes: server_req_attrs, kind: :server)
+            span.finishable.stubs(:sampled?).returns(true)
+            span.set_attribute(*res_attrs)
+            span.finish
+          end
+
+          def test_client_segment_name
+            run_grpc_client_span
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -66,8 +92,8 @@ module NewRelic
             assert_equal 'External/localhost/support.proto.PingServer/RequestResponsePing', intrinsics['name']
           end
 
-          def test_transaction_metrics
-            run_grpc_client_segment
+          def test_client_transaction_metrics
+            run_grpc_client_span
 
             assert_metrics_recorded([
               'External/allWeb',
@@ -76,9 +102,9 @@ module NewRelic
             ])
           end
 
-          def test_span_intrinsic_attributes
-            attrs = req_attrs
-            run_grpc_client_segment
+          def test_client_span_intrinsic_attributes
+            attrs = client_req_attrs
+            run_grpc_client_span
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -96,9 +122,9 @@ module NewRelic
             assert_equal 63752, intrinsic['server.port']
           end
 
-          def test_span_agent_attributes
-            attrs = req_attrs
-            run_grpc_client_segment
+          def test_client_span_agent_attributes
+            attrs = client_req_attrs
+            run_grpc_client_span
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -107,9 +133,9 @@ module NewRelic
             assert_equal 'grpc://localhost:63752/support.proto.PingServer/RequestResponsePing', agent['http.url']
           end
 
-          def test_span_custom_attributes
-            attrs = req_attrs
-            run_grpc_client_segment
+          def test_client_span_custom_attributes
+            attrs = client_req_attrs
+            run_grpc_client_span
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -120,6 +146,79 @@ module NewRelic
             assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal attrs['rpc.system'], custom['rpc.system']
             assert_equal attrs['rpc.type'], custom['rpc.type']
+          end
+
+          def test_server_transaction_name
+            run_grpc_server_span
+
+            txns = harvest_transaction_events!
+            txn = txns[1][0]
+            intrinsics = txn[0]
+
+            assert_equal 'Controller/OTelClient/proto.example.ExampleAPI/Example', intrinsics['name']
+          end
+
+          def test_server_transaction_metrics
+            run_grpc_server_span
+
+            assert_metrics_recorded([
+              'HttpDispatcher',
+              'WebTransactionTotalTime',
+              'Controller/OTelClient/proto.example.ExampleAPI/Example',
+              'WebTransactionTotalTime/Controller/OTelClient/proto.example.ExampleAPI/Example'
+            ])
+          end
+
+          def test_server_transaction_agent_attributes
+            attrs = server_req_attrs
+            run_grpc_server_span
+
+            txns = harvest_transaction_events!
+            txn = txns[1][0]
+            agent = txn[2]
+            # we assign the status code as an instance variable rather than a
+            # direct agent attribute, the key is a symbolized string
+            assert_equal 0, agent[:'http.statusCode']
+            assert_equal attrs['rpc.method'], agent['request.method']
+            assert_equal 'grpc://proto.example.ExampleAPI/Example', agent['request.uri']
+          end
+
+          def test_server_span_intrinsic_attributes
+            attrs = server_req_attrs
+            run_grpc_server_span
+
+            spans = harvest_span_events!
+            span = spans[1][0]
+            intrinsic = span[0]
+
+            assert_equal 'Controller/OTelClient/proto.example.ExampleAPI/Example', intrinsic['transaction.name']
+          end
+
+          def test_server_span_agent_attributes
+            attrs = server_req_attrs
+            run_grpc_server_span
+
+            spans = harvest_span_events!
+            span = spans[1][0]
+            agent = span[2]
+
+            assert_equal 0, agent[:'http.statusCode']
+          end
+
+          def test_server_span_custom_attributes
+            attrs = server_req_attrs
+            run_grpc_server_span
+
+            spans = harvest_span_events!
+            span = spans[1][0]
+            custom = span[1]
+
+            keys_assigned_elsewhere = %w[rpc.method net.sock.peer.addr rpc.status_code]
+
+            assert_empty custom.keys & keys_assigned_elsewhere
+            assert_equal attrs['rpc.system'], custom['rpc.system']
+            assert_equal attrs['rpc.type'], custom['rpc.type']
+            assert_equal attrs['rpc.service'], custom['rpc.service']
           end
         end
       end

@@ -8,6 +8,7 @@ module NewRelic
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
           attr_accessor :finishable
+          attr_writer :kind
           attr_writer :translator
           attr_reader :status
 
@@ -23,7 +24,7 @@ module NewRelic
             return if attributes.nil? || attributes.empty?
 
             if @translator
-              translated = @translator.translate(attributes: attributes)
+              translated = @translator.translate(attributes: attributes, kind: @kind)
               apply_translated_attributes(translated)
             else
               # fallback to adding all attributes to the span as custom

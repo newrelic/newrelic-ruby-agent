@@ -35,6 +35,7 @@ module NewRelic
 
             otel_span.finishable = finishable
             otel_span.status = ::OpenTelemetry::Trace::Status.unset
+            otel_span.kind = kind
             otel_span.translator = translated[:translator]
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
             otel_span.add_instrumentation_scope(@name, @version)

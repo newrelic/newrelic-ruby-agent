@@ -9,11 +9,11 @@ module NewRelic
     module OpenTelemetry
       class HttpClientTranslator < BaseTranslator
         class << self
-          def mappings_hash
+          def mappings_hash(_kind)
             AttributeMappings::HTTP_CLIENT_MAPPINGS
           end
 
-          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil, kind: nil)
             uri = build_uri(attributes)
             result[:for_segment_api][:uri] = uri if uri
 

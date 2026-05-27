@@ -9,11 +9,11 @@ module NewRelic
     module OpenTelemetry
       class HttpServerTranslator < BaseTranslator
         class << self
-          def mappings_hash
+          def mappings_hash(_kind)
             AttributeMappings::HTTP_SERVER_MAPPINGS
           end
 
-          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil, kind: nil)
             result[:for_segment_api][:name] = create_server_transaction_name(name, instrumentation_scope, attributes)
 
             result

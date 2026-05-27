@@ -151,7 +151,24 @@ module NewRelic
           }
         }.freeze
 
-        RPC_MAPPINGS = { # v1.23, v1.17 client
+        RPC_SERVER_MAPPINGS = { # v1.20
+          'http_response_code' => {
+            otel_keys: ['rpc.grpc.status_code'],
+            category: :instance_variable
+          },
+          'request.headers.host' => {
+            otel_keys: ['net.sock.peer.addr', 'server.address', 'net.peer.name'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'request.method' => {
+            otel_keys: ['rpc.method'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          }
+        }.freeze
+
+        RPC_CLIENT_MAPPINGS = { # v1.17
           'http_status_code' => {
             otel_keys: ['rpc.grpc.status_code'],
             category: :instance_variable
