@@ -49,10 +49,12 @@ module NewRelic::Agent
     def test_records_enabled_metrics_on_startup
       # manually set cache values that with_config can't override
       cache = NewRelic::Agent.config.instance_variable_get(:@cache)
-      %i[instrumentation.logstasher instrumentation.logging
-         instrumentation.semantic_logger instrumentation.rails_event_logger].each do |key|
-        cache[key] = :unsatisfied
-      end
+      %i[
+        instrumentation.logstasher
+        instrumentation.logging
+        instrumentation.semantic_logger
+        instrumentation.rails_event_logger
+      ].each { |key| cache[key] = :unsatisfied }
 
       with_config(
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
@@ -372,10 +374,12 @@ module NewRelic::Agent
     def test_high_security_mode
       # manually set cache values that with_config can't override
       cache = NewRelic::Agent.config.instance_variable_get(:@cache)
-      %i[instrumentation.logstasher instrumentation.logging
-         instrumentation.semantic_logger instrumentation.rails_event_logger].each do |key|
-        cache[key] = :unsatisfied
-      end
+      %i[
+        instrumentation.logstasher
+        instrumentation.logging
+        instrumentation.semantic_logger
+        instrumentation.rails_event_logger
+      ].each { |key| cache[key] = :unsatisfied }
 
       with_config(CAPACITY_KEY => 5, :high_security => true) do
         # We refresh the high security setting on this notification
