@@ -47,6 +47,12 @@ Bundler/OrderedGems:
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+  Exclude:
+    - test/environments/**/Gemfile
+    - test/performance/*
+
 Gemspec/DuplicatedAssignment:
   Enabled: true
   Include:
@@ -540,6 +546,10 @@ Lint/LambdaWithoutLiteralBlock:
 
 Lint/LiteralAsCondition:
   Enabled: true
+
+Lint/LiteralAssignmentInCondition:
+  Exclude:
+    - 'test/multiverse/suites/rake/rake_test.rb'
 
 Lint/LiteralInInterpolation:
   Enabled: true
