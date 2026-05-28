@@ -68,6 +68,8 @@ jobs:
 
   update-agent-metadata:
     needs: [release]
+    permissions:
+      contents: read
     uses: ./.github/workflows/agent_metadata.yml
     with:
       version: ${{ needs.release.version.outputs.agent_version }}
