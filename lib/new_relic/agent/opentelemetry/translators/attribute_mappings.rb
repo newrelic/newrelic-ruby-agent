@@ -152,7 +152,7 @@ module NewRelic
         }.freeze
 
         RPC_SERVER_MAPPINGS = { # v1.20
-          'http_response_code' => {
+          'response_status' => {
             otel_keys: ['rpc.grpc.status_code'],
             category: :instance_variable
           },
@@ -169,7 +169,7 @@ module NewRelic
         }.freeze
 
         RPC_CLIENT_MAPPINGS = { # v1.17
-          'http_status_code' => {
+          'grpc_status_code' => {
             otel_keys: ['rpc.grpc.status_code'],
             category: :instance_variable
           },

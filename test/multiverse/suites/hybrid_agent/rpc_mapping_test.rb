@@ -111,7 +111,7 @@ module NewRelic
             assert_equal attrs['rpc.service'], intrinsic['component']
             assert_equal attrs['rpc.method'], intrinsic['http.method']
             assert_equal attrs['rpc.method'], intrinsic['http.request.method']
-            assert_equal 0, intrinsic['http.statusCode']
+            assert_equal 0, intrinsic['grpc.statusCode']
             assert_equal 'http', intrinsic['category']
             assert_equal 'client', intrinsic['span.kind']
             # we intentionally pull out the dns:// prefix, so the attr doesn't
@@ -174,9 +174,8 @@ module NewRelic
             txns = harvest_transaction_events!
             txn = txns[1][0]
             agent = txn[2]
-            # we assign the status code as an instance variable rather than a
-            # direct agent attribute, the key is a symbolized string
-            assert_equal 0, agent[:'http.statusCode']
+
+            assert_equal 0, agent[:'response.status']
             assert_equal attrs['rpc.method'], agent['request.method']
             assert_equal 'grpc://proto.example.ExampleAPI/Example', agent['request.uri']
           end
@@ -200,7 +199,7 @@ module NewRelic
             span = spans[1][0]
             agent = span[2]
 
-            assert_equal 0, agent[:'http.statusCode']
+            assert_equal 0, agent[:'response.status']
           end
 
           def test_server_span_custom_attributes
