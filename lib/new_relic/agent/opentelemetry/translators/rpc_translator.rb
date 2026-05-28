@@ -38,11 +38,15 @@ module NewRelic
 
           def build_uri(attributes)
             host = attributes['server.address'] || attributes['net.peer.name'] || attributes['net.sock.peer.addr']
-            # in otel contrib's grpc instrumentation, the test example starts
-            # with "dns:///", which can't be accurately parsed using ::URI.parse
-            host = host&.delete_prefix('dns:///')
             service = attributes['rpc.service']
             method = attributes['rpc.method']
+
+            # return early if this method is called with an attributes
+            # hash that doesn't have the required values
+            return unless host || service || method
+
+            # strip scheme prefix (e.g. dns:///, xds:///) used by gRPC name resolvers
+            host = host&.sub(%r{\A\w+:///}, '')
 
             if host && service && method
               "grpc://#{host}/#{service}/#{method}"
