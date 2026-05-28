@@ -35,11 +35,6 @@ module NewRelic
             process_distributed_tracing_headers(metadata)
 
             begin
-              # TODO: Check to see if we can get the response code in the
-              # gRPC response
-              # This would be used to match hybrid agent attributes.
-              # Currently, those values are saved in http.statusCode,
-              # but we could create a new attribute: grpc.statusCode.
               yield
             rescue => e
               NewRelic::Agent.notice_error(e)
