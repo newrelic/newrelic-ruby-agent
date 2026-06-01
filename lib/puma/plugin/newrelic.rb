@@ -7,9 +7,9 @@ require 'new_relic/agent/puma_stats_sampler'
 
 # New Relic Puma plugin.
 #
-# Reports Puma's clustered server statistics (thread-pool backlog, running
-# threads, spare capacity, configured max threads, and worker count) to New
-# Relic as +Puma/*+ timeslice metrics.
+# Reports Puma's clustered server statistics (thread-pool +backlog+,
+# +running+ threads, +pool_capacity+, +max_threads+, +requests_count+, and
+# worker count) to New Relic as +Puma/*+ timeslice metrics.
 #
 # Enable it by adding the following to your +config/puma.rb+:
 #
@@ -35,5 +35,8 @@ Puma::Plugin.create do
     in_background do
       sampler.start
     end
+  rescue => e
+    # Never let a plugin error propagate into Puma's plugin loader / boot.
+    launcher.log_writer.log("NewRelic Puma plugin failed to start: #{e.class} - #{e.message}")
   end
 end
