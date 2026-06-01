@@ -34,14 +34,23 @@ Puma::Plugin.create do
     sampler = NewRelic::Agent::PumaStatsSampler.new(launcher)
 
     # +:state+ fires on Puma::Server, which exists per-worker in clustered
-    # mode and once in single mode. +:before_restart+ and +:after_stopped+
-    # fire on the launcher in both modes, so registering all three covers
-    # the master in clustered mode (where +:state+ is never emitted).
+    # mode and once in single mode -- the clustered master never instantiates
+    # a server, so the master needs the launcher-level events too.
+    #
+    # Puma 7.0 renamed +:on_restart+ / +:on_stopped+ to +:before_restart+ /
+    # +:after_stopped+. The +:on_*+ helpers were kept as deprecated
+    # *registration* methods that delegate, but Puma 6.x still fires the
+    # +:on_*+ symbols internally and Puma 7+ fires the +:*_restart+ /
+    # +:*_stopped+ symbols. Registering both sets keeps the sampler stopping
+    # cooperatively on both major Puma versions. +sampler.stop+ is idempotent
+    # so multiple handlers firing for the same shutdown is harmless.
     launcher.events.register(:state) do |state|
       sampler.stop if %i[halt restart stop].include?(state)
     end
-    launcher.events.register(:before_restart) { sampler.stop }
-    launcher.events.register(:after_stopped) { sampler.stop }
+    launcher.events.register(:before_restart) { sampler.stop } # Puma 7+
+    launcher.events.register(:after_stopped) { sampler.stop } # Puma 7+
+    launcher.events.register(:on_restart) { sampler.stop } # Puma < 7
+    launcher.events.register(:on_stopped) { sampler.stop } # Puma < 7
 
     in_background do
       sampler.start

@@ -91,20 +91,26 @@ class PumaPluginTest < Minitest::Test
   def test_plugin_master_lifecycle_events_stop_sampler
     # :state never fires on the clustered-mode master (it is emitted by
     # Puma::Server, which the master does not instantiate), so the sampler
-    # must also stop on :before_restart and :after_stopped, which the
-    # launcher fires in both single and clustered modes.
-    spy = sampler_spy
-    launcher = fake_launcher
-    plugin = plugin_with_captured_in_background(proc { |_blk| })
+    # must also stop on the launcher-level lifecycle events. Puma 7+ fires
+    # :before_restart / :after_stopped; Puma 6.x fires :on_restart /
+    # :on_stopped (the names were renamed in 7.0). Each event is asserted
+    # independently so a future refactor that consolidates registrations
+    # (e.g. via .uniq or a per-shutdown guard) still passes as long as the
+    # actual contract -- "this event triggers stop" -- holds.
+    [:before_restart, :after_stopped, :on_restart, :on_stopped].each do |event|
+      spy = sampler_spy
+      launcher = fake_launcher
+      plugin = plugin_with_captured_in_background(proc { |_blk| })
 
-    with_sampler_constructor_spy(spy) do
-      plugin.start(launcher)
+      with_sampler_constructor_spy(spy) do
+        plugin.start(launcher)
+      end
+
+      launcher.events.fire(event)
+
+      assert_operator spy.stops, :>=, 1,
+        "firing #{event.inspect} should have triggered at least one sampler.stop"
     end
-
-    launcher.events.fire(:before_restart)
-    launcher.events.fire(:after_stopped)
-
-    assert_equal 2, spy.stops, 'both master-level lifecycle events should stop the sampler'
   end
 
   def test_plugin_rescues_sampler_construction_failure

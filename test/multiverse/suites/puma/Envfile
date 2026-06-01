@@ -2,7 +2,20 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-gemfile <<~RB
-  gem 'puma'
-  gem 'rack'
-RB
+# The Puma plugin's launcher-event registrations differ between major
+# Puma versions: 7+ fires :before_restart / :after_stopped while 6.x fires
+# :on_restart / :on_stopped. Pin a 6.x variant alongside the latest so the
+# suite exercises both paths.
+PUMA_VERSIONS = [
+  [nil],
+  ['6.6']
+]
+
+def gem_list(puma_version = nil)
+  <<~RB
+    gem 'puma'#{puma_version}
+    gem 'rack'
+  RB
+end
+
+create_gemfiles(PUMA_VERSIONS)

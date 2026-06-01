@@ -64,6 +64,23 @@ module NewRelic
         assert_equal 0, metrics[:backlog] # absent keys default to 0, never nil
       end
 
+      def test_aggregate_tolerates_empty_worker_status_during_clustered_boot
+        # A clustered master observed before its workers spawn briefly
+        # produces +worker_status: []+. That is a recognized shape (not
+        # UnrecognizedStatsError) and yields just the configured worker
+        # count with zeros for the per-worker gauges. Locks in the
+        # deliberate boot carve-out so a future "tighten the truthy check"
+        # refactor (e.g. +worker_status&.any?+) regresses loudly.
+        stats = {workers: 2, worker_status: []}
+        sampler = PumaStatsSampler.new(FakeLauncher.new(stats))
+
+        metrics = sampler.send(:aggregate, stats)
+
+        assert_equal 2, metrics[:workers]
+        assert_equal 0, metrics[:running]
+        assert_equal 0, metrics[:backlog]
+      end
+
       def test_aggregate_raises_on_unrecognized_stats_shape
         # A future Puma release renaming the keys, or another plugin
         # overriding launcher.stats, must not silently produce zero metrics.
@@ -137,6 +154,21 @@ module NewRelic
         sampler.send(:sample)
 
         assert_metrics_recorded('Puma/running' => {:total_call_time => 5})
+      end
+
+      def test_sample_parses_clustered_json_string_stats
+        # Older Puma versions return launcher.stats as a JSON string even in
+        # clustered mode. Covers the symbolize_names path against the
+        # nested :worker_status shape, not just single-mode top-level keys.
+        sampler = PumaStatsSampler.new(FakeLauncher.new(JSON.generate(CLUSTERED_STATS)))
+
+        sampler.send(:sample)
+
+        assert_metrics_recorded(
+          'Puma/workers' => {:total_call_time => 2},
+          'Puma/running' => {:total_call_time => 9},
+          'Puma/spare_thread_capacity' => {:total_call_time => 7}
+        )
       end
 
       def test_sample_does_not_raise_on_stats_error_and_counts_failures
@@ -224,6 +256,19 @@ module NewRelic
           assert thread.join(5), 'expected the sampling loop to exit promptly after #stop'
           assert_metrics_recorded('Puma/running' => {:total_call_time => 5})
         end
+      end
+
+      def test_stop_is_idempotent
+        # The plugin registers four launcher-level handlers (Puma 6.x and
+        # 7+ event names) so overlapping shutdown events can call #stop
+        # more than once. Confirm repeated invocation is safe -- no
+        # exceptions, no state regression.
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+
+        3.times { sampler.stop }
+
+        assert sampler.instance_variable_get(:@stopped)
+        refute sampler.instance_variable_get(:@running)
       end
 
       def test_stop_before_start_prevents_sampling

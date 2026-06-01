@@ -71,10 +71,12 @@ module NewRelic
       LOG_FAILURE_INTERVAL = 10
       # Floor on time between failure logs: even with exponential backoff
       # suppressing per-iteration logs, a persistent failure is re-logged at
-      # least this often so operators see it within ~5 min instead of ~14
-      # (15 + 30 + 60 + 6*120 seconds for 9 waits between consecutive
-      # failures 1..10 at the default 15 s sample rate, with the backoff
-      # capped at 2**3 = 8 intervals).
+      # least this often. With the 300 s floor an operator sees a re-log
+      # within ~5-6 min (the next sample interval after the floor elapses)
+      # instead of ~14 min, the time to the 10th consecutive failure at the
+      # default 15 s sample rate (15 + 30 + 60 + 6*120 seconds for the 9
+      # waits between failures 1..10, with backoff capped at 2**3 = 8
+      # intervals).
       LOG_FAILURE_TIME_FLOOR_SECONDS = 300
       # Largest exponent used for exponential backoff after consecutive sampling
       # failures, i.e. the wait grows up to 2**3 = 8 sample intervals.
@@ -116,9 +118,11 @@ module NewRelic
               @stop_signal.wait(@lock, next_wait_interval) if @running
             end
           ensure
-            # Even if an exception aborts the loop, leave @running consistent
-            # so a future #stop is a clean no-op rather than racing a stale
-            # truthy flag.
+            # Keep the object's own state consistent if the loop aborts via
+            # an exception: @running is the loop's "still spinning" flag.
+            # #start's early-return reads @stopped (which #stop sets); the
+            # synchronize block doesn't touch @stopped on the rescue path,
+            # so that coordination stays coherent.
             @running = false
           end
         end
@@ -189,9 +193,9 @@ module NewRelic
         # shape: a clustered master observed before its workers have booted
         # produces it briefly during startup. Tightening this to require a
         # non-empty array would log an UnrecognizedStatsError on every Puma
-        # boot. The cost is ~15 s of misleading-but-self-correcting zero
-        # metrics during boot, which is preferable to false-positive errors
-        # in normal operation.
+        # boot. The cost is at most one sample interval (default 15 s) of
+        # misleading-but-self-correcting zero metrics during boot, which is
+        # preferable to false-positive errors in normal operation.
         if stats[:worker_status]
           metrics[:workers] = stats[:workers].to_i
           stats[:worker_status].each do |worker|
@@ -269,7 +273,7 @@ module NewRelic
       # Logs the first failure, every Nth subsequent failure, and any failure
       # that has not been logged in LOG_FAILURE_TIME_FLOOR_SECONDS. Without
       # the time floor, exponential backoff stretches the "every Nth" cadence
-      # to ~14 minutes; the floor caps that at ~5 minutes so a persistent
+      # to ~14 minutes; the floor caps that at ~5-6 minutes so a persistent
       # failure is re-surfaced even while backoff is sparse.
       def log_sample_failure(e)
         now = monotonic_now
