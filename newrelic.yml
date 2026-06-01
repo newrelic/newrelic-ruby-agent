@@ -428,7 +428,7 @@ common: &default_settings
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be ignored.
   # This option can't be set via environment variable.
-  # error_collector.ignore_messages: {ThreadError: ["queue empty"]}
+  # error_collector.ignore_messages: {:ThreadError=>["queue empty"]}
 
   # A comma separated list of status codes, possibly including ranges. Errors
   # associated with these status codes, where applicable, will be ignored.
@@ -813,6 +813,19 @@ common: &default_settings
   # Defines a user for communicating with the New Relic collector via a proxy
   # server.
   # proxy_user: nil
+
+  # Number of seconds between samples of Puma server statistics when the newrelic
+  # Puma plugin (plugin 'newrelic') is enabled in your puma.rb.
+  # puma.sample_rate: 15
+
+  # If true, the newrelic Puma plugin starts the agent's reporting thread in the
+  # Puma master process so that sampled Puma/* metrics are delivered to New Relic.
+  # 
+  # The agent defers its reporting thread under forking dispatchers such as Puma,
+  # so without this the metrics sampled in the master are buffered but never sent.
+  # When enabled, the Puma master reports to New Relic as its own instance. Set to
+  # false if you do not want the master process to report.
+  # puma.start_reporting_thread_in_master: true
 
   # Timeout for waiting on connect to complete before a rake task
   # rake.connect_timeout: 10

@@ -2080,6 +2080,26 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
+        # Puma
+        :'puma.sample_rate' => {
+          :default => 15,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => false,
+          :description => 'Number of seconds between samples of Puma server statistics when the ' \
+            '`newrelic` Puma plugin (`plugin \'newrelic\'`) is enabled in your `puma.rb`.'
+        },
+        :'puma.start_reporting_thread_in_master' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+            If `true`, the `newrelic` Puma plugin starts the agent's reporting thread in the Puma master process so that sampled `Puma/*` metrics are delivered to New Relic.
+
+            The agent defers its reporting thread under forking dispatchers such as Puma, so without this the metrics sampled in the master are buffered but never sent. When enabled, the Puma master reports to New Relic as its own instance. Set to `false` if you do not want the master process to report.
+          DESCRIPTION
+        },
         # Rails
         :'defer_rails_initialization' => {
           :default => false,
