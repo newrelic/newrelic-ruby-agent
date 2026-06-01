@@ -263,19 +263,28 @@ module NewRelic
             Rails::VERSION::MAJOR == 5 &&
             Rails::VERSION::MINOR == 0
 
-          config = MiniTest::Mock.new
-          config.expect(:log_tags, {})
-
           logger = ::Logger.new('/dev/null')
-
           server = MiniTest::Mock.new
-          server.expect(:worker_pool, 'dinosaur')
-          server.expect(:config, config)
-          server.expect(:logger, logger)
-          server.expect(:event_loop, nil)
 
-          env = {}
-          connection = TestConnection.new(server, env)
+          # Rails 8.2 changed ActionCable::Connection::Base#initialize from
+          # (server, env) to (server, socket)
+          rails_8_2_or_later = defined?(Rails::VERSION) && (
+            (Rails::VERSION::MAJOR == 8 && Rails::VERSION::MINOR >= 2)
+          )
+
+          if rails_8_2_or_later
+            socket = MiniTest::Mock.new
+            socket.expect(:logger, logger)
+            connection = TestConnection.new(server, socket)
+          else
+            config = MiniTest::Mock.new
+            config.expect(:log_tags, [])
+            server.expect(:worker_pool, 'dinosaur')
+            server.expect(:config, config)
+            server.expect(:logger, logger)
+            server.expect(:event_loop, nil)
+            connection = TestConnection.new(server, {})
+          end
           identifier = nil
 
           channel = TestChannel.new(connection, identifier)
@@ -290,7 +299,11 @@ module NewRelic
 
           assert_metrics_recorded metric_name
           assert find_node_with_name(last_transaction_trace, metric_name)
-          config.verify
+          if rails_8_2_or_later
+            socket.verify
+          else
+            config.verify
+          end
           server.verify
         end
 

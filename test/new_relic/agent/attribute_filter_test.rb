@@ -306,12 +306,12 @@ module NewRelic::Agent
     def to_names(bitfield)
       names = []
 
-      names << 'transaction_events' if (bitfield & AttributeFilter::DST_TRANSACTION_EVENTS) != 0
-      names << 'transaction_tracer' if (bitfield & AttributeFilter::DST_TRANSACTION_TRACER) != 0
-      names << 'error_collector' if (bitfield & AttributeFilter::DST_ERROR_COLLECTOR) != 0
-      names << 'browser_monitoring' if (bitfield & AttributeFilter::DST_BROWSER_MONITORING) != 0
-      names << 'span_events' if (bitfield & AttributeFilter::DST_SPAN_EVENTS) != 0
-      names << 'transaction_segments' if (bitfield & AttributeFilter::DST_TRANSACTION_SEGMENTS) != 0
+      names << 'transaction_events' if bitfield.anybits?(AttributeFilter::DST_TRANSACTION_EVENTS)
+      names << 'transaction_tracer' if bitfield.anybits?(AttributeFilter::DST_TRANSACTION_TRACER)
+      names << 'error_collector' if bitfield.anybits?(AttributeFilter::DST_ERROR_COLLECTOR)
+      names << 'browser_monitoring' if bitfield.anybits?(AttributeFilter::DST_BROWSER_MONITORING)
+      names << 'span_events' if bitfield.anybits?(AttributeFilter::DST_SPAN_EVENTS)
+      names << 'transaction_segments' if bitfield.anybits?(AttributeFilter::DST_TRANSACTION_SEGMENTS)
 
       names
     end
