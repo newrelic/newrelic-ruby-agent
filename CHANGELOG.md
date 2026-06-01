@@ -6,6 +6,10 @@
 
   Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)
 
+- **Bugfix: Per-library logging supportability metrics now reflect each library's instrumentation state**
+
+  The `Supportability/Logging/Ruby/{library}/{enabled|disabled}` metrics previously echoed `application_logging.enabled` for every library, so disabling a single logging instrumentation or running without one of its gems still reported `enabled`. Each library now reports based on its own instrumentation state. [PR#3571](https://github.com/newrelic/newrelic-ruby-agent/pull/3571)
+
 ## v10.5.0
 
 - **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
