@@ -64,6 +64,53 @@ module NewRelic
         assert_equal 0, metrics[:backlog] # absent keys default to 0, never nil
       end
 
+      def test_aggregate_raises_on_unrecognized_stats_shape
+        # A future Puma release renaming the keys, or another plugin
+        # overriding launcher.stats, must not silently produce zero metrics.
+        # Each case below guards against a different "helpful refactor"
+        # that would silently regress the fix: widening the truthy guard,
+        # an early-return on stats.empty?, or treating :workers alone as a
+        # cluster signal.
+        sampler = PumaStatsSampler.new(FakeLauncher.new(nil))
+
+        [
+          {},
+          {some_other_key: 'foo'},
+          {workers: 5} # :workers is not in WORKER_STAT_KEYS; must still raise
+        ].each do |shape|
+          assert_raises(NewRelic::Agent::PumaStatsSampler::UnrecognizedStatsError,
+            "expected aggregate to raise on shape: #{shape.inspect}") do
+            sampler.send(:aggregate, shape)
+          end
+        end
+      end
+
+      def test_sample_routes_unrecognized_stats_through_failure_path
+        # End-to-end: an unrecognized stats hash must engage the throttled
+        # sample-failure path (counter increments, log line emitted, NO
+        # metrics recorded, backoff extends) so operators see a clear
+        # signal instead of silent zero metrics.
+        launcher = Object.new
+        launcher.define_singleton_method(:stats) { {some_other_key: 'foo'} }
+        sampler = PumaStatsSampler.new(launcher)
+
+        logger = StubLogger.new
+        NewRelic::Agent.stub(:logger, logger) do
+          2.times { sampler.send(:sample) }
+        end
+
+        assert_equal 2, sampler.instance_variable_get(:@consecutive_failures)
+        assert(logger.errors.any? { |m| m.include?('Error sampling Puma stats') },
+          "expected sample-failure log for unrecognized stats shape; got: #{logger.errors.inspect}")
+        # No Puma/* metrics should be recorded — that is the actual
+        # user-visible bug ("silent zero-metric recording") this guards.
+        assert_metrics_not_recorded(%w[Puma/backlog Puma/running Puma/spare_thread_capacity Puma/max_threads Puma/requests_count Puma/workers])
+        # Backoff engages: at 2 failures the next wait is 2x the sample rate
+        # (exponent = consecutive_failures - 1 = 1).
+        assert_equal sampler.instance_variable_get(:@sample_rate) * 2,
+          sampler.send(:next_wait_interval)
+      end
+
       # --- metric recording --------------------------------------------------
 
       def test_sample_records_puma_timeslice_metrics
@@ -76,7 +123,9 @@ module NewRelic
           'Puma/backlog' => {:total_call_time => 1},
           'Puma/requests_count' => {:total_call_time => 250},
           'Puma/workers' => {:total_call_time => 2},
-          # pool_capacity (3 + 4) is reported under the clearer name
+          # pool_capacity (3 + 4) is reported under a name that conveys what
+          # the value means: additional requests the pool can accept right
+          # now (idle threads + unspawned threads still allowed up to max).
           'Puma/spare_thread_capacity' => {:total_call_time => 7}
         )
         assert_metrics_not_recorded('Puma/pool_capacity')
@@ -111,6 +160,16 @@ module NewRelic
         sampler.send(:sample)
 
         assert_equal 0, sampler.instance_variable_get(:@consecutive_failures)
+      end
+
+      def test_sample_resets_report_failure_count_after_success
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+        sampler.instance_variable_set(:@consecutive_report_failures, 5)
+
+        sampler.send(:sample)
+
+        assert_equal 0, sampler.instance_variable_get(:@consecutive_report_failures),
+          'a successful record_metric pass must clear the report-failure counter'
       end
 
       # --- sample rate config ------------------------------------------------
@@ -223,7 +282,167 @@ module NewRelic
         end
       end
 
+      # --- start-loop exception handling ------------------------------------
+
+      def test_start_loop_rescue_logs_and_exits_on_standarderror
+        # Verifies the wrapper around #start's loop body. Without it Puma's
+        # bare Thread.new in fire_background would let any escape from the
+        # sampling loop silently kill the sampler thread.
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+        sampler.define_singleton_method(:sample) { raise 'unexpected loop blow-up' }
+
+        logger = StubLogger.new
+        with_config(:'puma.start_reporting_thread_in_master' => false) do
+          NewRelic::Agent.stub(:logger, logger) do
+            sampler.start # must not raise; rescue logs and returns
+          end
+        end
+
+        assert(logger.errors.any? { |m| m.include?('exited with error') },
+          "expected the StandardError rescue to log; got: #{logger.errors.inspect}")
+        refute sampler.instance_variable_get(:@running),
+          '@running must be reset on the rescue path so subsequent #stop is consistent'
+      end
+
+      def test_start_loop_logs_and_re_raises_on_exception_subclass
+        # Verifies the second rescue clause: a non-StandardError (the kind a
+        # process signal becomes) is logged and re-raised so interrupts still
+        # propagate to Puma instead of getting silently swallowed.
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+        sentinel = Class.new(Exception)
+        sampler.define_singleton_method(:sample) { raise sentinel, 'simulated interrupt' }
+
+        logger = StubLogger.new
+        raised = nil
+        with_config(:'puma.start_reporting_thread_in_master' => false) do
+          NewRelic::Agent.stub(:logger, logger) do
+            sampler.start
+          rescue sentinel => e
+            raised = e
+          end
+        end
+
+        refute_nil raised, 'Exception subclass must be re-raised, not swallowed'
+        assert(logger.errors.any? { |m| m.include?('Re-raising in case of interrupt') },
+          "expected the Exception rescue log line; got: #{logger.errors.inspect}")
+      end
+
+      # --- failure logging cadence ------------------------------------------
+
+      def test_log_sample_failure_logs_first_and_every_nth
+        sampler = PumaStatsSampler.new(FakeLauncher.new(nil))
+        logger = StubLogger.new
+        NewRelic::Agent.stub(:logger, logger) do
+          1.upto(11) do |i|
+            sampler.instance_variable_set(:@consecutive_failures, i)
+            sampler.send(:log_sample_failure, RuntimeError.new('boom'))
+          end
+        end
+
+        # 1st and 10th of 11 total iterations should log; 2..9 and 11 should not.
+        assert_equal 2, logger.errors.size, "logged at: #{logger.errors.map { |m| m[/failures: \d+/] }}"
+        assert_match(/failures: 1\)/, logger.errors[0])
+        assert_match(/failures: 10\)/, logger.errors[1])
+      end
+
+      def test_log_sample_failure_respects_time_floor
+        sampler = PumaStatsSampler.new(FakeLauncher.new(nil))
+        logger = StubLogger.new
+
+        sampler.instance_variable_set(:@consecutive_failures, 1)
+        sampler.stub(:monotonic_now, 0.0) do
+          NewRelic::Agent.stub(:logger, logger) do
+            sampler.send(:log_sample_failure, RuntimeError.new('boom'))
+          end
+        end
+        # Second iteration would normally be suppressed by the every-Nth rule.
+        # Push past the time floor so it should re-surface.
+        sampler.instance_variable_set(:@consecutive_failures, 2)
+        sampler.stub(:monotonic_now, NewRelic::Agent::PumaStatsSampler::LOG_FAILURE_TIME_FLOOR_SECONDS + 1.0) do
+          NewRelic::Agent.stub(:logger, logger) do
+            sampler.send(:log_sample_failure, RuntimeError.new('boom again'))
+          end
+        end
+
+        assert_equal 2, logger.errors.size,
+          'expected time floor to re-log a sustained failure beyond the every-Nth window'
+      end
+
+      # --- report_metrics failure isolation ---------------------------------
+
+      def test_report_metrics_failure_does_not_count_against_sample_backoff
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+
+        ::NewRelic::Agent.stub(:record_metric, ->(*) { raise 'metric store down' }) do
+          sampler.send(:sample)
+        end
+
+        assert_equal 0, sampler.instance_variable_get(:@consecutive_failures),
+          'metric-store failures must not trigger the Puma-stats failure backoff'
+        assert_equal 1, sampler.instance_variable_get(:@consecutive_report_failures),
+          'metric-store failures should accumulate against their own counter'
+      end
+
+      def test_report_metrics_failure_logging_is_throttled
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+        logger = StubLogger.new
+
+        ::NewRelic::Agent.stub(:record_metric, ->(*) { raise 'metric store down' }) do
+          NewRelic::Agent.stub(:logger, logger) do
+            sampler.stub(:monotonic_now, 0.0) do
+              1.upto(11) { sampler.send(:sample) }
+            end
+          end
+        end
+
+        # Same cadence as sample failures: log iteration 1 and 10 only.
+        report_errors = logger.errors.select { |m| m.include?('Error recording Puma timeslice metrics') }
+
+        assert_equal 2, report_errors.size,
+          "expected throttled report-failure logging (1st + 10th), got #{report_errors.size}: #{report_errors.inspect}"
+      end
+
+      def test_report_metrics_failure_logging_respects_time_floor
+        # Ensures log_report_failure honours the time floor independently —
+        # so the report-side throttle keeps working if its branch in
+        # should_log? ever diverges from the sample-side.
+        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
+        logger = StubLogger.new
+
+        ::NewRelic::Agent.stub(:record_metric, ->(*) { raise 'metric store down' }) do
+          NewRelic::Agent.stub(:logger, logger) do
+            sampler.stub(:monotonic_now, 0.0) { sampler.send(:sample) }
+            # Second call would normally be suppressed (consecutive=2,
+            # neither first nor every-Nth). Push past the floor: should log.
+            sampler.stub(:monotonic_now, NewRelic::Agent::PumaStatsSampler::LOG_FAILURE_TIME_FLOOR_SECONDS + 1.0) do
+              sampler.send(:sample)
+            end
+          end
+        end
+
+        report_errors = logger.errors.select { |m| m.include?('Error recording Puma timeslice metrics') }
+
+        assert_equal 2, report_errors.size,
+          'expected time floor to re-log a sustained report failure beyond the every-Nth window'
+      end
+
       private
+
+      # Captures only error-level messages; #log_exception is called too but
+      # at :debug, which we don't need to assert against.
+      class StubLogger
+        attr_reader :errors
+
+        def initialize
+          @errors = []
+        end
+
+        def error(*args)
+          @errors << args.first.to_s
+        end
+
+        def log_exception(*); end
+      end
 
       def thread_completes?(timeout = 5, &block)
         Thread.new(&block).join(timeout)

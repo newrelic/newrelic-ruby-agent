@@ -46,14 +46,21 @@ module NewRelic
     # request, query, or user data, so the plugin is fully functional under
     # High Security Mode.
     class PumaStatsSampler
+      # Raised when Puma's +stats+ returns a Hash whose shape we don't
+      # recognize (no +:worker_status+ and no top-level worker keys). Lets
+      # +fetch_metrics+'s existing rescue route the case through the
+      # throttled sample-failure path instead of silently recording nothing.
+      class UnrecognizedStatsError < StandardError; end
+
       METRIC_NAMESPACE = 'Puma'
       # Per-worker keys reported by +Puma::Server#stats+ and surfaced through
       # +Puma::Launcher#stats+. +requests_count+ is a cumulative counter (use
       # +rate()+ in NRQL); the rest are point-in-time gauges.
       WORKER_STAT_KEYS = %i[backlog running pool_capacity max_threads requests_count].freeze
-      # Puma's +pool_capacity+ is the number of threads currently free to take
-      # work; summed across workers it is the cluster's total spare threads, so
-      # it is reported under a name that conveys that meaning.
+      # Puma's +pool_capacity+ is the number of additional requests the pool
+      # can accept right now: idle (waiting) threads plus unspawned threads
+      # still allowed up to +max_threads+ (i.e. +waiting + (max - spawned)+).
+      # Reporting it as +spare_thread_capacity+ makes that meaning explicit.
       METRIC_NAME_OVERRIDES = {pool_capacity: 'spare_thread_capacity'}.freeze
       # Mirrors the +puma.sample_rate+ default in
       # +lib/new_relic/agent/configuration/default_source.rb+; used only if that
@@ -62,6 +69,13 @@ module NewRelic
       # When +stats+ fails repeatedly, log the first failure and then only every
       # Nth occurrence to avoid flooding the Puma master log.
       LOG_FAILURE_INTERVAL = 10
+      # Floor on time between failure logs: even with exponential backoff
+      # suppressing per-iteration logs, a persistent failure is re-logged at
+      # least this often so operators see it within ~5 min instead of ~14
+      # (15 + 30 + 60 + 6*120 seconds for 9 waits between consecutive
+      # failures 1..10 at the default 15 s sample rate, with the backoff
+      # capped at 2**3 = 8 intervals).
+      LOG_FAILURE_TIME_FLOOR_SECONDS = 300
       # Largest exponent used for exponential backoff after consecutive sampling
       # failures, i.e. the wait grows up to 2**3 = 8 sample intervals.
       BACKOFF_EXPONENT_CAP = 3
@@ -74,11 +88,18 @@ module NewRelic
         @running = false
         @stopped = false
         @consecutive_failures = 0
+        @last_failure_logged_at = nil
+        @consecutive_report_failures = 0
+        @last_report_failure_logged_at = nil
       end
 
       # Runs the sampling loop. Intended to be called from the Puma plugin's
       # +in_background+ block, which executes in the master process. Blocks
-      # until #stop is called (from Puma's +:state+ event handler).
+      # until #stop is called from a Puma lifecycle event (+:state+ in single
+      # mode, +:before_restart+ / +:after_stopped+ on the master in clustered
+      # mode). Single-shot: after the loop exits (cleanly or via the rescue
+      # path below) the sampler is done; the plugin instantiates one sampler
+      # per Puma boot, so #start is never re-entered on the same instance.
       def start
         return unless ensure_master_is_reporting
 
@@ -86,14 +107,30 @@ module NewRelic
           return if @stopped # #stop may have been called before we started
 
           @running = true
-          while @running
-            sample
-            # Wait one interval (longer after repeated failures), releasing the
-            # lock, or until #stop signals us for immediate shutdown. Re-check
-            # @running because the signal may have flipped it.
-            @stop_signal.wait(@lock, next_wait_interval) if @running
+          begin
+            while @running
+              sample
+              # Wait one interval (longer after repeated failures), releasing
+              # the lock, or until #stop signals us for immediate shutdown.
+              # Re-check @running because the signal may have flipped it.
+              @stop_signal.wait(@lock, next_wait_interval) if @running
+            end
+          ensure
+            # Even if an exception aborts the loop, leave @running consistent
+            # so a future #stop is a clean no-op rather than racing a stale
+            # truthy flag.
+            @running = false
           end
         end
+      rescue => e
+        # Puma's +fire_background+ uses a bare +Thread.new+ with no rescue, so
+        # any exception escaping here would silently kill the sampler thread.
+        # Mirror +Threading::AgentThread.create+: log StandardError, log and
+        # re-raise Exception (so interrupts still propagate).
+        ::NewRelic::Agent.logger.error('NewRelic Puma plugin sampler thread exited with error', e)
+      rescue Exception => e
+        ::NewRelic::Agent.logger.error('NewRelic Puma plugin sampler thread exited with exception. Re-raising in case of interrupt.', e)
+        raise
       end
 
       # Signals the sampling loop to exit. Thread-safe: #stop runs on the Puma
@@ -109,25 +146,52 @@ module NewRelic
       private
 
       def sample
+        metrics = fetch_metrics
+        return unless metrics
+
+        report_metrics(metrics)
+      end
+
+      # Fetches and aggregates Puma stats. Returns the metric Hash on success
+      # or nil if Puma's +stats+ call (or parsing/aggregation) raised. Failures
+      # here count toward the sampling backoff because they likely indicate
+      # Puma-side trouble. Returns nil rather than raising so #sample can keep
+      # the recording path separate.
+      def fetch_metrics
         stats = @launcher.stats
         # Newer Puma returns a Hash; older versions return a JSON string. Parse
         # with symbolize_names so keys match WORKER_STAT_KEYS either way.
         stats = JSON.parse(stats, symbolize_names: true) unless stats.is_a?(Hash)
-        report_metrics(aggregate(stats))
+        metrics = aggregate(stats)
         @consecutive_failures = 0
+        metrics
       rescue => e
         @consecutive_failures += 1
         log_sample_failure(e)
+        nil
       end
 
       # Collapses Puma's stats into a flat metric => summed-value hash. Handles
       # both clustered mode (a +:worker_status+ array) and single mode (the
       # thread-pool keys at the top level). In clustered mode the per-worker
-      # values are summed, giving cluster-wide totals (e.g. +pool_capacity+ is
-      # the total spare thread capacity across all workers).
+      # values are summed, giving cluster-wide totals (e.g. +pool_capacity+
+      # becomes the cluster-wide spare thread capacity).
+      #
+      # Sparse data (a known shape with missing inner keys, e.g. a worker
+      # without +:last_status+) is tolerated and yields zeros for the absent
+      # metrics. A completely unrecognized shape (neither +:worker_status+
+      # nor any +WORKER_STAT_KEYS+ at the top level) raises so the caller
+      # surfaces it to operators instead of silently reporting nothing.
       def aggregate(stats)
         metrics = Hash.new(0)
 
+        # +:worker_status: []+ (empty array) is intentionally a recognized
+        # shape: a clustered master observed before its workers have booted
+        # produces it briefly during startup. Tightening this to require a
+        # non-empty array would log an UnrecognizedStatsError on every Puma
+        # boot. The cost is ~15 s of misleading-but-self-correcting zero
+        # metrics during boot, which is preferable to false-positive errors
+        # in normal operation.
         if stats[:worker_status]
           metrics[:workers] = stats[:workers].to_i
           stats[:worker_status].each do |worker|
@@ -136,20 +200,41 @@ module NewRelic
               metrics[key] += last_status[key].to_i if last_status.key?(key)
             end
           end
-        else
+        elsif WORKER_STAT_KEYS.any? { |key| stats.key?(key) }
           WORKER_STAT_KEYS.each do |key|
             metrics[key] += stats[key].to_i if stats.key?(key)
           end
+        else
+          raise UnrecognizedStatsError,
+            "Puma stats had neither :worker_status nor any of #{WORKER_STAT_KEYS.inspect} " \
+            "(keys: #{stats.keys.inspect})"
         end
 
         metrics
       end
 
+      # Records the aggregated metrics. A failure here is the agent's metric
+      # store misbehaving, not Puma's; log it distinctly and do not count it
+      # toward the sampling backoff (which is for Puma-side trouble). A
+      # partial write is acceptable: any metric already recorded reaches New
+      # Relic on the next harvest. Logging is throttled like sample failures
+      # so a persistently broken metric store does not flood the master log
+      # every sample interval.
+      #
+      # Asymmetry note: unlike +fetch_metrics+, this path does NOT extend
+      # +next_wait_interval+ on failure. Puma-side trouble is a signal to back
+      # off polling Puma; a metric-store outage isn't — keep sampling at the
+      # configured rate so recording resumes immediately once the store
+      # recovers. Don't "fix" this by merging the two counters.
       def report_metrics(metrics)
         metrics.each do |key, value|
           name = METRIC_NAME_OVERRIDES.fetch(key, key)
           ::NewRelic::Agent.record_metric("#{METRIC_NAMESPACE}/#{name}", value)
         end
+        @consecutive_report_failures = 0
+      rescue => e
+        @consecutive_report_failures += 1
+        log_report_failure(e)
       end
 
       # Seconds to wait before the next sample. Backs off exponentially (capped)
@@ -181,14 +266,54 @@ module NewRelic
         false
       end
 
+      # Logs the first failure, every Nth subsequent failure, and any failure
+      # that has not been logged in LOG_FAILURE_TIME_FLOOR_SECONDS. Without
+      # the time floor, exponential backoff stretches the "every Nth" cadence
+      # to ~14 minutes; the floor caps that at ~5 minutes so a persistent
+      # failure is re-surfaced even while backoff is sparse.
       def log_sample_failure(e)
-        return unless @consecutive_failures == 1 || (@consecutive_failures % LOG_FAILURE_INTERVAL).zero?
+        now = monotonic_now
+        return unless should_log?(@consecutive_failures, @last_failure_logged_at, now)
 
         ::NewRelic::Agent.logger.error( \
           "Error sampling Puma stats (consecutive failures: #{@consecutive_failures}): " \
           "#{e.class} - #{e.message}"
         )
         ::NewRelic::Agent.logger.log_exception(:debug, e)
+        @last_failure_logged_at = now
+      end
+
+      # Mirrors +log_sample_failure+ for record_metric failures, throttled
+      # against its own counter so a metric-store outage does not flood the
+      # master log at every sample interval.
+      def log_report_failure(e)
+        now = monotonic_now
+        return unless should_log?(@consecutive_report_failures, @last_report_failure_logged_at, now)
+
+        ::NewRelic::Agent.logger.error( \
+          'Error recording Puma timeslice metrics ' \
+          "(consecutive failures: #{@consecutive_report_failures}): #{e.class} - #{e.message}"
+        )
+        ::NewRelic::Agent.logger.log_exception(:debug, e)
+        @last_report_failure_logged_at = now
+      end
+
+      def should_log?(consecutive, last_logged_at, now)
+        return true if consecutive == 1
+        return true if (consecutive % LOG_FAILURE_INTERVAL).zero?
+        return true if time_floor_elapsed?(last_logged_at, now)
+
+        false
+      end
+
+      def time_floor_elapsed?(last_logged_at, now)
+        return false unless last_logged_at
+
+        (now - last_logged_at) >= LOG_FAILURE_TIME_FLOOR_SECONDS
+      end
+
+      def monotonic_now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
       def resolve_sample_rate
