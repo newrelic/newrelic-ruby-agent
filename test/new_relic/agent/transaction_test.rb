@@ -1462,6 +1462,26 @@ module NewRelic::Agent
       assert_equal 418, actual[:"http.statusCode"]
     end
 
+    def test_response_status_included_in_agent_attributes
+      txn = in_transaction do |t|
+        t.response_status = 0
+      end
+
+      actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
+      assert_equal 0, actual[:'response.status']
+    end
+
+    def test_response_status_error_code_included_in_agent_attributes
+      txn = in_transaction do |t|
+        t.response_status = 14
+      end
+
+      actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
+      assert_equal 14, actual[:'response.status']
+    end
+
     def test_trace_id
       txn = in_transaction {}
 

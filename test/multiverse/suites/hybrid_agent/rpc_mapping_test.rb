@@ -217,6 +217,35 @@ module NewRelic
             assert_equal attrs['rpc.type'], custom['rpc.type']
             assert_equal attrs['rpc.service'], custom['rpc.service']
           end
+
+          def test_client_span_non_ok_status_code
+            in_transaction(category: :web) do |txn|
+              txn.stubs(:sampled?).returns(true)
+
+              @tracer.in_span(client_span_name, attributes: client_req_attrs, kind: :client) do |span|
+                span.set_attribute('rpc.grpc.status_code', 14)
+              end
+            end
+
+            spans = harvest_span_events!
+            span = spans[1][0]
+            intrinsics = span[0]
+
+            assert_equal 14, intrinsics['grpc.statusCode']
+          end
+
+          def test_server_span_non_ok_status_code
+            span = @tracer.start_span(server_span_name, attributes: server_req_attrs, kind: :server)
+            span.finishable.stubs(:sampled?).returns(true)
+            span.set_attribute('rpc.grpc.status_code', 14)
+            span.finish
+
+            txns = harvest_transaction_events!
+            txn = txns[1][0]
+            agent = txn[2]
+
+            assert_equal 14, agent[:'response.status']
+          end
         end
       end
     end
