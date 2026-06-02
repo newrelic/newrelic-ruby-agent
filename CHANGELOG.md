@@ -6,6 +6,10 @@
 
   Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)
 
+- **Bugfix: Normalize boolean-like values to `disabled` for instrumentation config keys**
+
+  Setting any `instrumentation.*` config key to `false`, `no`, or `off` instead of `disabled` will now resolve to `disabled` and prevent the instrumentation from being installed. [PR#3579](https://github.com/newrelic/newrelic-ruby-agent/pull/3579)
+
 ## v10.5.0
 
 - **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
