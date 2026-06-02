@@ -11,7 +11,7 @@ module NewRelic
       # because there are no known New Relic attributes to translate
       class GenericTranslator < BaseTranslator
         class << self
-          def mappings_hash
+          def mappings_hash(_kind)
             NewRelic::EMPTY_HASH
           end
         end

@@ -180,6 +180,47 @@ module NewRelic
           end
         end
 
+        def test_grpc_status_code_included_in_intrinsics_when_set
+          in_transaction do |txn|
+            NewRelic::Agent::Tracer.start_external_request_segment(
+              library: 'grpc',
+              uri: 'grpc://localhost:50051/MyService/DoThing',
+              procedure: 'DoThing'
+            )
+            txn.current_segment.instance_variable_set(:@grpc_status_code, 0)
+            intrinsics, _, _ = SpanEventPrimitive.for_external_request_segment(txn.current_segment)
+
+            assert_equal 0, intrinsics['grpc.statusCode']
+          end
+        end
+
+        def test_grpc_status_code_error_value_included_in_intrinsics
+          in_transaction do |txn|
+            NewRelic::Agent::Tracer.start_external_request_segment(
+              library: 'grpc',
+              uri: 'grpc://localhost:50051/MyService/DoThing',
+              procedure: 'DoThing'
+            )
+            txn.current_segment.instance_variable_set(:@grpc_status_code, 14)
+            intrinsics, _, _ = SpanEventPrimitive.for_external_request_segment(txn.current_segment)
+
+            assert_equal 14, intrinsics['grpc.statusCode']
+          end
+        end
+
+        def test_grpc_status_code_absent_from_intrinsics_when_not_set
+          in_transaction do |txn|
+            NewRelic::Agent::Tracer.start_external_request_segment(
+              library: 'Net::HTTP',
+              uri: 'https://example.com',
+              procedure: 'GET'
+            )
+            intrinsics, _, _ = SpanEventPrimitive.for_external_request_segment(txn.current_segment)
+
+            refute intrinsics.key?('grpc.statusCode')
+          end
+        end
+
         def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
           with_config('span_events.attributes.enabled' => false) do
             with_segment do |segment|

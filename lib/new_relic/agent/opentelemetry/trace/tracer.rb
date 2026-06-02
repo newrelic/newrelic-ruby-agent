@@ -35,6 +35,7 @@ module NewRelic
 
             otel_span.finishable = finishable
             otel_span.status = ::OpenTelemetry::Trace::Status.unset
+            otel_span.kind = kind
             otel_span.translator = translated[:translator]
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
             otel_span.add_instrumentation_scope(@name, @version)
@@ -63,9 +64,9 @@ module NewRelic
 
             case kind
             when :client
-              if segment_api_params[:uri] # HTTP Client
+              if segment_api_params[:uri] # HTTP Client and gRPC Client
                 NewRelic::Agent::Tracer.start_external_request_segment(
-                  library: @name,
+                  library: segment_api_params[:library] || @name,
                   uri: segment_api_params[:uri],
                   procedure: segment_api_params[:procedure],
                   start_time: start_timestamp
@@ -101,7 +102,7 @@ module NewRelic
             segment_api_params = translated[:for_segment_api]
 
             case kind
-            when :server
+            when :server # HTTP or gRPC server calls
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
                 name: segment_api_params[:name] || name,
                 category: :web

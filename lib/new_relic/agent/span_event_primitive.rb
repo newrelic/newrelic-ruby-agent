@@ -27,6 +27,7 @@ module NewRelic
       DURATION_KEY = 'duration'
       NAME_KEY = 'name'
       CATEGORY_KEY = 'category'
+      GRPC_STATUS_CODE_KEY = 'grpc.statusCode'
       HTTP_URL_KEY = 'http.url'
       HTTP_METHOD_KEY = 'http.method'
       HTTP_REQUEST_METHOD_KEY = 'http.request.method'
@@ -79,6 +80,7 @@ module NewRelic
         intrinsics[HTTP_METHOD_KEY] = segment.procedure
         intrinsics[HTTP_REQUEST_METHOD_KEY] = segment.procedure
         intrinsics[HTTP_STATUS_CODE_KEY] = segment.http_status_code if segment.http_status_code
+        intrinsics[GRPC_STATUS_CODE_KEY] = segment.instance_variable_get(:@grpc_status_code) if segment.instance_variable_defined?(:@grpc_status_code)
         intrinsics[CATEGORY_KEY] = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[SERVER_ADDRESS_KEY] = segment.uri.host

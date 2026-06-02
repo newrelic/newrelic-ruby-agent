@@ -14,7 +14,7 @@ module NewRelic
           # This method should be redefined in child classes.
           # The body of the method should be the mappings constant defined in the
           #  AttributesMappings module for the attribute type being translated
-          def mappings_hash
+          def mappings_hash(kind)
             # no-op
             NewRelic::EMPTY_HASH
           end
@@ -28,11 +28,11 @@ module NewRelic
           #
           # @return [Hash] A hash with attributes divided into various categories for assignment on a New Relic
           # transaction or segment.
-          def translate(attributes: {}, name: nil, instrumentation_scope: nil)
+          def translate(attributes: {}, name: nil, instrumentation_scope: nil, kind: nil)
             working_attrs = attributes.dup # shallow copy
             result = {intrinsic: {}, agent: {}, custom: {}, for_segment_api: {}, instance_variable: {}, translator: self}
 
-            mappings_hash.each do |nr_key, mapping|
+            mappings_hash(kind).each do |nr_key, mapping|
               value = extract_first_present(working_attrs, mapping[:otel_keys])
               next unless value
 
@@ -54,7 +54,7 @@ module NewRelic
             # specialized attributes.
             # This method will augment the working result hash, so it does not
             # need to be merged.
-            add_specialized_attributes(result: result, name: name, attributes: attributes, instrumentation_scope: instrumentation_scope)
+            add_specialized_attributes(result: result, name: name, attributes: attributes, instrumentation_scope: instrumentation_scope, kind: kind)
 
             # Assign any remaining attributes as custom attributes
             result[:custom] = working_attrs
@@ -71,7 +71,7 @@ module NewRelic
           # @param [optional, String] instrumentation_scope The instrumentation scope provided to the translate method
           #
           # @return [Hash] The augmented result hash
-          def add_specialized_attributes(result: {}, name: nil, attributes: {}, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: {}, instrumentation_scope: nil, kind: nil)
             # no-op
             {}
           end

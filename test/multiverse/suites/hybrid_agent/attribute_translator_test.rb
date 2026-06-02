@@ -42,6 +42,25 @@ module NewRelic
           assert_same DatastoreTranslator, result[:translator]
         end
 
+        def test_selects_rpc_translator_by_discriminating_attribute_rpc_system
+          result = AttributeTranslator.translate(
+            attributes: {'rpc.system' => 'grpc'},
+            span_kind: :client
+          )
+
+          assert_same RpcTranslator, result[:translator]
+        end
+
+        def test_rpc_system_takes_precedence_over_span_kind
+          # :server span_kind would map to HttpServerTranslator, but rpc.system wins
+          result = AttributeTranslator.translate(
+            attributes: {'rpc.system' => 'grpc'},
+            span_kind: :server
+          )
+
+          assert_same RpcTranslator, result[:translator]
+        end
+
         def test_discriminating_attribute_takes_precedence_over_span_kind
           # :client span_kind maps to HttpClientTranslator,
           # but db.system discriminating attribute should win

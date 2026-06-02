@@ -9,11 +9,11 @@ module NewRelic
     module OpenTelemetry
       class DatastoreTranslator < BaseTranslator
         class << self
-          def mappings_hash
+          def mappings_hash(_kind)
             AttributeMappings::DATASTORE_MAPPINGS
           end
 
-          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil)
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil, kind: nil)
             operation = parse_operation(name, attributes)
             result[:for_segment_api][:operation] = operation if operation
 

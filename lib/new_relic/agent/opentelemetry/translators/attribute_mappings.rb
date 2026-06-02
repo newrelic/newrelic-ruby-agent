@@ -150,6 +150,52 @@ module NewRelic
             destinations: DEFAULT_DESTINATIONS
           }
         }.freeze
+
+        RPC_SERVER_MAPPINGS = { # v1.20
+          'response_status' => {
+            otel_keys: ['rpc.grpc.status_code'],
+            category: :instance_variable
+          },
+          'request.headers.host' => {
+            otel_keys: ['net.sock.peer.addr', 'server.address', 'net.peer.name'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'request.method' => {
+            otel_keys: ['rpc.method'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          }
+        }.freeze
+
+        RPC_CLIENT_MAPPINGS = { # v1.17
+          'grpc_status_code' => {
+            otel_keys: ['rpc.grpc.status_code'],
+            category: :instance_variable
+          },
+          # the value closest to library in intention is rpc.system. however,
+          # to get the correct segment name, we need to set this to rpc.service
+          'library' => {
+            otel_keys: ['rpc.service'],
+            segment_field: :library
+          },
+          'procedure' => {
+            otel_keys: ['rpc.method'],
+            segment_field: :procedure
+          },
+          'host' => {
+            # traditional host keys aren't sent by otel grpc instrumentation
+            # so we use net.sock.peer.address to fill the host field
+            otel_keys: ['net.sock.peer.addr', 'server.address', 'net.peer.name'],
+            segment_field: :host
+          },
+          # not sent by gRPC OTel instrumentation, but can sometimes be gleaned
+          # by net.sock.peer.addr
+          'port' => {
+            otel_keys: ['server.port', 'net.peer.port'],
+            segment_field: :port
+          }
+        }.freeze
       end
     end
   end
