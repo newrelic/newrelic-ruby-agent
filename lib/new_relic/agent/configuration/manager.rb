@@ -180,7 +180,7 @@ module NewRelic
         end
 
         def instrumentation_key?(key)
-          key.to_s.start_with?('instrumentation.') &&
+          key.to_s.match?(/\Ainstrumentation\.[^.]+\z/) &&
             DEFAULTS.dig(key, :type) == String
         end
 

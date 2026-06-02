@@ -680,6 +680,16 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_instrumentation_sub_key_not_affected_by_disabled_coercion
+      key = :'instrumentation.some_lib.sub_key'
+      defaults = {key => {default: [], type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'false', :manual)
+
+        assert_equal 'false', value
+      end
+    end
+
     def test_add_config_for_testing_enforces_an_input_class_allowlist
       error = assert_raises RuntimeError do
         @manager.add_config_for_testing(nil)
