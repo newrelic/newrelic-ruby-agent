@@ -15,7 +15,6 @@ module NewRelic::Agent
 
       @enabled_config = {
         :'instrumentation.logger' => 'auto',
-        :'instrumentation.logstasher' => 'auto',
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true
       }
@@ -47,7 +46,16 @@ module NewRelic::Agent
 
     include NewRelic::DataContainerTests
 
-    def test_records_enabled_metrics_on_startup
+    def test_records_supportability_metrics_on_startup
+      # manually set cache values that with_config can't override
+      cache = NewRelic::Agent.config.instance_variable_get(:@cache)
+      %i[
+        instrumentation.logstasher
+        instrumentation.logging
+        instrumentation.semantic_logger
+        instrumentation.rails_event_logger
+      ].each { |key| cache[key] = :unsatisfied }
+
       with_config(
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::METRICS_ENABLED_KEY => true,
@@ -59,10 +67,10 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/SemanticLogger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/RailsEventLogger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
@@ -364,6 +372,15 @@ module NewRelic::Agent
     end
 
     def test_high_security_mode
+      # manually set cache values that with_config can't override
+      cache = NewRelic::Agent.config.instance_variable_get(:@cache)
+      %i[
+        instrumentation.logstasher
+        instrumentation.logging
+        instrumentation.semantic_logger
+        instrumentation.rails_event_logger
+      ].each { |key| cache[key] = :unsatisfied }
+
       with_config(CAPACITY_KEY => 5, :high_security => true) do
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
@@ -379,10 +396,10 @@ module NewRelic::Agent
           'Logging/lines' => {:call_count => 9},
           'Logging/lines/DEBUG' => {:call_count => 9},
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/Logging/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/SemanticLogger/enabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/RailsEventLogger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/Logging/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/SemanticLogger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/RailsEventLogger/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},

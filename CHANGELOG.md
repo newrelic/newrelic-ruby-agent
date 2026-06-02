@@ -10,6 +10,10 @@
 
   Setting any `instrumentation.*` config key to `false`, `no`, or `off` instead of `disabled` will now resolve to `disabled` and prevent the instrumentation from being installed. [PR#3579](https://github.com/newrelic/newrelic-ruby-agent/pull/3579)
 
+- **Bugfix: Per-library logging supportability metrics now reflect each library's instrumentation state**
+
+  The `Supportability/Logging/Ruby/{library}/{enabled|disabled}` metrics previously echoed `application_logging.enabled` for every library, so disabling a single logging instrumentation or running without one of its gems still reported `enabled`. Each library now reports based on its own instrumentation state. [PR#3571](https://github.com/newrelic/newrelic-ruby-agent/pull/3571)
+
 ## v10.5.0
 
 - **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**
