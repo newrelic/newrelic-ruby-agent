@@ -47,15 +47,6 @@ module NewRelic::Agent
     include NewRelic::DataContainerTests
 
     def test_records_supportability_metrics_on_startup
-      # manually set cache values that with_config can't override
-      cache = NewRelic::Agent.config.instance_variable_get(:@cache)
-      %i[
-        instrumentation.logstasher
-        instrumentation.logging
-        instrumentation.semantic_logger
-        instrumentation.rails_event_logger
-      ].each { |key| cache[key] = :unsatisfied }
-
       with_config(
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::METRICS_ENABLED_KEY => true,
@@ -63,6 +54,16 @@ module NewRelic::Agent
         LogEventAggregator::DECORATING_ENABLED_KEY => true,
         LogEventAggregator::LABELS_ENABLED_KEY => true
       ) do
+        # Manually set cache values that with_config can't override. Done inside
+        # the block because under JRuby reset_cache wipes anything set beforehand.
+        cache = NewRelic::Agent.config.instance_variable_get(:@cache)
+        %i[
+          instrumentation.logstasher
+          instrumentation.logging
+          instrumentation.semantic_logger
+          instrumentation.rails_event_logger
+        ].each { |key| cache[key] = :unsatisfied }
+
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
@@ -372,16 +373,17 @@ module NewRelic::Agent
     end
 
     def test_high_security_mode
-      # manually set cache values that with_config can't override
-      cache = NewRelic::Agent.config.instance_variable_get(:@cache)
-      %i[
-        instrumentation.logstasher
-        instrumentation.logging
-        instrumentation.semantic_logger
-        instrumentation.rails_event_logger
-      ].each { |key| cache[key] = :unsatisfied }
-
       with_config(CAPACITY_KEY => 5, :high_security => true) do
+        # Manually set cache values that with_config can't override. Done inside
+        # the block because under JRuby reset_cache wipes anything set beforehand.
+        cache = NewRelic::Agent.config.instance_variable_get(:@cache)
+        %i[
+          instrumentation.logstasher
+          instrumentation.logging
+          instrumentation.semantic_logger
+          instrumentation.rails_event_logger
+        ].each { |key| cache[key] = :unsatisfied }
+
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 
