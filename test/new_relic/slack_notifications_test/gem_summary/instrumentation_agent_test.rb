@@ -49,11 +49,13 @@ if defined?(HTTParty)
 
     def test_analyze_sends_formatted_prompt_to_claude
       captured = []
+
       stub_pipeline(code: 'WRAPPED CODE', changelog: 'CHANGELOG BODY', captured: captured) do
         assert_equal 'summary', GemSummary::InstrumentationAgent.analyze('redis', '5.4.1')
       end
 
       prompt = captured.first
+
       assert_includes prompt, 'redis'
       assert_includes prompt, '5.4.1'
       assert_includes prompt, 'WRAPPED CODE'
