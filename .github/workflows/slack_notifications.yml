@@ -20,3 +20,5 @@ jobs:
         run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb
         env:
           SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_API_ENDPOINT: ${{ secrets.CLAUDE_API_ENDPOINT }}
