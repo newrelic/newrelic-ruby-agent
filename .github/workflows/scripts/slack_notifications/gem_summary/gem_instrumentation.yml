@@ -22,7 +22,6 @@ curb:             curb
 delayed_job:      delayed_job
 elasticsearch:    elasticsearch
 ethon:            ethon
-excon:            excon
 grape:            grape
 httpclient:       httpclient
 httpx:            httpx
@@ -63,6 +62,9 @@ dalli:
   - memcache/instrumentation.rb
   - memcache/prepend.rb
   - memcache/dalli.rb
+excon:
+  - excon.rb
+  - excon/middleware.rb
 mongo:
   - mongo.rb
   - mongodb_command_subscriber.rb
