@@ -109,7 +109,7 @@ module NewRelic
         end
 
         def span_links
-          @span_links || NewRelic::EMPTY_ARRAY
+          instance_variable_defined?(:@span_links) ? @span_links : NewRelic::EMPTY_ARRAY
         end
 
         def params
