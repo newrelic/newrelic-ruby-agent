@@ -33,6 +33,15 @@ module NewRelic
       SUPPORTABILITY_TOTAL_SENT = 'Supportability/SpanEvent/TotalEventsSent'.freeze
       SUPPORTABILITY_DISCARDED = 'Supportability/SpanEvent/Discarded'.freeze
 
+      def harvest!
+        metadata, events = super
+        span_links = []
+        events.each do |event|
+          span_links.concat(event.slice!(3)) if event.length > 3
+        end
+        [metadata, events.concat(span_links)]
+      end
+
       def after_harvest(metadata)
         seen = metadata[:seen]
         sent = metadata[:captured]

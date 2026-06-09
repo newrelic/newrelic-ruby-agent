@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Span links are now supported for the Hybrid Agent**
+
+  Now, spans created by an OpenTelemetry API can have Span Links associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
+
 - **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
 
   Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)
