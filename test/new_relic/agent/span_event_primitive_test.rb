@@ -408,7 +408,7 @@ module NewRelic
           assert_equal thread_id, spans[1][0][0]['thread.id']
         end
 
-        def test_for_segment_returns_three_element_tuple_when_no_links
+        def test_for_segment_returns_three_element_array_when_no_links
           with_segment do |segment|
             event = SpanEventPrimitive.for_segment(segment)
 
@@ -416,7 +416,7 @@ module NewRelic
           end
         end
 
-        def test_for_segment_returns_four_element_tuple_when_links_present
+        def test_for_segment_returns_four_element_array_when_links_present
           link = stub_span_link('a' * 32, 'b' * 16)
 
           with_segment do |segment|
@@ -436,7 +436,7 @@ module NewRelic
           end
         end
 
-        def test_for_span_links_returns_span_link_event_tuples
+        def test_for_span_links_returns_span_link_event_harvest
           hex_trace_id = 'abcd1234abcd1234abcd1234abcd1234'
           hex_span_id = '1234abcd1234abcd'
           link = stub_span_link(hex_trace_id, hex_span_id, {'user_attr' => 'value'})

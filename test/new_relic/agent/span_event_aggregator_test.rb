@@ -96,7 +96,7 @@ module NewRelic
         span_link_events = events.select { |e| e[0]['type'] == 'SpanLink' }
 
         assert_equal 1, span_events.length
-        assert_equal 3, span_events[0].length, 'span event should be 3-element tuple after harvest'
+        assert_equal 3, span_events[0].length
         assert_equal 1, span_link_events.length
         assert_equal 'abc', span_link_events[0][0]['linkedSpanId']
       end
