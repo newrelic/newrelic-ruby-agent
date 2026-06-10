@@ -55,14 +55,15 @@ module NewRelic
           # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
           # Using the "old" patch, which uses approx. version 1.17 semconv
           def test_client_v_1_17_segment_properties
-            transaction = run_http_client_span(request_attrs_v_1_17, 'http.status_code')
+            attrs = request_attrs_v_1_17
+            transaction = run_http_client_span(attrs, 'http.status_code')
 
             segment = transaction.segments[1]
 
             assert_instance_of NewRelic::Agent::Transaction::ExternalRequestSegment, segment
 
             assert_equal 'External/potatoes.com/OTelClient/GET', segment.name
-            assert_equal request_attrs_v_1_17['net.peer.name'], segment.host
+            assert_equal attrs['net.peer.name'], segment.host
           end
 
           def test_client_v_1_17_metrics
@@ -77,38 +78,41 @@ module NewRelic
           end
 
           def test_client_v_1_17_intrinsic_attributes
-            run_http_client_span(request_attrs_v_1_17, 'http.status_code')
+            attrs = request_attrs_v_1_17
+            run_http_client_span(attrs, 'http.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             intrinsics = span[0]
 
-            assert_equal request_attrs_v_1_17['http.method'], intrinsics['http.method']
-            assert_equal request_attrs_v_1_17['http.method'], intrinsics['http.request.method']
-            assert_equal request_attrs_v_1_17['net.peer.name'], intrinsics['server.address']
-            assert_equal request_attrs_v_1_17['net.peer.port'], intrinsics['server.port']
+            assert_equal attrs['http.method'], intrinsics['http.method']
+            assert_equal attrs['http.method'], intrinsics['http.request.method']
+            assert_equal attrs['net.peer.name'], intrinsics['server.address']
+            assert_equal attrs['net.peer.port'], intrinsics['server.port']
             assert_equal 200, intrinsics['http.statusCode']
           end
 
           def test_client_v_1_17_custom_attributes
-            run_http_client_span(request_attrs_v_1_17, 'http.status_code')
+            attrs = request_attrs_v_1_17
+            run_http_client_span(attrs, 'http.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             custom = span[1]
 
-            assert_equal request_attrs_v_1_17['http.scheme'], custom['http.scheme']
-            assert_equal request_attrs_v_1_17['http.target'], custom['http.target']
+            assert_equal attrs['http.scheme'], custom['http.scheme']
+            assert_equal attrs['http.target'], custom['http.target']
           end
 
           def test_client_v_1_17_agent_attributes
-            run_http_client_span(request_attrs_v_1_17, 'http.status_code')
+            attrs = request_attrs_v_1_17
+            run_http_client_span(attrs, 'http.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             agent = span[2]
 
-            assert_equal request_attrs_v_1_17['http.url'], agent['http.url']
+            assert_equal attrs['http.url'], agent['http.url']
             assert_equal 1, agent['status.code']
             assert_equal 'OTelClient', agent['otel.scope.name']
           end
@@ -116,14 +120,15 @@ module NewRelic
           # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
           # Using the "stable" patch, which uses approx. version 1.23 semconv
           def test_client_v_1_23_segment_properties
-            transaction = run_http_client_span(request_attrs_v_1_23, 'http.response.status_code')
+            attrs = request_attrs_v_1_23
+            transaction = run_http_client_span(attrs, 'http.response.status_code')
 
             segment = transaction.segments[1]
 
             assert_instance_of NewRelic::Agent::Transaction::ExternalRequestSegment, segment
 
             assert_equal 'External/potatoes.com/OTelClient/GET', segment.name
-            assert_equal request_attrs_v_1_23['server.address'], segment.host
+            assert_equal attrs['server.address'], segment.host
           end
 
           def test_client_v_1_23_metrics
@@ -138,38 +143,41 @@ module NewRelic
           end
 
           def test_client_v_1_23_intrinsic_attributes
-            run_http_client_span(request_attrs_v_1_23, 'http.response.status_code')
+            attrs = request_attrs_v_1_23
+            run_http_client_span(attrs, 'http.response.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             intrinsics = span[0]
 
-            assert_equal request_attrs_v_1_23['http.request.method'], intrinsics['http.method']
-            assert_equal request_attrs_v_1_23['http.request.method'], intrinsics['http.request.method']
-            assert_equal request_attrs_v_1_23['server.address'], intrinsics['server.address']
-            assert_equal request_attrs_v_1_23['server.port'], intrinsics['server.port']
+            assert_equal attrs['http.request.method'], intrinsics['http.method']
+            assert_equal attrs['http.request.method'], intrinsics['http.request.method']
+            assert_equal attrs['server.address'], intrinsics['server.address']
+            assert_equal attrs['server.port'], intrinsics['server.port']
             assert_equal 200, intrinsics['http.statusCode']
           end
 
           def test_client_v_1_23_custom_attributes
-            run_http_client_span(request_attrs_v_1_23, 'http.response.status_code')
+            attrs = request_attrs_v_1_23
+            run_http_client_span(attrs, 'http.response.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             custom = span[1]
 
-            assert_equal request_attrs_v_1_23['url.scheme'], custom['url.scheme']
-            assert_equal request_attrs_v_1_23['url.path'], custom['url.path']
+            assert_equal attrs['url.scheme'], custom['url.scheme']
+            assert_equal attrs['url.path'], custom['url.path']
           end
 
           def test_client_v_1_23_agent_attributes
-            run_http_client_span(request_attrs_v_1_23, 'http.response.status_code')
+            attrs = request_attrs_v_1_23
+            run_http_client_span(attrs, 'http.response.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             agent = span[2]
 
-            assert_equal request_attrs_v_1_23['url.full'], agent['http.url']
+            assert_equal attrs['url.full'], agent['http.url']
             assert_equal 1, agent['status.code']
             assert_equal 'OTelClient', agent['otel.scope.name']
           end
