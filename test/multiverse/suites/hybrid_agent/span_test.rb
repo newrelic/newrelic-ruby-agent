@@ -437,6 +437,30 @@ module NewRelic
             assert_nil span.add_attributes({})
           end
 
+          def test_span_kind_set_on_intrinsics_for_non_client_kind
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              span = @tracer.start_span('test_span', kind: :producer)
+              span.finish
+            end
+
+            spans = harvest_span_events![1]
+            test_span = spans.find { |s| s[0]['name'] == 'test_span' }
+
+            assert_equal 'producer', test_span[0]['span.kind']
+          end
+
+          def test_span_kind_set_on_intrinsics_for_server_kind_initial_segment
+            span = @tracer.start_span('test_span', kind: :server)
+            span.finishable.stubs(:sampled?).returns(true)
+            span.finish
+
+            spans = harvest_span_events![1]
+            initial_segment = spans[0]
+
+            assert_equal 'server', initial_segment[0]['span.kind']
+          end
+
           def test_add_attributes_without_translator_adds_all_as_custom_span_attributes
             span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
             attrs = {'some.key' => 'value', 'other.key' => 123}

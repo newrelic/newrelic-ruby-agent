@@ -8,7 +8,7 @@ module NewRelic
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
           attr_accessor :finishable
-          attr_writer :kind
+          attr_accessor :kind
           attr_writer :translator
           attr_reader :status
 
