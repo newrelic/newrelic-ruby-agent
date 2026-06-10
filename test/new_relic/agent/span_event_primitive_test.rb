@@ -472,6 +472,90 @@ module NewRelic
           end
         end
 
+        def test_for_segment_returns_three_element_array_when_no_span_events
+          with_segment do |segment|
+            event = SpanEventPrimitive.for_segment(segment)
+
+            assert_equal 3, event.length
+          end
+        end
+
+        def test_for_segment_returns_four_element_array_when_span_events_present
+          with_segment do |segment|
+            segment.add_span_event('my_event')
+            event = SpanEventPrimitive.for_segment(segment)
+
+            assert_equal 4, event.length
+            assert_kind_of Array, event[3]
+          end
+        end
+
+        def test_for_span_events_returns_empty_when_no_events
+          with_segment do |segment|
+            result = SpanEventPrimitive.send(:for_span_events, segment)
+
+            assert_empty result
+          end
+        end
+
+        def test_for_span_events_returns_correct_intrinsics
+          t = Time.now
+
+          with_segment do |segment|
+            segment.add_span_event('TestEvent', attributes: {'attr_key' => 'attr_val'}, timestamp: t)
+            result = SpanEventPrimitive.send(:for_span_events, segment)
+
+            assert_equal 1, result.length
+            intrinsics, user_attrs, agent_attrs = result[0]
+
+            assert_equal 'SpanEvent', intrinsics['type']
+            assert_equal segment.guid, intrinsics['span.id']
+            assert_equal segment.transaction.trace_id, intrinsics['trace.id']
+            assert_equal 'TestEvent', intrinsics['name']
+            assert_kind_of Integer, intrinsics['timestamp']
+            assert_equal Integer(t.to_f * 1000.0), intrinsics['timestamp']
+            assert_empty agent_attrs
+          end
+        end
+
+        def test_for_span_events_places_event_attributes_as_user_attributes
+          with_segment do |segment|
+            segment.add_span_event('AttrEvent', attributes: {'key1' => 'val1', 'key2' => 42})
+            result = SpanEventPrimitive.send(:for_span_events, segment)
+            _, user_attrs, _ = result[0]
+
+            assert_equal 'val1', user_attrs['key1']
+            assert_equal 42, user_attrs['key2']
+          end
+        end
+
+        def test_for_span_events_empty_user_attributes_when_none_provided
+          with_segment do |segment|
+            segment.add_span_event('NoAttrEvent')
+            result = SpanEventPrimitive.send(:for_span_events, segment)
+            _, user_attrs, _ = result[0]
+
+            assert_equal({}, user_attrs)
+          end
+        end
+
+        def test_span_events_combined_with_span_links_in_same_index_3_array
+          link = stub_span_link('a' * 32, 'b' * 16)
+
+          with_segment do |segment|
+            segment.add_span_link(link)
+            segment.add_span_event('CombinedEvent')
+            event = SpanEventPrimitive.for_segment(segment)
+
+            assert_equal 4, event.length
+            extras = event[3]
+            types = extras.map { |e| e[0]['type'] }
+
+            assert_includes types, 'SpanLink'
+            assert_includes types, 'SpanEvent'
+          end
+        end
+
         private
 
         def stub_span_link(hex_trace_id, hex_span_id, attributes = {})

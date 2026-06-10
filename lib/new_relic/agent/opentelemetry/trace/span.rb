@@ -39,6 +39,13 @@ module NewRelic
             self
           end
 
+          def add_event(name, attributes: nil, timestamp: nil)
+            return self unless recording?
+
+            finishable&.add_span_event(name, attributes: attributes, timestamp: timestamp)
+            self
+          end
+
           def apply_translated_attributes(translated)
             translated[:instance_variable].each do |key, value|
               sym_key = "@#{key}".to_sym

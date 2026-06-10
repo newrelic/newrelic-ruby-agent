@@ -488,6 +488,14 @@ module NewRelic
         initial_segment&.span_links || NewRelic::EMPTY_ARRAY
       end
 
+      def add_span_event(name, attributes: nil, timestamp: nil)
+        initial_segment&.add_span_event(name, attributes: attributes, timestamp: timestamp)
+      end
+
+      def span_events
+        initial_segment&.span_events || NewRelic::EMPTY_ARRAY
+      end
+
       def create_initial_segment(options = {})
         segment = create_segment(@default_name, options)
         segment.record_scoped_metric = false

@@ -51,9 +51,13 @@ module NewRelic
       # Strings for static keys/values used by SpanLink events
       SPAN_LINK_TYPE = 'SpanLink'
       ID_KEY = 'id'
-      TRACE_ID_LINK_KEY = 'trace.id'
+      TRACE_DOT_ID_KEY = 'trace.id'
       LINKED_SPAN_ID_KEY = 'linkedSpanId'
       LINKED_TRACE_ID_KEY = 'linkedTraceId'
+
+      # Strings for static keys/values used by SpanEvent events
+      SPAN_EVENT_TYPE = 'SpanEvent'
+      SPAN_DOT_ID_KEY = 'span.id'
 
       # Strings for static values of the event structure
       EVENT_TYPE = 'Span'
@@ -78,7 +82,8 @@ module NewRelic
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
         event = [intrinsics, custom_attributes(segment), agent_attributes(segment)]
-        attach_span_links(event, segment)
+        event = attach_span_links(event, segment)
+        attach_span_events(event, segment)
       end
 
       def for_external_request_segment(segment)
@@ -100,7 +105,8 @@ module NewRelic
         end
 
         event = [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
-        attach_span_links(event, segment)
+        event = attach_span_links(event, segment)
+        attach_span_events(event, segment)
       end
 
       def for_datastore_segment(segment)
@@ -139,7 +145,8 @@ module NewRelic
         end
 
         event = [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
-        attach_span_links(event, segment)
+        event = attach_span_links(event, segment)
+        attach_span_events(event, segment)
       end
 
       private
@@ -158,11 +165,43 @@ module NewRelic
             TYPE_KEY => SPAN_LINK_TYPE,
             TIMESTAMP_KEY => milliseconds_since_epoch(segment),
             ID_KEY => segment.guid,
-            TRACE_ID_LINK_KEY => segment.transaction.trace_id,
+            TRACE_DOT_ID_KEY => segment.transaction.trace_id,
             LINKED_SPAN_ID_KEY => ctx.hex_span_id,
             LINKED_TRACE_ID_KEY => ctx.hex_trace_id
           }
           [intrinsics, link.attributes.dup, {}]
+        end
+      end
+
+      # The event argument in this case refers to the Span/Segment associated
+      # with the SpanEvent.
+      def attach_span_events(event, segment)
+        events = for_span_events(segment)
+        return event if events.empty?
+
+        if event.length > 3
+          event[3].concat(events)
+        else
+          event << events
+        end
+        event
+      end
+
+      def for_span_events(segment)
+        return [] if segment.span_events.empty?
+
+        segment.span_events.map do |evt|
+          intrinsics = {
+            TYPE_KEY          => SPAN_EVENT_TYPE,
+            # This is the same formula as milliseconds_since_epoch, but without
+            # the segment.start_time value
+            TIMESTAMP_KEY     => Integer(evt[:timestamp].to_f * 1000.0),
+            SPAN_DOT_ID_KEY => segment.guid,
+            TRACE_DOT_ID_KEY => segment.transaction.trace_id,
+            NAME_KEY          => evt[:name]
+          }
+          user_attrs = evt[:attributes].nil? ? {} : evt[:attributes].dup
+          [intrinsics, user_attrs, {}]
         end
       end
 

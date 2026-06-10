@@ -35,11 +35,11 @@ module NewRelic
 
       def harvest!
         metadata, events = super
-        span_links = []
+        extra_events = []
         events.each do |event|
-          span_links.concat(event.slice!(3)) if event.length > 3
+          extra_events.concat(event.slice!(3)) if event.length > 3
         end
-        [metadata, events.concat(span_links)]
+        [metadata, events.concat(extra_events)]
       end
 
       def after_harvest(metadata)

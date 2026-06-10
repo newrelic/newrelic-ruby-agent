@@ -553,6 +553,84 @@ module NewRelic
 
             assert_metrics_recorded({'Supportability/Ruby/SpanEvent/Links/Dropped' => {call_count: 2}})
           end
+
+          def test_add_event_stores_event_on_finishable
+            span = @tracer.start_span('test_span', kind: :server)
+            span.add_event('MyEvent', attributes: {'key' => 'val'})
+            span.finish
+
+            assert_equal 1, span.finishable.span_events.length
+            assert_equal 'MyEvent', span.finishable.span_events.first[:name]
+          end
+
+          def test_add_event_is_noop_on_finished_span
+            span = @tracer.start_span('test_span', kind: :server)
+            span.finish
+
+            result = span.add_event('LateEvent')
+
+            assert_equal span, result
+            assert_empty span.finishable.span_events
+          end
+
+          def test_add_event_returns_self
+            span = @tracer.start_span('test_span', kind: :server)
+            result = span.add_event('ChainEvent')
+
+            assert_equal span, result
+            span.finish
+          end
+
+          def test_add_event_appears_in_harvested_events
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
+
+            span.add_event('UpstreamEvent', attributes: {'user_key' => 'user_val'})
+            span.finish
+
+            _, events = harvest_span_events!
+            span_event_events = events.select { |e| e[0]['type'] == 'SpanEvent' }
+
+            assert_equal 1, span_event_events.length
+            intrinsics, user_attrs, agent_attrs = span_event_events[0]
+
+            assert_equal 'SpanEvent', intrinsics['type']
+            assert_equal 'UpstreamEvent', intrinsics['name']
+            assert_kind_of Integer, intrinsics['timestamp']
+            assert_equal 'user_val', user_attrs['user_key']
+            assert_empty agent_attrs
+          end
+
+          def test_add_event_span_id_and_trace_id_match_parent_span
+            span = @tracer.start_span('test_span', kind: :server)
+            txn = span.finishable
+            txn.stubs(:sampled?).returns(true)
+
+            span.add_event('TraceEvent')
+            span.finish
+
+            _, events = harvest_span_events!
+            span_event_event = events.find { |e| e[0]['type'] == 'SpanEvent' }
+            nr_span_event = events.find { |e| e[0]['type'] == 'Span' }
+
+            assert_equal nr_span_event[0]['guid'], span_event_event[0]['span.id']
+            assert_equal nr_span_event[0]['traceId'], span_event_event[0]['trace.id']
+          end
+
+          def test_span_event_drop_limit_records_supportability_metric
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              span = @tracer.start_span('test_span')
+
+              102.times { |i| span.add_event("event_#{i}") }
+
+              assert_equal 100, span.finishable.span_events.length
+              span.finish
+            end
+
+            assert_metrics_recorded({'Supportability/Ruby/SpanEvent/Events/Dropped' => {call_count: 2}})
+          end
         end
       end
     end
