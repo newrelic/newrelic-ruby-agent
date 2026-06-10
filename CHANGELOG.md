@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add support for OpenTelemetry::Tracer#start_root_span**
+
+  The `OpenTelemetry::Tracer#start_root_span` API can now be used to force a transaction to start for a given span, provided it has a `:server` or `:consumer` span kind. For any other span kinds, it will no-op. This method is most commonly used in background job instrumentation. [PR#3588](https://github.com/newrelic/newrelic-ruby-agent/pull/3588)
+
 - **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
 
   Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)
