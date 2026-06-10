@@ -535,7 +535,93 @@ module NewRelic
             result = SpanEventPrimitive.send(:for_span_events, segment)
             _, user_attrs, _ = result[0]
 
-            assert_equal({}, user_attrs)
+            assert_empty(user_attrs)
+          end
+        end
+
+        def test_sanitize_event_attributes_returns_empty_when_custom_attributes_disabled
+          with_config(:'custom_attributes.enabled' => false) do
+            with_segment do |segment|
+              result = SpanEventPrimitive.send(:sanitize_event_attributes, {'key' => 'value'})
+
+              assert_empty result
+            end
+          end
+        end
+
+        def test_sanitize_event_attributes_expands_array_values_to_indexed_keys
+          with_segment do |segment|
+            result = SpanEventPrimitive.send(:sanitize_event_attributes, {'arr' => [1, 2, 3]})
+
+            assert_equal 1, result['arr.0']
+            assert_equal 2, result['arr.1']
+            assert_equal 3, result['arr.2']
+          end
+        end
+
+        def test_sanitize_event_attributes_coerces_unsupported_scalar_types_to_string
+          with_segment do |segment|
+            result = SpanEventPrimitive.send(:sanitize_event_attributes, {'ratio' => Rational(1, 2)})
+
+            assert_equal '#<Rational>', result['ratio']
+          end
+        end
+
+        def test_sanitize_event_attributes_drops_non_finite_float_values
+          with_segment do |segment|
+            result = SpanEventPrimitive.send(:sanitize_event_attributes, {
+              'infinity' => Float::INFINITY,
+              'nan' => Float::NAN,
+              'valid' => 42
+            })
+
+            refute result.key?('infinity')
+            refute result.key?('nan')
+            assert result.key?('valid')
+          end
+        end
+
+        def test_sanitize_event_attributes_truncates_long_string_values
+          with_segment do |segment|
+            result = SpanEventPrimitive.send(:sanitize_event_attributes, {'key' => 'x' * 300})
+
+            assert result['key'].bytesize <= NewRelic::Agent::Attributes::VALUE_LIMIT
+          end
+        end
+
+        def test_sanitize_event_attributes_drops_long_keys_with_warning
+          with_segment do |segment|
+            long_key = 'k' * 300
+
+            NewRelic::Agent.logger.expects(:warn).once
+            result = SpanEventPrimitive.send(:sanitize_event_attributes, {long_key => 'value'})
+
+            refute result.key?(long_key)
+          end
+        end
+
+        def test_sanitize_event_attributes_caps_count_at_limit_with_warning
+          with_segment do |segment|
+            attrs = (NewRelic::Agent::Attributes::COUNT_LIMIT + 1).times.each_with_object({}) { |i, h| h["key_#{i}"] = i }
+
+            NewRelic::Agent.logger.expects(:warn).once
+            result = SpanEventPrimitive.send(:sanitize_event_attributes, attrs)
+
+            assert_equal NewRelic::Agent::Attributes::COUNT_LIMIT, result.size
+          end
+        end
+
+        def test_sanitize_event_attributes_respects_attribute_filter_exclusions
+          with_config(:'attributes.exclude' => ['secret_key']) do
+            with_segment do |segment|
+              result = SpanEventPrimitive.send(:sanitize_event_attributes, {
+                'secret_key' => 'secret',
+                'safe_key' => 'safe'
+              })
+
+              refute result.key?('secret_key')
+              assert_equal 'safe', result['safe_key']
+            end
           end
         end
 

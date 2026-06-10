@@ -5,6 +5,7 @@
 # This module builds the data structures necessary to create a Span
 # event for a segment.
 
+require 'new_relic/agent/attributes'
 require 'new_relic/agent/payload_metric_mapping'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 
@@ -169,7 +170,7 @@ module NewRelic
             LINKED_SPAN_ID_KEY => ctx.hex_span_id,
             LINKED_TRACE_ID_KEY => ctx.hex_trace_id
           }
-          [intrinsics, link.attributes.dup, {}]
+          [intrinsics, sanitize_event_attributes(link.attributes), {}]
         end
       end
 
@@ -192,16 +193,15 @@ module NewRelic
 
         segment.span_events.map do |evt|
           intrinsics = {
-            TYPE_KEY          => SPAN_EVENT_TYPE,
+            TYPE_KEY => SPAN_EVENT_TYPE,
             # This is the same formula as milliseconds_since_epoch, but without
             # the segment.start_time value
-            TIMESTAMP_KEY     => Integer(evt[:timestamp].to_f * 1000.0),
+            TIMESTAMP_KEY => Integer(evt[:timestamp].to_f * 1000.0),
             SPAN_DOT_ID_KEY => segment.guid,
             TRACE_DOT_ID_KEY => segment.transaction.trace_id,
-            NAME_KEY          => evt[:name]
+            NAME_KEY => evt[:name]
           }
-          user_attrs = evt[:attributes].nil? ? {} : evt[:attributes].dup
-          [intrinsics, user_attrs, {}]
+          [intrinsics, sanitize_event_attributes(evt[:attributes]), {}]
         end
       end
 
@@ -294,6 +294,15 @@ module NewRelic
         else
           value
         end
+      end
+
+      def sanitize_event_attributes(attrs)
+        return NewRelic::EMPTY_HASH if attrs.nil? || attrs.empty?
+
+        filter = NewRelic::Agent.instance.attribute_filter
+        attr_obj = Attributes.new(filter)
+        attr_obj.merge_custom_attributes(attrs)
+        attr_obj.custom_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
       end
 
       def allowed?(key)
