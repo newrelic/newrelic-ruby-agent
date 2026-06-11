@@ -81,6 +81,21 @@ module NewRelic
         assert_equal 0, metrics[:backlog]
       end
 
+      def test_aggregate_tolerates_pre_server_single_mode_stats_during_boot
+        # A single-mode runner sampled before its Puma::Server exists reports
+        # only runner metadata (+:started_at+, +:versions+). The sampler is
+        # installed while Puma is still binding (before start_server), so the
+        # first sample can land in that window; it must be a recognized shape
+        # (not UnrecognizedStatsError) with nothing to record. Locks in the
+        # boot carve-out alongside the clustered empty-worker_status one.
+        stats = {started_at: '2026-01-01T00:00:00Z', versions: {puma: '8.0.2'}}
+        sampler = PumaStatsSampler.new(FakeLauncher.new(stats))
+
+        metrics = sampler.send(:aggregate, stats)
+
+        assert_empty metrics
+      end
+
       def test_aggregate_raises_on_unrecognized_stats_shape
         # A future Puma release renaming the keys, or another plugin
         # overriding launcher.stats, must not silently produce zero metrics.
@@ -93,7 +108,11 @@ module NewRelic
         [
           {},
           {some_other_key: 'foo'},
-          {workers: 5} # :workers is not in WORKER_STAT_KEYS; must still raise
+          {workers: 5}, # :workers is not in WORKER_STAT_KEYS; must still raise
+          # Runner metadata mixed with unrecognized keys must still raise --
+          # the pre-server boot carve-out is strict (metadata keys only), so
+          # renamed per-worker keys cannot ride in under :started_at.
+          {started_at: '2026-01-01T00:00:00Z', queue_depth: 3}
         ].each do |shape|
           assert_raises(NewRelic::Agent::PumaStatsSampler::UnrecognizedStatsError,
             "expected aggregate to raise on shape: #{shape.inspect}") do

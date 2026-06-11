@@ -9,19 +9,20 @@ module NewRelic
     # Samples Puma's clustered server statistics from the Puma master process
     # and records them as New Relic timeslice metrics under +Puma/*+.
     #
-    # This class is driven by the Puma plugin defined in
-    # +lib/puma/plugin/newrelic.rb+ (activated with <tt>plugin 'newrelic'</tt>
-    # in +puma.rb+). It is intentionally *not* one of the agent's
-    # harvest-driven NewRelic::Agent::Sampler subclasses; see "Why the master
-    # process" below.
+    # This class is driven by the Puma instrumentation defined in
+    # +lib/new_relic/agent/instrumentation/puma.rb+, which the agent installs
+    # automatically in the Puma master. It is intentionally *not* one of the
+    # agent's harvest-driven NewRelic::Agent::Sampler subclasses; see "Why the
+    # master process" below.
     #
     # == Why the master process
     #
-    # Only the Puma master exposes cluster-wide statistics through
-    # +Puma::Launcher#stats+ (per-worker thread-pool backlog, running threads,
-    # +pool_capacity+, configured max threads, and cumulative request count).
+    # Only the Puma master exposes cluster-wide statistics through its runner's
+    # +stats+ (per-worker thread-pool backlog, running threads, +pool_capacity+,
+    # configured max threads, and cumulative request count), surfaced publicly
+    # as +Puma.stats_hash+.
     # Worker processes have no reliable handle to their own server statistics
-    # from a background thread (+Puma.stats_object+ is set only in the master
+    # from a background thread (+Puma.stats_object=+ is called only in the master
     # and +Puma::Server.current+ is request-thread-local), so sampling must
     # happen in the master. That rules out a harvest-driven Sampler, whose
     # +poll+ runs only on the per-worker harvest thread.
@@ -43,8 +44,8 @@ module NewRelic
     #
     # Only +NewRelic::Agent.record_metric+ is used. No custom events or custom
     # attributes are recorded, and the sampled values are integers with no
-    # request, query, or user data, so the plugin is fully functional under
-    # High Security Mode.
+    # request, query, or user data, so the instrumentation is fully functional
+    # under High Security Mode.
     class PumaStatsSampler
       # Raised when Puma's +stats+ returns a Hash whose shape we don't
       # recognize (no +:worker_status+ and no top-level worker keys). Lets
@@ -54,9 +55,13 @@ module NewRelic
 
       METRIC_NAMESPACE = 'Puma'
       # Per-worker keys reported by +Puma::Server#stats+ and surfaced through
-      # +Puma::Launcher#stats+. +requests_count+ is a cumulative counter (use
-      # +rate()+ in NRQL); the rest are point-in-time gauges.
+      # the master runner's stats (+Puma.stats_hash+). +requests_count+ is a
+      # cumulative counter (use +rate()+ in NRQL); the rest are point-in-time
+      # gauges.
       WORKER_STAT_KEYS = %i[backlog running pool_capacity max_threads requests_count].freeze
+      # Runner metadata reported by +Puma::Runner#stats+ alongside (or, before
+      # the runner's +Puma::Server+ exists, instead of) the per-worker keys.
+      RUNNER_INFO_KEYS = %i[started_at versions].freeze
       # Puma's +pool_capacity+ is the number of additional requests the pool
       # can accept right now: idle (waiting) threads plus unspawned threads
       # still allowed up to +max_threads+ (i.e. +waiting + (max - spawned)+).
@@ -82,8 +87,8 @@ module NewRelic
       # failures, i.e. the wait grows up to 2**3 = 8 sample intervals.
       BACKOFF_EXPONENT_CAP = 3
 
-      def initialize(launcher)
-        @launcher = launcher
+      def initialize(stats_source)
+        @stats_source = stats_source
         @sample_rate = resolve_sample_rate
         @lock = Mutex.new
         @stop_signal = ConditionVariable.new
@@ -95,13 +100,14 @@ module NewRelic
         @last_report_failure_logged_at = nil
       end
 
-      # Runs the sampling loop. Intended to be called from the Puma plugin's
-      # +in_background+ block, which executes in the master process. Blocks
-      # until #stop is called from a Puma lifecycle event (+:state+ in single
-      # mode, +:before_restart+ / +:after_stopped+ on the master in clustered
-      # mode). Single-shot: after the loop exits (cleanly or via the rescue
-      # path below) the sampler is done; the plugin instantiates one sampler
-      # per Puma boot, so #start is never re-entered on the same instance.
+      # Runs the sampling loop. Intended to be called on the background thread
+      # the instrumentation spawns in the master process. Blocks until #stop is
+      # called from a Puma lifecycle event (+:state+ in single mode,
+      # +:before_restart+ / +:after_stopped+ on the master in clustered mode).
+      # Single-shot: after the loop exits (cleanly or via the rescue path
+      # below) the sampler is done; the instrumentation instantiates one
+      # sampler per Puma boot, so #start is never re-entered on the same
+      # instance.
       def start
         return unless ensure_master_is_reporting
 
@@ -127,13 +133,14 @@ module NewRelic
           end
         end
       rescue => e
-        # Puma's +fire_background+ uses a bare +Thread.new+ with no rescue, so
-        # any exception escaping here would silently kill the sampler thread.
-        # Mirror +Threading::AgentThread.create+: log StandardError, log and
-        # re-raise Exception (so interrupts still propagate).
-        ::NewRelic::Agent.logger.error('NewRelic Puma plugin sampler thread exited with error', e)
+        # The instrumentation starts this loop on a bare +Thread.new+ with no
+        # rescue, so any exception escaping here would silently kill the
+        # sampler thread. Mirror +Threading::AgentThread.create+: log
+        # StandardError, log and re-raise Exception (so interrupts still
+        # propagate).
+        ::NewRelic::Agent.logger.error('NewRelic Puma stats sampler thread exited with error', e)
       rescue Exception => e
-        ::NewRelic::Agent.logger.error('NewRelic Puma plugin sampler thread exited with exception. Re-raising in case of interrupt.', e)
+        ::NewRelic::Agent.logger.error('NewRelic Puma stats sampler thread exited with exception. Re-raising in case of interrupt.', e)
         raise
       end
 
@@ -162,7 +169,7 @@ module NewRelic
       # Puma-side trouble. Returns nil rather than raising so #sample can keep
       # the recording path separate.
       def fetch_metrics
-        stats = @launcher.stats
+        stats = @stats_source.stats
         # Newer Puma returns a Hash; older versions return a JSON string. Parse
         # with symbolize_names so keys match WORKER_STAT_KEYS either way.
         stats = JSON.parse(stats, symbolize_names: true) unless stats.is_a?(Hash)
@@ -208,6 +215,15 @@ module NewRelic
           WORKER_STAT_KEYS.each do |key|
             metrics[key] += stats[key].to_i if stats.key?(key)
           end
+        elsif !stats.empty? && (stats.keys - RUNNER_INFO_KEYS).empty?
+          # A single-mode runner sampled before its Puma::Server has started
+          # reports only runner metadata. The sampler is installed while Puma
+          # is still binding (before +start_server+), so the first sample can
+          # land in that window; like the empty +:worker_status+ above, it is
+          # a recognized boot shape with nothing to record yet. Deliberately
+          # strict (metadata keys only): a stats hash mixing metadata with
+          # unrecognized keys still raises, so a Puma release renaming the
+          # per-worker keys cannot be silently tolerated.
         else
           raise UnrecognizedStatsError,
             "Puma stats had neither :worker_status nor any of #{WORKER_STAT_KEYS.inspect} " \

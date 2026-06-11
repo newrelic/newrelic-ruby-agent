@@ -2086,8 +2086,8 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Number of seconds between samples of Puma server statistics when the ' \
-            '`newrelic` Puma plugin (`plugin \'newrelic\'`) is enabled in your `puma.rb`.'
+          :description => 'Number of seconds between samples of Puma server statistics taken in the ' \
+            'Puma master process.'
         },
         :'puma.start_reporting_thread_in_master' => {
           :default => true,
@@ -2095,7 +2095,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `true`, the `newrelic` Puma plugin starts the agent's reporting thread in the Puma master process so that sampled `Puma/*` metrics are delivered to New Relic.
+            If `true`, the agent starts its reporting thread in the Puma master process so that sampled `Puma/*` metrics are delivered to New Relic.
 
             The agent defers its reporting thread under forking dispatchers such as Puma, so without this the metrics sampled in the master are buffered but never sent. When enabled, the Puma master reports to New Relic as its own instance. Set to `false` if you do not want the master process to report.
           DESCRIPTION

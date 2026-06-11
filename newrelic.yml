@@ -814,12 +814,12 @@ common: &default_settings
   # server.
   # proxy_user: nil
 
-  # Number of seconds between samples of Puma server statistics when the newrelic
-  # Puma plugin (plugin 'newrelic') is enabled in your puma.rb.
+  # Number of seconds between samples of Puma server statistics taken in the Puma
+  # master process.
   # puma.sample_rate: 15
 
-  # If true, the newrelic Puma plugin starts the agent's reporting thread in the
-  # Puma master process so that sampled Puma/* metrics are delivered to New Relic.
+  # If true, the agent starts its reporting thread in the Puma master process so
+  # that sampled Puma/* metrics are delivered to New Relic.
   # 
   # The agent defers its reporting thread under forking dispatchers such as Puma,
   # so without this the metrics sampled in the master are buffered but never sent.

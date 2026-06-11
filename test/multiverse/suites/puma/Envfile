@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# The Puma plugin's launcher-event registrations differ between major
+# The instrumentation's launcher-event registrations differ between major
 # Puma versions: 7+ fires :before_restart / :after_stopped while 6.x fires
 # :on_restart / :on_stopped. Pin a 6.x variant alongside the latest so the
 # suite exercises both paths.
