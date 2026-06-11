@@ -196,6 +196,75 @@ module NewRelic
             segment_field: :port
           }
         }.freeze
+
+        MESSAGING_CONSUMER_MAPPINGS = { # v1.30/v1.24, v1.17
+          'library' => {
+            otel_keys: ['messaging.system'],
+            segment_field: :library
+          },
+          'message.queueName' => {
+            otel_keys: ['messaging.destination.name', 'messaging.destination'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS,
+            segment_field: :destination_name
+          },
+          'port' => {
+            otel_keys: ['server.port', 'net.peer.port'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'host' => {
+            otel_keys: ['server.address', 'net.peer.name'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'message.routingKey' => {
+            otel_keys: [
+              'messaging.kafka.message.key',
+              'messaging.kafka.message_key',
+              'messaging.rabbitmq.destination.routing_key',
+              'messaging.rabbitmq.routing_key'
+            ],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          }
+        }.freeze
+
+        MESSAGING_PRODUCER_MAPPINGS = { # v1.30/v1.24, v1.17
+          'library' => {
+            otel_keys: ['messaging.system'],
+            segment_field: :library
+          },
+          'destination_name' => {
+            otel_keys: ['messaging.destination.name', 'messaging.destination'],
+            segment_field: :destination_name
+          },
+          'port' => {
+            otel_keys: ['server.port', 'net.peer.port'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'host' => {
+            otel_keys: ['server.address', 'net.peer.name'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'routingKey' => {
+            otel_keys: [
+              'messaging.kafka.message.key',
+              'messaging.kafka.message_key',
+              'messaging.rabbitmq.destination.routing_key',
+              'messaging.rabbitmq.routing_key'
+            ],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'correlation_id' => {
+            otel_keys: ['messaging.message.conversation_id'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          }
+        }.freeze
       end
     end
   end

@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative '../../messaging'
 require_relative '../attribute_translator'
 
 module NewRelic
@@ -65,7 +66,7 @@ module NewRelic
             case kind
             when :client
               if segment_api_params[:uri] # HTTP Client and gRPC Client
-                NewRelic::Agent::Tracer.start_external_request_segment(
+                return NewRelic::Agent::Tracer.start_external_request_segment(
                   library: segment_api_params[:library] || @name,
                   uri: segment_api_params[:uri],
                   procedure: segment_api_params[:procedure],
@@ -88,13 +89,21 @@ module NewRelic
                   segment&.notice_nosql_statement(segment_api_params[:nosql_statement])
                 end
 
-                segment
-              else
-                NewRelic::Agent::Tracer.start_segment(name: name)
+                return segment
               end
-            else
-              NewRelic::Agent::Tracer.start_segment(name: name)
+            when :producer, :consumer
+              if segment_api_params[:library] # Messaging
+                return NewRelic::Agent::Tracer.start_message_broker_segment(
+                  action: segment_api_params[:action],
+                  library: segment_api_params[:library],
+                  destination_type: segment_api_params[:destination_type],
+                  destination_name: segment_api_params[:destination_name],
+                  start_time: start_timestamp
+                )
+              end
             end
+
+            NewRelic::Agent::Tracer.start_segment(name: name)
           end
 
           def start_transaction_from_otel(name, parent_otel_context, kind, translated: {})
@@ -109,7 +118,21 @@ module NewRelic
               )
             when :client
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
-            when :consumer, :producer, :internal, nil
+            when :consumer
+              if segment_api_params[:library]
+                nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
+                  name: NewRelic::Agent::Messaging.transaction_name(
+                    segment_api_params[:library],
+                    segment_api_params[:destination_type],
+                    segment_api_params[:destination_name],
+                    :consume
+                  ),
+                  category: :message
+                )
+              else
+                nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
+              end
+            when :producer, :internal, nil
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
 
