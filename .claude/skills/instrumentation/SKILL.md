@@ -1,6 +1,7 @@
 ---
 name: instrumentation
 description: Scaffold a complete New Relic Ruby agent instrumentation for a third-party gem in this repo. Use when the user asks to "instrument <gem>", "add instrumentation for <gem>", "scaffold a new instrumentation", or names a datastore / HTTP-client / messaging / AI-LLM gem and asks the Ruby agent to trace it. Generates the seven-file prepend+chain layout under `lib/new_relic/agent/instrumentation/<name>/`, a runnable multiverse suite under `test/multiverse/suites/<name>/`, registers config in `default_source.rb`, and adds the gem to `supported_gems.txt`. Does NOT commit, push, or open PRs.
+model: claude-opus-4-7[1m]
 ---
 
 You are scaffolding instrumentation for one third-party Ruby gem in the newrelic-ruby-agent repo. Produce working agent code + a passing multiverse suite. Never commit, push, or open PRs (per the project CLAUDE.md). The agent has zero runtime gem dependencies — instrumentation must use only Ruby stdlib plus agent helpers under `NewRelic::Agent::*`. Every `.rb` file you create must begin with this exact 3-line header:
