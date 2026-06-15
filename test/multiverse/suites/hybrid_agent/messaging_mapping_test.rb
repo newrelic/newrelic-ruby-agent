@@ -163,6 +163,7 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
+            assert_equal attrs['messaging.system'], agent['messaging.system']
             assert_equal attrs['messaging.destination.name'], agent['message.queueName']
             assert_equal attrs['server.address'], agent['host']
             assert_equal attrs['server.port'], agent['port']
@@ -215,6 +216,7 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
+            assert_equal attrs['messaging.system'], agent['messaging.system']
             assert_equal attrs['messaging.destination.name'], agent['message.queueName']
             assert_equal attrs['server.address'], agent['host']
             assert_equal attrs['server.port'], agent['port']
@@ -269,6 +271,7 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
+            assert_equal attrs['messaging.system'], agent['messaging.system']
             # net.peer.name / net.peer.port are the v1.17 fallbacks
             assert_equal attrs['net.peer.name'], agent['host']
             assert_equal attrs['net.peer.port'], agent['port']
@@ -323,6 +326,7 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
+            assert_equal attrs['messaging.system'], agent['messaging.system']
             assert_equal attrs['server.address'], agent['host']
             assert_equal attrs['server.port'], agent['port']
             # routing_key and correlation_id are on segment.params for producers
@@ -387,6 +391,7 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
+            assert_equal attrs['messaging.system'], agent['messaging.system']
             assert_equal attrs['server.address'], agent['host']
             assert_equal attrs['server.port'], agent['port']
             refute agent.key?('routingKey')
@@ -449,6 +454,7 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
+            assert_equal attrs['messaging.system'], agent['messaging.system']
             # net.peer.name / net.peer.port are the v1.17 fallbacks
             assert_equal attrs['net.peer.name'], agent['host']
             assert_equal attrs['net.peer.port'], agent['port']
