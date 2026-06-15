@@ -61,7 +61,7 @@ module NewRelic
               'messaging.system' => 'rabbitmq',
               'messaging.destination' => 'orders.queue',
               'messaging.destination_kind' => 'queue',
-              'messaging.rabbitmq.routing_key' => 'orders.created',
+              'messaging.rabbitmq.destination.routing_key' => 'orders.created',
               'net.peer.name' => 'broker.example',
               'net.peer.port' => '5672',
               'messaging.protocol' => 'AMQP'
@@ -97,7 +97,7 @@ module NewRelic
               'messaging.system' => 'rabbitmq',
               'messaging.destination' => 'events.exchange',
               'messaging.destination_kind' => 'queue',
-              'messaging.rabbitmq.routing_key' => 'events.created',
+              'messaging.rabbitmq.destination.routing_key' => 'events.created',
               'messaging.message.conversation_id' => 'corr-ghi',
               'net.peer.name' => 'broker.example',
               'net.peer.port' => '5672',
@@ -272,8 +272,7 @@ module NewRelic
             # net.peer.name / net.peer.port are the v1.17 fallbacks
             assert_equal attrs['net.peer.name'], agent['host']
             assert_equal attrs['net.peer.port'], agent['port']
-            # messaging.rabbitmq.routing_key (legacy form) flows to message.routingKey
-            assert_equal attrs['messaging.rabbitmq.routing_key'], agent['message.routingKey']
+            assert_equal attrs['messaging.rabbitmq.destination.routing_key'], agent['message.routingKey']
             # messaging.destination (legacy) flows to message.queueName
             assert_equal attrs['messaging.destination'], agent['message.queueName']
           end
@@ -287,7 +286,7 @@ module NewRelic
 
             keys_assigned_elsewhere = %w[
               messaging.destination
-              messaging.rabbitmq.routing_key
+              messaging.rabbitmq.destination.routing_key
               net.peer.name
               net.peer.port
             ]
@@ -324,14 +323,23 @@ module NewRelic
             segment = transaction.segments[1]
             agent = segment.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-            # producer uses spec-literal NR keys, NOT the consumer's `message.*` form
             assert_equal attrs['server.address'], agent['host']
             assert_equal attrs['server.port'], agent['port']
-            assert_equal attrs['messaging.kafka.message.key'], agent['routingKey']
-            assert_equal attrs['messaging.message.conversation_id'], agent['correlation_id']
+            # routing_key and correlation_id are on segment.params for producers
+            refute agent.key?('routingKey')
+            refute agent.key?('correlation_id')
             # destination name is segment-only on producers, not an NR attribute
             refute agent.key?('destination_name')
             refute agent.key?('messaging.destination.name')
+          end
+
+          def test_producer_v_1_30_segment_params
+            attrs = producer_v_1_30_attrs
+            transaction = run_producer_span(attrs)
+            segment = transaction.segments[1]
+
+            assert_equal attrs['messaging.kafka.message.key'], segment.params[:routing_key]
+            assert_equal attrs['messaging.message.conversation_id'], segment.params[:correlation_id]
           end
 
           def test_producer_v_1_30_custom_attributes
@@ -384,8 +392,17 @@ module NewRelic
 
             assert_equal attrs['server.address'], agent['host']
             assert_equal attrs['server.port'], agent['port']
-            assert_equal attrs['messaging.rabbitmq.destination.routing_key'], agent['routingKey']
-            assert_equal attrs['messaging.message.conversation_id'], agent['correlation_id']
+            refute agent.key?('routingKey')
+            refute agent.key?('correlation_id')
+          end
+
+          def test_producer_v_1_24_segment_params
+            attrs = producer_v_1_24_attrs
+            transaction = run_producer_span(attrs)
+            segment = transaction.segments[1]
+
+            assert_equal attrs['messaging.rabbitmq.destination.routing_key'], segment.params[:routing_key]
+            assert_equal attrs['messaging.message.conversation_id'], segment.params[:correlation_id]
           end
 
           def test_producer_v_1_24_custom_attributes
@@ -414,8 +431,6 @@ module NewRelic
             segment = transaction.segments[1]
 
             assert_instance_of NewRelic::Agent::Transaction::MessageBrokerSegment, segment
-            # explicit messaging.destination_kind = 'queue' overrides system
-            # inference (rabbitmq producer would have been :exchange otherwise)
             assert_equal 'MessageBroker/RabbitMQ/Queue/Produce/Named/events.exchange', segment.name
             assert_equal 'RabbitMQ', segment.library
             assert_equal :queue, segment.destination_type
@@ -440,9 +455,17 @@ module NewRelic
             # net.peer.name / net.peer.port are the v1.17 fallbacks
             assert_equal attrs['net.peer.name'], agent['host']
             assert_equal attrs['net.peer.port'], agent['port']
-            # messaging.rabbitmq.routing_key (legacy form) flows to producer routingKey
-            assert_equal attrs['messaging.rabbitmq.routing_key'], agent['routingKey']
-            assert_equal attrs['messaging.message.conversation_id'], agent['correlation_id']
+            refute agent.key?('routingKey')
+            refute agent.key?('correlation_id')
+          end
+
+          def test_producer_v_1_17_segment_params
+            attrs = producer_v_1_17_attrs
+            transaction = run_producer_span(attrs)
+            segment = transaction.segments[1]
+
+            assert_equal attrs['messaging.rabbitmq.destination.routing_key'], segment.params[:routing_key]
+            assert_equal attrs['messaging.message.conversation_id'], segment.params[:correlation_id]
           end
 
           def test_producer_v_1_17_custom_attributes
@@ -454,7 +477,7 @@ module NewRelic
 
             keys_assigned_elsewhere = %w[
               messaging.destination
-              messaging.rabbitmq.routing_key
+              messaging.rabbitmq.destination.routing_key
               messaging.message.conversation_id
               net.peer.name
               net.peer.port

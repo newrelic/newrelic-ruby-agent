@@ -198,9 +198,11 @@ module NewRelic
         }.freeze
 
         MESSAGING_CONSUMER_MAPPINGS = { # v1.30/v1.24, v1.17
-          'library' => {
+          'messaging.system' => {
             otel_keys: ['messaging.system'],
-            segment_field: :library
+            category: :agent,
+            destinations: AttributeFilter::DST_TRANSACTION_TRACER,
+            segment_field: :library 
           },
           'message.queueName' => {
             otel_keys: ['messaging.destination.name', 'messaging.destination'],
@@ -221,9 +223,7 @@ module NewRelic
           'message.routingKey' => {
             otel_keys: [
               'messaging.kafka.message.key',
-              'messaging.kafka.message_key',
               'messaging.rabbitmq.destination.routing_key',
-              'messaging.rabbitmq.routing_key'
             ],
             category: :agent,
             destinations: DEFAULT_DESTINATIONS
@@ -231,11 +231,13 @@ module NewRelic
         }.freeze
 
         MESSAGING_PRODUCER_MAPPINGS = { # v1.30/v1.24, v1.17
-          'library' => {
+          'messaging.system' => {
             otel_keys: ['messaging.system'],
+            category: :agent,
+            destinations: AttributeFilter::DST_TRANSACTION_TRACER,
             segment_field: :library
           },
-          'destination_name' => {
+          'messaging.destination.name' => {
             otel_keys: ['messaging.destination.name', 'messaging.destination'],
             segment_field: :destination_name
           },
@@ -249,20 +251,16 @@ module NewRelic
             category: :agent,
             destinations: DEFAULT_DESTINATIONS
           },
+          # routing_key and correlation_id are routed to segment.params by
+          # MessagingTranslator#add_producer_segment_params.
           'routingKey' => {
             otel_keys: [
               'messaging.kafka.message.key',
-              'messaging.kafka.message_key',
-              'messaging.rabbitmq.destination.routing_key',
-              'messaging.rabbitmq.routing_key'
-            ],
-            category: :agent,
-            destinations: DEFAULT_DESTINATIONS
+              'messaging.rabbitmq.destination.routing_key'
+            ]
           },
           'correlation_id' => {
-            otel_keys: ['messaging.message.conversation_id'],
-            category: :agent,
-            destinations: DEFAULT_DESTINATIONS
+            otel_keys: ['messaging.message.conversation_id']
           }
         }.freeze
       end

@@ -62,6 +62,12 @@ module NewRelic
           'aws_kinesis' => 'Kinesis'
         }.freeze
 
+        ROUTING_KEY_OTEL_KEYS = [
+          'messaging.kafka.message.key',
+          'messaging.rabbitmq.destination.routing_key'
+        ].freeze
+        CORRELATION_ID_OTEL_KEY = 'messaging.message.conversation_id'
+
         class << self
           def mappings_hash(kind)
             kind == :consumer ? AttributeMappings::MESSAGING_CONSUMER_MAPPINGS : AttributeMappings::MESSAGING_PRODUCER_MAPPINGS
@@ -74,7 +80,18 @@ module NewRelic
               result[:for_segment_api][:library] = LIBRARY_MAP[system] || system
             end
 
+            add_producer_segment_params(result, attributes) if kind == :producer
+
             result
+          end
+
+          def add_producer_segment_params(result, attributes)
+            params = {
+              routing_key: ROUTING_KEY_OTEL_KEYS.map { |k| attributes[k] }.compact.first,
+              correlation_id: attributes[CORRELATION_ID_OTEL_KEY]
+            }.compact
+
+            result[:for_segment_api][:parameters] = params unless params.empty?
           end
 
           def determine_destination_type(attributes, kind)

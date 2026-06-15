@@ -23,6 +23,9 @@ module NewRelic
             name << destination_name
           when :temporary_queue, :temporary_topic
             name << Transaction::MessageBrokerSegment::TEMP
+          else # handles :stream or :unknown
+            name << Transaction::MessageBrokerSegment::NAMED
+            name << destination_name.to_s
           end
 
           name

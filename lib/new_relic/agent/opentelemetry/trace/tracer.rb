@@ -100,6 +100,7 @@ module NewRelic
                   library: segment_api_params[:library],
                   destination_type: segment_api_params[:destination_type],
                   destination_name: segment_api_params[:destination_name],
+                  parameters: messaging_segment_parameters(segment_api_params),
                   start_time: start_timestamp
                 )
               else
@@ -131,6 +132,12 @@ module NewRelic
             add_remote_context_to_txn(nr_item, parent_otel_context) if nr_item
 
             nr_item
+          end
+
+          def messaging_segment_parameters(segment_api_params)
+            return nil unless NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
+
+            segment_api_params[:parameters]
           end
 
           def start_messaging_transaction(name, segment_api_params)
