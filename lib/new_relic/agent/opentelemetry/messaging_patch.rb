@@ -20,7 +20,7 @@ module NewRelic
           case destination_type
           when :queue, :topic, :exchange
             name << Transaction::MessageBrokerSegment::NAMED
-            name << destination_name
+            name << destination_name.to_s
           when :temporary_queue, :temporary_topic
             name << Transaction::MessageBrokerSegment::TEMP
           else # handles :stream or :unknown
