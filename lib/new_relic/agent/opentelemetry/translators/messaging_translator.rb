@@ -8,6 +8,8 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class MessagingTranslator < BaseTranslator
+        # OTel seems to be inconsitent with dot or underscore,
+        # so we handle both just in case.
         DESTINATION_TYPES_MAP = {
           consumer: {
             'kafka' => :topic,
