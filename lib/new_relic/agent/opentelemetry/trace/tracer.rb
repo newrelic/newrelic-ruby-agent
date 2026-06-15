@@ -107,38 +107,46 @@ module NewRelic
           end
 
           def start_transaction_from_otel(name, parent_otel_context, kind, translated: {})
-            nr_item = nil
             segment_api_params = translated[:for_segment_api]
 
-            case kind
+            nr_item = case kind
             when :server # HTTP or gRPC server calls
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
+              NewRelic::Agent::Tracer.start_transaction_or_segment(
                 name: segment_api_params[:name] || name,
                 category: :web
               )
             when :client
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
-            when :consumer
-              if segment_api_params[:library]
-                nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
-                  name: NewRelic::Agent::Messaging.transaction_name(
-                    segment_api_params[:library],
-                    segment_api_params[:destination_type],
-                    segment_api_params[:destination_name],
-                    :consume
-                  ),
-                  category: :message
-                )
-              else
-                nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
-              end
-            when :producer, :internal, nil
-              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
+              NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
+            when :consumer, :producer
+              start_messaging_transaction(name, segment_api_params)
+            when :internal, nil
+              NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
 
             add_remote_context_to_txn(nr_item, parent_otel_context) if nr_item
 
             nr_item
+          end
+
+          # Builds the canonical NR messaging transaction name (e.g.
+          # `Message/RabbitMQ/Queue/Consume/Named/orders.queue` or
+          # `Message/Kafka/Topic/Produce/Named/events.topic`) and starts an
+          # OtherTransaction with category :message. Falls back to a generic
+          # task transaction when there's no messaging context to name from.
+          # Action (:consume / :produce) is read from the translator-populated
+          # segment_api_params, so this helper handles both directions.
+          def start_messaging_transaction(name, segment_api_params)
+            return NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task) unless segment_api_params[:library]
+
+            NewRelic::Agent::Tracer.start_transaction_or_segment(
+              name: NewRelic::Agent::Messaging.transaction_name(
+                segment_api_params[:library],
+                segment_api_params[:destination_type],
+                segment_api_params[:destination_name],
+                segment_api_params[:action]
+              ),
+              category: :message
+            )
           end
 
           def get_otel_span_from_finishable(finishable)

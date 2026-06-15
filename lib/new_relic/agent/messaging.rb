@@ -327,6 +327,12 @@ module NewRelic
           correlation_id: message_properties[:correlation_id], &block)
       end
 
+      private
+
+      def segment_parameters_enabled?
+        NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
+      end
+
       def transaction_name(library, destination_type, destination_name, action = nil)
         transaction_name = Transaction::MESSAGE_PREFIX + library
         transaction_name << NewRelic::SLASH
@@ -357,12 +363,6 @@ module NewRelic
         end
 
         transaction_name
-      end
-
-      private
-
-      def segment_parameters_enabled?
-        NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
       end
 
       # Filter out internal New Relic headers from message headers

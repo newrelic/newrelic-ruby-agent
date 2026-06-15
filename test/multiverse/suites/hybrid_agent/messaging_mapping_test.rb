@@ -565,11 +565,7 @@ module NewRelic
           end
 
           # ---------- producer with remote parent ----------
-          # Per spec: a producer span with a remote parent MUST create a new
-          # Other transaction. Producer doesn't get specialized transaction
-          # naming — it uses the OTel span name directly.
-
-          def test_producer_with_remote_parent_creates_task_transaction
+          def test_producer_with_remote_parent_creates_message_transaction
             span = @tracer.start_span(
               'publish',
               with_parent: remote_context,
@@ -578,9 +574,40 @@ module NewRelic
             )
 
             assert_instance_of NewRelic::Agent::Transaction, span.finishable
-            assert_equal :task, span.finishable.category
+            assert_equal :message, span.finishable.category
 
             span.finish
+          end
+
+          def test_producer_with_remote_parent_transaction_name
+            span = @tracer.start_span(
+              'publish',
+              with_parent: remote_context,
+              attributes: producer_v_1_24_attrs.dup,
+              kind: :producer
+            )
+            span.finish
+
+            txns = harvest_transaction_events!
+            txn = txns[1][0]
+            intrinsics = txn[0]
+
+            assert_equal 'OtherTransaction/Message/RabbitMQ/Exchange/Produce/Named/events.exchange', intrinsics['name']
+          end
+
+          def test_producer_with_remote_parent_metrics
+            span = @tracer.start_span(
+              'publish',
+              with_parent: remote_context,
+              attributes: producer_v_1_24_attrs.dup,
+              kind: :producer
+            )
+            span.finish
+
+            assert_metrics_recorded([
+              'OtherTransaction/Message/RabbitMQ/Exchange/Produce/Named/events.exchange',
+              'OtherTransactionTotalTime'
+            ])
           end
 
           private
