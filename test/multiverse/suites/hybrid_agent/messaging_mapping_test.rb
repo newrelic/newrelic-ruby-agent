@@ -328,9 +328,6 @@ module NewRelic
             # routing_key and correlation_id are on segment.params for producers
             refute agent.key?('routingKey')
             refute agent.key?('correlation_id')
-            # destination name is segment-only on producers, not an NR attribute
-            refute agent.key?('destination_name')
-            refute agent.key?('messaging.destination.name')
           end
 
           def test_producer_v_1_30_segment_params

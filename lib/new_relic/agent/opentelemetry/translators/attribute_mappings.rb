@@ -235,10 +235,8 @@ module NewRelic
             category: :agent,
             destinations: AttributeFilter::DST_TRANSACTION_TRACER
           },
-          'message.queueName' => {
+          'destination_name' => {
             otel_keys: ['messaging.destination.name', 'messaging.destination'],
-            category: :agent,
-            destinations: DEFAULT_DESTINATIONS,
             segment_field: :destination_name
           },
           'port' => {

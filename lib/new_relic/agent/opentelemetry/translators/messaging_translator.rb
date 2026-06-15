@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class MessagingTranslator < BaseTranslator
-        # OTel seems to be inconsitent with dot or underscore,
+        # OTel seems to be inconsistent with dot or underscore,
         # so we handle both just in case.
         DESTINATION_TYPES_MAP = {
           consumer: {
@@ -34,7 +34,7 @@ module NewRelic
         }.freeze
 
         # `messaging.destination_kind` is a v1.17 attribute that we
-        # should honor it when present.
+        # should honor when present.
         DESTINATION_KIND_MAP = {
           'queue' => :queue,
           'topic' => :topic
@@ -106,8 +106,7 @@ module NewRelic
           private
 
           def explicit_destination_kind(attributes)
-            value = attributes['messaging.destination_kind']
-            DESTINATION_KIND_MAP[value] if value
+            DESTINATION_KIND_MAP[attributes['messaging.destination_kind']]
           end
         end
       end
