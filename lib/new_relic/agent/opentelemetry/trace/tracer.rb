@@ -133,13 +133,6 @@ module NewRelic
             nr_item
           end
 
-          # Builds the canonical NR messaging transaction name (e.g.
-          # `Message/RabbitMQ/Queue/Consume/Named/orders.queue` or
-          # `Message/Kafka/Topic/Produce/Named/events.topic`) and starts an
-          # OtherTransaction with category :message. Falls back to a generic
-          # task transaction when there's no messaging context to name from.
-          # Action (:consume / :produce) is read from the translator-populated
-          # segment_api_params, so this helper handles both directions.
           def start_messaging_transaction(name, segment_api_params)
             return NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task) unless segment_api_params[:library]
 
