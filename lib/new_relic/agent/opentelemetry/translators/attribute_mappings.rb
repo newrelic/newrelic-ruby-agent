@@ -202,7 +202,7 @@ module NewRelic
             otel_keys: ['messaging.system'],
             category: :agent,
             destinations: AttributeFilter::DST_TRANSACTION_TRACER,
-            segment_field: :library 
+            segment_field: :library
           },
           'message.queueName' => {
             otel_keys: ['messaging.destination.name', 'messaging.destination'],
@@ -223,7 +223,7 @@ module NewRelic
           'message.routingKey' => {
             otel_keys: [
               'messaging.kafka.message.key',
-              'messaging.rabbitmq.destination.routing_key',
+              'messaging.rabbitmq.destination.routing_key'
             ],
             category: :agent,
             destinations: DEFAULT_DESTINATIONS
