@@ -42,9 +42,9 @@ module NewRelic
           # When a span has links, a 4th element is appended:
           # [intrinsics, custom_attrs, agent_attrs, extra_events]
           #
-          # SpanLinks and SpanEvents must be sent to the backend at the top 
-          # level of the main payload, not nested inside an individual Span. 
-          # This pulls them out to be flattened into the final array: 
+          # SpanLinks and SpanEvents must be sent to the backend at the top
+          # level of the main payload, not nested inside an individual Span.
+          # This pulls them out to be flattened into the final array:
           # [Span, SpanLink, Span, SpanEvent, Span]
           extra_events.concat(event.slice!(3)) if event.length > 3
         end
