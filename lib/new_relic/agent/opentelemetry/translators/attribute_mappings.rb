@@ -201,8 +201,7 @@ module NewRelic
           'messaging.system' => {
             otel_keys: ['messaging.system'],
             category: :agent,
-            destinations: AttributeFilter::DST_TRANSACTION_TRACER,
-            segment_field: :library
+            destinations: AttributeFilter::DST_TRANSACTION_TRACER
           },
           'message.queueName' => {
             otel_keys: ['messaging.destination.name', 'messaging.destination'],
@@ -234,11 +233,12 @@ module NewRelic
           'messaging.system' => {
             otel_keys: ['messaging.system'],
             category: :agent,
-            destinations: AttributeFilter::DST_TRANSACTION_TRACER,
-            segment_field: :library
+            destinations: AttributeFilter::DST_TRANSACTION_TRACER
           },
-          'messaging.destination.name' => {
+          'message.queueName' => {
             otel_keys: ['messaging.destination.name', 'messaging.destination'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS,
             segment_field: :destination_name
           },
           'port' => {

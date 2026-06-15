@@ -31,9 +31,8 @@ module NewRelic
           }.freeze
         }.freeze
 
-        # `messaging.destination_kind` is a v1.17 attribute. Honor it when
-        # present. Newer semconv spans rely on system inference to determine
-        # destination kind.
+        # `messaging.destination_kind` is a v1.17 attribute that we
+        # should honor it when present.
         DESTINATION_KIND_MAP = {
           'queue' => :queue,
           'topic' => :topic
@@ -62,11 +61,10 @@ module NewRelic
           'aws_kinesis' => 'Kinesis'
         }.freeze
 
-        ROUTING_KEY_OTEL_KEYS = [
-          'messaging.kafka.message.key',
-          'messaging.rabbitmq.destination.routing_key'
-        ].freeze
-        CORRELATION_ID_OTEL_KEY = 'messaging.message.conversation_id'
+        ROUTING_KEY_OTEL_KEYS = AttributeMappings::MESSAGING_PRODUCER_MAPPINGS
+          .dig('routingKey', :otel_keys)
+        CORRELATION_ID_OTEL_KEY = AttributeMappings::MESSAGING_PRODUCER_MAPPINGS
+          .dig('correlation_id', :otel_keys).first
 
         class << self
           def mappings_hash(kind)
