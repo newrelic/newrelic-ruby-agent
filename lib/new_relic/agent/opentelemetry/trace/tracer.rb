@@ -66,7 +66,7 @@ module NewRelic
             case kind
             when :client
               if segment_api_params[:uri] # HTTP Client and gRPC Client
-                return NewRelic::Agent::Tracer.start_external_request_segment(
+                NewRelic::Agent::Tracer.start_external_request_segment(
                   library: segment_api_params[:library] || @name,
                   uri: segment_api_params[:uri],
                   procedure: segment_api_params[:procedure],
@@ -89,38 +89,43 @@ module NewRelic
                   segment&.notice_nosql_statement(segment_api_params[:nosql_statement])
                 end
 
-                return segment
+                segment
+              else
+                NewRelic::Agent::Tracer.start_segment(name: name)
               end
             when :producer, :consumer
               if segment_api_params[:library] # Messaging
-                return NewRelic::Agent::Tracer.start_message_broker_segment(
+                NewRelic::Agent::Tracer.start_message_broker_segment(
                   action: segment_api_params[:action],
                   library: segment_api_params[:library],
                   destination_type: segment_api_params[:destination_type],
                   destination_name: segment_api_params[:destination_name],
                   start_time: start_timestamp
                 )
+              else
+                NewRelic::Agent::Tracer.start_segment(name: name)
               end
+            else
+              NewRelic::Agent::Tracer.start_segment(name: name)
             end
-
-            NewRelic::Agent::Tracer.start_segment(name: name)
           end
 
           def start_transaction_from_otel(name, parent_otel_context, kind, translated: {})
+            nr_item = nil
             segment_api_params = translated[:for_segment_api]
 
-            nr_item = case kind
+            case kind
             when :server # HTTP or gRPC server calls
-              NewRelic::Agent::Tracer.start_transaction_or_segment(
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
                 name: segment_api_params[:name] || name,
                 category: :web
               )
             when :client
-              NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
             when :consumer, :producer
-              start_messaging_transaction(name, segment_api_params)
+              nr_item = start_messaging_transaction(name, segment_api_params)
             when :internal, nil
-              NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
+              nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
 
             add_remote_context_to_txn(nr_item, parent_otel_context) if nr_item
