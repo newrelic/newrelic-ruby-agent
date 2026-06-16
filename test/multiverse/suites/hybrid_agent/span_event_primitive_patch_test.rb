@@ -125,20 +125,20 @@ module NewRelic
           end
         end
 
-        def test_for_span_events_returns_empty_when_no_events
+        def test_for_span_event_events_returns_empty_when_no_events
           with_segment do |segment|
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
 
             assert_empty result
           end
         end
 
-        def test_for_span_events_returns_correct_intrinsics
+        def test_for_span_event_events_returns_correct_intrinsics
           t = Time.now
 
           with_segment do |segment|
             segment.add_span_event_event('TestEvent', attributes: {'attr_key' => 'attr_val'}, timestamp: t)
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
 
             assert_equal 1, result.length
             intrinsics, user_attrs, agent_attrs = result[0]
@@ -153,10 +153,10 @@ module NewRelic
           end
         end
 
-        def test_for_span_events_places_event_attributes_as_user_attributes
+        def test_for_span_event_events_places_event_attributes_as_user_attributes
           with_segment do |segment|
             segment.add_span_event_event('AttrEvent', attributes: {'key1' => 'val1', 'key2' => 42})
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
             _, user_attrs, _ = result[0]
 
             assert_equal 'val1', user_attrs['key1']
@@ -164,10 +164,10 @@ module NewRelic
           end
         end
 
-        def test_for_span_events_empty_user_attributes_when_none_provided
+        def test_for_span_event_events_empty_user_attributes_when_none_provided
           with_segment do |segment|
             segment.add_span_event_event('NoAttrEvent')
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
             _, user_attrs, _ = result[0]
 
             assert_empty(user_attrs)
