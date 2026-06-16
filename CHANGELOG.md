@@ -12,7 +12,7 @@
 
 - **Feature: Set Span Kind on all Hybrid Agent spans**
 
-  Previously, only OpenTelemetry spans that were translated into external request segments or datastore segments had the span kind added as an attribute. Now, span kind will be an intrinsic attribute on all OpenTelemetry spans where the value is available. [PR#3589](https://github.com/newrelic/newrelic-ruby-agent/pull/3589)
+  Previously, only OpenTelemetry spans translated into external request segments or datastore segments added span kind as an attribute. Now, the agent adds span kind to all OpenTelemetry spans where the value is available. [PR#3589](https://github.com/newrelic/newrelic-ruby-agent/pull/3589)
 
 - **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
 
