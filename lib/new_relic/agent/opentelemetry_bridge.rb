@@ -74,7 +74,7 @@ module NewRelic
 
         NewRelic::Agent.logger.warn('OpenTelemetry SDK gem is installed. This may interfere with New Relic instrumentation.') if defined?(OpenTelemetry::SDK)
 
-        ::OpenTelemetry::Trace.singleton_class.prepend(NewRelic::Agent::OpenTelemetry::TracePatch)
+        ::OpenTelemetry::Trace.singleton_class.prepend(OpenTelemetry::TracePatch)
         Transaction.prepend(OpenTelemetry::TransactionPatch)
         Transaction::AbstractSegment.prepend(OpenTelemetry::AbstractSegmentPatch)
         SpanEventPrimitive.prepend(OpenTelemetry::SpanEventPrimitivePatch)

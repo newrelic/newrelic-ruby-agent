@@ -35,18 +35,21 @@ module NewRelic
 
       def harvest!
         metadata, events = super
-        span_links = []
+        # extra_events is for SpanLink and SpanEvent data related to a Span
+        # SpanLink and SpanEvent events are both created by OpenTelemetry APIs
+        extra_events = []
         events.each do |event|
-          # Span events are normally [intrinsics, custom_attrs, agent_attrs].
+          # Spans are normally: [intrinsics, custom_attrs, agent_attrs].
           # When a span has links, a 4th element is appended:
-          # [intrinsics, custom_attrs, agent_attrs, span_links]
+          # [intrinsics, custom_attrs, agent_attrs, extra_events]
           #
-          # Span Links must be sent to the backend at the top level of the main
-          # payload, not nested inside an individual Span. This pulls them out
-          # be flattened into the final array: [Span, SpanLink, Span, SpanLink]
-          span_links.concat(event.slice!(3)) if event.length > 3
+          # SpanLinks and SpanEvents must be sent to the backend at the top
+          # level of the main payload, not nested inside an individual Span.
+          # This pulls them out to be flattened into the final array:
+          # [Span, SpanLink, Span, SpanEvent, Span]
+          extra_events.concat(event.slice!(3)) if event.length > 3
         end
-        [metadata, events.concat(span_links)]
+        [metadata, events.concat(extra_events)]
       end
 
       def after_harvest(metadata)
