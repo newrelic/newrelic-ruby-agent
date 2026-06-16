@@ -5,7 +5,6 @@
 # This module builds the data structures necessary to create a Span
 # event for a segment.
 
-require 'new_relic/agent/attributes'
 require 'new_relic/agent/payload_metric_mapping'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 
@@ -48,17 +47,6 @@ module NewRelic
       TRACING_VENDORS_KEY = 'tracingVendors'
       TRANSACTION_NAME_KEY = 'transaction.name'
       THREAD_ID_KEY = 'thread.id'
-
-      # Strings for static keys/values used by SpanLink events
-      SPAN_LINK_TYPE = 'SpanLink'
-      ID_KEY = 'id'
-      TRACE_DOT_ID_KEY = 'trace.id'
-      LINKED_SPAN_ID_KEY = 'linkedSpanId'
-      LINKED_TRACE_ID_KEY = 'linkedTraceId'
-
-      # Strings for static keys/values used by SpanEvent events
-      SPAN_EVENT_TYPE = 'SpanEvent'
-      SPAN_DOT_ID_KEY = 'span.id'
 
       # Strings for static values of the event structure
       EVENT_TYPE = 'Span'
