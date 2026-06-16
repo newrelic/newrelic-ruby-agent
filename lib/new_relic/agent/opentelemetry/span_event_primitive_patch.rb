@@ -15,7 +15,7 @@ module NewRelic
 
         private
 
-        def get_span_kind(span_data, segment)
+        def attach_span_kind(span_data, segment)
           if segment.instance_variable_defined?(:@otel_span)
             otel_span = segment.instance_variable_get(:@otel_span)
             kind = otel_span.kind&.to_s
