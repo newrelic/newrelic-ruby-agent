@@ -36,6 +36,7 @@ module NewRelic
       def harvest!
         metadata, events = super
         # extra_events is for SpanLink and SpanEvent data related to a Span
+        # SpanLink and SpanEvent events are both created by OpenTelemetry APIs
         extra_events = []
         events.each do |event|
           # Spans are normally: [intrinsics, custom_attrs, agent_attrs].

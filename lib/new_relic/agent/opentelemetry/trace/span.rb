@@ -35,6 +35,8 @@ module NewRelic
           def add_link(link)
             return self unless recording?
 
+            # add_span_link lives in OpenTelemetry::AbstractSegmentPatch
+            # and in OpenTelemetry::TransactionPatch
             finishable&.add_span_link(link)
             self
           end
@@ -45,6 +47,8 @@ module NewRelic
             # Span's duration.
             return self unless recording?
 
+            # add_span_event lives in OpenTelemetry::AbstractSegmentPatch
+            # and in OpenTelemetry::TransactionPatch
             finishable&.add_span_event(name, attributes: attributes, timestamp: timestamp)
             self
           end

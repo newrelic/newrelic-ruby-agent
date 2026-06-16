@@ -82,9 +82,7 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        event = [intrinsics, custom_attributes(segment), agent_attributes(segment)]
-        event = attach_span_links(event, segment)
-        attach_span_events(event, segment)
+        [intrinsics, custom_attributes(segment), agent_attributes(segment)]
       end
 
       def for_external_request_segment(segment)
@@ -105,9 +103,7 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        event = [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
-        event = attach_span_links(event, segment)
-        attach_span_events(event, segment)
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       def for_datastore_segment(segment)
@@ -145,65 +141,10 @@ module NewRelic
           agent_attributes[STACKTRACE_KEY] = segment.params[:backtrace]
         end
 
-        event = [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
-        event = attach_span_links(event, segment)
-        attach_span_events(event, segment)
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       private
-
-      def attach_span_links(event, segment)
-        links = for_span_links(segment)
-        links.empty? ? event : event << links
-      end
-
-      def for_span_links(segment)
-        return [] if segment.span_links.empty?
-
-        segment.span_links.map do |link|
-          ctx = link.span_context
-          intrinsics = {
-            TYPE_KEY => SPAN_LINK_TYPE,
-            TIMESTAMP_KEY => milliseconds_since_epoch(segment),
-            ID_KEY => segment.guid,
-            TRACE_DOT_ID_KEY => segment.transaction.trace_id,
-            LINKED_SPAN_ID_KEY => ctx.hex_span_id,
-            LINKED_TRACE_ID_KEY => ctx.hex_trace_id
-          }
-          [intrinsics, sanitize_event_attributes(link.attributes), {}]
-        end
-      end
-
-      # The event argument in this case refers to the Span/Segment associated
-      # with the SpanEvent.
-      def attach_span_events(event, segment)
-        events = for_span_events(segment)
-        return event if events.empty?
-
-        if event.length > 3
-          event[3].concat(events)
-        else
-          event << events
-        end
-        event
-      end
-
-      def for_span_events(segment)
-        return [] if segment.span_events.empty?
-
-        segment.span_events.map do |evt|
-          intrinsics = {
-            TYPE_KEY => SPAN_EVENT_TYPE,
-            # This is the same formula as milliseconds_since_epoch, but without
-            # the segment.start_time value
-            TIMESTAMP_KEY => Integer(evt[:timestamp].to_f * 1000.0),
-            SPAN_DOT_ID_KEY => segment.guid,
-            TRACE_DOT_ID_KEY => segment.transaction.trace_id,
-            NAME_KEY => evt[:name]
-          }
-          [intrinsics, sanitize_event_attributes(evt[:attributes]), {}]
-        end
-      end
 
       def intrinsics_for(segment)
         intrinsics = {
@@ -294,15 +235,6 @@ module NewRelic
         else
           value
         end
-      end
-
-      def sanitize_event_attributes(attrs)
-        return NewRelic::EMPTY_HASH if attrs.nil? || attrs.empty?
-
-        filter = NewRelic::Agent.instance.attribute_filter
-        attr_obj = Attributes.new(filter)
-        attr_obj.merge_custom_attributes(attrs)
-        attr_obj.custom_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
       end
 
       def allowed?(key)
