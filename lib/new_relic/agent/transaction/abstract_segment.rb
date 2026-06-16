@@ -114,6 +114,9 @@ module NewRelic
           instance_variable_defined?(:@span_links) ? @span_links : NewRelic::EMPTY_ARRAY
         end
 
+        # This method adds SpanEvent events to a Span event/Segment.
+        # A SpanEvent is used to denote a meaningful, singular point in a
+        # Span's duration.
         def add_span_event(name, attributes: nil, timestamp: nil)
           @span_events ||= []
 
@@ -135,6 +138,7 @@ module NewRelic
           @span_events << {name: name, attributes: attributes, timestamp: ts}
         end
 
+        # Used to reference SpanEvent events associated with a Span/Segment
         def span_events
           instance_variable_defined?(:@span_events) ? @span_events : NewRelic::EMPTY_ARRAY
         end
