@@ -445,7 +445,76 @@ module NewRelic
           end
         end
 
+        def test_for_segment_returns_three_element_array_when_no_links
+          with_segment do |segment|
+            event = SpanEventPrimitive.for_segment(segment)
+
+            assert_equal 3, event.length
+          end
+        end
+
+        def test_for_segment_returns_four_element_array_when_links_present
+          link = stub_span_link('a' * 32, 'b' * 16)
+
+          with_segment do |segment|
+            segment.add_span_link(link)
+            event = SpanEventPrimitive.for_segment(segment)
+
+            assert_equal 4, event.length
+            assert_kind_of Array, event[3]
+          end
+        end
+
+        def test_for_span_links_returns_empty_when_no_links
+          with_segment do |segment|
+            result = SpanEventPrimitive.send(:for_span_links, segment)
+
+            assert_empty result
+          end
+        end
+
+        def test_for_span_links_returns_span_link_event_harvest
+          hex_trace_id = 'abcd1234abcd1234abcd1234abcd1234'
+          hex_span_id = '1234abcd1234abcd'
+          link = stub_span_link(hex_trace_id, hex_span_id, {'user_attr' => 'value'})
+
+          with_segment do |segment|
+            segment.add_span_link(link)
+            result = SpanEventPrimitive.send(:for_span_links, segment)
+
+            assert_equal 1, result.length
+            intrinsics, user_attrs, agent_attrs = result[0]
+
+            assert_equal 'SpanLink', intrinsics['type']
+            assert_equal segment.guid, intrinsics['id']
+            assert_equal segment.transaction.trace_id, intrinsics['trace.id']
+            assert_equal hex_span_id, intrinsics['linkedSpanId']
+            assert_equal hex_trace_id, intrinsics['linkedTraceId']
+            assert_kind_of Integer, intrinsics['timestamp']
+            assert_equal 'value', user_attrs['user_attr']
+            assert_empty(agent_attrs)
+          end
+        end
+
+        def test_for_span_links_link_attributes_are_included_as_user_attributes
+          link = stub_span_link('a' * 32, 'b' * 16, {'key1' => 'val1', 'key2' => 42})
+
+          with_segment do |segment|
+            segment.add_span_link(link)
+            result = SpanEventPrimitive.send(:for_span_links, segment)
+            _, user_attrs, _ = result[0]
+
+            assert_equal 'val1', user_attrs['key1']
+            assert_equal 42, user_attrs['key2']
+          end
+        end
+
         private
+
+        def stub_span_link(hex_trace_id, hex_span_id, attributes = {})
+          ctx = Struct.new(:hex_trace_id, :hex_span_id).new(hex_trace_id, hex_span_id)
+          Struct.new(:span_context, :attributes).new(ctx, attributes)
+        end
 
         def uri_for_testing
           URI.parse('https://newrelic.com')

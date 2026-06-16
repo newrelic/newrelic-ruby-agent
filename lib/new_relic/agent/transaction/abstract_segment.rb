@@ -26,6 +26,8 @@ module NewRelic
 
         CALLBACK = :@callback
         SEGMENT = 'segment'
+        MAX_SPAN_LINKS = 100
+        SPAN_LINKS_DROPPED_METRIC = 'Supportability/Ruby/SpanEvent/Links/Dropped'
 
         def initialize(name = nil, start_time = nil)
           @name = name
@@ -95,6 +97,19 @@ module NewRelic
           force_finish unless finished?
           record_exclusive_duration
           record_metrics if record_metrics?
+        end
+
+        def add_span_link(link)
+          @span_links ||= []
+          if @span_links.size >= MAX_SPAN_LINKS
+            NewRelic::Agent.record_metric(SPAN_LINKS_DROPPED_METRIC, 1)
+            return
+          end
+          @span_links << link
+        end
+
+        def span_links
+          instance_variable_defined?(:@span_links) ? @span_links : NewRelic::EMPTY_ARRAY
         end
 
         def params
