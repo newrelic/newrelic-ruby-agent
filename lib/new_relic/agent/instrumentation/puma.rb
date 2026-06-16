@@ -13,12 +13,14 @@ require 'new_relic/agent/puma_stats_sampler'
 # worker instead of the master, where +#master?+ correctly declines so the
 # instrumentation no-ops. Single mode is one process and always samples.
 #
-# Detection reads the runner that +Puma::Launcher#initialize+ registers, so
-# installation requires the launcher to exist before the agent boots -- true
-# whenever Puma itself starts the application (the +puma+ and +pumactl+
-# CLIs). Entry points that load the application first and construct the
-# launcher afterward (e.g. +rails server+) run detection before the runner
-# exists, and the instrumentation does not install there.
+# Detection reads the runner that +Puma::Launcher#initialize+ registers. When
+# Puma itself starts the application (the +puma+ and +pumactl+ CLIs) the runner
+# already exists at boot, so the instrumentation installs immediately. Entry
+# points that load the application first and construct the launcher afterward
+# (e.g. +rails server+) run detection before the runner exists; for those the
+# agent arms a one-shot interceptor on +Puma.stats_object=+ -- the setter the
+# launcher calls when it registers its runner -- so installation happens through
+# the same +#master?+ gate the instant the launcher appears.
 module NewRelic
   module Agent
     module Instrumentation
@@ -46,6 +48,67 @@ module NewRelic
           return false unless runner.respond_to?(:options)
 
           !!runner.options[:preload_app]
+        end
+
+        # Runs at dependency-detection time. If Puma has already registered its
+        # runner (the +puma+/+pumactl+ boot order), install in the master right
+        # away. Otherwise the launcher does not exist yet (the +rails server+
+        # boot order), so arm the late interceptor instead and let it install
+        # when the runner registers.
+        def install_or_arm
+          current = runner
+          current ? install_in_master(current) : arm_late_install
+        end
+
+        # Installs the sampler when +runner+ is the master we should sample from,
+        # and declines otherwise. Shared by the eager detection path and the
+        # late +Puma.stats_object=+ interceptor.
+        def install_in_master(runner)
+          return unless master?(runner)
+
+          NewRelic::Agent.logger.info('Installing Puma stats instrumentation')
+          install(runner)
+        end
+
+        # Prepends a one-shot interceptor on +Puma.stats_object=+ so the agent
+        # installs when a launcher registers its runner after detection already
+        # ran (the +rails server+ boot order). Prepending is idempotent, but the
+        # +@late_install_armed+ flag is the real gate: the interceptor only acts
+        # while armed and disarms itself on the first registration, so a later
+        # +stats_object=+ (e.g. a Puma hot restart) cannot start a second
+        # sampler, and an unarmed eager-path process is unaffected.
+        def arm_late_install
+          @late_install_armed = true
+          ::Puma.singleton_class.prepend(StatsObjectRegistration)
+        end
+
+        # Invoked by the interceptor when Puma registers a runner. One-shot:
+        # disarm before installing so the registration is handled exactly once.
+        def install_on_register(runner)
+          return unless @late_install_armed
+
+          @late_install_armed = false
+          install_in_master(runner)
+        end
+
+        # Intercepts +Puma.stats_object=+, the setter +Puma::Launcher#initialize+
+        # calls to publish its runner. Prepended onto Puma's singleton class so
+        # +super+ performs Puma's own assignment before the agent reacts.
+        #
+        # The agent reaction runs inside Puma's launcher boot here, so it is
+        # wrapped so an agent-side failure can never escape into +stats_object=+
+        # and break Puma. (+super+ is left unguarded -- a failure there is Puma's
+        # own and must propagate.) This restores for the late path the error
+        # isolation the eager path gets for free from +DependencyDetection#execute+.
+        module StatsObjectRegistration
+          def stats_object=(runner)
+            super
+            begin
+              NewRelic::Agent::Instrumentation::PumaStats.install_on_register(runner)
+            rescue => e
+              NewRelic::Agent.logger.error('Error installing New Relic Puma stats instrumentation on runner registration', e)
+            end
+          end
         end
 
         # Builds the sampler, registers a stop on Puma's lifecycle events, and
@@ -86,22 +149,25 @@ module NewRelic
 end
 
 DependencyDetection.defer do
-  named :puma
+  # Set +@name+ directly, as +sequel+ does, rather than calling +named+. The two
+  # are equivalent at runtime, but the orphan-config test treats a +named+ entry
+  # as a promise that +disable_<name>+ / +instrumentation.<name>+ config keys
+  # exist. This instrumentation defines neither; it gates on a dedicated
+  # +disable_puma_instrumentation+ via the explicit +depends_on+ below.
+  @name = :puma
 
   depends_on do
     defined?(Puma) && defined?(Puma::Launcher)
   end
 
   depends_on do
-    NewRelic::Agent::Instrumentation::PumaStats.master?(
-      NewRelic::Agent::Instrumentation::PumaStats.runner
-    )
+    !NewRelic::Agent.config[:disable_puma_instrumentation]
   end
 
+  # No +master?+ gate here: in the +rails server+ boot order the runner does
+  # not exist yet at detection time. install_or_arm installs in the master when
+  # the runner is already present and otherwise arms the late interceptor.
   executes do
-    NewRelic::Agent.logger.info('Installing Puma stats instrumentation')
-    NewRelic::Agent::Instrumentation::PumaStats.install(
-      NewRelic::Agent::Instrumentation::PumaStats.runner
-    )
+    NewRelic::Agent::Instrumentation::PumaStats.install_or_arm
   end
 end

@@ -2081,6 +2081,13 @@ module NewRelic
           :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
         # Puma
+        :disable_puma_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables the Puma server-statistics instrumentation that samples `Puma/*` metrics from the Puma master process.'
+        },
         :'puma.sample_rate' => {
           :default => 15,
           :public => true,

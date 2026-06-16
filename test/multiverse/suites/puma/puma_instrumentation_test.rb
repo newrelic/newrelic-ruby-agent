@@ -30,6 +30,11 @@ class PumaInstrumentationTest < Minitest::Test
     # object. Clear it so a launcher from one test is never seen by another --
     # or by a later DependencyDetection pass -- as the active master runner.
     Puma.remove_instance_variable(:@get_stats) if Puma.instance_variable_defined?(:@get_stats)
+    # Disarm the late-install interceptor. Once armed it prepends itself onto
+    # Puma's singleton class for the rest of the process; disarming keeps a
+    # later test's build_launcher (which fires Puma.stats_object=) from
+    # installing through it.
+    PumaStats.instance_variable_set(:@late_install_armed, false)
   ensure
     teardown_agent
   end
@@ -176,40 +181,142 @@ class PumaInstrumentationTest < Minitest::Test
 
   # --- dependency detection --------------------------------------------------
 
-  def test_dependency_item_installs_in_master_exactly_once
+  def test_dependency_item_is_satisfied_once_puma_is_loaded_then_spent
     item = DependencyDetection.dependency_by_name(:puma)
     was_executed = item&.executed
 
     refute_nil item, 'expected requiring the instrumentation to register a :puma dependency item'
-    refute item.executed, 'precondition: item has not run (no Puma master during agent setup)'
+    refute item.executed, 'precondition: item has not run yet (suite config disables it)'
 
-    # A non-master process (clustered, no preload) does not satisfy the gate.
-    build_launcher(workers: 2, preload: :off)
+    # The gate is "Puma is loaded and not disabled", not "in the master": the
+    # runner need not exist yet (the rails server boot order), so the item is
+    # satisfiable even before any launcher is built.
+    with_config(:disable_puma_instrumentation => false) do
+      assert_predicate item, :dependencies_satisfied?, 'should be satisfied once Puma is loaded'
 
-    refute_predicate item, :dependencies_satisfied?, 'must not install when not in the Puma master'
+      # Executing the item runs install_or_arm exactly once...
+      calls = 0
+      PumaStats.stub(:install_or_arm, -> { calls += 1 }) do
+        item.execute
+      end
 
-    # The Puma master (single mode here) does.
-    build_launcher(workers: 0)
+      assert_equal 1, calls, 'the executes block should call install_or_arm exactly once'
 
-    assert_predicate item, :dependencies_satisfied?, 'should install in the Puma master'
-
-    # Executing the item runs install once, with Puma's active runner...
-    installed = []
-    PumaStats.stub(:install, ->(runner) { installed << runner }) do
-      item.execute
+      # ...and the item is now spent, so a later DependencyDetection pass (e.g.
+      # in a forked worker that inherited this state) cannot run it again.
+      assert item.executed
+      refute_predicate item, :dependencies_satisfied?, 'an executed item must not run again'
     end
-
-    assert_equal 1, installed.size, 'the executes block should call install exactly once'
-    assert_same PumaStats.runner, installed.first, 'install should receive the active runner'
-
-    # ...and the item is now spent, so a later DependencyDetection pass (e.g. in
-    # a forked worker that inherited this state) cannot install a second sampler.
-    assert item.executed
-    refute_predicate item, :dependencies_satisfied?, 'an executed item must not install again'
   ensure
     # The :puma item is a process-global singleton; restore its executed flag so
     # this test leaves it as found and no later test inherits a spent item.
     item&.instance_variable_set(:@executed, was_executed)
+  end
+
+  def test_dependency_item_declines_when_instrumentation_disabled
+    item = DependencyDetection.dependency_by_name(:puma)
+
+    with_config(:disable_puma_instrumentation => true) do
+      refute_predicate item, :dependencies_satisfied?,
+        'disable_puma_instrumentation must turn the instrumentation off'
+    end
+  end
+
+  # --- install_or_arm decision -----------------------------------------------
+
+  def test_install_or_arm_installs_in_master_when_runner_present
+    runner = runner_for(build_launcher(workers: 0)) # single mode is always master
+
+    installed = []
+    PumaStats.stub(:install, ->(r) { installed << r }) do
+      PumaStats.install_or_arm
+    end
+
+    assert_equal [runner], installed, 'a present master runner should install immediately'
+    refute PumaStats.instance_variable_get(:@late_install_armed),
+      'the eager path must not arm the late interceptor'
+  end
+
+  def test_install_or_arm_declines_when_runner_present_but_not_master
+    build_launcher(workers: 2, preload: :off) # clustered worker, no preload
+
+    installed = []
+    PumaStats.stub(:install, ->(r) { installed << r }) do
+      PumaStats.install_or_arm
+    end
+
+    assert_empty installed, 'a non-master runner should not install'
+    refute PumaStats.instance_variable_get(:@late_install_armed),
+      'a present (non-master) runner means the launcher exists, so do not arm'
+  end
+
+  def test_install_or_arm_arms_late_install_and_installs_on_registration
+    # The rails server boot order: detection runs before any launcher exists.
+    Puma.remove_instance_variable(:@get_stats) if Puma.instance_variable_defined?(:@get_stats)
+
+    installed = []
+    PumaStats.stub(:install, ->(r) { installed << r }) do
+      PumaStats.install_or_arm
+
+      assert_empty installed, 'arming must not install until a runner registers'
+      assert PumaStats.instance_variable_get(:@late_install_armed),
+        'an absent runner should arm the late interceptor'
+
+      # A launcher registering its runner (a single-mode master here) drives the
+      # prepended Puma.stats_object= interceptor, which installs exactly once.
+      runner = runner_for(build_launcher(workers: 0))
+
+      assert_equal [runner], installed, 'the stats_object= interceptor should install in the master'
+      refute PumaStats.instance_variable_get(:@late_install_armed),
+        'the interceptor is one-shot and disarms after the first registration'
+
+      # A second registration (e.g. a Puma hot restart) must not start a second
+      # sampler -- the one-shot disarm is the guard against that.
+      build_launcher(workers: 0)
+
+      assert_equal [runner], installed, 'a second runner registration must not reinstall'
+    end
+  end
+
+  def test_late_interceptor_declines_non_master_runner_on_registration
+    # The rails server boot order in a clustered/no-preload topology: the
+    # launcher that registers is not a master we should sample from, so the armed
+    # interceptor must decline (install_on_register routes through the master?
+    # gate) while still consuming its one shot.
+    Puma.remove_instance_variable(:@get_stats) if Puma.instance_variable_defined?(:@get_stats)
+
+    installed = []
+    PumaStats.stub(:install, ->(r) { installed << r }) do
+      PumaStats.install_or_arm
+
+      assert PumaStats.instance_variable_get(:@late_install_armed), 'precondition: armed'
+
+      build_launcher(workers: 2, preload: :off) # a non-master runner registers
+
+      assert_empty installed, 'a non-master runner registering must not install'
+      refute PumaStats.instance_variable_get(:@late_install_armed),
+        'the interceptor consumes its one shot even when it declines'
+    end
+  end
+
+  def test_late_interceptor_isolates_agent_failure_from_puma_boot
+    # The host-protection boundary: an agent-side failure inside the prepended
+    # Puma.stats_object= interceptor must never escape into Puma's launcher boot.
+    # super (Puma's own assignment) is left unguarded and still runs, so Puma
+    # records its runner regardless; only the agent reaction is rescued.
+    Puma.remove_instance_variable(:@get_stats) if Puma.instance_variable_defined?(:@get_stats)
+
+    PumaStats.install_or_arm # arm and prepend the interceptor
+
+    assert PumaStats.instance_variable_get(:@late_install_armed), 'precondition: armed'
+
+    launcher = nil
+    PumaStats.stub(:install_on_register, ->(_) { raise 'agent reaction blew up' }) do
+      launcher = build_launcher(workers: 0) # fires Puma.stats_object=; must not raise
+    end
+
+    assert_same runner_for(launcher), Puma.instance_variable_get(:@get_stats),
+      'super must still run so Puma records its runner despite the agent failure'
   end
 
   # --- sampler against real Puma stats ---------------------------------------
@@ -242,9 +349,17 @@ class PumaInstrumentationTest < Minitest::Test
 
   # Builds a real Puma::Launcher, which sets Puma's stats_object to a fresh
   # runner (Puma::Single in single mode, Puma::Cluster when workers are set).
+  #
+  # Workers are passed through Puma's user options (the +-w+ CLI path), not the
+  # config block. Puma derives the +preload_app+ default from the worker count,
+  # and on Puma 6.x it does so during Configuration construction -- before the
+  # config block runs -- so block-set workers stay at the workers-0 default
+  # (preload off). (Puma 8.x recomputes it later, from the launcher, and is
+  # unaffected.) User options are in place before either version's computation,
+  # so this reproduces the default-preload-on behavior +-w 2+ yields in a real
+  # deployment across every supported Puma version.
   def build_launcher(workers: 0, preload: :unset)
-    conf = Puma::Configuration.new do |c|
-      c.workers(workers)
+    conf = Puma::Configuration.new(workers: workers) do |c|
       c.preload_app!(true) if preload == :on
       c.preload_app!(false) if preload == :off
     end
