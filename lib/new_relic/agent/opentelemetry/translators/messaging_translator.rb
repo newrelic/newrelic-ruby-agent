@@ -103,8 +103,6 @@ module NewRelic
             TEMP_MAP[type] || type
           end
 
-          private
-
           def explicit_destination_kind(attributes)
             DESTINATION_KIND_MAP[attributes['messaging.destination_kind']]
           end

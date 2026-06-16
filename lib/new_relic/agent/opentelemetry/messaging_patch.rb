@@ -6,6 +6,9 @@ module NewRelic
   module Agent
     module OpenTelemetry
       module MessagingPatch
+      # A producer span with a remote parent MUST start a new
+      # transaction. Naming for that case is handled by MessagingPatch
+      # since NR's transaction_name only knows about :consume
         PRODUCE = 'Produce/'
 
         def transaction_name(library, destination_type, destination_name, action = nil)

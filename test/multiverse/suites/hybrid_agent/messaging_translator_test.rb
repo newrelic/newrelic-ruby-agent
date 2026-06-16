@@ -86,6 +86,10 @@ module NewRelic
           assert_destination_type :queue, {'messaging.system' => 'aws.sqs'}, :producer
         end
 
+        def test_determine_destination_type_aws_sqs_with_underscore
+          assert_destination_type :queue, {'messaging.system' => 'aws_sqs'}, :producer
+        end
+
         def test_determine_destination_type_aws_sns_with_dot
           assert_destination_type :topic, {'messaging.system' => 'aws.sns'}, :producer
         end
@@ -189,6 +193,33 @@ module NewRelic
           result = translator.translate(attributes: attrs, kind: :producer)
 
           assert_equal 'legacy.topic', result[:for_segment_api][:destination_name]
+        end
+
+        def test_translate_producer_segment_params_with_only_routing_key
+          attrs = {
+            'messaging.system' => 'kafka',
+            'messaging.kafka.message.key' => 'user-1'
+          }
+          result = translator.translate(attributes: attrs, kind: :producer)
+
+          assert_equal({routing_key: 'user-1'}, result[:for_segment_api][:parameters])
+        end
+
+        def test_translate_producer_segment_params_with_only_correlation_id
+          attrs = {
+            'messaging.system' => 'kafka',
+            'messaging.message.conversation_id' => 'corr-1'
+          }
+          result = translator.translate(attributes: attrs, kind: :producer)
+
+          assert_equal({correlation_id: 'corr-1'}, result[:for_segment_api][:parameters])
+        end
+
+        def test_translate_producer_segment_params_omitted_when_neither_present
+          attrs = {'messaging.system' => 'kafka'}
+          result = translator.translate(attributes: attrs, kind: :producer)
+
+          refute result[:for_segment_api].key?(:parameters)
         end
 
         def test_translate_returns_translator_class
