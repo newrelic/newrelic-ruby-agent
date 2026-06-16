@@ -42,7 +42,7 @@ module NewRelic
           def add_event(name, attributes: nil, timestamp: nil)
             # This method adds SpanEvent events to a Span event.
             # A SpanEvent is used to denote a meaningful, singular point in a
-            # Span's duration. 
+            # Span's duration.
             return self unless recording?
 
             finishable&.add_span_event(name, attributes: attributes, timestamp: timestamp)
