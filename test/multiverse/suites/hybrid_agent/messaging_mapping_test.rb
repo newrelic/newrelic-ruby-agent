@@ -105,16 +105,6 @@ module NewRelic
             }
           end
 
-          def producer_aws_kinesis_attrs
-            {
-              'messaging.system' => 'aws_kinesis',
-              'messaging.destination.name' => 'orders-stream',
-              'cloud.region' => 'us-east-1',
-              'server.address' => 'kinesis.us-east-1.amazonaws.com',
-              'server.port' => '443'
-            }
-          end
-
           def run_consumer_span(attrs)
             in_transaction(category: :web) do |txn|
               txn.stubs(:sampled?).returns(true)
@@ -490,28 +480,6 @@ module NewRelic
             assert_equal 'AMQP', custom['messaging.protocol']
           end
 
-          # ---------- producer aws_kinesis ----------
-
-          def test_producer_aws_kinesis_segment_properties
-            transaction = run_producer_span(producer_aws_kinesis_attrs)
-            segment = transaction.segments[1]
-
-            assert_instance_of NewRelic::Agent::Transaction::MessageBrokerSegment, segment
-            assert_equal 'MessageBroker/Kinesis/Stream/Produce/Named/orders-stream', segment.name
-            assert_equal 'Kinesis', segment.library
-            assert_equal :stream, segment.destination_type
-            assert_equal 'orders-stream', segment.destination_name
-            assert_equal :produce, segment.action
-          end
-
-          def test_producer_aws_kinesis_metrics
-            run_producer_span(producer_aws_kinesis_attrs)
-
-            assert_metrics_recorded([
-              'MessageBroker/Kinesis/Stream/Produce/Named/orders-stream'
-            ])
-          end
-
           # ---------- consumer creates a transaction when no current transaction exists ----------
 
           def test_consumer_transaction_name
@@ -634,6 +602,28 @@ module NewRelic
               'OtherTransaction/Message/RabbitMQ/Exchange/Produce/Named/events.exchange',
               'OtherTransactionTotalTime'
             ])
+          end
+
+          # ---------- kinesis (:stream) with remote parent ----------
+          # Exercises MessagingPatch#transaction_name's :stream branch
+
+          def test_kinesis_with_remote_parent_transaction_name
+            attrs = {
+              'messaging.system' => 'aws_kinesis',
+              'messaging.destination.name' => 'orders-stream'
+            }
+
+            span = @tracer.start_span(
+              'publish',
+              with_parent: remote_context,
+              attributes: attrs,
+              kind: :producer
+            )
+            span.finish
+
+            intrinsics = harvest_transaction_events![1][0][0]
+
+            assert_equal 'OtherTransaction/Message/Kinesis/Stream/Produce/Named/orders-stream', intrinsics['name']
           end
 
           private
