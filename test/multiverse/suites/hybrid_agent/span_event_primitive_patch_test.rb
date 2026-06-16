@@ -80,7 +80,7 @@ module NewRelic
 
         def test_for_segment_returns_four_element_array_when_span_events_present
           with_segment do |segment|
-            segment.add_span_event('my_event')
+            segment.add_span_event_event('my_event')
             event = SpanEventPrimitive.for_segment(segment)
 
             assert_equal 4, event.length
@@ -100,7 +100,7 @@ module NewRelic
           t = Time.now
 
           with_segment do |segment|
-            segment.add_span_event('TestEvent', attributes: {'attr_key' => 'attr_val'}, timestamp: t)
+            segment.add_span_event_event('TestEvent', attributes: {'attr_key' => 'attr_val'}, timestamp: t)
             result = SpanEventPrimitive.send(:for_span_events, segment)
 
             assert_equal 1, result.length
@@ -118,7 +118,7 @@ module NewRelic
 
         def test_for_span_events_places_event_attributes_as_user_attributes
           with_segment do |segment|
-            segment.add_span_event('AttrEvent', attributes: {'key1' => 'val1', 'key2' => 42})
+            segment.add_span_event_event('AttrEvent', attributes: {'key1' => 'val1', 'key2' => 42})
             result = SpanEventPrimitive.send(:for_span_events, segment)
             _, user_attrs, _ = result[0]
 
@@ -129,7 +129,7 @@ module NewRelic
 
         def test_for_span_events_empty_user_attributes_when_none_provided
           with_segment do |segment|
-            segment.add_span_event('NoAttrEvent')
+            segment.add_span_event_event('NoAttrEvent')
             result = SpanEventPrimitive.send(:for_span_events, segment)
             _, user_attrs, _ = result[0]
 
@@ -228,7 +228,7 @@ module NewRelic
 
           with_segment do |segment|
             segment.add_span_link(link)
-            segment.add_span_event('CombinedEvent')
+            segment.add_span_event_event('CombinedEvent')
             event = SpanEventPrimitive.for_segment(segment)
 
             assert_equal 4, event.length

@@ -47,9 +47,9 @@ module NewRelic
             # Span's duration.
             return self unless recording?
 
-            # add_span_event lives in OpenTelemetry::AbstractSegmentPatch
+            # add_span_event_event lives in OpenTelemetry::AbstractSegmentPatch
             # and in OpenTelemetry::TransactionPatch
-            finishable&.add_span_event(name, attributes: attributes, timestamp: timestamp)
+            finishable&.add_span_event_event(name, attributes: attributes, timestamp: timestamp)
             self
           end
 

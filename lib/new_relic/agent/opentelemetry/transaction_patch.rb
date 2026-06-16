@@ -42,8 +42,8 @@ module NewRelic
         # This method adds a SpanEvent event to the Transaction's initial segment.
         # A SpanEvent is used to denote a meaningful, singular point in a
         # Span's duration.
-        def add_span_event(name, attributes: nil, timestamp: nil)
-          initial_segment&.add_span_event(name, attributes: attributes, timestamp: timestamp)
+        def add_span_event_event(name, attributes: nil, timestamp: nil)
+          initial_segment&.add_span_event_event(name, attributes: attributes, timestamp: timestamp)
         end
 
         # Used to reference SpanEvent events associated with the initial segment.

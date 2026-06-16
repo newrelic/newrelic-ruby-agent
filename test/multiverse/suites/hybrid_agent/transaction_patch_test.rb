@@ -335,9 +335,9 @@ module NewRelic
           assert_equal NewRelic::EMPTY_ARRAY, txn.span_events
         end
 
-        def test_add_span_event_stores_event_on_initial_segment
+        def test_add_span_event_event_stores_event_on_initial_segment
           in_transaction do |txn|
-            txn.add_span_event('my_event', attributes: {'k' => 'v'})
+            txn.add_span_event_event('my_event', attributes: {'k' => 'v'})
 
             assert_equal 1, txn.span_events.length
             assert_equal 'my_event', txn.span_events.first[:name]
@@ -345,10 +345,10 @@ module NewRelic
           end
         end
 
-        def test_add_span_event_is_noop_without_initial_segment
+        def test_add_span_event_event_is_noop_without_initial_segment
           txn = Transaction.new(:web, {})
 
-          assert_nil txn.add_span_event('ghost_event')
+          assert_nil txn.add_span_event_event('ghost_event')
         end
       end
     end

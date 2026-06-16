@@ -27,7 +27,7 @@ module NewRelic
         # This method adds SpanEvent events to a Span event/Segment.
         # A SpanEvent is used to denote a meaningful, singular point in a
         # Span's duration.
-        def add_span_event(name, attributes: nil, timestamp: nil)
+        def add_span_event_event(name, attributes: nil, timestamp: nil)
           @span_events ||= []
 
           if @span_events.size >= MAX_SPAN_EVENTS
