@@ -32,6 +32,13 @@ module NewRelic
             end
           end
 
+          def add_link(link)
+            return self unless recording?
+
+            finishable&.add_span_link(link)
+            self
+          end
+
           def apply_translated_attributes(translated)
             translated[:instance_variable].each do |key, value|
               sym_key = "@#{key}".to_sym

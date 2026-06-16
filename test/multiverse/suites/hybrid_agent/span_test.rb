@@ -466,6 +466,93 @@ module NewRelic
 
             assert_equal 201, txn.http_response_code
           end
+
+          def test_add_link_stores_link_on_finishable
+            linked_ctx = ::OpenTelemetry::Trace::SpanContext.new(
+              trace_id: ['a' * 32].pack('H*'),
+              span_id: ['b' * 16].pack('H*')
+            )
+            link = ::OpenTelemetry::Trace::Link.new(linked_ctx)
+
+            span = @tracer.start_span('test_span', kind: :server)
+            span.add_link(link)
+            span.finish
+
+            assert_equal 1, span.finishable.span_links.length
+            assert_equal link, span.finishable.span_links.first
+          end
+
+          def test_add_link_is_noop_on_finished_span
+            span = @tracer.start_span('test_span', kind: :server)
+            span.finish
+
+            linked_ctx = ::OpenTelemetry::Trace::SpanContext.new(
+              trace_id: ['a' * 32].pack('H*'),
+              span_id: ['b' * 16].pack('H*')
+            )
+            link = ::OpenTelemetry::Trace::Link.new(linked_ctx)
+            result = span.add_link(link)
+
+            assert_equal span, result
+            assert_empty span.finishable.span_links
+          end
+
+          def test_start_span_with_links_parameter_processes_links
+            linked_ctx = ::OpenTelemetry::Trace::SpanContext.new(
+              trace_id: ['a' * 32].pack('H*'),
+              span_id: ['b' * 16].pack('H*')
+            )
+            link = ::OpenTelemetry::Trace::Link.new(linked_ctx)
+
+            span = @tracer.start_span('test_span', kind: :server, links: [link])
+            span.finish
+
+            assert_equal 1, span.finishable.span_links.length
+          end
+
+          def test_span_links_appear_in_harvested_events
+            linked_ctx = ::OpenTelemetry::Trace::SpanContext.new(
+              trace_id: ['abcd1234abcd1234abcd1234abcd1234'].pack('H*'),
+              span_id: ['1234abcd1234abcd'].pack('H*')
+            )
+            link = ::OpenTelemetry::Trace::Link.new(linked_ctx, {'custom_attr' => 'value'})
+
+            span = @tracer.start_span('test_span', kind: :server)
+            span.add_link(link)
+            span.finishable.stubs(:sampled?).returns(true)
+            span.finish
+
+            _, events = harvest_span_events!
+            span_link_events = events.select { |e| e[0]['type'] == 'SpanLink' }
+
+            assert_equal 1, span_link_events.length
+            intrinsics, user_attrs, _ = span_link_events[0]
+
+            assert_equal 'SpanLink', intrinsics['type']
+            assert_equal linked_ctx.hex_span_id, intrinsics['linkedSpanId']
+            assert_equal linked_ctx.hex_trace_id, intrinsics['linkedTraceId']
+            assert_equal 'value', user_attrs['custom_attr']
+          end
+
+          def test_span_link_drop_limit_records_supportability_metric
+            in_transaction do |txn|
+              txn.stubs(:sampled?).returns(true)
+              span = @tracer.start_span('test_span')
+
+              102.times do
+                ctx = ::OpenTelemetry::Trace::SpanContext.new(
+                  trace_id: ['a' * 32].pack('H*'),
+                  span_id: ['b' * 16].pack('H*')
+                )
+                span.add_link(::OpenTelemetry::Trace::Link.new(ctx))
+              end
+
+              assert_equal 100, span.finishable.span_links.length
+              span.finish
+            end
+
+            assert_metrics_recorded({'Supportability/Ruby/SpanEvent/Links/Dropped' => {call_count: 2}})
+          end
         end
       end
     end

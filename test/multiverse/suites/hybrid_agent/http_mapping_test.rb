@@ -17,10 +17,8 @@ module NewRelic
             mocha_teardown
           end
 
-          # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
-          # Using the "old" patch, which uses approx. version 1.17 semconv
-          def test_client_kind_segment_translates_attributes_v_1_17
-            request_attrs = {
+          def request_attrs_v_1_17
+            {
               'http.method' => 'GET',
               'http.scheme' => 'https',
               'http.target' => '/sustainable-spuds',
@@ -28,57 +26,10 @@ module NewRelic
               'net.peer.name' => 'potatoes.com',
               'net.peer.port' => 443
             }
-
-            # In the external_request_segment_tests, we see the
-            # category for a transaction is set to controller
-            # to get the allWeb metric. If no category is provided
-            # the category will be Other.
-            transaction = in_transaction(category: :web) do |txn|
-              txn.stubs(:sampled?).returns(true)
-
-              @tracer.in_span('GET', attributes: request_attrs.dup, kind: :client) do |span|
-                span.set_attribute('http.status_code', 200)
-              end
-            end
-
-            segment = transaction.segments[1]
-
-            assert_instance_of NewRelic::Agent::Transaction::ExternalRequestSegment, segment
-
-            assert_equal 'External/potatoes.com/OTelClient/GET', segment.name
-            assert_equal request_attrs['net.peer.name'], segment.host
-
-            assert_metrics_recorded([
-              'External/all',
-              'External/allWeb',
-              'External/potatoes.com/all',
-              'External/potatoes.com/OTelClient/GET'
-            ])
-
-            spans = harvest_span_events!
-            span = spans[1][0]
-            intrinsics = span[0]
-            custom = span[1]
-            agent = span[2]
-
-            assert_equal request_attrs['http.method'], intrinsics['http.method']
-            assert_equal request_attrs['http.method'], intrinsics['http.request.method']
-            assert_equal request_attrs['net.peer.name'], intrinsics['server.address']
-            assert_equal request_attrs['net.peer.port'], intrinsics['server.port']
-            assert_equal 200, intrinsics['http.statusCode']
-
-            assert_equal request_attrs['http.scheme'], custom['http.scheme']
-            assert_equal request_attrs['http.target'], custom['http.target']
-
-            assert_equal request_attrs['http.url'], agent['http.url']
-            assert_equal 1, agent['status.code']
-            assert_equal 'OTelClient', agent['otel.scope.name']
           end
 
-          # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
-          # Using the "stable" patch, which uses approx. version 1.23 semconv
-          def test_client_kind_segment_translates_attributes_from_http_example_span_v_1_23
-            request_attrs = {
+          def request_attrs_v_1_23
+            {
               'http.request.method' => 'GET',
               'url.scheme' => 'https',
               'url.path' => '/sustainable-spuds',
@@ -86,24 +37,37 @@ module NewRelic
               'server.address' => 'potatoes.com',
               'server.port' => 443
             }
+          end
 
+          def run_http_client_span(attrs, status_attr)
             # In the external_request_segment_tests, we see the
             # category for a transaction is set to controller
             # to get the allWeb metric. If no category is provided
             # the category will be Other.
-            transaction = in_transaction(category: :web) do |txn|
+            in_transaction(category: :web) do |txn|
               txn.stubs(:sampled?).returns(true)
-              @tracer.in_span('GET', attributes: request_attrs.dup, kind: :client) do |span|
-                span.set_attribute('http.response.status_code', 200)
+              @tracer.in_span('GET', attributes: attrs.dup, kind: :client) do |span|
+                span.set_attribute(status_attr, 200)
               end
             end
+          end
+
+          # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
+          # Using the "old" patch, which uses approx. version 1.17 semconv
+          def test_client_v_1_17_segment_properties
+            attrs = request_attrs_v_1_17
+            transaction = run_http_client_span(attrs, 'http.status_code')
 
             segment = transaction.segments[1]
 
             assert_instance_of NewRelic::Agent::Transaction::ExternalRequestSegment, segment
 
             assert_equal 'External/potatoes.com/OTelClient/GET', segment.name
-            assert_equal request_attrs['server.address'], segment.host
+            assert_equal attrs['net.peer.name'], segment.host
+          end
+
+          def test_client_v_1_17_metrics
+            run_http_client_span(request_attrs_v_1_17, 'http.status_code')
 
             assert_metrics_recorded([
               'External/all',
@@ -111,23 +75,109 @@ module NewRelic
               'External/potatoes.com/all',
               'External/potatoes.com/OTelClient/GET'
             ])
+          end
+
+          def test_client_v_1_17_intrinsic_attributes
+            attrs = request_attrs_v_1_17
+            run_http_client_span(attrs, 'http.status_code')
 
             spans = harvest_span_events!
             span = spans[1][0]
             intrinsics = span[0]
+
+            assert_equal attrs['http.method'], intrinsics['http.method']
+            assert_equal attrs['http.method'], intrinsics['http.request.method']
+            assert_equal attrs['net.peer.name'], intrinsics['server.address']
+            assert_equal attrs['net.peer.port'], intrinsics['server.port']
+            assert_equal 200, intrinsics['http.statusCode']
+          end
+
+          def test_client_v_1_17_custom_attributes
+            attrs = request_attrs_v_1_17
+            run_http_client_span(attrs, 'http.status_code')
+
+            spans = harvest_span_events!
+            span = spans[1][0]
             custom = span[1]
+
+            assert_equal attrs['http.scheme'], custom['http.scheme']
+            assert_equal attrs['http.target'], custom['http.target']
+          end
+
+          def test_client_v_1_17_agent_attributes
+            attrs = request_attrs_v_1_17
+            run_http_client_span(attrs, 'http.status_code')
+
+            spans = harvest_span_events!
+            span = spans[1][0]
             agent = span[2]
 
-            assert_equal request_attrs['http.request.method'], intrinsics['http.method']
-            assert_equal request_attrs['http.request.method'], intrinsics['http.request.method']
-            assert_equal request_attrs['server.address'], intrinsics['server.address']
-            assert_equal request_attrs['server.port'], intrinsics['server.port']
+            assert_equal attrs['http.url'], agent['http.url']
+            assert_equal 1, agent['status.code']
+            assert_equal 'OTelClient', agent['otel.scope.name']
+          end
+
+          # Drawing from the HTTP.rb OTel Contrib client.rb instrumentation
+          # Using the "stable" patch, which uses approx. version 1.23 semconv
+          def test_client_v_1_23_segment_properties
+            attrs = request_attrs_v_1_23
+            transaction = run_http_client_span(attrs, 'http.response.status_code')
+
+            segment = transaction.segments[1]
+
+            assert_instance_of NewRelic::Agent::Transaction::ExternalRequestSegment, segment
+
+            assert_equal 'External/potatoes.com/OTelClient/GET', segment.name
+            assert_equal attrs['server.address'], segment.host
+          end
+
+          def test_client_v_1_23_metrics
+            run_http_client_span(request_attrs_v_1_23, 'http.response.status_code')
+
+            assert_metrics_recorded([
+              'External/all',
+              'External/allWeb',
+              'External/potatoes.com/all',
+              'External/potatoes.com/OTelClient/GET'
+            ])
+          end
+
+          def test_client_v_1_23_intrinsic_attributes
+            attrs = request_attrs_v_1_23
+            run_http_client_span(attrs, 'http.response.status_code')
+
+            spans = harvest_span_events!
+            span = spans[1][0]
+            intrinsics = span[0]
+
+            assert_equal attrs['http.request.method'], intrinsics['http.method']
+            assert_equal attrs['http.request.method'], intrinsics['http.request.method']
+            assert_equal attrs['server.address'], intrinsics['server.address']
+            assert_equal attrs['server.port'], intrinsics['server.port']
             assert_equal 200, intrinsics['http.statusCode']
+          end
 
-            assert_equal request_attrs['url.scheme'], custom['url.scheme']
-            assert_equal request_attrs['url.path'], custom['url.path']
+          def test_client_v_1_23_custom_attributes
+            attrs = request_attrs_v_1_23
+            run_http_client_span(attrs, 'http.response.status_code')
 
-            assert_equal request_attrs['url.full'], agent['http.url']
+            spans = harvest_span_events!
+            span = spans[1][0]
+            custom = span[1]
+
+            assert_equal attrs['url.scheme'], custom['url.scheme']
+            assert_equal attrs['url.path'], custom['url.path']
+          end
+
+          def test_client_v_1_23_agent_attributes
+            attrs = request_attrs_v_1_23
+            run_http_client_span(attrs, 'http.response.status_code')
+
+            spans = harvest_span_events!
+            span = spans[1][0]
+            agent = span[2]
+
+            assert_equal attrs['url.full'], agent['http.url']
             assert_equal 1, agent['status.code']
             assert_equal 'OTelClient', agent['otel.scope.name']
           end

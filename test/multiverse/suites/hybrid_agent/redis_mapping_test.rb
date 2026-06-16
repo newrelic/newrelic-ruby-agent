@@ -9,8 +9,8 @@ module NewRelic
         class RedisMappingTest < Minitest::Test
           def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('opentelemetry-instrumentation-redis')
-            harvest_span_events!
             harvest_transaction_events!
+            harvest_span_events!
           end
 
           def teardown
