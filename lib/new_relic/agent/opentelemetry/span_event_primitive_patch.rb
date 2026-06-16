@@ -58,8 +58,6 @@ module NewRelic
           end
         end
 
-        # The event argument in this case refers to the Span/Segment associated
-        # with the SpanEvent.
         def attach_span_event_events(span_data, segment)
           span_events = for_span_events(segment)
           return span_data if span_events.empty?
