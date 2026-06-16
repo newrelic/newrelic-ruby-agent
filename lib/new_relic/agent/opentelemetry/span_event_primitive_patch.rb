@@ -19,19 +19,19 @@ module NewRelic
         def for_segment(segment)
           span_data = super
           span_data = attach_span_links(span_data, segment)
-          attach_span_events(span_data, segment)
+          attach_span_event_events(span_data, segment)
         end
 
         def for_external_request_segment(segment)
           span_data = super
           span_data = attach_span_links(span_data, segment)
-          attach_span_events(span_data, segment)
+          attach_span_event_events(span_data, segment)
         end
 
         def for_datastore_segment(segment)
           span_data = super
           span_data = attach_span_links(span_data, segment)
-          attach_span_events(span_data, segment)
+          attach_span_event_events(span_data, segment)
         end
 
         private
@@ -60,7 +60,7 @@ module NewRelic
 
         # The event argument in this case refers to the Span/Segment associated
         # with the SpanEvent.
-        def attach_span_events(span_data, segment)
+        def attach_span_event_events(span_data, segment)
           span_events = for_span_events(segment)
           return span_data if span_events.empty?
 
