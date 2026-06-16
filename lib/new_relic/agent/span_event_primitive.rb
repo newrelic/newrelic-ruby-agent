@@ -76,8 +76,6 @@ module NewRelic
       def for_segment(segment)
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
-        kind = get_span_kind(segment)
-        intrinsics[SPAN_KIND_KEY] = kind if kind
 
         event = [intrinsics, custom_attributes(segment), agent_attributes(segment)]
         attach_span_links(event, segment)
@@ -261,13 +259,6 @@ module NewRelic
 
       def allowed?(key)
         NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN_EVENTS)
-      end
-
-      def get_span_kind(segment)
-        if segment.instance_variable_defined?(:@otel_span)
-          otel_span = segment.instance_variable_get(:@otel_span)
-          otel_span.kind&.to_s
-        end
       end
     end
   end
