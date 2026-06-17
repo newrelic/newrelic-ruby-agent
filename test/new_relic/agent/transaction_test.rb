@@ -1995,36 +1995,5 @@ module NewRelic::Agent
 
       refute_predicate txn, :finished?
     end
-
-    def test_span_links_returns_empty_array_when_no_links_added
-      in_transaction do |txn|
-        assert_equal NewRelic::EMPTY_ARRAY, txn.span_links
-      end
-    end
-
-    def test_span_links_returns_empty_array_without_initial_segment
-      txn = Transaction.new(:web, {})
-
-      assert_equal NewRelic::EMPTY_ARRAY, txn.span_links
-    end
-
-    def test_add_span_link_stores_link_on_initial_segment
-      stub_link = Struct.new(:span_context, :attributes).new(nil, {})
-
-      in_transaction do |txn|
-        txn.add_span_link(stub_link)
-
-        assert_equal 1, txn.span_links.length
-        assert_equal stub_link, txn.span_links.first
-        assert_equal txn.initial_segment.span_links, txn.span_links
-      end
-    end
-
-    def test_add_span_link_is_noop_without_initial_segment
-      txn = Transaction.new(:web, {})
-      stub_link = Struct.new(:span_context, :attributes).new(nil, {})
-
-      assert_nil txn.add_span_link(stub_link)
-    end
   end
 end

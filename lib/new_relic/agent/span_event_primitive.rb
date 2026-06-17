@@ -48,13 +48,6 @@ module NewRelic
       TRANSACTION_NAME_KEY = 'transaction.name'
       THREAD_ID_KEY = 'thread.id'
 
-      # Strings for static keys/values used by SpanLink events
-      SPAN_LINK_TYPE = 'SpanLink'
-      ID_KEY = 'id'
-      TRACE_ID_LINK_KEY = 'trace.id'
-      LINKED_SPAN_ID_KEY = 'linkedSpanId'
-      LINKED_TRACE_ID_KEY = 'linkedTraceId'
-
       # Strings for static values of the event structure
       EVENT_TYPE = 'Span'
       GENERIC_CATEGORY = 'generic'
@@ -77,8 +70,7 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        event = [intrinsics, custom_attributes(segment), agent_attributes(segment)]
-        attach_span_links(event, segment)
+        [intrinsics, custom_attributes(segment), agent_attributes(segment)]
       end
 
       def for_external_request_segment(segment)
@@ -99,8 +91,7 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        event = [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
-        attach_span_links(event, segment)
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       def for_datastore_segment(segment)
@@ -138,33 +129,10 @@ module NewRelic
           agent_attributes[STACKTRACE_KEY] = segment.params[:backtrace]
         end
 
-        event = [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
-        attach_span_links(event, segment)
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       private
-
-      def attach_span_links(event, segment)
-        links = for_span_links(segment)
-        links.empty? ? event : event << links
-      end
-
-      def for_span_links(segment)
-        return [] if segment.span_links.empty?
-
-        segment.span_links.map do |link|
-          ctx = link.span_context
-          intrinsics = {
-            TYPE_KEY => SPAN_LINK_TYPE,
-            TIMESTAMP_KEY => milliseconds_since_epoch(segment),
-            ID_KEY => segment.guid,
-            TRACE_ID_LINK_KEY => segment.transaction.trace_id,
-            LINKED_SPAN_ID_KEY => ctx.hex_span_id,
-            LINKED_TRACE_ID_KEY => ctx.hex_trace_id
-          }
-          [intrinsics, link.attributes.dup, {}]
-        end
-      end
 
       def intrinsics_for(segment)
         intrinsics = {

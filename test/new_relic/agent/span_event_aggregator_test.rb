@@ -159,6 +159,86 @@ module NewRelic
         end
       end
 
+      def test_harvest_extracts_span_events_from_events
+        guid = fake_guid(16)
+        span_event = [{'type' => 'SpanEvent', 'span.id' => guid, 'trace.id' => guid, 'name' => 'TestEvent', 'timestamp' => 1000}, {}, {}]
+        event_with_span_events = [
+          {'type' => 'Span', 'name' => 'op', 'guid' => guid, 'traceId' => guid, 'priority' => 1.0,
+           'sampled' => false, 'timestamp' => 1000, 'duration' => 0.1, 'category' => 'generic'},
+          {},
+          {},
+          [span_event]
+        ]
+        @event_aggregator.record(event: event_with_span_events)
+        _, events = @event_aggregator.harvest!
+
+        span_events = events.select { |e| e[0]['type'] == 'Span' }
+        span_event_events = events.select { |e| e[0]['type'] == 'SpanEvent' }
+
+        assert_equal 1, span_events.length
+        assert_equal 3, span_events[0].length
+        assert_equal 1, span_event_events.length
+        assert_equal 'TestEvent', span_event_events[0][0]['name']
+      end
+
+      def test_harvest_span_events_do_not_affect_span_event_count
+        2.times do
+          guid = fake_guid(16)
+          span_event = [{'type' => 'SpanEvent', 'span.id' => guid, 'trace.id' => guid, 'name' => 'TestEvent', 'timestamp' => 1000}, {}, {}]
+          event_with_span_events = [
+            {'type' => 'Span', 'name' => 'op', 'guid' => guid, 'traceId' => guid, 'priority' => 1.0,
+             'sampled' => false, 'timestamp' => 1000, 'duration' => 0.1, 'category' => 'generic'},
+            {},
+            {},
+            [span_event]
+          ]
+          @event_aggregator.record(event: event_with_span_events)
+        end
+        metadata, events = @event_aggregator.harvest!
+
+        assert_equal 2, metadata[:events_seen], 'reservoir should only count span events, not SpanEvent events'
+        assert_equal 4, events.length, '2 span events + 2 SpanEvent events'
+      end
+
+      def test_harvest_returns_events_unchanged_when_no_span_events
+        2.times { generate_event }
+        _, events = @event_aggregator.harvest!
+
+        events.each do |event|
+          assert_equal 3, event.length
+        end
+      end
+
+      def test_span_events_are_dropped_with_their_parent_span
+        with_config(:'span_events.max_samples_stored' => 1) do
+          guid = fake_guid(16)
+          span_event = [{'type' => 'SpanEvent', 'span.id' => guid, 'trace.id' => guid, 'name' => 'LowPriorityEvent', 'timestamp' => 1000}, {}, {}]
+          low_priority_span_with_event = [
+            {'type' => 'Span', 'name' => 'low', 'guid' => guid, 'traceId' => guid,
+             'priority' => 1.0, 'sampled' => false, 'timestamp' => 1000, 'duration' => 0.1, 'category' => 'generic'},
+            {},
+            {},
+            [span_event]
+          ]
+          high_priority_guid = fake_guid(16)
+          high_priority_span = [
+            {'type' => 'Span', 'name' => 'high', 'guid' => high_priority_guid, 'traceId' => high_priority_guid,
+             'priority' => 2.0, 'sampled' => false, 'timestamp' => 1000, 'duration' => 0.1, 'category' => 'generic'},
+            {},
+            {}
+          ]
+
+          @event_aggregator.record(event: low_priority_span_with_event)
+          @event_aggregator.record(event: high_priority_span)
+
+          _, events = @event_aggregator.harvest!
+
+          assert_equal 1, events.length, 'only the high-priority span should survive'
+          assert_equal 'high', events[0][0]['name']
+          assert_empty events.select { |e| e[0]['type'] == 'SpanEvent' }, 'SpanEvent events from dropped span must not appear'
+        end
+      end
+
       def test_supportability_metrics_for_span_events
         # NOTE: with_config won't work here, as the underlying capacity value
         #       ends up inside of a cached callback, so we'll directly alter

@@ -2,13 +2,17 @@
 
 ## dev
 
+- **Feature: SpanEvent events are now supported for the Hybrid Agent**
+
+  Spans created by an OpenTelemetry API can now have [SpanEvent events](https://opentelemetry.io/docs/concepts/signals/traces/#span-events) associated with them via the `OpenTelemetry::Trace::Span#add_event` API. SpanEvent events capture timestamped annotations on a span and are sent to New Relic alongside the parent span. [PR#3587](https://github.com/newrelic/newrelic-ruby-agent/pull/3587)
+
+- **Feature: SpanLink events are now supported for the Hybrid Agent**
+
+  Spans created by an OpenTelemetry API can now have [Span Links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
+
 - **Feature: Add support for OpenTelemetry::Tracer#start_root_span**
 
   The `OpenTelemetry::Tracer#start_root_span` API can now be used to force a transaction to start for a given span, provided it has a `:server` or `:consumer` span kind. For any other span kinds, it will no-op. This method is most commonly used in background job instrumentation. [PR#3588](https://github.com/newrelic/newrelic-ruby-agent/pull/3588)
-
-- **Feature: Span Links are now supported for the Hybrid Agent**
-
-  Spans created via the OpenTelemetry API can now have [Span Links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
 
 - **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
 
