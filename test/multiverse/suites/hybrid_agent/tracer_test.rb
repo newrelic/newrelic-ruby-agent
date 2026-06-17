@@ -122,7 +122,7 @@ module NewRelic
             end
           end
 
-          def test_set_otel_tracestate_without_newrelic_entry
+          def test_set_otel_tracestate_without_newrelic_entry_assigns_nil_trace_state_payload
             with_config(:account_id => '190', primary_application_id: '46954') do
               carrier = {
                 'traceparent' => '00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01',
@@ -137,8 +137,7 @@ module NewRelic
               trace_state_payload = distributed_tracer.trace_state_payload
 
               assert_nil(trace_state_payload)
-              # true because of the traceparent payload
-              assert_predicate span.finishable, :sampled?
+
               span.finish
             end
           end

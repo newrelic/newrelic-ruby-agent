@@ -11,27 +11,10 @@ module NewRelic
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new('OTelMessagingClient')
             harvest_transaction_events!
             harvest_span_events!
-            reset_adaptive_samplers!
           end
 
           def teardown
             mocha_teardown
-            # Tests that exercise remote-parent paths call into the
-            # AdaptiveSampler (which has a 10-call-per-period budget). Reset
-            # to avoid bleeding state into later tests in the suite.
-            reset_adaptive_samplers!
-          end
-
-          def reset_adaptive_samplers!
-            agent = NewRelic::Agent.instance
-            return unless agent
-
-            target = NewRelic::Agent.config[:sampling_target]
-            period = NewRelic::Agent.config[:sampling_target_period_in_seconds]
-
-            agent.instance_variable_set(:@adaptive_sampler, NewRelic::Agent::AdaptiveSampler.new(target, period))
-            agent.instance_variable_set(:@adaptive_sampler_remote_parent_sampled, NewRelic::Agent::AdaptiveSampler.new(target, period))
-            agent.instance_variable_set(:@adaptive_sampler_remote_parent_not_sampled, NewRelic::Agent::AdaptiveSampler.new(target, period))
           end
 
           def consumer_v_1_30_attrs
