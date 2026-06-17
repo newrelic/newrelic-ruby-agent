@@ -559,6 +559,10 @@ module NewRelic
           end
 
           # ---------- producer with remote parent ----------
+          # Per spec: a producer span with a remote parent MUST create a new
+          # Other transaction. Naming is handled by MessagingPatch, since the
+          # original Messaging#transaction_name only knows about :consume.
+
           def test_producer_with_remote_parent_creates_message_transaction
             span = @tracer.start_span(
               'publish',

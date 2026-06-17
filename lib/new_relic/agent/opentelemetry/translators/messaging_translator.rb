@@ -20,7 +20,7 @@ module NewRelic
             'aws_sns' => :topic,
             'aws.kinesis' => :stream,
             'aws_kinesis' => :stream
-          }.freeze,
+          },
           producer: {
             'kafka' => :topic,
             'rabbitmq' => :exchange,
@@ -30,7 +30,7 @@ module NewRelic
             'aws_sns' => :topic,
             'aws.kinesis' => :stream,
             'aws_kinesis' => :stream
-          }.freeze
+          }
         }.freeze
 
         # `messaging.destination_kind` is a v1.17 attribute that we
