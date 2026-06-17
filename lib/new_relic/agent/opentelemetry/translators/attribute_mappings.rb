@@ -248,17 +248,6 @@ module NewRelic
             otel_keys: ['server.address', 'net.peer.name'],
             category: :agent,
             destinations: DEFAULT_DESTINATIONS
-          },
-          # routing_key and correlation_id are routed to segment.params by
-          # MessagingTranslator#add_producer_segment_params.
-          'routingKey' => {
-            otel_keys: [
-              'messaging.kafka.message.key',
-              'messaging.rabbitmq.destination.routing_key'
-            ]
-          },
-          'correlation_id' => {
-            otel_keys: ['messaging.message.conversation_id']
           }
         }.freeze
       end

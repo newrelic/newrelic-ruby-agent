@@ -334,7 +334,8 @@ module NewRelic
           end
 
           def test_producer_v_1_30_custom_attributes
-            run_producer_span(producer_v_1_30_attrs)
+            attrs = producer_v_1_30_attrs
+            run_producer_span(attrs)
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -342,14 +343,14 @@ module NewRelic
 
             keys_assigned_elsewhere = %w[
               messaging.destination.name
-              messaging.kafka.message.key
-              messaging.message.conversation_id
               server.address
               server.port
             ]
 
             assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal 7, custom['messaging.kafka.partition']
+            assert_equal attrs['messaging.kafka.message.key'], custom['messaging.kafka.message.key']
+            assert_equal attrs['messaging.message.conversation_id'], custom['messaging.message.conversation_id']
           end
 
           # ---------- producer v1.24 ----------
@@ -398,7 +399,8 @@ module NewRelic
           end
 
           def test_producer_v_1_24_custom_attributes
-            run_producer_span(producer_v_1_24_attrs)
+            attrs = producer_v_1_24_attrs
+            run_producer_span(attrs)
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -406,14 +408,14 @@ module NewRelic
 
             keys_assigned_elsewhere = %w[
               messaging.destination.name
-              messaging.rabbitmq.destination.routing_key
-              messaging.message.conversation_id
               server.address
               server.port
             ]
 
             assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal 12, custom['messaging.rabbitmq.delivery_tag']
+            assert_equal attrs['messaging.rabbitmq.destination.routing_key'], custom['messaging.rabbitmq.destination.routing_key']
+            assert_equal attrs['messaging.message.conversation_id'], custom['messaging.message.conversation_id']
           end
 
           # ---------- producer v1.17 ----------
@@ -462,7 +464,8 @@ module NewRelic
           end
 
           def test_producer_v_1_17_custom_attributes
-            run_producer_span(producer_v_1_17_attrs)
+            attrs = producer_v_1_17_attrs
+            run_producer_span(attrs)
 
             spans = harvest_span_events!
             span = spans[1][0]
@@ -470,14 +473,14 @@ module NewRelic
 
             keys_assigned_elsewhere = %w[
               messaging.destination
-              messaging.rabbitmq.destination.routing_key
-              messaging.message.conversation_id
               net.peer.name
               net.peer.port
             ]
 
             assert_empty custom.keys & keys_assigned_elsewhere
             assert_equal 'AMQP', custom['messaging.protocol']
+            assert_equal attrs['messaging.rabbitmq.destination.routing_key'], custom['messaging.rabbitmq.destination.routing_key']
+            assert_equal attrs['messaging.message.conversation_id'], custom['messaging.message.conversation_id']
           end
 
           # ---------- consumer creates a transaction when no current transaction exists ----------

@@ -2,7 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../../messaging'
 require_relative '../attribute_translator'
 
 module NewRelic
@@ -141,15 +140,10 @@ module NewRelic
           end
 
           def start_messaging_transaction(name, segment_api_params)
-            return NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task) unless segment_api_params[:library]
+            return NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task) unless segment_api_params[:name]
 
             NewRelic::Agent::Tracer.start_transaction_or_segment(
-              name: NewRelic::Agent::Messaging.transaction_name(
-                segment_api_params[:library],
-                segment_api_params[:destination_type],
-                segment_api_params[:destination_name],
-                segment_api_params[:action]
-              ),
+              name: segment_api_params[:name],
               category: :message
             )
           end

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_translator'
+require_relative '../../messaging'
 
 module NewRelic
   module Agent
@@ -63,10 +64,11 @@ module NewRelic
           'aws_kinesis' => 'Kinesis'
         }.freeze
 
-        ROUTING_KEY_OTEL_KEYS = AttributeMappings::MESSAGING_PRODUCER_MAPPINGS
-          .dig('routingKey', :otel_keys)
-        CORRELATION_ID_OTEL_KEY = AttributeMappings::MESSAGING_PRODUCER_MAPPINGS
-          .dig('correlation_id', :otel_keys).first
+        ROUTING_KEY_OTEL_KEYS = [
+          'messaging.kafka.message.key',
+          'messaging.rabbitmq.destination.routing_key'
+        ].freeze
+        CORRELATION_ID_OTEL_KEY = 'messaging.message.conversation_id'
 
         class << self
           def mappings_hash(kind)
@@ -80,9 +82,22 @@ module NewRelic
               result[:for_segment_api][:library] = LIBRARY_MAP[system] || system
             end
 
+            result[:for_segment_api][:name] = build_transaction_name(result[:for_segment_api])
+
             add_producer_segment_params(result, attributes) if kind == :producer
 
             result
+          end
+
+          def build_transaction_name(segment_api_params)
+            return nil unless segment_api_params[:library] && segment_api_params[:destination_name]
+
+            NewRelic::Agent::Messaging.transaction_name(
+              segment_api_params[:library],
+              segment_api_params[:destination_type],
+              segment_api_params[:destination_name],
+              segment_api_params[:action]
+            )
           end
 
           def add_producer_segment_params(result, attributes)
