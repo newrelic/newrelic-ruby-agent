@@ -189,6 +189,46 @@ module NewRelic
             assert_equal('red', span_attributes['strawberry'])
           end
 
+          def test_start_root_span_starts_transaction_with_valid_kind
+            # this is drawn from the Active Job instrumentation tests in
+            # opentelemetry-ruby-contrib/instrumentation/active_job
+            attrs = {
+              'code.namespace' => 'TestJob',
+              'messaging.system' => 'active_job',
+              'messaging.destination' => 'default',
+              'messaging.message.id' => '32de9ec6-e55c-4dbe-acd9-d632725ffb9e',
+              'messaging.active_job.adapter.name' => 'async',
+              'messaging.active_job.message.provider_job_id' => '3692e4e5-708c-4af6-a3ca-b431eaf1b3ef'
+            }
+
+            span = @tracer.start_root_span('default process', kind: :consumer, attributes: attrs)
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+
+            initial_segment = span.finishable.initial_segment
+
+            assert_equal attrs, initial_segment.attributes.custom_attributes
+            assert_equal 'default process', initial_segment.name
+
+            span.finishable.stubs(:sampled?).returns(true)
+            span&.finish
+          end
+
+          def test_start_root_span_does_not_create_telemetry_without_valid_kind
+            # this is just an edge case. this is not used in any instrumentation
+            # the attempted span gets kicked out when the
+            # should_not_create_telemetry? method is called.
+            attrs = {'bing' => 'cherries'}
+
+            span = @tracer.start_root_span('Prunus avium', kind: :producer, attributes: attrs)
+
+            assert_instance_of ::OpenTelemetry::Trace::Span, span
+            assert_raises(NoMethodError) { span.finishable }
+            refute_predicate span.context, :valid?
+
+            span&.finish
+          end
+
           private
 
           def assert_logged(expected)

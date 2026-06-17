@@ -9,32 +9,45 @@ module NewRelic
     module OpenTelemetry
       module SpanEventPrimitivePatch
         SPAN_LINK_TYPE = 'SpanLink'
+        SPAN_EVENT_TYPE = 'SpanEvent'
         ID_KEY = 'id'
         LINKED_SPAN_ID_KEY = 'linkedSpanId'
         LINKED_TRACE_ID_KEY = 'linkedTraceId'
         TRACE_DOT_ID_KEY = 'trace.id'
-        SPAN_EVENT_TYPE = 'SpanEvent'
         SPAN_DOT_ID_KEY = 'span.id'
 
         def for_segment(segment)
           span_data = super
-          span_data = attach_span_links(span_data, segment)
-          attach_span_event_events(span_data, segment)
+          update_spans_for_otel(span_data, segment)
         end
 
         def for_external_request_segment(segment)
           span_data = super
-          span_data = attach_span_links(span_data, segment)
-          attach_span_event_events(span_data, segment)
+          update_spans_for_otel(span_data, segment)
         end
 
         def for_datastore_segment(segment)
           span_data = super
+          update_spans_for_otel(span_data, segment)
+        end
+
+        private
+
+        def update_spans_for_otel(span_data, segment)
+          span_data = attach_span_kind(span_data, segment)
           span_data = attach_span_links(span_data, segment)
           attach_span_event_events(span_data, segment)
         end
 
-        private
+        def attach_span_kind(span_data, segment)
+          if segment.instance_variable_defined?(:@otel_span)
+            otel_span = segment.instance_variable_get(:@otel_span)
+            kind = otel_span.kind&.to_s
+            span_data[0][SpanEventPrimitive::SPAN_KIND_KEY] = kind if kind
+
+            span_data
+          end
+        end
 
         def attach_span_links(span_data, segment)
           links = for_span_links(segment)
@@ -59,7 +72,7 @@ module NewRelic
         end
 
         def attach_span_event_events(span_data, segment)
-          span_events = for_span_events(segment)
+          span_events = for_span_event_events(segment)
           return span_data if span_events.empty?
 
           if span_data.length > 3
@@ -71,7 +84,7 @@ module NewRelic
           span_data
         end
 
-        def for_span_events(segment)
+        def for_span_event_events(segment)
           return [] if segment.span_events.empty?
 
           segment.span_events.map do |evt|
