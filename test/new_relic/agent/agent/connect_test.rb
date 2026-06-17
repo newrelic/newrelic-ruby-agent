@@ -27,6 +27,10 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.reset_config
   end
 
+  def teardown
+    mocha_teardown
+  end
+
   def control
     fake_control = OpenStruct.new('local_env' => OpenStruct.new('snapshot' => []))
     fake_control.instance_eval do
