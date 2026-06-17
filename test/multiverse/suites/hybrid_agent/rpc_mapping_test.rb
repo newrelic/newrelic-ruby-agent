@@ -106,22 +106,21 @@ module NewRelic
 
             spans = harvest_span_events!
             span = spans[1][0]
-            intrinsic = span[0]
+            intrinsics = span[0]
 
-            assert_equal attrs['rpc.service'], intrinsic['component']
-            assert_equal attrs['rpc.method'], intrinsic['http.method']
-            assert_equal attrs['rpc.method'], intrinsic['http.request.method']
-            assert_equal 0, intrinsic['grpc.statusCode']
-            assert_equal 'http', intrinsic['category']
-            assert_equal 'client', intrinsic['span.kind']
+            assert_equal attrs['rpc.service'], intrinsics['component']
+            assert_equal attrs['rpc.method'], intrinsics['http.method']
+            assert_equal attrs['rpc.method'], intrinsics['http.request.method']
+            assert_equal 0, intrinsics['grpc.statusCode']
+            assert_equal 'http', intrinsics['category']
+            assert_equal 'client', intrinsics['span.kind']
             # we intentionally pull out the dns:// prefix, so the attr doesn't
             # match what was provided by the API call
-            assert_equal 'localhost', intrinsic['server.address']
-            assert_equal 63752, intrinsic['server.port']
+            assert_equal 'localhost', intrinsics['server.address']
+            assert_equal 63752, intrinsics['server.port']
           end
 
           def test_client_span_agent_attributes
-            attrs = client_req_attrs
             run_grpc_client_span
 
             spans = harvest_span_events!
@@ -181,18 +180,16 @@ module NewRelic
           end
 
           def test_server_span_intrinsic_attributes
-            attrs = server_req_attrs
             run_grpc_server_span
 
             spans = harvest_span_events!
             span = spans[1][0]
-            intrinsic = span[0]
+            intrinsics = span[0]
 
-            assert_equal 'Controller/OTelClient/proto.example.ExampleAPI/Example', intrinsic['transaction.name']
+            assert_equal 'Controller/OTelClient/proto.example.ExampleAPI/Example', intrinsics['transaction.name']
           end
 
           def test_server_span_agent_attributes
-            attrs = server_req_attrs
             run_grpc_server_span
 
             spans = harvest_span_events!

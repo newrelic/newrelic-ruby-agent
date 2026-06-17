@@ -2,6 +2,14 @@
 
 ## dev
 
+- **Feature: SpanEvent events are now supported for the Hybrid Agent**
+
+  Spans created by an OpenTelemetry API can now have [SpanEvent events](https://opentelemetry.io/docs/concepts/signals/traces/#span-events) associated with them via the `OpenTelemetry::Trace::Span#add_event` API. SpanEvent events capture timestamped annotations on a span and are sent to New Relic alongside the parent span. [PR#3587](https://github.com/newrelic/newrelic-ruby-agent/pull/3587)
+
+- **Feature: SpanLink events are now supported for the Hybrid Agent**
+
+  Spans created by an OpenTelemetry API can now have [Span Links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
+
 - **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
 
   Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)

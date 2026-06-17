@@ -40,6 +40,7 @@ module NewRelic
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
             otel_span.add_instrumentation_scope(@name, @version)
             otel_span.apply_translated_attributes(translated)
+            links&.each { |link| otel_span.add_link(link) }
 
             otel_span
           end
