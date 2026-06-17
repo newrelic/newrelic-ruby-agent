@@ -58,6 +58,10 @@ module NewRelic
             span&.finish
           end
 
+          def start_root_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
+            start_span(name, with_parent: ::OpenTelemetry::Context.empty, attributes: attributes, links: links, start_timestamp: start_timestamp, kind: kind)
+          end
+
           private
 
           def start_segment_from_otel(name:, translated: nil, start_timestamp: nil, kind: nil)
