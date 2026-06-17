@@ -6,6 +6,43 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class SpanEventPrimitivePatchTest < Minitest::Test
+        def test_span_kind_added_to_intrinsics_when_otel_span_has_kind
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+            segment = txn.current_segment
+            otel_span = stub(kind: :server)
+            segment.instance_variable_set(:@otel_span, otel_span)
+
+            intrinsics, = SpanEventPrimitive.for_segment(segment)
+
+            assert_equal 'server', intrinsics['span.kind']
+          end
+        end
+
+        def test_span_kind_not_added_to_intrinsics_without_otel_span
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+            segment = txn.current_segment
+
+            intrinsics, = SpanEventPrimitive.for_segment(segment)
+
+            refute intrinsics.key?('span.kind')
+          end
+        end
+
+        def test_span_kind_not_added_to_intrinsics_when_otel_span_kind_is_nil
+          in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
+            segment = txn.current_segment
+            otel_span = stub(kind: nil)
+            segment.instance_variable_set(:@otel_span, otel_span)
+
+            intrinsics, = SpanEventPrimitive.for_segment(segment)
+
+            refute intrinsics.key?('span.kind')
+          end
+        end
+
         def test_for_segment_returns_three_element_array_when_no_links
           with_segment do |segment|
             event = SpanEventPrimitive.for_segment(segment)
@@ -88,20 +125,20 @@ module NewRelic
           end
         end
 
-        def test_for_span_events_returns_empty_when_no_events
+        def test_for_span_event_events_returns_empty_when_no_events
           with_segment do |segment|
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
 
             assert_empty result
           end
         end
 
-        def test_for_span_events_returns_correct_intrinsics
+        def test_for_span_event_events_returns_correct_intrinsics
           t = Time.now
 
           with_segment do |segment|
             segment.add_span_event_event('TestEvent', attributes: {'attr_key' => 'attr_val'}, timestamp: t)
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
 
             assert_equal 1, result.length
             intrinsics, user_attrs, agent_attrs = result[0]
@@ -116,10 +153,10 @@ module NewRelic
           end
         end
 
-        def test_for_span_events_places_event_attributes_as_user_attributes
+        def test_for_span_event_events_places_event_attributes_as_user_attributes
           with_segment do |segment|
             segment.add_span_event_event('AttrEvent', attributes: {'key1' => 'val1', 'key2' => 42})
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
             _, user_attrs, _ = result[0]
 
             assert_equal 'val1', user_attrs['key1']
@@ -127,10 +164,10 @@ module NewRelic
           end
         end
 
-        def test_for_span_events_empty_user_attributes_when_none_provided
+        def test_for_span_event_events_empty_user_attributes_when_none_provided
           with_segment do |segment|
             segment.add_span_event_event('NoAttrEvent')
-            result = SpanEventPrimitive.send(:for_span_events, segment)
+            result = SpanEventPrimitive.send(:for_span_event_events, segment)
             _, user_attrs, _ = result[0]
 
             assert_empty(user_attrs)
