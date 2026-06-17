@@ -9,6 +9,7 @@ require 'new_relic/agent/configuration/default_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 require 'new_relic/agent/configuration/high_security_source'
+require 'new_relic/agent/configuration/open_telemetry_source'
 
 module NewRelic
   module Agent
@@ -75,6 +76,7 @@ module NewRelic
           when :server then @server_source
           when :manual then @manual_source
           when :yaml then @yaml_source
+          when :open_telemetry then @otel_source
           when :default then @default_source
           end
 
@@ -88,6 +90,7 @@ module NewRelic
           when ServerSource then @server_source = nil
           when ManualSource then @manual_source = nil
           when YamlSource then @yaml_source = nil
+          when OpenTelemetrySource then @otel_source = nil
           when DefaultSource then @default_source = nil
           else
             @configs_for_testing.delete_if { |src, lvl| src == source }
@@ -110,6 +113,7 @@ module NewRelic
           when ServerSource then @server_source = source
           when ManualSource then @manual_source = source
           when YamlSource then @yaml_source = source
+          when OpenTelemetrySource then @otel_source = source
           when DefaultSource then @default_source = source
           else
             NewRelic::Agent.logger.warn("Invalid config format; config will be ignored: #{source}")
@@ -480,6 +484,7 @@ module NewRelic
           @server_source = nil
           @manual_source = nil
           @yaml_source = nil
+          @otel_source = OpenTelemetrySource.new
           @default_source = DefaultSource.new
 
           @configs_for_testing = []
@@ -531,6 +536,7 @@ module NewRelic
           @environment_source = nil
           @server_source = nil
           @manual_source = nil
+          @otel_source = nil
           @yaml_source = nil
           @default_source = nil
           @configs_for_testing = []
@@ -552,6 +558,7 @@ module NewRelic
             @server_source,
             @manual_source,
             @yaml_source,
+            @otel_source,
             @default_source]
 
           stack.compact!
