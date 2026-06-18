@@ -190,25 +190,29 @@ module NewRelic
           end
 
           def test_start_root_span_starts_transaction_with_valid_kind
-            # this is drawn from the Active Job instrumentation tests in
-            # opentelemetry-ruby-contrib/instrumentation/active_job
             attrs = {
-              'code.namespace' => 'TestJob',
-              'messaging.system' => 'active_job',
+              'messaging.system' => 'que',
               'messaging.destination' => 'default',
-              'messaging.message.id' => '32de9ec6-e55c-4dbe-acd9-d632725ffb9e',
-              'messaging.active_job.adapter.name' => 'async',
-              'messaging.active_job.message.provider_job_id' => '3692e4e5-708c-4af6-a3ca-b431eaf1b3ef'
+              'messaging.destination_kind' => 'queue',
+              'messaging.operation' => 'process',
+              'messaging.que.job_class' => 'TestJob',
+              'messaging.message_id' => 123
             }
 
-            span = @tracer.start_root_span('default process', kind: :consumer, attributes: attrs)
+            span = @tracer.start_root_span('TestJob', kind: :consumer, attributes: attrs)
 
             assert_instance_of NewRelic::Agent::Transaction, span.finishable
 
             initial_segment = span.finishable.initial_segment
+            custom_attrs = {
+              "messaging.destination_kind" => "queue",
+              "messaging.operation" => "process",
+              "messaging.que.job_class" => "TestJob",
+              "messaging.message_id" => 123
+            }
 
-            assert_equal attrs, initial_segment.attributes.custom_attributes
-            assert_equal 'default process', initial_segment.name
+            assert_equal custom_attrs, initial_segment.attributes.custom_attributes
+            assert_equal 'OtherTransaction/Message/que/Queue/Consume/Named/default', initial_segment.name
 
             span.finishable.stubs(:sampled?).returns(true)
             span&.finish
