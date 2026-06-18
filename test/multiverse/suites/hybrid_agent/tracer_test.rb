@@ -205,10 +205,10 @@ module NewRelic
 
             initial_segment = span.finishable.initial_segment
             custom_attrs = {
-              "messaging.destination_kind" => "queue",
-              "messaging.operation" => "process",
-              "messaging.que.job_class" => "TestJob",
-              "messaging.message_id" => 123
+              'messaging.destination_kind' => 'queue',
+              'messaging.operation' => 'process',
+              'messaging.que.job_class' => 'TestJob',
+              'messaging.message_id' => 123
             }
 
             assert_equal custom_attrs, initial_segment.attributes.custom_attributes
