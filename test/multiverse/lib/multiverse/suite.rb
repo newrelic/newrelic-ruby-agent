@@ -288,6 +288,9 @@ module Multiverse
         f.puts "gem 'webrick'"
         f.puts "gem 'warning'"
 
+        # i18n 1.15.0+ is broken on Ruby 3.1 and will not be fixed, so pin below it
+        f.puts "gem 'i18n', '< 1.15.0'" if RUBY_VERSION.start_with?('3.1.')
+
         if debug
           f.puts "gem 'pry', '~> 0.14'" if ENV['ENABLE_PRY']
           f.puts "gem 'pry-nav'" if ENV['ENABLE_PRY']

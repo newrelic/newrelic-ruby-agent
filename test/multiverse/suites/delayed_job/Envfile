@@ -26,7 +26,6 @@ if RUBY_VERSION >= '2.6.0'
   # top-level >= 0.3 dependency.
   gemfile <<~RB
     gem 'delayed_job'
-    gem 'i18n'
     #{boilerplate_gems}
     gem 'securerandom', '>= 0.3'
   RB
@@ -36,7 +35,6 @@ if RUBY_VERSION >= '2.6.0'
     gem 'delayed_job'
     gem 'delayed_job_active_record'
     gem 'activerecord', '~> 6.1.0'
-    gem 'i18n'
     #{boilerplate_gems}
   RB
 end
@@ -45,7 +43,6 @@ end
 gemfile <<~RB
   gem 'delayed_job', '~> 4.1.0'
   gem 'delayed_job_mongoid', '~> 2.3.0'
-  gem 'i18n', '~> 0.7.0'
   if RUBY_VERSION <= '2.6.0'
     gem 'minitest', '~> 4.7.5' # required for Rails < 4.1
     gem 'activesupport', '~> 3.2.22'
