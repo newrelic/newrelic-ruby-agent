@@ -8,6 +8,7 @@ require_relative 'translators/http_client_translator'
 require_relative 'translators/http_server_translator'
 require_relative 'translators/generic_translator'
 require_relative 'translators/rpc_translator'
+require_relative 'translators/messaging_translator'
 
 module NewRelic
   module Agent
@@ -32,8 +33,8 @@ module NewRelic
           span_kind: {
             client: HttpClientTranslator,
             server: HttpServerTranslator,
-            # consumer: MessagingConsumerTranslator,
-            # producer: MessagingProducerTranslator,
+            consumer: MessagingTranslator,
+            producer: MessagingTranslator,
             internal: GenericTranslator
           }
         }.freeze

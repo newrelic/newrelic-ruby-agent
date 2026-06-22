@@ -196,6 +196,60 @@ module NewRelic
             segment_field: :port
           }
         }.freeze
+
+        MESSAGING_CONSUMER_MAPPINGS = { # v1.30/v1.24, v1.17
+          'messaging.system' => {
+            otel_keys: ['messaging.system'],
+            category: :agent,
+            destinations: AttributeFilter::DST_TRANSACTION_TRACER
+          },
+          'message.queueName' => {
+            otel_keys: ['messaging.destination.name', 'messaging.destination'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS,
+            segment_field: :destination_name
+          },
+          'port' => {
+            otel_keys: ['server.port', 'net.peer.port'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'host' => {
+            otel_keys: ['server.address', 'net.peer.name'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'message.routingKey' => {
+            otel_keys: [
+              'messaging.kafka.message.key',
+              'messaging.rabbitmq.destination.routing_key'
+            ],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          }
+        }.freeze
+
+        MESSAGING_PRODUCER_MAPPINGS = { # v1.30/v1.24, v1.17
+          'messaging.system' => {
+            otel_keys: ['messaging.system'],
+            category: :agent,
+            destinations: AttributeFilter::DST_TRANSACTION_TRACER
+          },
+          'destination_name' => {
+            otel_keys: ['messaging.destination.name', 'messaging.destination'],
+            segment_field: :destination_name
+          },
+          'port' => {
+            otel_keys: ['server.port', 'net.peer.port'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          },
+          'host' => {
+            otel_keys: ['server.address', 'net.peer.name'],
+            category: :agent,
+            destinations: DEFAULT_DESTINATIONS
+          }
+        }.freeze
       end
     end
   end

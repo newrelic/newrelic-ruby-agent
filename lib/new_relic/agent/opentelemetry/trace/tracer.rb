@@ -97,6 +97,19 @@ module NewRelic
               else
                 NewRelic::Agent::Tracer.start_segment(name: name)
               end
+            when :producer, :consumer
+              if segment_api_params[:library] # Messaging
+                NewRelic::Agent::Tracer.start_message_broker_segment(
+                  action: segment_api_params[:action],
+                  library: segment_api_params[:library],
+                  destination_type: segment_api_params[:destination_type],
+                  destination_name: segment_api_params[:destination_name],
+                  parameters: messaging_segment_parameters(segment_api_params),
+                  start_time: start_timestamp
+                )
+              else
+                NewRelic::Agent::Tracer.start_segment(name: name)
+              end
             else
               NewRelic::Agent::Tracer.start_segment(name: name)
             end
@@ -114,13 +127,30 @@ module NewRelic
               )
             when :client
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
-            when :consumer, :producer, :internal, nil
+            when :consumer, :producer
+              nr_item = start_messaging_transaction(name, segment_api_params)
+            when :internal, nil
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
 
             add_remote_context_to_txn(nr_item, parent_otel_context) if nr_item
 
             nr_item
+          end
+
+          def messaging_segment_parameters(segment_api_params)
+            return nil unless NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
+
+            segment_api_params[:parameters]
+          end
+
+          def start_messaging_transaction(name, segment_api_params)
+            return NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task) unless segment_api_params[:name]
+
+            NewRelic::Agent::Tracer.start_transaction_or_segment(
+              name: segment_api_params[:name],
+              category: :message
+            )
           end
 
           def get_otel_span_from_finishable(finishable)
