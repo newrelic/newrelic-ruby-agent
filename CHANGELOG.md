@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.6.0
 
 - **Feature: SpanEvent events are now supported for the Hybrid Agent**
 
