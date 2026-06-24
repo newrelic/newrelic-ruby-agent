@@ -335,14 +335,12 @@ class PumaInstrumentationTest < Minitest::Test
   def test_sample_records_metrics_from_real_puma_stats
     stats_source = Struct.new(:stats).new(real_puma_server_stats)
 
-    with_config(:'puma.start_reporting_thread_in_master' => false) do
-      NewRelic::Agent::PumaStatsSampler.new(stats_source).send(:sample)
-    end
+    NewRelic::Agent::PumaStatsSampler.new(stats_source).send(:sample)
 
     # max_threads is reported by a non-running Puma server across versions;
     # the gauge stats (running, pool_capacity, ...) only appear once the
     # thread pool is live, so we don't assert them here.
-    assert_metrics_recorded('Puma/max_threads')
+    assert_metrics_recorded('Ruby/Puma/max_threads')
   end
 
   private

@@ -326,7 +326,13 @@ common: &default_settings
   # disable_middleware_instrumentation: false
 
   # If true, disables the Puma server-statistics instrumentation that samples
-  # Puma/* metrics from the Puma master process.
+  # Ruby/Puma/* metrics from the Puma master process.
+  # 
+  # When enabled, the agent starts its reporting thread in the Puma master so the
+  # sampled metrics are delivered. (The agent otherwise defers that thread under
+  # forking dispatchers such as Puma, leaving metrics sampled in the master
+  # buffered but never sent.) The Puma master then reports to New Relic as its own
+  # instance.
   # disable_puma_instrumentation: false
 
   # If true, disables agent middleware for Roda. This middleware is responsible
@@ -820,16 +826,7 @@ common: &default_settings
 
   # Number of seconds between samples of Puma server statistics taken in the Puma
   # master process.
-  # puma.sample_rate: 15
-
-  # If true, the agent starts its reporting thread in the Puma master process so
-  # that sampled Puma/* metrics are delivered to New Relic.
-  # 
-  # The agent defers its reporting thread under forking dispatchers such as Puma,
-  # so without this the metrics sampled in the master are buffered but never sent.
-  # When enabled, the Puma master reports to New Relic as its own instance. Set to
-  # false if you do not want the master process to report.
-  # puma.start_reporting_thread_in_master: true
+  # puma.sample_rate: 60
 
   # Timeout for waiting on connect to complete before a rake task
   # rake.connect_timeout: 10

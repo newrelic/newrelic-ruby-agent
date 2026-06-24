@@ -7,7 +7,7 @@ require 'json'
 module NewRelic
   module Agent
     # Samples Puma's clustered server statistics from the Puma master process
-    # and records them as New Relic timeslice metrics under +Puma/*+.
+    # and records them as New Relic timeslice metrics under +Ruby/Puma/*+.
     #
     # This class is driven by the Puma instrumentation defined in
     # +lib/new_relic/agent/instrumentation/puma.rb+, which the agent installs
@@ -36,9 +36,9 @@ module NewRelic
     # sampled metrics, this class restarts the harvest thread in the master via
     # the agent's own +NewRelic::Agent.after_fork(force_reconnect: true)+ entry
     # point (the same call the agent's Harvester uses to recover in forked
-    # children). The master then reports to New Relic as its own instance. This
-    # behavior can be disabled with the +puma.start_reporting_thread_in_master+
-    # configuration option.
+    # children). The master then reports to New Relic as its own instance. The
+    # whole instrumentation, this restart included, is turned off together via
+    # +disable_puma_instrumentation+.
     #
     # == High Security Mode
     #
@@ -53,35 +53,31 @@ module NewRelic
       # throttled sample-failure path instead of silently recording nothing.
       class UnrecognizedStatsError < StandardError; end
 
-      METRIC_NAMESPACE = 'Puma'
+      METRIC_NAMESPACE = 'Ruby/Puma'
       # Per-worker keys reported by +Puma::Server#stats+ and surfaced through
       # the master runner's stats (+Puma.stats_hash+). +requests_count+ is a
       # cumulative counter (use +rate()+ in NRQL); the rest are point-in-time
-      # gauges.
+      # gauges. Keys are recorded under their Puma names (e.g. +pool_capacity+,
+      # the spare request capacity: idle threads plus unspawned threads still
+      # allowed up to +max_threads+) so the metrics line up with Puma's own docs.
       WORKER_STAT_KEYS = %i[backlog running pool_capacity max_threads requests_count].freeze
       # Runner metadata reported by +Puma::Runner#stats+ alongside (or, before
       # the runner's +Puma::Server+ exists, instead of) the per-worker keys.
       RUNNER_INFO_KEYS = %i[started_at versions].freeze
-      # Puma's +pool_capacity+ is the number of additional requests the pool
-      # can accept right now: idle (waiting) threads plus unspawned threads
-      # still allowed up to +max_threads+ (i.e. +waiting + (max - spawned)+).
-      # Reporting it as +spare_thread_capacity+ makes that meaning explicit.
-      METRIC_NAME_OVERRIDES = {pool_capacity: 'spare_thread_capacity'}.freeze
       # Mirrors the +puma.sample_rate+ default in
       # +lib/new_relic/agent/configuration/default_source.rb+; used only if that
       # config value is missing or non-positive.
-      DEFAULT_SAMPLE_RATE = 15
+      DEFAULT_SAMPLE_RATE = 60
       # When +stats+ fails repeatedly, log the first failure and then only every
       # Nth occurrence to avoid flooding the Puma master log.
       LOG_FAILURE_INTERVAL = 10
       # Floor on time between failure logs: even with exponential backoff
       # suppressing per-iteration logs, a persistent failure is re-logged at
-      # least this often. With the 300 s floor an operator sees a re-log
-      # within ~5-6 min (the next sample interval after the floor elapses)
-      # instead of ~14 min, the time to the 10th consecutive failure at the
-      # default 15 s sample rate (15 + 30 + 60 + 6*120 seconds for the 9
-      # waits between failures 1..10, with backoff capped at 2**3 = 8
-      # intervals).
+      # least this often. Without the floor, reaching the 10th consecutive
+      # failure at the default 60 s sample rate takes ~55 min (60 + 120 + 240 +
+      # 6*480 seconds for the 9 waits between failures 1..10, with backoff
+      # capped at 2**3 = 8 intervals). The 300 s floor surfaces a re-log within
+      # ~7 min instead.
       LOG_FAILURE_TIME_FLOOR_SECONDS = 300
       # Largest exponent used for exponential backoff after consecutive sampling
       # failures, i.e. the wait grows up to 2**3 = 8 sample intervals.
@@ -200,7 +196,7 @@ module NewRelic
         # shape: a clustered master observed before its workers have booted
         # produces it briefly during startup. Tightening this to require a
         # non-empty array would log an UnrecognizedStatsError on every Puma
-        # boot. The cost is at most one sample interval (default 15 s) of
+        # boot. The cost is at most one sample interval (default 60 s) of
         # misleading-but-self-correcting zero metrics during boot, which is
         # preferable to false-positive errors in normal operation.
         if stats[:worker_status]
@@ -248,8 +244,7 @@ module NewRelic
       # recovers. Don't "fix" this by merging the two counters.
       def report_metrics(metrics)
         metrics.each do |key, value|
-          name = METRIC_NAME_OVERRIDES.fetch(key, key)
-          ::NewRelic::Agent.record_metric("#{METRIC_NAMESPACE}/#{name}", value)
+          ::NewRelic::Agent.record_metric("#{METRIC_NAMESPACE}/#{key}", value)
         end
         @consecutive_report_failures = 0
       rescue => e
@@ -269,12 +264,10 @@ module NewRelic
 
       # The master's agent never started its harvest thread (deferred for the
       # forking dispatcher), so force it up so recorded metrics are delivered.
-      # Returns true if reporting is ready (or intentionally disabled), false if
-      # the attempt failed, in which case the caller skips sampling rather than
-      # silently collecting metrics that will never be sent.
+      # Returns true if reporting is ready, false if the attempt failed, in
+      # which case the caller skips sampling rather than silently collecting
+      # metrics that will never be sent.
       def ensure_master_is_reporting
-        return true unless ::NewRelic::Agent.config[:'puma.start_reporting_thread_in_master']
-
         ::NewRelic::Agent.after_fork(force_reconnect: true)
         true
       rescue => e

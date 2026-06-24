@@ -4,10 +4,11 @@
 
 # The instrumentation's launcher-event registrations differ between major
 # Puma versions: 7+ fires :before_restart / :after_stopped while 6.x fires
-# :on_restart / :on_stopped. Pin a 6.x variant alongside the latest so the
-# suite exercises both paths.
+# :on_restart / :on_stopped. Pin a 6.x and a 7.x variant alongside the latest
+# so the suite exercises both event-name paths and the current release.
 PUMA_VERSIONS = [
   [nil],
+  ['7.0'],
   ['6.6']
 ]
 

@@ -2086,26 +2086,19 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables the Puma server-statistics instrumentation that samples `Puma/*` metrics from the Puma master process.'
+          :description => <<~DESCRIPTION
+            If `true`, disables the Puma server-statistics instrumentation that samples `Ruby/Puma/*` metrics from the Puma master process.
+
+            When enabled, the agent starts its reporting thread in the Puma master so the sampled metrics are delivered. (The agent otherwise defers that thread under forking dispatchers such as Puma, leaving metrics sampled in the master buffered but never sent.) The Puma master then reports to New Relic as its own instance.
+          DESCRIPTION
         },
         :'puma.sample_rate' => {
-          :default => 15,
+          :default => 60,
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
           :description => 'Number of seconds between samples of Puma server statistics taken in the ' \
             'Puma master process.'
-        },
-        :'puma.start_reporting_thread_in_master' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => <<~DESCRIPTION
-            If `true`, the agent starts its reporting thread in the Puma master process so that sampled `Puma/*` metrics are delivered to New Relic.
-
-            The agent defers its reporting thread under forking dispatchers such as Puma, so without this the metrics sampled in the master are buffered but never sent. When enabled, the Puma master reports to New Relic as its own instance. Set to `false` if you do not want the master process to report.
-          DESCRIPTION
         },
         # Rails
         :'defer_rails_initialization' => {

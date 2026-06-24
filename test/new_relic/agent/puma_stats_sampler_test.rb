@@ -138,9 +138,9 @@ module NewRelic
         assert_equal 2, sampler.instance_variable_get(:@consecutive_failures)
         assert(logger.errors.any? { |m| m.include?('Error sampling Puma stats') },
           "expected sample-failure log for unrecognized stats shape; got: #{logger.errors.inspect}")
-        # No Puma/* metrics should be recorded — that is the actual
+        # No Ruby/Puma/* metrics should be recorded — that is the actual
         # user-visible bug ("silent zero-metric recording") this guards.
-        assert_metrics_not_recorded(%w[Puma/backlog Puma/running Puma/spare_thread_capacity Puma/max_threads Puma/requests_count Puma/workers])
+        assert_metrics_not_recorded(%w[Ruby/Puma/backlog Ruby/Puma/running Ruby/Puma/pool_capacity Ruby/Puma/max_threads Ruby/Puma/requests_count Ruby/Puma/workers])
         # Backoff engages: at 2 failures the next wait is 2x the sample rate
         # (exponent = consecutive_failures - 1 = 1).
         assert_equal sampler.instance_variable_get(:@sample_rate) * 2,
@@ -155,16 +155,15 @@ module NewRelic
         sampler.send(:sample)
 
         assert_metrics_recorded(
-          'Puma/running' => {:total_call_time => 9},
-          'Puma/backlog' => {:total_call_time => 1},
-          'Puma/requests_count' => {:total_call_time => 250},
-          'Puma/workers' => {:total_call_time => 2},
-          # pool_capacity (3 + 4) is reported under a name that conveys what
-          # the value means: additional requests the pool can accept right
-          # now (idle threads + unspawned threads still allowed up to max).
-          'Puma/spare_thread_capacity' => {:total_call_time => 7}
+          'Ruby/Puma/running' => {:total_call_time => 9},
+          'Ruby/Puma/backlog' => {:total_call_time => 1},
+          'Ruby/Puma/requests_count' => {:total_call_time => 250},
+          'Ruby/Puma/workers' => {:total_call_time => 2},
+          # pool_capacity (3 + 4): Puma's name for the additional requests the
+          # pool can accept right now (idle threads + unspawned threads still
+          # allowed up to max).
+          'Ruby/Puma/pool_capacity' => {:total_call_time => 7}
         )
-        assert_metrics_not_recorded('Puma/pool_capacity')
       end
 
       def test_sample_parses_json_string_stats
@@ -172,7 +171,7 @@ module NewRelic
 
         sampler.send(:sample)
 
-        assert_metrics_recorded('Puma/running' => {:total_call_time => 5})
+        assert_metrics_recorded('Ruby/Puma/running' => {:total_call_time => 5})
       end
 
       def test_sample_parses_clustered_json_string_stats
@@ -184,9 +183,9 @@ module NewRelic
         sampler.send(:sample)
 
         assert_metrics_recorded(
-          'Puma/workers' => {:total_call_time => 2},
-          'Puma/running' => {:total_call_time => 9},
-          'Puma/spare_thread_capacity' => {:total_call_time => 7}
+          'Ruby/Puma/workers' => {:total_call_time => 2},
+          'Ruby/Puma/running' => {:total_call_time => 9},
+          'Ruby/Puma/pool_capacity' => {:total_call_time => 7}
         )
       end
 
@@ -265,7 +264,9 @@ module NewRelic
           SINGLE_STATS
         end
 
-        with_config(:'puma.start_reporting_thread_in_master' => false) do
+        # Stub the master reporting-thread start so the loop runs without forcing
+        # a real reconnect; that behavior is covered separately below.
+        NewRelic::Agent.stub(:after_fork, ->(*) {}) do
           sampler = PumaStatsSampler.new(launcher)
           thread = Thread.new { sampler.start }
 
@@ -273,7 +274,7 @@ module NewRelic
           sampler.stop
 
           assert thread.join(5), 'expected the sampling loop to exit promptly after #stop'
-          assert_metrics_recorded('Puma/running' => {:total_call_time => 5})
+          assert_metrics_recorded('Ruby/Puma/running' => {:total_call_time => 5})
         end
       end
 
@@ -293,12 +294,12 @@ module NewRelic
       def test_stop_before_start_prevents_sampling
         launcher = FakeLauncher.new(SINGLE_STATS)
 
-        with_config(:'puma.start_reporting_thread_in_master' => false) do
+        NewRelic::Agent.stub(:after_fork, ->(*) {}) do
           sampler = PumaStatsSampler.new(launcher)
           sampler.stop
 
           assert thread_completes? { sampler.start }
-          assert_metrics_not_recorded('Puma/running')
+          assert_metrics_not_recorded('Ruby/Puma/running')
         end
       end
 
@@ -307,42 +308,24 @@ module NewRelic
       # The forced-reporting behavior is exercised directly rather than through
       # #start, whose sampling loop runs until #stop is called from another
       # thread (Puma's :state event handler) in production.
-      def test_forces_master_reporting_thread_when_enabled
+      def test_forces_master_reporting_thread
         sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
 
-        with_config(:'puma.start_reporting_thread_in_master' => true) do
-          mock = Minitest::Mock.new
-          mock.expect(:call, nil, [{force_reconnect: true}])
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [{force_reconnect: true}])
 
-          NewRelic::Agent.stub(:after_fork, mock) do
-            assert sampler.send(:ensure_master_is_reporting)
-          end
-          mock.verify
+        NewRelic::Agent.stub(:after_fork, mock) do
+          assert sampler.send(:ensure_master_is_reporting)
         end
-      end
-
-      def test_skips_master_reporting_thread_when_disabled
-        sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
-
-        with_config(:'puma.start_reporting_thread_in_master' => false) do
-          called = false
-
-          NewRelic::Agent.stub(:after_fork, ->(*) { called = true }) do
-            assert sampler.send(:ensure_master_is_reporting)
-          end
-
-          refute called, 'expected after_fork not to be called when master reporting is disabled'
-        end
+        mock.verify
       end
 
       def test_ensure_master_is_reporting_returns_false_on_failure
         sampler = PumaStatsSampler.new(FakeLauncher.new(SINGLE_STATS))
 
-        with_config(:'puma.start_reporting_thread_in_master' => true) do
-          NewRelic::Agent.stub(:after_fork, ->(*) { raise 'connect failed' }) do
-            refute sampler.send(:ensure_master_is_reporting),
-              'a failed reporting-thread start should return false so sampling is skipped'
-          end
+        NewRelic::Agent.stub(:after_fork, ->(*) { raise 'connect failed' }) do
+          refute sampler.send(:ensure_master_is_reporting),
+            'a failed reporting-thread start should return false so sampling is skipped'
         end
       end
 
@@ -356,7 +339,7 @@ module NewRelic
         sampler.define_singleton_method(:sample) { raise 'unexpected loop blow-up' }
 
         logger = StubLogger.new
-        with_config(:'puma.start_reporting_thread_in_master' => false) do
+        NewRelic::Agent.stub(:after_fork, ->(*) {}) do
           NewRelic::Agent.stub(:logger, logger) do
             sampler.start # must not raise; rescue logs and returns
           end
@@ -378,7 +361,7 @@ module NewRelic
 
         logger = StubLogger.new
         raised = nil
-        with_config(:'puma.start_reporting_thread_in_master' => false) do
+        NewRelic::Agent.stub(:after_fork, ->(*) {}) do
           NewRelic::Agent.stub(:logger, logger) do
             sampler.start
           rescue sentinel => e
