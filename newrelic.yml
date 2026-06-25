@@ -657,8 +657,9 @@ common: &default_settings
   # auto, prepend, chain, disabled.
   # instrumentation.rack_urlmap: auto
 
-  # Controls instrumentation of Rails.event as structured logs
-  # instrumentation.rails_event_logger: true
+  # Controls instrumentation of Rails.event as structured logs. May be one of:
+  # enabled, disabled.
+  # instrumentation.rails_event_logger: enabled
 
   # An array of Rails.event names to capture as structured log events. For
   # example,

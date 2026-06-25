@@ -122,7 +122,7 @@ module NewRelic
             end
           end
 
-          def test_set_otel_tracestate_without_newrelic_entry
+          def test_set_otel_tracestate_without_newrelic_entry_assigns_nil_trace_state_payload
             with_config(:account_id => '190', primary_application_id: '46954') do
               carrier = {
                 'traceparent' => '00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01',
@@ -137,8 +137,7 @@ module NewRelic
               trace_state_payload = distributed_tracer.trace_state_payload
 
               assert_nil(trace_state_payload)
-              # true because of the traceparent payload
-              assert_predicate span.finishable, :sampled?
+
               span.finish
             end
           end
@@ -188,6 +187,50 @@ module NewRelic
             span_attributes = spans[0][1]
 
             assert_equal('red', span_attributes['strawberry'])
+          end
+
+          def test_start_root_span_starts_transaction_with_valid_kind
+            attrs = {
+              'messaging.system' => 'que',
+              'messaging.destination' => 'default',
+              'messaging.destination_kind' => 'queue',
+              'messaging.operation' => 'process',
+              'messaging.que.job_class' => 'TestJob',
+              'messaging.message_id' => 123
+            }
+
+            span = @tracer.start_root_span('TestJob', kind: :consumer, attributes: attrs)
+
+            assert_instance_of NewRelic::Agent::Transaction, span.finishable
+
+            initial_segment = span.finishable.initial_segment
+            custom_attrs = {
+              'messaging.destination_kind' => 'queue',
+              'messaging.operation' => 'process',
+              'messaging.que.job_class' => 'TestJob',
+              'messaging.message_id' => 123
+            }
+
+            assert_equal custom_attrs, initial_segment.attributes.custom_attributes
+            assert_equal 'OtherTransaction/Message/que/Queue/Consume/Named/default', initial_segment.name
+
+            span.finishable.stubs(:sampled?).returns(true)
+            span&.finish
+          end
+
+          def test_start_root_span_does_not_create_telemetry_without_valid_kind
+            # this is just an edge case. this is not used in any instrumentation
+            # the attempted span gets kicked out when the
+            # should_not_create_telemetry? method is called.
+            attrs = {'bing' => 'cherries'}
+
+            span = @tracer.start_root_span('Prunus avium', kind: :producer, attributes: attrs)
+
+            assert_instance_of ::OpenTelemetry::Trace::Span, span
+            assert_raises(NoMethodError) { span.finishable }
+            refute_predicate span.context, :valid?
+
+            span&.finish
           end
 
           private

@@ -2,17 +2,15 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'base_translator'
+require_relative 'datastore_translator'
 
 module NewRelic
   module Agent
     module OpenTelemetry
-      # The Generic translator will sends all attributes to custom attributes
-      # because there are no known New Relic attributes to translate
-      class GenericTranslator < BaseTranslator
+      class RedisDatastoreTranslator < DatastoreTranslator
         class << self
           def mappings_hash(_kind)
-            NewRelic::EMPTY_HASH
+            AttributeMappings::REDIS_MAPPINGS
           end
         end
       end

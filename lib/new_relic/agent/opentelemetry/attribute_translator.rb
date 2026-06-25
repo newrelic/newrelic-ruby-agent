@@ -3,9 +3,12 @@
 # frozen_string_literal: true
 
 require_relative 'translators/datastore_translator'
+require_relative 'translators/redis_datastore_translator'
 require_relative 'translators/http_client_translator'
 require_relative 'translators/http_server_translator'
 require_relative 'translators/generic_translator'
+require_relative 'translators/rpc_translator'
+require_relative 'translators/messaging_translator'
 
 module NewRelic
   module Agent
@@ -19,19 +22,19 @@ module NewRelic
             # pg instrumentation doesn't have db.system assigned when connect
             # spans start, so they would be incorrectly assigned
             # the HttpClientTranslator
-            'opentelemetry-instrumentation-pg' => DatastoreTranslator
-            # 'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator,
+            'opentelemetry-instrumentation-pg' => DatastoreTranslator,
+            'opentelemetry-instrumentation-redis' => RedisDatastoreTranslator
           },
           discriminating_attribute: {
             'db.system' => DatastoreTranslator,
-            'db.system.name' => DatastoreTranslator
-            # 'rpc.system' => RpcTranslator,
+            'db.system.name' => DatastoreTranslator,
+            'rpc.system' => RpcTranslator
           },
           span_kind: {
             client: HttpClientTranslator,
             server: HttpServerTranslator,
-            # consumer: MessagingConsumerTranslator,
-            # producer: MessagingProducerTranslator,
+            consumer: MessagingTranslator,
+            producer: MessagingTranslator,
             internal: GenericTranslator
           }
         }.freeze
@@ -64,7 +67,7 @@ module NewRelic
               GenericTranslator
             end
 
-          translator.translate(attributes: attributes, name: name, instrumentation_scope: instrumentation_scope)
+          translator.translate(attributes: attributes, name: name, instrumentation_scope: instrumentation_scope, kind: span_kind)
         end
       end
     end

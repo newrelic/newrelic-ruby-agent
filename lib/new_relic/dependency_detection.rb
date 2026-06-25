@@ -70,7 +70,8 @@ module DependencyDetection
       #       https://github.com/newrelic/newrelic-ruby-agent/issues/2912
       return if name == :padrino
 
-      NewRelic::Agent.config.instance_variable_get(:@cache)[config_key] = :unsatisfied
+      cache = NewRelic::Agent.config.instance_variable_get(:@cache)
+      cache[config_key] = config_key && cache[config_key] == false ? :disabled : :unsatisfied
     end
 
     def source_location_for(klass, method_name)

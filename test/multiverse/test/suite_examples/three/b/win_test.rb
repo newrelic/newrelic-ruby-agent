@@ -5,6 +5,6 @@
 require 'test/unit'
 class ATest < Test::Unit::TestCase
   def test_success
-    assert 'This test is not failing!!!'
+    assert 'This test is not failing!!!' # rubocop:disable Minitest/UselessAssertion
   end
 end

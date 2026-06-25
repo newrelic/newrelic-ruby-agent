@@ -24,7 +24,13 @@ module NewRelic
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
       LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
-      SUPPORTED_LOGGING_LIBRARIES = %w[Logger LogStasher Logging SemanticLogger RailsEventLogger].freeze
+      SUPPORTED_LOGGING_LIBRARIES = {
+        'Logger' => :'instrumentation.logger',
+        'LogStasher' => :'instrumentation.logstasher',
+        'Logging' => :'instrumentation.logging',
+        'SemanticLogger' => :'instrumentation.semantic_logger',
+        'RailsEventLogger' => :'instrumentation.rails_event_logger'
+      }.freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
       SKIP_SEMANTIC_LOGGER_VARS = %w[@level @level_index @message @time @payload].freeze
       SKIP_RAILS_EVENT_KEYS = %w[message level].freeze
@@ -479,8 +485,8 @@ module NewRelic
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
           record_configuration_metric(LABELS_SUPPORTABILITY_FORMAT, LABELS_ENABLED_KEY)
-          SUPPORTED_LOGGING_LIBRARIES.each do |library|
-            record_logs_supportability_metric(library, OVERALL_ENABLED_KEY)
+          SUPPORTED_LOGGING_LIBRARIES.each do |library, instrumentation_key|
+            record_logs_supportability_metric(library, instrumentation_key)
           end
 
           add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
@@ -492,8 +498,10 @@ module NewRelic
         NewRelic::Agent.increment_metric(format % label)
       end
 
-      def record_logs_supportability_metric(library, key)
-        label = supportability_label_for(key)
+      def record_logs_supportability_metric(library, instrumentation_key)
+        value = NewRelic::Agent.config[instrumentation_key]
+        installed = @enabled && value != 'disabled' && value != :unsatisfied
+        label = installed ? 'enabled' : 'disabled'
         NewRelic::Agent.increment_metric("Supportability/Logging/Ruby/#{library}/#{label}")
       end
 

@@ -42,8 +42,25 @@ module NewRelic
           assert_same DatastoreTranslator, result[:translator]
         end
 
-        # TODO: Update this test to use a Redis-specific translator
-        # when we implement that translator
+        def test_selects_rpc_translator_by_discriminating_attribute_rpc_system
+          result = AttributeTranslator.translate(
+            attributes: {'rpc.system' => 'grpc'},
+            span_kind: :client
+          )
+
+          assert_same RpcTranslator, result[:translator]
+        end
+
+        def test_rpc_system_takes_precedence_over_span_kind
+          # :server span_kind would map to HttpServerTranslator, but rpc.system wins
+          result = AttributeTranslator.translate(
+            attributes: {'rpc.system' => 'grpc'},
+            span_kind: :server
+          )
+
+          assert_same RpcTranslator, result[:translator]
+        end
+
         def test_discriminating_attribute_takes_precedence_over_span_kind
           # :client span_kind maps to HttpClientTranslator,
           # but db.system discriminating attribute should win
@@ -54,6 +71,17 @@ module NewRelic
           )
 
           assert_same DatastoreTranslator, result[:translator]
+        end
+
+        def test_redis_instrumentation_scope_routes_to_redis_translator
+          result = AttributeTranslator.translate(
+            instrumentation_scope: 'opentelemetry-instrumentation-redis',
+            attributes: {},
+            span_kind: :client,
+            name: 'GET'
+          )
+
+          assert_same RedisDatastoreTranslator, result[:translator]
         end
 
         def test_selects_http_client_translator_by_span_kind_client

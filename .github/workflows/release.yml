@@ -4,21 +4,22 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
     outputs:
-      agent_version: ${{ steps.version.outputs.agent_version }}
+      agent_version: ${{ steps.version.outputs.VERSION }}
     permissions:
       contents: write
       repository-projects: write
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag v6.0.2
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # tag v6.0.3
       with:
         fetch-depth: 0
 
-    - uses: ruby/setup-ruby@c4e5b1316158f92e3d49443a9d58b31d25ac0f8f # tag v1.306.0
+    - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # tag v1.310.0
       with:
         ruby-version: 3.4
 
@@ -42,13 +43,14 @@ jobs:
     - name: Determine version
       id: version
       run: |
-        echo "agent_version=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
+        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
+        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
 
     - name: Create github release
       uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # tag v3.0.0
-      if: $(git tag -l ${{ steps.version.outputs.agent_version }}) == false
+      if: $(git tag -l ${{ env.VERSION }}) == false
       with:
-        tag_name: ${{ steps.version.outputs.agent_version }}
+        tag_name: ${{ env.VERSION }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -66,9 +68,11 @@ jobs:
 
   update-agent-metadata:
     needs: [release]
+    permissions:
+      contents: read
     uses: ./.github/workflows/agent_metadata.yml
     with:
-      version: ${{ needs.release.version.outputs.agent_version }}
+      version: ${{ needs.release.outputs.agent_version }}
     secrets:
       FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
       FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}

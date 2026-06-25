@@ -68,6 +68,7 @@ module NewRelic
         :jruby_cpu_start,
         :process_cpu_start,
         :http_response_code,
+        :response_status,
         :response_content_length,
         :response_content_type,
         :parent_span_id
@@ -631,6 +632,10 @@ module NewRelic
 
         if http_response_code
           add_agent_attribute(:'http.statusCode', http_response_code, default_destinations)
+        end
+
+        if response_status
+          add_agent_attribute(:'response.status', response_status, default_destinations)
         end
 
         if response_content_length

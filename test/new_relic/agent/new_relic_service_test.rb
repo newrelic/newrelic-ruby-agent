@@ -493,8 +493,9 @@ class NewRelicServiceTest < Minitest::Test
       define_method(method_name) do
         @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
 
+        stats_hash = NewRelic::Agent::StatsHash.new
+
         assert_raises exception_type do
-          stats_hash = NewRelic::Agent::StatsHash.new
           @service.metric_data(stats_hash)
         end
       end
@@ -570,8 +571,9 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:metric_data, 'payload', :code => 401)
 
     logger = with_array_logger(level = :error) do
+      stats_hash = NewRelic::Agent::StatsHash.new
+
       assert_raises NewRelic::Agent::ForceRestartException do
-        stats_hash = NewRelic::Agent::StatsHash.new
         @service.metric_data(stats_hash)
       end
     end
@@ -583,8 +585,9 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_for_http_error_responses
     NewRelic::Agent.drop_buffered_data
     @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
+    stats_hash = NewRelic::Agent::StatsHash.new
+
     assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
       @service.metric_data(stats_hash)
     end
 
@@ -611,8 +614,9 @@ class NewRelicServiceTest < Minitest::Test
     NewRelic::Agent.drop_buffered_data
 
     @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
+    stats_hash = NewRelic::Agent::StatsHash.new
+
     assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
       @service.metric_data(stats_hash)
     end
 

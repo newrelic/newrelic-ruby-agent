@@ -1,0 +1,128 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+require_relative 'base_translator'
+require_relative '../../messaging'
+
+module NewRelic
+  module Agent
+    module OpenTelemetry
+      class MessagingTranslator < BaseTranslator
+        # OTel seems to be inconsistent with dot or underscore,
+        # so we handle both just in case.
+        DESTINATION_TYPES_MAP = {
+          consumer: {
+            'kafka' => :topic,
+            'rabbitmq' => :queue,
+            'aws.sqs' => :queue,
+            'aws_sqs' => :queue,
+            'aws.sns' => :topic,
+            'aws_sns' => :topic,
+            'aws.kinesis' => :stream,
+            'aws_kinesis' => :stream
+          },
+          producer: {
+            'kafka' => :topic,
+            'rabbitmq' => :exchange,
+            'aws.sqs' => :queue,
+            'aws_sqs' => :queue,
+            'aws.sns' => :topic,
+            'aws_sns' => :topic,
+            'aws.kinesis' => :stream,
+            'aws_kinesis' => :stream
+          }
+        }.freeze
+
+        # `messaging.destination_kind` is a v1.17 attribute that we
+        # should honor when present.
+        DESTINATION_KIND_MAP = {
+          'queue' => :queue,
+          'topic' => :topic
+        }.freeze
+
+        TEMP_MAP = {
+          queue: :temporary_queue,
+          topic: :temporary_topic
+        }.freeze
+
+        ACTION_MAP = {
+          consumer: :consume,
+          producer: :produce
+        }.freeze
+
+        # Capitalize the OTel `messaging.system` value to match the casing used
+        # by NR messaging instrumentation.
+        LIBRARY_MAP = {
+          'kafka' => 'Kafka',
+          'rabbitmq' => 'RabbitMQ',
+          'aws.sqs' => 'SQS',
+          'aws_sqs' => 'SQS',
+          'aws.sns' => 'SNS',
+          'aws_sns' => 'SNS',
+          'aws.kinesis' => 'Kinesis',
+          'aws_kinesis' => 'Kinesis'
+        }.freeze
+
+        ROUTING_KEY_OTEL_KEYS = [
+          'messaging.kafka.message.key',
+          'messaging.rabbitmq.destination.routing_key'
+        ].freeze
+        CORRELATION_ID_OTEL_KEY = 'messaging.message.conversation_id'
+
+        class << self
+          def mappings_hash(kind)
+            kind == :consumer ? AttributeMappings::MESSAGING_CONSUMER_MAPPINGS : AttributeMappings::MESSAGING_PRODUCER_MAPPINGS
+          end
+
+          def add_specialized_attributes(result: {}, name: nil, attributes: nil, instrumentation_scope: nil, kind: nil)
+            result[:for_segment_api][:action] = ACTION_MAP[kind]
+            result[:for_segment_api][:destination_type] = determine_destination_type(attributes, kind)
+            if (system = attributes['messaging.system'])
+              result[:for_segment_api][:library] = LIBRARY_MAP[system] || system
+            end
+
+            result[:for_segment_api][:name] = build_transaction_name(result[:for_segment_api])
+
+            add_producer_segment_params(result, attributes) if kind == :producer
+
+            result
+          end
+
+          def build_transaction_name(segment_api_params)
+            return nil unless segment_api_params[:library] && segment_api_params[:destination_name]
+
+            NewRelic::Agent::Messaging.transaction_name(
+              segment_api_params[:library],
+              segment_api_params[:destination_type],
+              segment_api_params[:destination_name],
+              segment_api_params[:action]
+            )
+          end
+
+          def add_producer_segment_params(result, attributes)
+            params = {
+              routing_key: ROUTING_KEY_OTEL_KEYS.map { |k| attributes[k] }.compact.first,
+              correlation_id: attributes[CORRELATION_ID_OTEL_KEY]
+            }.compact
+
+            result[:for_segment_api][:parameters] = params unless params.empty?
+          end
+
+          def determine_destination_type(attributes, kind)
+            type = explicit_destination_kind(attributes) ||
+              DESTINATION_TYPES_MAP[kind][attributes['messaging.system']] ||
+              :unknown
+            return type unless attributes['messaging.destination.temporary'] == true
+
+            TEMP_MAP[type] || type
+          end
+
+          def explicit_destination_kind(attributes)
+            DESTINATION_KIND_MAP[attributes['messaging.destination_kind']]
+          end
+        end
+      end
+    end
+  end
+end

@@ -35,10 +35,12 @@ module NewRelic
 
             otel_span.finishable = finishable
             otel_span.status = ::OpenTelemetry::Trace::Status.unset
+            otel_span.kind = kind
             otel_span.translator = translated[:translator]
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
             otel_span.add_instrumentation_scope(@name, @version)
             otel_span.apply_translated_attributes(translated)
+            links&.each { |link| otel_span.add_link(link) }
 
             otel_span
           end
@@ -56,6 +58,10 @@ module NewRelic
             span&.finish
           end
 
+          def start_root_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
+            start_span(name, with_parent: ::OpenTelemetry::Context.empty, attributes: attributes, links: links, start_timestamp: start_timestamp, kind: kind)
+          end
+
           private
 
           def start_segment_from_otel(name:, translated: nil, start_timestamp: nil, kind: nil)
@@ -63,9 +69,9 @@ module NewRelic
 
             case kind
             when :client
-              if segment_api_params[:uri] # HTTP Client
+              if segment_api_params[:uri] # HTTP Client and gRPC Client
                 NewRelic::Agent::Tracer.start_external_request_segment(
-                  library: @name,
+                  library: segment_api_params[:library] || @name,
                   uri: segment_api_params[:uri],
                   procedure: segment_api_params[:procedure],
                   start_time: start_timestamp
@@ -81,9 +87,26 @@ module NewRelic
                   start_time: start_timestamp
                 )
 
-                segment&._notice_sql(segment_api_params[:sql])
+                if segment_api_params[:sql]
+                  segment&._notice_sql(segment_api_params[:sql])
+                elsif segment_api_params[:nosql_statement]
+                  segment&.notice_nosql_statement(segment_api_params[:nosql_statement])
+                end
 
                 segment
+              else
+                NewRelic::Agent::Tracer.start_segment(name: name)
+              end
+            when :producer, :consumer
+              if segment_api_params[:library] # Messaging
+                NewRelic::Agent::Tracer.start_message_broker_segment(
+                  action: segment_api_params[:action],
+                  library: segment_api_params[:library],
+                  destination_type: segment_api_params[:destination_type],
+                  destination_name: segment_api_params[:destination_name],
+                  parameters: messaging_segment_parameters(segment_api_params),
+                  start_time: start_timestamp
+                )
               else
                 NewRelic::Agent::Tracer.start_segment(name: name)
               end
@@ -97,20 +120,37 @@ module NewRelic
             segment_api_params = translated[:for_segment_api]
 
             case kind
-            when :server
+            when :server # HTTP or gRPC server calls
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(
                 name: segment_api_params[:name] || name,
                 category: :web
               )
             when :client
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
-            when :consumer, :producer, :internal, nil
+            when :consumer, :producer
+              nr_item = start_messaging_transaction(name, segment_api_params)
+            when :internal, nil
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task)
             end
 
             add_remote_context_to_txn(nr_item, parent_otel_context) if nr_item
 
             nr_item
+          end
+
+          def messaging_segment_parameters(segment_api_params)
+            return nil unless NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
+
+            segment_api_params[:parameters]
+          end
+
+          def start_messaging_transaction(name, segment_api_params)
+            return NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :task) unless segment_api_params[:name]
+
+            NewRelic::Agent::Tracer.start_transaction_or_segment(
+              name: segment_api_params[:name],
+              category: :message
+            )
           end
 
           def get_otel_span_from_finishable(finishable)

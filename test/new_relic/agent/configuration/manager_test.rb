@@ -640,6 +640,56 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_instrumentation_key_false_boolean_coerced_to_disabled
+      key = :'instrumentation.some_lib'
+      defaults = {key => {default: 'auto', type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, false, :manual)
+
+        assert_equal 'disabled', value
+      end
+    end
+
+    def test_instrumentation_key_false_string_coerced_to_disabled
+      key = :'instrumentation.some_lib'
+      defaults = {key => {default: 'auto', type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'false', :manual)
+
+        assert_equal 'disabled', value
+      end
+    end
+
+    def test_instrumentation_key_no_and_off_coerced_to_disabled
+      key = :'instrumentation.some_lib'
+      defaults = {key => {default: 'auto', type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        %w[no off].each do |val|
+          assert_equal 'disabled', @manager.type_coerce(key, val, :manual), "Expected '#{val}' to coerce to 'disabled'"
+        end
+      end
+    end
+
+    def test_non_instrumentation_string_key_not_affected_by_disabled_coercion
+      key = :alert_highlight_color
+      defaults = {key => {default: 'beige', type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'false', :manual)
+
+        assert_equal 'false', value
+      end
+    end
+
+    def test_instrumentation_sub_key_not_affected_by_disabled_coercion
+      key = :'instrumentation.some_lib.sub_key'
+      defaults = {key => {default: [], type: String}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'false', :manual)
+
+        assert_equal 'false', value
+      end
+    end
+
     def test_add_config_for_testing_enforces_an_input_class_allowlist
       error = assert_raises RuntimeError do
         @manager.add_config_for_testing(nil)

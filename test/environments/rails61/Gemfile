@@ -35,6 +35,11 @@ gem 'pry' if ENV['ENABLE_PRY']
 gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
 gem 'warning'
 
+# i18n 1.15.0+ is broken on Ruby 3.1 and will not be fixed, so pin below it
+if RUBY_VERSION.start_with?('3.1.')
+  gem 'i18n', '< 1.15.0'
+end
+
 if RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
   gem 'base64'
   gem 'bigdecimal'

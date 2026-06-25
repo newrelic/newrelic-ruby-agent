@@ -1,5 +1,35 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.6.0
+
+- **Feature: SpanLink events are now supported for the Hybrid Agent**
+
+Spans created by an OpenTelemetry API can now have [Span Links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
+
+- **Feature: SpanEvent events are now supported for the Hybrid Agent**
+
+Spans created by an OpenTelemetry API can now have [SpanEvent events](https://opentelemetry.io/docs/concepts/signals/traces/#span-events) associated with them via the `OpenTelemetry::Trace::Span#add_event` API. SpanEvent events capture timestamped annotations on a span and are sent to New Relic alongside the parent span. [PR#3587](https://github.com/newrelic/newrelic-ruby-agent/pull/3587)
+
+- **Feature: Set Span Kind on all Hybrid Agent spans**
+
+  Previously, only OpenTelemetry spans translated into external request segments or datastore segments added span kind as an attribute. Now, the agent adds span kind to all OpenTelemetry spans where the value is available. [PR#3589](https://github.com/newrelic/newrelic-ruby-agent/pull/3589)
+
+- **Feature: Add support for OpenTelemetry::Tracer#start_root_span**
+
+  The `OpenTelemetry::Tracer#start_root_span` API can now be used to force a transaction to start for a given span, provided it has a `:server` or `:consumer` span kind. For any other span kinds, it will no-op. This method is most commonly used in background job instrumentation. [PR#3588](https://github.com/newrelic/newrelic-ruby-agent/pull/3588)
+
+- **Bugfix: Fix `instrumentation.rails_event_logger: false` not disabling the instrumentation**
+
+  Setting `instrumentation.rails_event_logger` to `false` was not disabling the Rails.event instrumentation as expected. The instrumentation would still be installed during Rails boot. This has been fixed. [PR#3564](https://github.com/newrelic/newrelic-ruby-agent/pull/3564)
+
+- **Bugfix: Normalize boolean-like values to `disabled` for instrumentation config keys**
+
+  Setting any `instrumentation.*` config key to `false`, `no`, or `off` instead of `disabled` will now resolve to `disabled` and prevent the instrumentation from being installed. [PR#3579](https://github.com/newrelic/newrelic-ruby-agent/pull/3579)
+
+- **Bugfix: Per-library logging supportability metrics now reflect each library's instrumentation state**
+
+  The `Supportability/Logging/Ruby/{library}/{enabled|disabled}` metrics previously echoed `application_logging.enabled` for every library, so disabling a single logging instrumentation or running without one of its gems still reported `enabled`. Each library now reports based on its own instrumentation state. [PR#3571](https://github.com/newrelic/newrelic-ruby-agent/pull/3571)
+
 ## v10.5.0
 
 - **Feature: Add Dalli 5.0 support and fix meta protocol instrumentation**

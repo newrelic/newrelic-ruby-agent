@@ -26,6 +26,7 @@ module NewRelic
         }.freeze
 
         INSTRUMENTATION_VALUES = %w[chain prepend unsatisfied]
+        INSTRUMENTATION_DISABLED_VALUES = %w[false no off].freeze
         NUMERIC_TYPES = [Integer, Float]
         STRINGLIKE_TYPES = [String, Symbol]
 
@@ -178,6 +179,11 @@ module NewRelic
           false
         end
 
+        def instrumentation_key?(key)
+          key.to_s.match?(/\Ainstrumentation\.[^.]+\z/) &&
+            DEFAULTS.dig(key, :type) == String
+        end
+
         def handle_nil_type(key, value, category)
           return value if %i[manual test].include?(category)
 
@@ -205,6 +211,7 @@ module NewRelic
 
           type = DEFAULTS.dig(key, :type)
           return handle_nil_type(key, value, category) unless type
+          return 'disabled' if instrumentation_key?(key) && INSTRUMENTATION_DISABLED_VALUES.include?(value.to_s.downcase)
           return value if value.is_a?(type) || boolean?(type, value) || instrumentation?(type, value)
           return numeric_conversion(value) if NUMERIC_TYPES.include?(type) && NUMERIC_TYPES.include?(value.class)
           return string_conversion(value) if STRINGLIKE_TYPES.include?(type) && STRINGLIKE_TYPES.include?(value.class)
