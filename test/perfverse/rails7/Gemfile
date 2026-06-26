@@ -11,6 +11,4 @@ gem 'rails', '~> 7.0.2', '>= 7.0.2.3'
 gem 'sprockets-rails'
 gem 'sqlite3', '~> 1.4'
 
-# https://github.com/rails/rails/issues/54260
-# https://stackoverflow.com/questions/79360526/uninitialized-constant-activesupportloggerthreadsafelevellogger-nameerror
-gem 'concurrent-ruby', '1.3.4'
+gem 'concurrent-ruby', '>= 1.3.7'
