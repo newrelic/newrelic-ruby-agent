@@ -162,9 +162,9 @@ DependencyDetection.defer do
 
   depends_on do
     # The cluster-wide stats and the launcher lifecycle events this samples are
-    # only reliable on Puma 6+ (the oldest line the suite exercises). Decline
+    # only reliable on Puma 6.6+ (the oldest line the suite exercises). Decline
     # older versions rather than install against an unverified stats/event shape.
-    NewRelic::Helper.version_satisfied?(Puma::Const::VERSION, '>=', '6.0.0')
+    NewRelic::Helper.version_satisfied?(Puma::Const::VERSION, '>=', '6.6.0')
   end
 
   depends_on do

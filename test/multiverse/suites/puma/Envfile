@@ -7,8 +7,8 @@
 # :on_restart / :on_stopped. Pin a 6.x and a 7.x variant alongside the latest
 # so the suite exercises both event-name paths and the current release.
 PUMA_VERSIONS = [
-  [nil],
-  ['7.0'],
+  [nil, 3.0],
+  ['7.0', 3.0],
   ['6.6']
 ]
 
