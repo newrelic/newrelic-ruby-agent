@@ -111,7 +111,6 @@ module NewRelic
       end
 
       def html?(headers)
-        # needs else branch coverage
         headers[CONTENT_TYPE]&.match?(TEXT_HTML)
       end
 

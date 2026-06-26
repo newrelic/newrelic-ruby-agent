@@ -349,4 +349,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
         attributes['code.namespace']
     end
   end
+
+  def test_queue_start_with_nil_request
+    assert_nil @subscriber.send(:queue_start, nil)
+  end
 end

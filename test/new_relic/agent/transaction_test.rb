@@ -1328,6 +1328,16 @@ module NewRelic::Agent
       Transaction.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
     end
 
+    def test_adding_agent_attribute_with_nil_current_segment
+      in_transaction do |txn|
+        txn.stubs(:current_segment).returns(nil)
+        txn.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
+        actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
+        assert_equal({:foo => 'bar'}, actual)
+      end
+    end
+
     def test_adding_intrinsic_attributes
       in_transaction do |txn|
         txn.attributes.add_intrinsic_attribute(:foo, 'bar')

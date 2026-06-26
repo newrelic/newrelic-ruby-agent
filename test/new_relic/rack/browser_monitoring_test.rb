@@ -133,6 +133,10 @@ if defined?(Rack::Test)
       refute app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), 'Expected not to instrument requests with content type other than text/html.'
     end
 
+    def test_should_not_instrument_when_content_type_missing
+      refute app.should_instrument?({}, 200, {})
+    end
+
     def test_should_not_instrument_when_content_disposition
       refute app.should_instrument?({}, 200, {'Content-Type' => 'text/html', 'Content-Disposition' => 'attachment; filename=test.html'})
     end

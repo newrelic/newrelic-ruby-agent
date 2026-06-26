@@ -454,6 +454,22 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
     end
 
+    def test__nr_redis_client_config_with_nil_client
+      skip_unless_minitest5_or_above
+
+      client = FakeClient.new
+
+      client.stub :respond_to?, true, [:client] do
+        client.stub :client, nil do
+          Object.stub_const :RedisClient, nil do
+            assert_raises StandardError do
+              client.send(:_nr_redis_client_config)
+            end
+          end
+        end
+      end
+    end
+
     def test_call_pipelined_with_tracing_uses_a_nil_db_value_if_it_must
       client = FakeClient.new
       with_tracing_validator = proc do |*args|

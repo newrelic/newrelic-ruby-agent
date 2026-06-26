@@ -645,8 +645,7 @@ module NewRelic
     #
     def after_fork(options = {})
       record_api_supportability_metric(:after_fork)
-      # the following line needs else branch coverage
-      agent.after_fork(options) if agent # rubocop:disable Style/SafeNavigation
+      agent&.after_fork(options)
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
@@ -668,8 +667,7 @@ module NewRelic
     # @!scope class
     # @api public
     def drop_buffered_data
-      # the following line needs else branch coverage
-      agent.drop_buffered_data if agent # rubocop:disable Style/SafeNavigation
+      agent&.drop_buffered_data
       record_api_supportability_metric(:drop_buffered_data)
     end
 

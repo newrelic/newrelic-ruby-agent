@@ -76,15 +76,6 @@ Style/MapIntoArray:
     - 'lib/new_relic/agent/database/explain_plan_helpers.rb'
     - 'lib/tasks/helpers/format.rb'
 
-# Offense count: 2
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: ConvertCodeThatCanStartToReturnNil, AllowedMethods, MaxChainLength.
-# AllowedMethods: present?, blank?, presence, try, try!
-Style/SafeNavigation:
-  Exclude:
-    - 'lib/new_relic/agent/instrumentation/active_record_helper.rb'
-    - 'lib/new_relic/agent/instrumentation/active_record_subscriber.rb'
-
 # Offense count: 4
 # Configuration parameters: Max.
 Style/SafeNavigationChainLength:

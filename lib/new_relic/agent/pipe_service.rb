@@ -89,8 +89,7 @@ module NewRelic
       end
 
       def write_to_pipe(endpoint, data)
-        # the following line needs else branch coverage
-        @pipe.write(marshal_payload([endpoint, data])) if @pipe # rubocop:disable Style/SafeNavigation
+        @pipe&.write(marshal_payload([endpoint, data]))
       end
     end
   end

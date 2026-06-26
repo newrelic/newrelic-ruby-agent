@@ -252,6 +252,12 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
+    def test_prefix_for_category_with_nil_txn_and_no_category
+      result = @txn_namer.prefix_for_category(nil)
+
+      assert_equal('/', result)
+    end
+
     def test_transaction_path_name
       result = @txn_namer.path_name(@object)
 
@@ -336,6 +342,21 @@ module NewRelic::Agent::Instrumentation
       host = host_class.new
       host.expects(:params).never
       host.doit
+    end
+
+    def test_nil_finishable_does_not_raise
+      host_class = Class.new do
+        include ControllerInstrumentation
+
+        def doit
+          perform_action_with_newrelic_trace do
+            # nothing
+          end
+        end
+      end
+
+      NewRelic::Agent::Tracer.stubs(:start_transaction_or_segment).returns(nil)
+      host_class.new.doit
     end
 
     class UserError < StandardError

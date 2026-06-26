@@ -356,8 +356,7 @@ module NewRelic
 
           yield
         rescue => exception
-          # needs else branch coverage
-          segment.notice_error(exception) if segment&.is_a?(Transaction::AbstractSegment)
+          segment.notice_error(exception) if segment.is_a?(Transaction::AbstractSegment)
           raise
         end
 
@@ -489,8 +488,7 @@ module NewRelic
         end
 
         def pop_traced
-          # needs else branch coverage
-          @untraced.pop if @untraced # rubocop:disable Style/SafeNavigation
+          @untraced&.pop
         end
 
         def is_execution_traced?

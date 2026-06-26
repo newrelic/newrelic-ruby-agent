@@ -91,6 +91,18 @@ module NewRelic
       NewRelic::Agent.after_fork
     end
 
+    def test_after_fork_without_agent
+      with_unstarted_agent do
+        NewRelic::Agent.after_fork
+      end
+    end
+
+    def test_drop_buffered_data_without_agent
+      with_unstarted_agent do
+        NewRelic::Agent.drop_buffered_data
+      end
+    end
+
     def test_manual_start_default
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => true})

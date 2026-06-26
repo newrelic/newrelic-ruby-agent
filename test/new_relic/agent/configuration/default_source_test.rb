@@ -122,6 +122,14 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_config_search_path_without_gem_home
+      with_environment('GEM_HOME' => nil) do
+        paths = DefaultSource.config_search_paths.call()
+
+        refute paths.any? { |p| p.include?('.jar!') }
+      end
+    end
+
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
       types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''

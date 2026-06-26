@@ -197,4 +197,12 @@ class TiltInstrumentationTest < Minitest::Test
     )
     String.any_instance.unstub(:split)
   end
+
+  def test_render_with_nil_finishable_does_not_raise
+    NewRelic::Agent::Tracer.stubs(:start_segment).returns(nil)
+
+    in_transaction do
+      Tilt.new('test.erb').render
+    end
+  end
 end

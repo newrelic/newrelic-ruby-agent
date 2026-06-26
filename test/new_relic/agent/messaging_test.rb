@@ -163,6 +163,21 @@ module NewRelic
         assert txn.finished, 'Expected transaction to be finished'
       end
 
+      def test_wrap_message_broker_consume_transaction_with_nil_txn
+        NewRelic::Agent::Tracer.stubs(:start_transaction).raises(RuntimeError, 'simulated start failure')
+
+        yielded = false
+        NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+          library: 'AwesomeBunniez',
+          destination_type: :exchange,
+          destination_name: 'Default'
+        ) do
+          yielded = true
+        end
+
+        assert yielded, 'Expected block to be yielded even when txn is nil'
+      end
+
       def test_agent_attributes_assigned_for_generic_wrap_consume_transaction
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
         NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
@@ -335,6 +350,16 @@ module NewRelic
         )
 
         refute segment.params[:headers], 'expected no :headers key in segment params'
+      end
+
+      def test_start_amqp_publish_segment_with_nil_headers
+        segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
+          library: 'RabbitMQ',
+          destination_name: 'Default',
+          headers: nil
+        )
+
+        refute segment.params[:headers], 'expected no :headers key when headers is nil'
       end
 
       def test_headers_not_attached_to_segment_if_empty_on_consume

@@ -322,7 +322,7 @@ module NewRelic
           private
 
           def postgres_unix_domain_socket_case?(host, adapter)
-            adapter == :postgres && host && host.start_with?(NewRelic::SLASH)
+            adapter == :postgres && host && host.start_with?(NewRelic::SLASH) # rubocop:disable Style/SafeNavigation
           end
 
           def mysql_default_case?(config, adapter)
