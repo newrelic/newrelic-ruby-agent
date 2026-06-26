@@ -330,14 +330,14 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         :'ai_monitoring.record_content.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => <<~DESCRIPTION
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
