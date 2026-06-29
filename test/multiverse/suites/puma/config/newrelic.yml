@@ -1,0 +1,14 @@
+---
+development:
+  license_key: bootstrap_newrelic_admin_license_key_000
+  app_name: test
+  monitor_mode: true
+  host: localhost
+  port: <%= $collector && $collector.port %>
+  # The suite repeatedly starts the agent (each test's setup) in a process that
+  # also builds Puma launchers, which production never does. Left enabled, every
+  # agent start would run dependency detection, arm the late interceptor, and
+  # then install a real sampler the moment a test built a launcher. Disable by
+  # default so detection stays inert; the tests that exercise it opt in with
+  # `with_config(:disable_puma_instrumentation => false)`.
+  disable_puma_instrumentation: true
