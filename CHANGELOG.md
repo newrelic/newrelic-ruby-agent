@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add Puma server-statistics instrumentation**
+
+  The agent now samples Puma's cluster-wide server statistics and reports them as `Ruby/Puma/*` timeslice metrics, including `backlog`, `running`, `pool_capacity`, `max_threads`, and `requests_count`. Statistics are sampled in single mode and in clustered mode when `preload_app!` is enabled. The sampling interval is configurable via the new `puma.sample_rate` setting (default 60 seconds), and the instrumentation can be disabled with `disable_puma_instrumentation`. Requires Puma 6.6 or later. [PR#XXXX](https://github.com/newrelic/newrelic-ruby-agent/pull/XXXX)
+
 ## v10.6.0
 
 - **Feature: SpanLink events are now supported for the Hybrid Agent**
