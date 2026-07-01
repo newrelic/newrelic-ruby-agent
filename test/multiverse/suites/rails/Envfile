@@ -34,12 +34,20 @@ end
 def minitest_rails_version(rails_version = nil)
   if rails_version && rails_version.include?('4.0.13')
     '4.2.0'
-  else
+  elsif RUBY_VERSION >= '3.3.0'
     # Rails edge (main) aliases assert_not_pattern to Minitest's refute_pattern,
-    # which was added in Minitest 5.16, so require at least that. Cap below 6.0
-    # because Minitest 6 removed minitest/mock (now its own gem) and the legacy
-    # MiniTest namespace, both of which the multiverse harness still relies on.
+    # which was added in Minitest 5.16, so require at least that. Rails edge only
+    # runs on Ruby >= 3.3 (see Multiverse::Envfile#unshift_rails_edge), so this is
+    # the only place the newer Minitest is needed. Cap below 6.0 because Minitest 6
+    # removed minitest/mock (now its own gem) and the legacy MiniTest namespace,
+    # both of which the multiverse harness still relies on.
     '~> 5.16'
+  else
+    # Older Rubies never run Rails edge, so keep the long-standing pin. Bumping
+    # Minitest here regresses Ruby 2.7: Minitest 5.25+ Mock#method_missing accepts
+    # **kwargs, so a symbol-keyed Hash passed to a mocked setter is split into
+    # kwargs under 2.7's argument semantics (activejob_test's code_information=).
+    '5.2.3'
   end
 end
 
