@@ -41,16 +41,16 @@ runs:
             "3.1.7": {
               "rails": "norails,rails61,rails70,rails71,rails72"
             },
-            "3.2.8": {
+            "3.2.11": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81"
             },
-            "3.3.8": {
+            "3.3.11": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81,railsedge"
             },
-            "3.4.8": {
+            "3.4.10": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81,railsedge"
             },
-            "4.0.0": {
+            "4.0.5": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81,railsedge"
             }
           }
