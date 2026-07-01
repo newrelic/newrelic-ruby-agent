@@ -35,7 +35,9 @@ def minitest_rails_version(rails_version = nil)
   if rails_version && rails_version.include?('4.0.13')
     '4.2.0'
   else
-    '5.2.3'
+    # Rails edge (main) aliases assert_not_pattern to Minitest's refute_pattern,
+    # which was added in Minitest 5.16, so require at least that.
+    '>= 5.16'
   end
 end
 
