@@ -36,8 +36,10 @@ def minitest_rails_version(rails_version = nil)
     '4.2.0'
   else
     # Rails edge (main) aliases assert_not_pattern to Minitest's refute_pattern,
-    # which was added in Minitest 5.16, so require at least that.
-    '>= 5.16'
+    # which was added in Minitest 5.16, so require at least that. Cap below 6.0
+    # because Minitest 6 removed minitest/mock (now its own gem) and the legacy
+    # MiniTest namespace, both of which the multiverse harness still relies on.
+    '~> 5.16'
   end
 end
 

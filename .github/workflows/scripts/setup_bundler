@@ -56,6 +56,7 @@ function install_ruby_version_specific_gems {
     # The doubles below are needed for older Ruby versions, since the newer one won't install on the older Ruby versions
     gem install --default cgi:0.5.0
     gem install --default cgi:0.5.1
+    gem install --default cgi:0.5.2
     gem install --default date:3.4.1
     gem install --default date:3.5.1
     gem install --default digest:3.1.0
@@ -63,6 +64,7 @@ function install_ruby_version_specific_gems {
     gem install --default erb:4.0.4
     gem install --default erb:5.0.2
     gem install --default erb:6.0.1
+    gem install --default erb:6.0.4
 
     gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
