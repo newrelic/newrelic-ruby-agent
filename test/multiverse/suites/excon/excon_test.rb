@@ -105,4 +105,10 @@ class ExconTest < Minitest::Test
 
     assert_equal('External/localhost/Excon/GET', last_node.metric_name)
   end
+
+  def test_finish_trace_with_nil_connection_does_not_raise
+    middleware = Excon::Middleware::NewRelicTracing.new(stub)
+    datum = {connection: nil}
+    middleware.send(:finish_trace, datum)
+  end
 end

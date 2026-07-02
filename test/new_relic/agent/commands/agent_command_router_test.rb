@@ -62,6 +62,12 @@ class AgentCommandRouterTest < Minitest::Test
     agent_commands.backtrace_service.worker_thread&.join
   end
 
+  def test_initialize_with_nil_event_listener
+    router = NewRelic::Agent::Commands::AgentCommandRouter.new(nil)
+
+    refute_nil router.handlers
+  end
+
   # General command routing
 
   def test_check_for_and_handle_agent_commands_dispatches_command

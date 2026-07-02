@@ -61,6 +61,14 @@ class HelperTest < Minitest::Test
     assert_equal result, stubbed
   end
 
+  def test_run_command_nil_output
+    NewRelic::Helper.stubs('executable_in_path?').returns(true)
+    Open3.stubs('capture2e').returns([nil, OpenStruct.new(success?: true)])
+    result = NewRelic::Helper.run_command('figlet Zoom Zoom')
+
+    assert_nil result
+  end
+
   def test_run_command_sad_unsuccessful
     NewRelic::Helper.stubs('executable_in_path?').returns(true)
     Open3.stubs('capture2e').returns([nil, OpenStruct.new(success?: false)])

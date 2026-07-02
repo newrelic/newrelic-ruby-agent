@@ -98,10 +98,12 @@ module NewRelic
         end
 
         def use_spec_config?(handler)
+          # rubocop:disable Style/SafeNavigation
           handler.respond_to?(:spec) &&
             handler.spec &&
             handler.spec.config &&
             handler.spec.config[:adapter].end_with?('makara')
+          # rubocop:enable Style/SafeNavigation
         end
 
         def start_segment(config, payload)

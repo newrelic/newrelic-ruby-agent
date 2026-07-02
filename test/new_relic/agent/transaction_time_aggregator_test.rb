@@ -149,4 +149,11 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
       assert_equal Fiber.current.object_id, result
     end
   end
+
+  def test_thread_is_alive_returns_falsy_when_thread_not_found
+    nonexistent_id = -1
+    result = NewRelic::Agent::TransactionTimeAggregator.send(:thread_is_alive?, nonexistent_id)
+
+    refute result
+  end
 end
