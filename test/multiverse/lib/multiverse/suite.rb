@@ -612,6 +612,7 @@ module Multiverse
     # Rails and minitest_tu_shim both want to do MiniTest::Unit.autorun for us
     # We can't sidestep, so just gut the method to avoid doubled test runs
     def prevent_minitest_auto_run
+      # TODO: OLD RUBIES - 2.6 - Remove this method when we drop support
       # MiniTest 4.x (absent on modern Minitest, which has no MiniTest::Unit)
       if defined?(::MiniTest::Unit)
         ::MiniTest::Unit.class_eval do
