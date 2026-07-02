@@ -2088,7 +2088,7 @@ module NewRelic
           :description => 'If `true`, disables the Puma server-statistics instrumentation that samples ' \
             '`Ruby/Puma/*` metrics from the Puma master process. This instrumentation is disabled by ' \
             'default. When enabled, the agent starts a reporting thread in the Puma master process to ' \
-            'deliver these metrics.
+            'deliver these metrics.'
         },
         :'puma.sample_rate' => {
           :default => 60,
