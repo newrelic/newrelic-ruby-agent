@@ -18,7 +18,9 @@ unshift_rails_edge(RAILS_VERSIONS)
 def gem_list(rails_version = nil)
   # earlier thor errors, uncertain if they persist
   thor = "gem 'thor', '< 0.20.1'" if RUBY_PLATFORM == 'java' && rails_version && rails_version.include?('4')
-  minitest_version = rails_version && rails_version.include?('4.0') ? '4.2.0' : '5.2.3'
+  # Rails edge (main) aliases assert_not_pattern to Minitest's refute_pattern,
+  # which was added in Minitest 5.16, so require at least that.
+  minitest_version = rails_version && rails_version.include?('4.0') ? '4.2.0' : '5.16'
   <<~RB
     gem 'rails'#{rails_version}
     gem 'haml', '~> 6.0'

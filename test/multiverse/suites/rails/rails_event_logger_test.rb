@@ -13,6 +13,7 @@ class RailsEventLoggerTest < Minitest::Test
     skip 'Rails.event requires Rails 8.1+' unless rails_event_available?
 
     @aggregator = NewRelic::Agent.agent.log_event_aggregator
+    @aggregator.reset!
   end
 
   def teardown
