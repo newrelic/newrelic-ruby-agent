@@ -15,8 +15,7 @@ module NewRelic
     #
     # This class restarts the harvest thread in the master via
     # +NewRelic::Agent.after_fork(force_reconnect: true)+ to deliver the
-    # sampled metrics. The master then reports to New Relic as its own
-    # instance.
+    # sampled metrics. This starts an additional agent connection in the master.
     #
     # Records only integer gauges/counters via +NewRelic::Agent.record_metric+
     # (no request, query, or user data), so it is fully functional under High
@@ -30,6 +29,7 @@ module NewRelic
       class UnrecognizedStatsError < StandardError; end
 
       METRIC_NAMESPACE = 'Ruby/Puma'
+      INSTRUMENTATION_NAME = 'Puma'
       # Per-worker stat keys, summed across the cluster. +requests_count+ is a
       # cumulative counter (use +rate()+ in NRQL); the rest are point-in-time
       # gauges. +pool_capacity+ is spare request capacity: idle threads plus
@@ -66,6 +66,8 @@ module NewRelic
       # so #start is never re-entered on the same instance.
       def start
         return unless ensure_master_is_reporting
+
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
         @lock.synchronize do
           return if @stopped

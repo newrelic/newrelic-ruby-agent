@@ -2082,11 +2082,14 @@ module NewRelic
         },
         # Puma
         :disable_puma_instrumentation => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables the Puma server-statistics instrumentation that samples `Ruby/Puma/*` metrics from the Puma master process. When enabled, the Puma master appears in New Relic as its own reporting instance.'
+          :description => 'If `true`, disables the Puma server-statistics instrumentation that samples ' \
+            '`Ruby/Puma/*` metrics from the Puma master process. This instrumentation is disabled by ' \
+            'default. When enabled, the agent starts a reporting thread in the Puma master process to ' \
+            'deliver these metrics.
         },
         :'puma.sample_rate' => {
           :default => 60,
