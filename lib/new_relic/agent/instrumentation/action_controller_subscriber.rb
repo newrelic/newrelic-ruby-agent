@@ -90,8 +90,7 @@ module NewRelic
         end
 
         def queue_start(request)
-          # the following line needs else branch coverage
-          if request && request.respond_to?(:env) # rubocop:disable Style/SafeNavigation
+          if request&.respond_to?(:env)
             QueueTime.parse_frontend_timestamp(request.env, Process.clock_gettime(Process::CLOCK_REALTIME))
           end
         end

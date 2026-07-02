@@ -532,6 +532,28 @@ module NewRelic
           Tracer.create_distributed_trace_payload
         end
       end
+
+      def test_capture_segment_error_with_nil_segment
+        error = RuntimeError.new('boom')
+        assert_raises(RuntimeError) do
+          Tracer.capture_segment_error(nil) { raise error }
+        end
+      end
+
+      def test_capture_segment_error_with_non_abstract_segment
+        error = RuntimeError.new('boom')
+        non_segment = Object.new
+        assert_raises(RuntimeError) do
+          Tracer.capture_segment_error(non_segment) { raise error }
+        end
+      end
+
+      def test_pop_traced_with_nil_untraced
+        state = Tracer::State.new
+        state.untraced = nil
+
+        assert_nil state.pop_traced
+      end
     end
   end
 end

@@ -14,6 +14,12 @@ module NewRelic
         assert_equal [4, 8, 5, 12], heap.to_a
       end
 
+      def test_initialize_with_no_items
+        heap = Heap.new
+
+        assert_empty heap.to_a
+      end
+
       def test_tree_rebalanced_on_pop
         heap = Heap.new([12, 5, 4, 8])
         heap.pop

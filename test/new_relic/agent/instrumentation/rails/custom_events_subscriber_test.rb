@@ -53,6 +53,13 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
+    def test_finish_with_nil_finishable
+      SUBSCRIBER.stubs(:pop_segment).returns(nil)
+      in_transaction do
+        SUBSCRIBER.finish(NAME, ID, {})
+      end
+    end
+
     def test_finish
       in_transaction do |txn|
         started_segment = NewRelic::Agent::Tracer.start_transaction_or_segment(name: NAME, category: :testing)
