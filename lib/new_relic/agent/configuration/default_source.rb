@@ -2351,6 +2351,20 @@ module NewRelic
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in an Google Cloud Platform environment.'
         },
+        :'utilization.gcp_cloud_run.use_instance_as_host' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, when the agent detects it is running on Google Cloud Run, it reports the GCP metadata instance id as the hostname rather than `localhost`. This allows individual Cloud Run instances to be distinguished in the New Relic UI.'
+        },
+        :'utilization.gcp_cloud_run.include_revision_in_host' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, when the agent detects it is running on Google Cloud Run, it prepends the `K_REVISION` environment variable value to the instance id to form the hostname (`{K_REVISION}-{instance id}`), which can be easier to identify in the New Relic UI. Has no effect unless `utilization.gcp_cloud_run.use_instance_as_host` is also `true`.'
+        },
         :'utilization.detect_kubernetes' => {
           :default => true,
           :public => true,
