@@ -19,9 +19,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # tag v1.310.0
+      - uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
         with:
-          ruby-version: 4.0.0
+          ruby-version: 4.0.5
       - run: bundle install
       - run: rubocop
 
@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -57,7 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, frameworks, httpclients, httpclients_2, hybrid_agent, rails, rest]
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -91,7 +91,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -142,7 +142,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -186,7 +186,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -234,7 +234,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -275,7 +275,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -296,9 +296,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # tag v1.310.0
+      - uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
         with:
-          ruby-version: 4.0.0
+          ruby-version: 4.0.5
       - run: gem install httparty
       # TODO: MAJOR VERSION - Remove this version constraint when we update the
       # minitest version in the gemspec
@@ -314,7 +314,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.0.7, 3.1.7, 3.2.9, 3.3.10, 3.4.8, 4.0.0]
+        ruby-version: [2.7.8, 3.0.7, 3.1.7, 3.2.11, 3.3.11, 3.4.10, 4.0.5]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
