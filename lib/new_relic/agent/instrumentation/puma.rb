@@ -12,7 +12,7 @@ module NewRelic
 
         # Puma stores the runner via +Puma.stats_object=+. No public accessor,
         # so read the ivar that the setter writes.
-        def runner
+        def runner # :nodoc:
           return nil unless defined?(::Puma) && ::Puma.instance_variable_defined?(:@get_stats)
 
           ::Puma.instance_variable_get(:@get_stats)
@@ -20,7 +20,7 @@ module NewRelic
 
         # True only where the agent should sample: single mode (one process) or
         # clustered with +preload_app!+ (where the agent is loaded in the master).
-        def master?(runner)
+        def master?(runner) # :nodoc:
           return false if runner.nil?
           return true if defined?(::Puma::Single) && runner.is_a?(::Puma::Single)
           return false unless runner.respond_to?(:options)
@@ -28,12 +28,12 @@ module NewRelic
           !!runner.options[:preload_app]
         end
 
-        def install_or_arm
+        def install_or_arm # :nodoc:
           current = runner
           current ? install_in_master(current) : arm_late_install
         end
 
-        def install_in_master(runner)
+        def install_in_master(runner) # :nodoc:
           unless master?(runner)
             log_puma_6x_preload_warning(runner)
             return
@@ -45,8 +45,8 @@ module NewRelic
 
         # Puma 6.x doesn't apply +preload_app+ defaults from the config block,
         # so a clustered 6.x app with +workers 2+ but no explicit +preload_app!(true)+
-        # 11silently gets no metrics.
-        def log_puma_6x_preload_warning(runner)
+        # silently gets no metrics.
+        def log_puma_6x_preload_warning(runner) # :nodoc:
           return unless runner&.respond_to?(:options)
           return unless runner.options[:workers].to_i > 1 && !runner.options[:preload_app]
           return unless defined?(::Puma::Const::VERSION) && ::Puma::Const::VERSION.start_with?('6.')
@@ -61,14 +61,14 @@ module NewRelic
         # order). The prepend is permanent, so +@late_install_armed+ does the real
         # gating: disarming it on the first registration keeps a Puma hot restart
         # from starting a second sampler.
-        def arm_late_install
+        def arm_late_install # :nodoc:
           @late_install_armed = true
           ::Puma.singleton_class.prepend(StatsObjectRegistration)
         end
 
         # Invoked by the interceptor when Puma registers a runner. One-shot:
         # disarm before installing so the registration is handled exactly once.
-        def install_on_register(runner)
+        def install_on_register(runner) # :nodoc:
           return unless @late_install_armed
 
           @late_install_armed = false
@@ -79,7 +79,7 @@ module NewRelic
         # its runner. +super+ runs Puma's own assignment unguarded; only the
         # agent reaction is rescued, so an agent-side failure cannot escape
         # into Puma's launcher boot.
-        module StatsObjectRegistration
+        module StatsObjectRegistration # :nodoc:
           def stats_object=(runner)
             super
             begin
@@ -92,7 +92,7 @@ module NewRelic
 
         # Started in the master before workers fork, so forked workers do not
         # inherit the sampling thread.
-        def install(runner)
+        def install(runner) # :nodoc:
           sampler = NewRelic::Agent::PumaStatsSampler.new(runner)
           register_stop(runner, sampler)
           Thread.new { sampler.start }
@@ -107,7 +107,7 @@ module NewRelic
         # (+:on_restart+/+:on_stopped+), plus +:state+ for single mode (the
         # clustered master runs no +Puma::Server+). +stop+ is idempotent, so
         # overlapping events are harmless.
-        def register_stop(runner, sampler)
+        def register_stop(runner, sampler) # :nodoc:
           launcher = runner.instance_variable_get(:@launcher)
           return unless launcher.respond_to?(:events)
 
