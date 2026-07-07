@@ -19,7 +19,7 @@ module NewRelic
         end
 
         # True only where the agent should sample: single mode (one process) or
-        # clustered with +preload_app!+ (where the agent is loaded in the master).
+        # clustered with +preload_app!+ (where the agent is loaded in the master process).
         def master?(runner) # :nodoc:
           return false if runner.nil?
           return true if defined?(::Puma::Single) && runner.is_a?(::Puma::Single)
