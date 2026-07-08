@@ -115,19 +115,19 @@ module NewRelic
       end
 
       def test_gcp_instance_id_parses_successful_response
-        Net::HTTP.stubs(:start).yields(stub(request: stub(code: '200', body: "1234567890\n")))
+        NewRelic::Helper.stubs(:fetch_metadata).returns(stub(code: '200', body: "1234567890\n"))
 
         assert_equal '1234567890', NewRelic::Agent::Hostname.gcp_instance_id
       end
 
       def test_gcp_instance_id_returns_nil_for_non_200_response
-        Net::HTTP.stubs(:start).yields(stub(request: stub(code: '404', body: 'nope')))
+        NewRelic::Helper.stubs(:fetch_metadata).returns(stub(code: '404', body: 'nope'))
 
         assert_nil NewRelic::Agent::Hostname.gcp_instance_id
       end
 
       def test_gcp_instance_id_returns_nil_on_connection_error
-        Net::HTTP.stubs(:start).raises(Errno::ECONNREFUSED)
+        NewRelic::Helper.stubs(:fetch_metadata).raises(Errno::ECONNREFUSED)
 
         assert_nil NewRelic::Agent::Hostname.gcp_instance_id
       end

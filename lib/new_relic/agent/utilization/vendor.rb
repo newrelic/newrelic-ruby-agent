@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'net/http'
+require 'new_relic/helper'
 
 module NewRelic
   module Agent
@@ -75,12 +75,7 @@ module NewRelic
           processed_headers = headers
           raise if processed_headers.value?(:error)
 
-          response = nil
-          Net::HTTP.start(endpoint.host, endpoint.port, open_timeout: 1, read_timeout: 1) do |http|
-            req = Net::HTTP::Get.new(endpoint, processed_headers)
-            response = http.request(req)
-          end
-          response
+          NewRelic::Helper.fetch_metadata(endpoint, processed_headers)
         rescue
           NewRelic::Agent.logger.debug("#{vendor_name} environment not detected")
         end

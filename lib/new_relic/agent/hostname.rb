@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'socket'
-require 'net/http'
 require 'new_relic/helper'
 
 module NewRelic
@@ -43,11 +42,7 @@ module NewRelic
       end
 
       def self.gcp_instance_id
-        uri = URI(GCP_INSTANCE_ID_URI)
-        response = nil
-        Net::HTTP.start(uri.host, uri.port, open_timeout: 1, read_timeout: 1) do |http|
-          response = http.request(Net::HTTP::Get.new(uri, GCP_METADATA_HEADERS))
-        end
+        response = NewRelic::Helper.fetch_metadata(GCP_INSTANCE_ID_URI, GCP_METADATA_HEADERS)
         return unless response&.code == '200'
 
         id = response.body.to_s.strip
