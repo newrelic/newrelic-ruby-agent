@@ -91,38 +91,27 @@ module NewRelic
       end
 
       def explain_this(statement, use_execute = false)
-        if supports_with_connection?
-          explain_this_using_with_connection(statement)
-        else
-          explain_this_using_adapter_connection(statement, use_execute)
+        connection = get_connection(statement.config) { new_explain_connection(statement.config) }
+        return unless connection
+
+        run_explain(statement.config, connection) do
+          if use_execute && !supports_connection_adapters_resolve?
+            connection.execute("EXPLAIN #{statement.sql}")
+          else
+            connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
+          end
         end
       rescue => e
         NewRelic::Agent.logger.error("Couldn't fetch the explain plan for statement: #{e}")
       end
 
-      def explain_this_using_with_connection(statement)
-        connection = get_connection(statement.config) do
-          ::ActiveRecord::ConnectionAdapters.resolve(statement.config[:adapter]).new(statement.config)
-        end
-        return unless connection
-
-        run_explain(statement.config, connection) do
-          connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
-        end
-      end
-
-      def explain_this_using_adapter_connection(statement, use_execute)
-        connection = get_connection(statement.config) do
-          ::ActiveRecord::Base.send(:"#{statement.config[:adapter]}_connection", statement.config)
-        end
-        return unless connection
-
-        run_explain(statement.config, connection) do
-          if use_execute
-            connection.execute("EXPLAIN #{statement.sql}")
-          else
-            connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
-          end
+      def new_explain_connection(config)
+        if supports_connection_adapters_resolve?
+          # Rails 7.2+
+          ::ActiveRecord::ConnectionAdapters.resolve(config[:adapter]).new(config)
+        else
+          # Rails <= 7.1
+          ::ActiveRecord::Base.send(:"#{config[:adapter]}_connection", config)
         end
       end
 
@@ -134,11 +123,10 @@ module NewRelic
         raise
       end
 
-      # ActiveRecord v7.2.0 introduced with_connection
-      def supports_with_connection?
-        return @supports_with_connection if defined?(@supports_with_connection)
+      def supports_connection_adapters_resolve?
+        return @supports_connection_adapters_resolve if defined?(@supports_connection_adapters_resolve)
 
-        @supports_with_connection = defined?(::ActiveRecord::VERSION::STRING) &&
+        @supports_connection_adapters_resolve = defined?(::ActiveRecord::VERSION::STRING) &&
           NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::STRING, '>=', '7.2.0')
       end
 

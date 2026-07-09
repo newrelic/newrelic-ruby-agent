@@ -649,10 +649,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_nil statement.query_name
   end
 
-  # with_connection resolves via statement.config, not ActiveRecord::Base.with_connection
-  # (which always uses the default pool and is unsafe in multi-database apps).
-
-  def test_explain_using_with_connection_resolves_via_statement_config
+  def test_explain_this_resolves_via_statement_config
     config = {:adapter => 'postgresql', :database => 'secondary'}
     connection = mock('secondary db connection')
     connection.expects(:exec_query).with('EXPLAIN select 1', 'Explain SQL', nil).returns('a plan')
@@ -663,15 +660,17 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection_adapters = mock('connection adapters module')
     connection_adapters.expects(:resolve).with('postgresql').returns(adapter_class)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
     with_fake_active_record(connection_adapters: connection_adapters) do
       statement = NewRelic::Agent::Database::Statement.new('select 1', config)
-      result = NewRelic::Agent::Database.explain_this_using_with_connection(statement)
+      result = NewRelic::Agent::Database.explain_this(statement)
 
       assert_equal 'a plan', result
     end
   end
 
-  def test_explain_using_with_connection_caches_connection_per_config
+  def test_explain_this_caches_connection_per_config
     config = {:adapter => 'postgresql', :database => 'secondary'}
     connection = mock('secondary db connection')
     connection.expects(:exec_query).twice.returns('a plan')
@@ -682,14 +681,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection_adapters = mock('connection adapters module')
     connection_adapters.expects(:resolve).once.with('postgresql').returns(adapter_class)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
     with_fake_active_record(connection_adapters: connection_adapters) do
       statement = NewRelic::Agent::Database::Statement.new('select 1', config)
-      NewRelic::Agent::Database.explain_this_using_with_connection(statement)
-      NewRelic::Agent::Database.explain_this_using_with_connection(statement)
+      NewRelic::Agent::Database.explain_this(statement)
+      NewRelic::Agent::Database.explain_this(statement)
     end
   end
 
-  def test_explain_using_with_connection_routes_different_configs_independently
+  def test_explain_this_routes_different_configs_independently
     primary_config = {:adapter => 'postgresql', :database => 'primary'}
     secondary_config = {:adapter => 'postgresql', :database => 'secondary'}
 
@@ -705,16 +706,18 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection_adapters = mock('connection adapters module')
     connection_adapters.stubs(:resolve).with('postgresql').returns(adapter_class)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
     with_fake_active_record(connection_adapters: connection_adapters) do
       primary_statement = NewRelic::Agent::Database::Statement.new('select 1', primary_config)
       secondary_statement = NewRelic::Agent::Database::Statement.new('select 2', secondary_config)
 
-      assert_equal 'primary plan', NewRelic::Agent::Database.explain_this_using_with_connection(primary_statement)
-      assert_equal 'secondary plan', NewRelic::Agent::Database.explain_this_using_with_connection(secondary_statement)
+      assert_equal 'primary plan', NewRelic::Agent::Database.explain_this(primary_statement)
+      assert_equal 'secondary plan', NewRelic::Agent::Database.explain_this(secondary_statement)
     end
   end
 
-  def test_explain_using_with_connection_resets_connection_on_error
+  def test_explain_this_resets_connection_on_error
     config = {:adapter => 'postgresql', :database => 'secondary'}
     connection = mock('secondary db connection')
     connection.expects(:exec_query).raises(StandardError.new('boom'))
@@ -726,16 +729,18 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection_adapters = mock('connection adapters module')
     connection_adapters.stubs(:resolve).returns(adapter_class)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
     with_fake_active_record(connection_adapters: connection_adapters) do
       statement = NewRelic::Agent::Database::Statement.new('select 1', config)
 
-      assert_raises(StandardError) do
-        NewRelic::Agent::Database.explain_this_using_with_connection(statement)
-      end
+      # explain_this rescues and logs, so the error itself doesn't surface here -
+      # the mock's `reset!` expectation is what proves the recovery ran.
+      assert_nil NewRelic::Agent::Database.explain_this(statement)
     end
   end
 
-  def test_explain_using_with_connection_discards_connection_when_reset_fails
+  def test_explain_this_discards_connection_when_reset_fails
     config = {:adapter => 'postgresql', :database => 'secondary'}
     connection = mock('secondary db connection')
     connection.expects(:exec_query).raises(StandardError.new('boom'))
@@ -748,12 +753,12 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     connection_adapters = mock('connection adapters module')
     connection_adapters.stubs(:resolve).returns(adapter_class)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
     with_fake_active_record(connection_adapters: connection_adapters) do
       statement = NewRelic::Agent::Database::Statement.new('select 1', config)
 
-      assert_raises(StandardError) do
-        NewRelic::Agent::Database.explain_this_using_with_connection(statement)
-      end
+      assert_nil NewRelic::Agent::Database.explain_this(statement)
 
       cached_connection = NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections[config] }
 
@@ -761,9 +766,9 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     end
   end
 
-  # adapter_connection already routes via statement.config; just needs the same safety net.
+  # Same two cases, but forcing the pre-7.2 ActiveRecord::Base.send(:"#{adapter}_connection") path.
 
-  def test_explain_using_adapter_connection_resets_connection_on_error
+  def test_explain_this_resets_connection_on_error_with_legacy_adapter_connection
     config = {:adapter => 'postgresql', :database => 'secondary'}
     connection = mock('secondary db connection')
     connection.expects(:exec_query).raises(StandardError.new('boom'))
@@ -775,16 +780,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     end
     base.stubs(:postgresql_connection).with(config).returns(connection)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(false)
+
     with_fake_active_record(base: base) do
       statement = NewRelic::Agent::Database::Statement.new('select 1', config)
 
-      assert_raises(StandardError) do
-        NewRelic::Agent::Database.explain_this_using_adapter_connection(statement, false)
-      end
+      assert_nil NewRelic::Agent::Database.explain_this(statement)
     end
   end
 
-  def test_explain_using_adapter_connection_discards_connection_when_reset_fails
+  def test_explain_this_discards_connection_when_reset_fails_with_legacy_adapter_connection
     config = {:adapter => 'postgresql', :database => 'secondary'}
     connection = mock('secondary db connection')
     connection.expects(:exec_query).raises(StandardError.new('boom'))
@@ -797,12 +802,12 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     end
     base.stubs(:postgresql_connection).with(config).returns(connection)
 
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(false)
+
     with_fake_active_record(base: base) do
       statement = NewRelic::Agent::Database::Statement.new('select 1', config)
 
-      assert_raises(StandardError) do
-        NewRelic::Agent::Database.explain_this_using_adapter_connection(statement, false)
-      end
+      assert_nil NewRelic::Agent::Database.explain_this(statement)
 
       cached_connection = NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections[config] }
 
