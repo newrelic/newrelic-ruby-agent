@@ -126,8 +126,7 @@ module NewRelic
         end
       end
 
-      # Ensures a connection that errors out while explaining a query never lingers in a bad
-      # transaction state for the next explain attempt against that same cached connection.
+      # Resets the connection on error so it isn't reused while in a bad state
       def run_explain(config, connection)
         yield
       rescue
@@ -231,17 +230,13 @@ module NewRelic
           end
         end
 
-        # Tries to restore a connection to a clean, reusable state after a failed query
-        # (rolling back any open transaction), falling back to evicting it from the cache
-        # if it can't be reset.
+        # connection.reset! rolls back any open transaction; if that itself fails, evict it.
         def reset_or_discard_connection(config, connection)
           connection.reset!
         rescue
           discard_connection(config)
         end
 
-        # Evicts and disconnects a single cached connection, e.g. when it's been left in a bad
-        # state by a failed explain and shouldn't be reused for the next attempt.
         def discard_connection(config)
           @connections ||= {}
           connection = @connections.delete(config)

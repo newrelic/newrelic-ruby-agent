@@ -649,10 +649,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_nil statement.query_name
   end
 
-  # explain_this_using_with_connection (Rails >= 7.2) is expected to resolve a connection
-  # from the statement's own config (like the pre-7.2 adapter-connection path does), rather
-  # than ActiveRecord::Base.with_connection, which always checks out from the default pool
-  # and is unsafe in multi-database apps.
+  # with_connection resolves via statement.config, not ActiveRecord::Base.with_connection
+  # (which always uses the default pool and is unsafe in multi-database apps).
 
   def test_explain_using_with_connection_resolves_via_statement_config
     config = {:adapter => 'postgresql', :database => 'secondary'}
@@ -763,8 +761,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     end
   end
 
-  # explain_this_using_adapter_connection (Rails < 7.2) already routes via statement.config;
-  # it just needs the same reset/discard-on-error safety net.
+  # adapter_connection already routes via statement.config; just needs the same safety net.
 
   def test_explain_using_adapter_connection_resets_connection_on_error
     config = {:adapter => 'postgresql', :database => 'secondary'}
@@ -815,10 +812,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   private
 
-  # Defines a minimal top-level ActiveRecord module for the duration of the block, since
-  # this unit test suite runs without the real activerecord gem loaded. Also clears the
-  # ConnectionManager cache afterward so mock connections from one test never leak into
-  # another.
+  # Fakes ActiveRecord since this suite runs without the real gem loaded, and clears
+  # ConnectionManager's cache afterward so mock connections don't leak between tests.
   def with_fake_active_record(connection_adapters: Module.new, base: Class.new)
     ar_module = Module.new
     ar_module.const_set(:ConnectionAdapters, connection_adapters)
