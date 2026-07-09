@@ -817,22 +817,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   private
 
-  # Fakes ActiveRecord since this suite runs without the real gem loaded, and clears
+  # Fakes ActiveRecord for the duration of the block (this suite may run either without
+  # the real gem loaded, or under test:env with a real one already present), and clears
   # ConnectionManager's cache afterward so mock connections don't leak between tests.
   def with_fake_active_record(connection_adapters: Module.new, base: Class.new)
     ar_module = Module.new
     ar_module.const_set(:ConnectionAdapters, connection_adapters)
     ar_module.const_set(:Base, base)
 
-    had_active_record = Object.const_defined?(:ActiveRecord)
-    original_active_record = Object.const_get(:ActiveRecord) if had_active_record
-    Object.send(:remove_const, :ActiveRecord) if had_active_record
-    Object.const_set(:ActiveRecord, ar_module)
-
-    yield
+    Object.stub_const(:ActiveRecord, ar_module) { yield }
   ensure
-    Object.send(:remove_const, :ActiveRecord) if Object.const_defined?(:ActiveRecord)
-    Object.const_set(:ActiveRecord, original_active_record) if had_active_record
     NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections = {} }
   end
 end
