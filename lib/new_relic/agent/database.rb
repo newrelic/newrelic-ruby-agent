@@ -95,7 +95,7 @@ module NewRelic
         return unless connection
 
         run_explain(statement.config, connection) do
-          if use_execute && !supports_connection_adapters_resolve?
+          if use_execute # only used on rails 3
             connection.execute("EXPLAIN #{statement.sql}")
           else
             connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
