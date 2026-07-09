@@ -101,8 +101,13 @@ module NewRelic
       end
 
       def explain_this_using_with_connection(statement)
-        ::ActiveRecord::Base.with_connection do |conn|
-          conn.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
+        connection = get_connection(statement.config) do
+          ::ActiveRecord::ConnectionAdapters.resolve(statement.config[:adapter]).new(statement.config)
+        end
+        return unless connection
+
+        run_explain(statement.config, connection) do
+          connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
         end
       end
 
@@ -110,12 +115,24 @@ module NewRelic
         connection = get_connection(statement.config) do
           ::ActiveRecord::Base.send(:"#{statement.config[:adapter]}_connection", statement.config)
         end
+        return unless connection
 
-        if use_execute
-          connection.execute("EXPLAIN #{statement.sql}")
-        else
-          connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
+        run_explain(statement.config, connection) do
+          if use_execute
+            connection.execute("EXPLAIN #{statement.sql}")
+          else
+            connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
+          end
         end
+      end
+
+      # Ensures a connection that errors out while explaining a query never lingers in a bad
+      # transaction state for the next explain attempt against that same cached connection.
+      def run_explain(config, connection)
+        yield
+      rescue
+        ConnectionManager.instance.reset_or_discard_connection(config, connection)
+        raise
       end
 
       # ActiveRecord v7.2.0 introduced with_connection
@@ -211,6 +228,28 @@ module NewRelic
           rescue => e
             ::NewRelic::Agent.logger.error('Caught exception trying to get connection to DB for explain.', e)
             nil
+          end
+        end
+
+        # Tries to restore a connection to a clean, reusable state after a failed query
+        # (rolling back any open transaction), falling back to evicting it from the cache
+        # if it can't be reset.
+        def reset_or_discard_connection(config, connection)
+          connection.reset!
+        rescue
+          discard_connection(config)
+        end
+
+        # Evicts and disconnects a single cached connection, e.g. when it's been left in a bad
+        # state by a failed explain and shouldn't be reused for the next attempt.
+        def discard_connection(config)
+          @connections ||= {}
+          connection = @connections.delete(config)
+          return unless connection
+
+          begin
+            connection.disconnect!
+          rescue
           end
         end
 
