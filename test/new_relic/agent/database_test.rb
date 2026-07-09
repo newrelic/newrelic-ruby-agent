@@ -823,11 +823,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     ar_module = Module.new
     ar_module.const_set(:ConnectionAdapters, connection_adapters)
     ar_module.const_set(:Base, base)
+
+    had_active_record = Object.const_defined?(:ActiveRecord)
+    original_active_record = Object.const_get(:ActiveRecord) if had_active_record
+    Object.send(:remove_const, :ActiveRecord) if had_active_record
     Object.const_set(:ActiveRecord, ar_module)
 
     yield
   ensure
     Object.send(:remove_const, :ActiveRecord) if Object.const_defined?(:ActiveRecord)
+    Object.const_set(:ActiveRecord, original_active_record) if had_active_record
     NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections = {} }
   end
 end
