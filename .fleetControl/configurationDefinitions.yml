@@ -3,4 +3,5 @@ configurationDefinitions:
     description: Ruby agent configuration
     type: agent-config
     version: 1.0.0
-# will add schema information here later
+    schema: ./schemas/config.json
+    format: yml
