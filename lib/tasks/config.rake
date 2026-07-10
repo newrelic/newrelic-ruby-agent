@@ -42,5 +42,12 @@ namespace :newrelic do
       format = args[:format] || 'text'
       output(format)
     end
+
+    desc 'Generate the Fleet Control JSON Schema for agent configuration'
+    task :schema => [] do
+      require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '.fleetControl', 'schemaGeneration', 'generate_schema.rb'))
+      GenerateSchema.write_file
+      puts "Wrote #{GenerateSchema::OUTPUT_PATH}"
+    end
   end
 end
