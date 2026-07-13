@@ -1,0 +1,63 @@
+name: Update Config Schema
+
+# Regenerate the agent config schema whenever the config registry or the
+# generator changes, and commit the result back to the feature branch. main and
+# dev are ignored (the schema is version-bumped for those on release, not here).
+on:
+  push:
+    branches-ignore:
+      - main
+      - dev
+    paths:
+      - 'lib/new_relic/agent/configuration/default_source.rb'
+      - '.fleetControl/schemaGeneration/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate_config_schema:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+
+      - name: Install Ruby 3.4
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
+        with:
+          ruby-version: 3.4
+
+      - run: bundle install
+
+      - name: Regenerate schema
+        id: generate
+        run: |
+          set +e
+          ruby .fleetControl/schemaGeneration/generate_schema.rb
+          code=$?
+          set -e
+          case "$code" in
+            0) echo 'Schema unchanged.' ;;
+            1) echo 'Schema changed.'; echo 'changed=true' >> "$GITHUB_OUTPUT" ;;
+            *) echo "Schema generation failed (exit $code)."; exit 1 ;;
+          esac
+
+      # The commit touches only schemas/config.json, which is NOT in the paths
+      # filter above, so this push does not re-trigger the workflow (no loop).
+      # Keep that path filter if you edit this.
+      - name: Commit regenerated schema
+        if: steps.generate.outputs.changed == 'true'
+        run: |
+          if [ -z "$(git status --porcelain .fleetControl/schemas/config.json)" ]; then
+            echo 'Generator reported changes but config.json is clean — nothing to commit.'
+            exit 0
+          fi
+          git config --global user.email ${{ secrets.EMAIL }}
+          git config --global user.name 'newrelic-ruby-agent-bot'
+          git add .fleetControl/schemas/config.json
+          git commit -m 'chore(ruby agent): Regenerate Fleet Control config schema'
+          git push origin "HEAD:${{ github.ref_name }}"

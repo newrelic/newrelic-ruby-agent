@@ -224,6 +224,71 @@ class GenerateSchemaTest < Minitest::Test
     end
   end
 
+  # --- change detection + exit codes (drives the CI drift check) --------------
+
+  def test_write_if_changed_returns_changed_when_file_is_missing
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'schemas', 'config.json')
+
+      assert_equal :changed, GenerateSchema.write_if_changed(FAKE_DEFAULTS, path)
+      assert File.exist?(path)
+    end
+  end
+
+  def test_write_if_changed_returns_unchanged_when_content_matches
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'config.json')
+      GenerateSchema.write_file(FAKE_DEFAULTS, path)
+
+      assert_equal :unchanged, GenerateSchema.write_if_changed(FAKE_DEFAULTS, path)
+    end
+  end
+
+  def test_write_if_changed_rewrites_when_content_differs
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'config.json')
+      File.write(path, "stale contents\n")
+
+      assert_equal :changed, GenerateSchema.write_if_changed(FAKE_DEFAULTS, path)
+      assert_equal 'object', JSON.parse(File.read(path))['type']
+    end
+  end
+
+  def test_run_returns_exit_code_0_when_unchanged
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'config.json')
+      GenerateSchema.write_file(FAKE_DEFAULTS, path)
+
+      out, = capture_io do
+        assert_equal 0, GenerateSchema.run(FAKE_DEFAULTS, path)
+      end
+      assert_match(/unchanged/i, out)
+    end
+  end
+
+  def test_run_returns_exit_code_1_when_changed
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'config.json')
+
+      capture_io do
+        assert_equal 1, GenerateSchema.run(FAKE_DEFAULTS, path)
+      end
+    end
+  end
+
+  def test_run_returns_exit_code_2_on_failure
+    Dir.mktmpdir do |dir|
+      blocker = File.join(dir, 'blocker')
+      File.write(blocker, 'x')
+      # dirname is a regular file, so mkdir_p raises -> the failure path
+      unwritable = File.join(blocker, 'config.json')
+
+      capture_io do
+        assert_equal 2, GenerateSchema.run(FAKE_DEFAULTS, unwritable)
+      end
+    end
+  end
+
   private
 
   FAKE_DEFAULTS = {

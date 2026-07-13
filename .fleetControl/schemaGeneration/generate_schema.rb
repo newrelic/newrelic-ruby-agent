@@ -135,11 +135,42 @@ module GenerateSchema
 
   def write_file(defaults = DEFAULTS, path = OUTPUT_PATH)
     FileUtils.mkdir_p(File.dirname(path))
-    File.write(path, "#{to_json_string(defaults)}\n")
+    File.write(path, rendered(defaults))
     path
   end
 
+  # Write only when the generated schema differs from what's on disk (or the
+  # file is missing). Returns :changed or :unchanged so CI can detect drift.
+  def write_if_changed(defaults = DEFAULTS, path = OUTPUT_PATH)
+    new_content = rendered(defaults)
+    return :unchanged if File.exist?(path) && File.read(path) == new_content
+
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, new_content)
+    :changed
+  end
+
+  # CLI entry point. Exit codes drive the per-push regen workflow:
+  # 0 = unchanged, 1 = changed (workflow commits), 2 = failure.
+  def run(defaults = DEFAULTS, path = OUTPUT_PATH)
+    if write_if_changed(defaults, path) == :unchanged
+      puts "Schema unchanged: #{path}"
+      0
+    else
+      puts "Schema changed, wrote: #{path}"
+      1
+    end
+  rescue StandardError => e
+    warn "Schema generation failed: #{e.class}: #{e.message}"
+    2
+  end
+
   # --- helpers ----------------------------------------------------------------
+
+  # The exact bytes written to disk, so every writer stays byte-identical.
+  def rendered(defaults)
+    "#{to_json_string(defaults)}\n"
+  end
 
   def public?(spec)
     spec[:public] == true
@@ -177,4 +208,4 @@ module GenerateSchema
   end
 end
 
-GenerateSchema.write_file && (puts "Wrote #{GenerateSchema::OUTPUT_PATH}") if __FILE__ == $PROGRAM_NAME
+exit(GenerateSchema.run) if __FILE__ == $PROGRAM_NAME
