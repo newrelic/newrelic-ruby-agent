@@ -289,7 +289,38 @@ class GenerateSchemaTest < Minitest::Test
     end
   end
 
+  # --- meta-schema validation in the generator --------------------------------
+
+  # The generator validates its output against the Draft 2020-12 meta-schema
+  # before writing (like the Java agent), so an invalid schema fails with exit 2
+  # and is never written. Skipped where json_schemer isn't installed.
+  def test_run_returns_exit_code_2_and_writes_nothing_when_schema_is_invalid
+    skip 'json_schemer not installed' unless defined?(JSONSchemer)
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'config.json')
+      invalid_schema = {'type' => 'not-a-real-type'}
+
+      code = nil
+      with_stubbed_generate(invalid_schema) do
+        capture_io { code = GenerateSchema.run(FAKE_DEFAULTS, path) }
+      end
+
+      assert_equal 2, code
+      refute_path_exists path, 'an invalid schema must not be written to disk'
+    end
+  end
+
   private
+
+  # Temporarily replace GenerateSchema.generate so run/write see a chosen schema.
+  def with_stubbed_generate(schema)
+    original = GenerateSchema.method(:generate)
+    GenerateSchema.define_singleton_method(:generate) { |*| schema }
+    yield
+  ensure
+    GenerateSchema.define_singleton_method(:generate, original)
+  end
 
   FAKE_DEFAULTS = {
     :agent_enabled => {

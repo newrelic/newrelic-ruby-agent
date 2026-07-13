@@ -5,6 +5,15 @@
 
 require 'json'
 require 'fileutils'
+# Optional: used to validate the generated schema against the Draft 2020-12
+# meta-schema before writing. Absent on the old-Ruby CI job (gated out of the
+# gemspec), where validation soft-skips rather than failing — mirrors the Java
+# generator's behavior when its validator can't load.
+begin
+  require 'json_schemer'
+rescue LoadError
+  nil
+end
 require_relative '../../lib/new_relic/agent/configuration/default_source'
 # Reused for description cleanup so the schema, the config docs, and the
 # generated newrelic.yml all strip markdown the same way (no drift).
@@ -152,7 +161,15 @@ module GenerateSchema
 
   # CLI entry point. Exit codes drive the per-push regen workflow:
   # 0 = unchanged, 1 = changed (workflow commits), 2 = failure.
+  # Validates against the Draft 2020-12 meta-schema first, so an invalid schema
+  # fails (2) and is never written.
   def run(defaults = DEFAULTS, path = OUTPUT_PATH)
+    errors = validate_schema(generate(defaults))
+    unless errors.empty?
+      warn "Generated schema failed Draft 2020-12 validation:\n#{errors.first(10).join("\n")}"
+      return 2
+    end
+
     if write_if_changed(defaults, path) == :unchanged
       puts "Schema unchanged: #{path}"
       0
@@ -170,6 +187,18 @@ module GenerateSchema
   # The exact bytes written to disk, so every writer stays byte-identical.
   def rendered(defaults)
     "#{to_json_string(defaults)}\n"
+  end
+
+  # Validate a schema against the Draft 2020-12 meta-schema. Returns an array of
+  # error descriptions ([] when valid). Soft-skips (returns []) when json_schemer
+  # isn't installed, validation is a safety net, not a hard dependency.
+  def validate_schema(schema)
+    unless defined?(JSONSchemer)
+      warn 'Meta-schema validation skipped (json_schemer not installed).'
+      return []
+    end
+
+    JSONSchemer.draft202012.validate(schema).map { |e| "#{e['data_pointer']}: #{e['type']}" }
   end
 
   def public?(spec)

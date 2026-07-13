@@ -13,6 +13,12 @@ on:
       - '.fleetControl/schemaGeneration/**'
   workflow_dispatch:
 
+# One run per branch; a newer push cancels an in-progress run so two runs can't
+# both regenerate and race to auto-commit.
+concurrency:
+  group: agent-config-schema-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
