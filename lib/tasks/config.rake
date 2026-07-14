@@ -49,5 +49,11 @@ namespace :newrelic do
       GenerateSchema.write_file
       puts "Wrote #{GenerateSchema::OUTPUT_PATH}"
     end
+
+    desc 'Bump the config schema version from changes since the last release (pass [write] to apply; dry-run otherwise)'
+    task :'schema:bump', [:mode] => [] do |t, args|
+      require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '.fleetControl', 'schemaGeneration', 'bump_schema_version.rb'))
+      BumpSchemaVersion.run(write: args[:mode] == 'write')
+    end
   end
 end

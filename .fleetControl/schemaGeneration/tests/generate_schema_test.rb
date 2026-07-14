@@ -20,9 +20,9 @@ class GenerateSchemaTest < Minitest::Test
 
     assert_equal 'https://json-schema.org/draft/2020-12/schema', schema['$schema']
     assert_equal 'object', schema['type']
-    # true (not false) to match the Java agent: a config using a key newer than
-    # the schema still validates, so upgrading the agent before the schema is
-    # republished doesn't break Fleet Control validation.
+    # true (not false) on purpose: a config using a key newer than the schema
+    # still validates, so upgrading the agent before the schema is republished
+    # doesn't break Fleet Control validation.
     assert_equal true, schema['additionalProperties']
     assert_kind_of Hash, schema['properties']
   end
@@ -292,8 +292,8 @@ class GenerateSchemaTest < Minitest::Test
   # --- meta-schema validation in the generator --------------------------------
 
   # The generator validates its output against the Draft 2020-12 meta-schema
-  # before writing (like the Java agent), so an invalid schema fails with exit 2
-  # and is never written. Skipped where json_schemer isn't installed.
+  # before writing, so an invalid schema fails with exit 2 and is never written.
+  # Skipped where json_schemer isn't installed.
   def test_run_returns_exit_code_2_and_writes_nothing_when_schema_is_invalid
     skip 'json_schemer not installed' unless defined?(JSONSchemer)
 

@@ -7,8 +7,7 @@ require 'json'
 require 'fileutils'
 # Optional: used to validate the generated schema against the Draft 2020-12
 # meta-schema before writing. Absent on the old-Ruby CI job (gated out of the
-# gemspec), where validation soft-skips rather than failing — mirrors the Java
-# generator's behavior when its validator can't load.
+# gemspec), where validation soft-skips rather than failing.
 begin
   require 'json_schemer'
 rescue LoadError
@@ -21,8 +20,8 @@ require_relative '../../lib/tasks/helpers/newrelicyml'
 
 # Generates a JSON Schema (Draft 2020-12) describing the New Relic Ruby agent's
 # configuration, read straight from NewRelic::Agent::Configuration::DEFAULTS.
-# This is the Ruby parallel to the Java agent's GenerateSchema.groovy, and feeds
-# the same Fleet Control consumption path (../schemas/config.json).
+# The output (../schemas/config.json) is what Fleet Control consumes to
+# validate and render agent configuration.
 #
 # Run it: `ruby .fleetControl/schemaGeneration/generate_schema.rb`
 module GenerateSchema
@@ -46,9 +45,9 @@ module GenerateSchema
   }.freeze
 
   # Enum values for settings that are effectively enums but carry no :allowlist
-  # in DEFAULTS. The Java agent keeps an equivalent ENUM_OVERRIDES map. Values
-  # are verified against the code that consumes each setting, NOT the prose
-  # descriptions (which omit log_level's `fatal` and mislabel `to_app`):
+  # in DEFAULTS. Values are verified against the code that consumes each setting,
+  # NOT the prose descriptions (which omit log_level's `fatal` and mislabel
+  # `to_app`):
   #   - log_level:  agent_logger.rb LOG_LEVELS
   #   - record_sql: database.rb#record_sql_method
   #
@@ -93,11 +92,11 @@ module GenerateSchema
       'description' => 'Configuration settings for the New Relic Ruby agent. ' \
         'Generated from DEFAULTS in lib/new_relic/agent/configuration/default_source.rb.',
       'type' => 'object',
-      # true (not false), matching the Java agent: the agent ships new config
-      # keys every release, and a Fleet Control deployment may validate against
-      # a schema generated from an older agent. Strict validation would reject
-      # any newer key and break users who upgrade before the schema is
-      # republished. Flip to false only alongside a lockstep republish process.
+      # true (not false) on purpose: the agent ships new config keys every
+      # release, and a Fleet Control deployment may validate against a schema
+      # generated from an older agent. Strict validation would reject any newer
+      # key and break users who upgrade before the schema is republished. Flip
+      # to false only alongside a lockstep republish process.
       'additionalProperties' => true,
       'properties' => properties
     }
