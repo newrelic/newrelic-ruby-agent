@@ -16,10 +16,6 @@ class SchemaDiffTest < Minitest::Test
     {'type' => 'object', 'properties' => properties}
   end
 
-  def kinds(changes)
-    changes.map { |c| c[:kind] }
-  end
-
   # --- classify_changes: property-level ---------------------------------------
 
   def test_no_changes_returns_empty
@@ -99,6 +95,19 @@ class SchemaDiffTest < Minitest::Test
 
     assert_equal 'enum_value_added', change[:kind]
     assert_equal 'additive', change[:severity]
+  end
+
+  def test_enum_values_added_and_removed_together_is_breaking
+    changes = SchemaDiff.classify_changes(
+      schema('k' => {'enum' => %w[a b]}),
+      schema('k' => {'enum' => %w[a c]})
+    )
+    kinds = changes.map { |change| change[:kind] }
+
+    assert_equal 2, changes.size
+    assert_includes kinds, 'enum_value_removed'
+    assert_includes kinds, 'enum_value_added'
+    assert_equal 'major', SchemaDiff.recommend_bump(changes)
   end
 
   def test_default_changed_is_additive
