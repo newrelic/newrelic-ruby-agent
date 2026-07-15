@@ -17,6 +17,9 @@ require_relative '../../lib/new_relic/agent/configuration/default_source'
 # Reused for description cleanup so the schema, the config docs, and the
 # generated newrelic.yml all strip markdown the same way (no drift).
 require_relative '../../lib/tasks/helpers/newrelicyml'
+# Reused for INSTRUMENTATION_STANDARD_VALUES so the schema can't drift from
+# the values the agent's dependency-detection framework actually accepts.
+require_relative '../../lib/new_relic/dependency_detection'
 
 # Generates a JSON Schema (Draft 2020-12) describing the New Relic Ruby agent's
 # configuration, read straight from NewRelic::Agent::Configuration::DEFAULTS.
@@ -64,9 +67,9 @@ module GenerateSchema
     'slow_sql.record_sql' => %w[off none raw obfuscated]
   }.freeze
 
-  # instrumentation.* toggles. Most accept the standard set
-  # (dependency_detection.rb VALID_CONFIG_VALUES); a few are simple on/off.
-  INSTRUMENTATION_STANDARD_VALUES = %w[auto prepend chain disabled].freeze
+  # instrumentation.* toggles. Most accept the standard set, reused directly
+  # from dependency_detection.rb so it can't drift; a few are simple on/off.
+  INSTRUMENTATION_STANDARD_VALUES = DependencyDetection::Dependent::VALID_CONFIG_VALUES.map(&:to_s).freeze
   INSTRUMENTATION_ONOFF_VALUES = %w[enabled disabled].freeze
   INSTRUMENTATION_ONOFF_KEYS = %w[
     instrumentation.excon

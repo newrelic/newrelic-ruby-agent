@@ -173,7 +173,7 @@ class GenerateSchemaTest < Minitest::Test
   end
 
   def test_enum_override_for_instrumentation
-    assert_equal %w[auto prepend chain disabled],
+    assert_equal GenerateSchema::INSTRUMENTATION_STANDARD_VALUES,
       GenerateSchema.enum_override_for('instrumentation.net_http', {:type => String})
     assert_equal %w[enabled disabled],
       GenerateSchema.enum_override_for('instrumentation.excon', {:type => String})
@@ -188,6 +188,21 @@ class GenerateSchemaTest < Minitest::Test
     assert_nil GenerateSchema.enum_override_for('app_name', {:type => String})
   end
 
+  def test_instrumentation_onoff_keys_matches_real_defaults
+    onoff_description = /May be one of: `enabled`, `disabled`\./
+
+    actual_onoff_keys = NewRelic::Agent::Configuration::DEFAULTS.select do |key, spec|
+      key.to_s.start_with?('instrumentation.') &&
+        spec[:type] == String &&
+        !spec[:allowlist] &&
+        spec[:description].to_s.match?(onoff_description)
+    end.keys.map(&:to_s).sort
+
+    assert_equal actual_onoff_keys, GenerateSchema::INSTRUMENTATION_ONOFF_KEYS.sort,
+      'INSTRUMENTATION_ONOFF_KEYS in generate_schema.rb is out of sync with default_source.rb. ' \
+      'If you added, removed, or changed an enabled/disabled-only instrumentation setting, update that list.'
+  end
+
   def test_generate_applies_enum_overrides
     defaults = {
       :log_level => {:type => String, :default => 'info', :public => true, :description => 'x'},
@@ -196,7 +211,7 @@ class GenerateSchemaTest < Minitest::Test
     props = GenerateSchema.generate(defaults)['properties']
 
     assert_equal %w[debug info warn error fatal], props['log_level']['enum']
-    assert_equal %w[auto prepend chain disabled], props['instrumentation.net_http']['enum']
+    assert_equal GenerateSchema::INSTRUMENTATION_STANDARD_VALUES, props['instrumentation.net_http']['enum']
   end
 
   # --- rendering --------------------------------------------------------------

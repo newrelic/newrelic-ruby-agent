@@ -692,9 +692,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.active_support_logger": {
@@ -703,9 +703,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.active_support_notifications.active_support_events": {
@@ -745,9 +745,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.aws_sdk_firehose": {
@@ -756,9 +756,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.aws_sdk_kinesis": {
@@ -767,9 +767,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.aws_sdk_lambda": {
@@ -778,9 +778,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.aws_sqs": {
@@ -789,9 +789,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.bunny": {
@@ -800,9 +800,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.concurrent_ruby": {
@@ -811,9 +811,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.curb": {
@@ -822,9 +822,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.delayed_job": {
@@ -833,9 +833,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.dynamodb": {
@@ -844,9 +844,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.elasticsearch": {
@@ -855,9 +855,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.ethon": {
@@ -866,9 +866,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.excon": {
@@ -886,9 +886,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.grape": {
@@ -897,9 +897,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.grpc.host_denylist": {
@@ -923,9 +923,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.grpc_server": {
@@ -934,9 +934,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.httpclient": {
@@ -945,9 +945,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.httprb": {
@@ -956,9 +956,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.httpx": {
@@ -967,9 +967,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.logger": {
@@ -978,9 +978,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.logging": {
@@ -989,9 +989,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.logstasher": {
@@ -1000,9 +1000,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.memcache": {
@@ -1011,9 +1011,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.memcache_client": {
@@ -1022,9 +1022,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.memcached": {
@@ -1033,9 +1033,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.mongo": {
@@ -1053,9 +1053,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.opensearch": {
@@ -1064,9 +1064,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.parallel": {
@@ -1075,9 +1075,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.puma_rack": {
@@ -1086,9 +1086,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.puma_rack_urlmap": {
@@ -1097,9 +1097,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.rack": {
@@ -1108,9 +1108,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.rack_urlmap": {
@@ -1119,9 +1119,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.rails_event_logger": {
@@ -1154,9 +1154,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.rdkafka": {
@@ -1165,9 +1165,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.redis": {
@@ -1176,9 +1176,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.resque": {
@@ -1187,9 +1187,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.roda": {
@@ -1198,9 +1198,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.ruby_kafka": {
@@ -1209,9 +1209,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.ruby_openai": {
@@ -1220,9 +1220,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.semantic_logger": {
@@ -1231,9 +1231,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.sinatra": {
@@ -1242,9 +1242,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.stripe": {
@@ -1262,9 +1262,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.thread.tracing": {
@@ -1278,9 +1278,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.typhoeus": {
@@ -1289,9 +1289,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "instrumentation.view_component": {
@@ -1300,9 +1300,9 @@
       "default": "auto",
       "enum": [
         "auto",
+        "disabled",
         "prepend",
-        "chain",
-        "disabled"
+        "chain"
       ]
     },
     "labels": {
