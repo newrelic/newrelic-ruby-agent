@@ -2,7 +2,7 @@
 
 ## dev
 
-- **Bugfix: Explain plans could target the wrong database and leave connections in a bad state in multi-database Rails apps (Rails >= 7.2)**
+- **Bugfix: Explain plans could target the wrong database in multi-database Rails apps (Rails >= 7.2)**
 
   On Rails 7.2+, the agent gathered explain plans using a connection from the app's default/shared pool rather than a dedicated one. This primarily affected multi-database apps. Explain plans could be generated against the wrong database, and a failed explain could leave a shared connection in a bad state, affecting unrelated requests. The agent now uses its own dedicated connection for explain plans, as it did before Rails 7.2, and resets or discards that connection whenever an explain attempt fails, so a bad connection is never reused. Thank you, [@masiafrest](https://github.com/masiafrest) for the detailed report! [Issue#3610](https://github.com/newrelic/newrelic-ruby-agent/issues/3610) [PR#3612](https://github.com/newrelic/newrelic-ruby-agent/pull/3612)
 
