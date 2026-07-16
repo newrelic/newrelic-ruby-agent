@@ -229,6 +229,8 @@ module NewRelic
         private
 
         def add_child_timing(segment)
+          return if Agent.config[:'transaction_tracer.cap_segment_artifacts'] && segment.record_on_finish?
+
           @children_timings << [segment.start_time, segment.end_time]
         end
 
