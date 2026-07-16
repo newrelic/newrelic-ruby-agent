@@ -46,8 +46,7 @@ namespace :newrelic do
     desc 'Generate the Fleet Control JSON Schema for agent configuration'
     task :schema => [] do
       require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '.fleetControl', 'schemaGeneration', 'generate_schema.rb'))
-      GenerateSchema.write_file
-      puts "Wrote #{GenerateSchema::OUTPUT_PATH}"
+      GenerateSchema.run
     end
 
     desc 'Bump the config schema version from changes since the last release (pass [write] to apply; dry-run otherwise)'
