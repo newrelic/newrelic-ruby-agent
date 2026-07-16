@@ -8,6 +8,7 @@ require 'new_relic/agent/database'
 class NewRelic::Agent::DatabaseTest < Minitest::Test
   def teardown
     NewRelic::Agent::Database::Obfuscator.instance.reset
+    NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections = {} }
   end
 
   def test_adapter_from_config_string
@@ -647,5 +648,151 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
 
     assert_nil statement.query_name
+  end
+
+  def test_explain_this_resolves_via_statement_config
+    skip unless defined?(::ActiveRecord::Base)
+
+    config = {:adapter => 'postgresql', :database => 'secondary'}
+    connection = mock('secondary db connection')
+    connection.expects(:exec_query).with('EXPLAIN select 1', 'Explain SQL', nil).returns('a plan')
+
+    adapter_class = mock('adapter class')
+    adapter_class.expects(:new).with(config).returns(connection)
+
+    ::ActiveRecord::ConnectionAdapters.expects(:resolve).with('postgresql').returns(adapter_class)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
+    statement = NewRelic::Agent::Database::Statement.new('select 1', config)
+    result = NewRelic::Agent::Database.explain_this(statement)
+
+    assert_equal 'a plan', result
+  end
+
+  def test_explain_this_caches_connection_per_config
+    skip unless defined?(::ActiveRecord::Base)
+
+    config = {:adapter => 'postgresql', :database => 'secondary'}
+    connection = mock('secondary db connection')
+    connection.expects(:exec_query).twice.returns('a plan')
+
+    adapter_class = mock('adapter class')
+    adapter_class.expects(:new).once.with(config).returns(connection)
+
+    ::ActiveRecord::ConnectionAdapters.expects(:resolve).once.with('postgresql').returns(adapter_class)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
+    statement = NewRelic::Agent::Database::Statement.new('select 1', config)
+    NewRelic::Agent::Database.explain_this(statement)
+    NewRelic::Agent::Database.explain_this(statement)
+  end
+
+  def test_explain_this_routes_different_configs_independently
+    skip unless defined?(::ActiveRecord::Base)
+
+    primary_config = {:adapter => 'postgresql', :database => 'primary'}
+    secondary_config = {:adapter => 'postgresql', :database => 'secondary'}
+
+    primary_connection = mock('primary connection')
+    primary_connection.expects(:exec_query).returns('primary plan')
+    secondary_connection = mock('secondary connection')
+    secondary_connection.expects(:exec_query).returns('secondary plan')
+
+    adapter_class = mock('adapter class')
+    adapter_class.expects(:new).with(primary_config).returns(primary_connection)
+    adapter_class.expects(:new).with(secondary_config).returns(secondary_connection)
+
+    ::ActiveRecord::ConnectionAdapters.stubs(:resolve).with('postgresql').returns(adapter_class)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
+    primary_statement = NewRelic::Agent::Database::Statement.new('select 1', primary_config)
+    secondary_statement = NewRelic::Agent::Database::Statement.new('select 2', secondary_config)
+
+    assert_equal 'primary plan', NewRelic::Agent::Database.explain_this(primary_statement)
+    assert_equal 'secondary plan', NewRelic::Agent::Database.explain_this(secondary_statement)
+  end
+
+  def test_explain_this_resets_connection_on_error
+    skip unless defined?(::ActiveRecord::Base)
+
+    config = {:adapter => 'postgresql', :database => 'secondary'}
+    connection = mock('secondary db connection')
+    connection.expects(:exec_query).raises(StandardError.new('boom'))
+    connection.expects(:reset!)
+
+    adapter_class = mock('adapter class')
+    adapter_class.expects(:new).returns(connection)
+
+    ::ActiveRecord::ConnectionAdapters.stubs(:resolve).returns(adapter_class)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
+    statement = NewRelic::Agent::Database::Statement.new('select 1', config)
+
+    # explain_this rescues and logs, so the error itself doesn't surface here -
+    # the mock's `reset!` expectation is what proves the recovery ran.
+    assert_nil NewRelic::Agent::Database.explain_this(statement)
+  end
+
+  def test_explain_this_discards_connection_when_reset_fails
+    skip unless defined?(::ActiveRecord::Base)
+
+    config = {:adapter => 'postgresql', :database => 'secondary'}
+    connection = mock('secondary db connection')
+    connection.expects(:exec_query).raises(StandardError.new('boom'))
+    connection.expects(:reset!).raises(StandardError.new('connection dead'))
+    connection.expects(:disconnect!)
+
+    adapter_class = mock('adapter class')
+    adapter_class.expects(:new).returns(connection)
+
+    ::ActiveRecord::ConnectionAdapters.stubs(:resolve).returns(adapter_class)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(true)
+
+    statement = NewRelic::Agent::Database::Statement.new('select 1', config)
+
+    assert_nil NewRelic::Agent::Database.explain_this(statement)
+
+    cached_connection = NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections[config] }
+
+    assert_nil cached_connection
+  end
+
+  # Same two cases, but forcing the pre-7.2 ActiveRecord::Base.send(:"#{adapter}_connection") path.
+
+  def test_explain_this_resets_connection_on_error_with_legacy_adapter_connection
+    skip unless defined?(::ActiveRecord::Base)
+
+    config = {:adapter => 'postgresql', :database => 'secondary'}
+    connection = mock('secondary db connection')
+    connection.expects(:exec_query).raises(StandardError.new('boom'))
+    connection.expects(:reset!)
+
+    ::ActiveRecord::Base.stubs(:postgresql_connection).with(config).returns(connection)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(false)
+
+    statement = NewRelic::Agent::Database::Statement.new('select 1', config)
+
+    assert_nil NewRelic::Agent::Database.explain_this(statement)
+  end
+
+  def test_explain_this_discards_connection_when_reset_fails_with_legacy_adapter_connection
+    skip unless defined?(::ActiveRecord::Base)
+
+    config = {:adapter => 'postgresql', :database => 'secondary'}
+    connection = mock('secondary db connection')
+    connection.expects(:exec_query).raises(StandardError.new('boom'))
+    connection.expects(:reset!).raises(StandardError.new('connection dead'))
+    connection.expects(:disconnect!)
+
+    ::ActiveRecord::Base.stubs(:postgresql_connection).with(config).returns(connection)
+    NewRelic::Agent::Database.stubs(:supports_connection_adapters_resolve?).returns(false)
+
+    statement = NewRelic::Agent::Database::Statement.new('select 1', config)
+
+    assert_nil NewRelic::Agent::Database.explain_this(statement)
+
+    cached_connection = NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections[config] }
+
+    assert_nil cached_connection
   end
 end

@@ -63,6 +63,7 @@ if !defined?(MyApp)
     config.active_support.deprecation = :log
     config.secret_token = '49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk'
     config.eager_load = false
+    config.enable_reloading = false if Rails::VERSION::STRING >= '7.2'
     config.filter_parameters += [:secret]
     config.secret_key_base = fake_guid(64)
     if Rails::VERSION::STRING >= '7.0.0'
