@@ -235,7 +235,18 @@ module GenerateSchema
     return nil if spec[:description].nil?
 
     cleaned = NewRelicYML.sanitize_description(spec[:description]).strip
-    cleaned.empty? ? nil : cleaned
+    cleaned.empty? ? nil : first_paragraph(cleaned)
+  end
+
+  # DEFAULTS descriptions put the actual definition in a first paragraph, then
+  # (for a handful of settings) drop into a blank-line-separated, tab-indented
+  # paragraph with valid-value lists or YAML/code examples. Fleet Control just
+  # needs the definition, so keep only the first paragraph. Some first
+  # paragraphs still contain in-line wraps or bulleted sub-lists (no blank
+  # line), so collapse any remaining whitespace runs (newlines, tabs) to a
+  # single space.
+  def first_paragraph(text)
+    text.split(/\n\s*\n/, 2).first.strip.gsub(/\s+/, ' ')
   end
 end
 
