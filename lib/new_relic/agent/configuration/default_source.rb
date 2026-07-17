@@ -614,7 +614,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, once [`transaction_tracer.limit_segments`](#transaction_tracer-limit_segments) is reached, the agent will also stop recording exclusive time and slow SQL data for any segments created afterward in that transaction. This can reduce memory usage for very long-running transactions with many segments, at the cost of slightly less accurate timing data for segments created after the limit was reached. Disabled by default so that existing behavior is unaffected unless explicitly enabled.'
+          :description => 'If `true`, once [`transaction_tracer.limit_segments`](#transaction_tracer-limit_segments) is reached, the agent will also stop recording exclusive time and slow SQL data for any segments created afterward in that transaction. This can reduce memory usage for very long-running transactions with many segments, at the cost of dropping slow SQL data for queries that occur after the segment limit is reached and less accurate timing data for segments if the segment limit is reached.'
         },
         :'transaction_tracer.transaction_threshold' => {
           :default => DefaultSource.transaction_tracer_transaction_threshold,
