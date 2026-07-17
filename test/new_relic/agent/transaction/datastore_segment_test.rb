@@ -578,12 +578,6 @@ module NewRelic
           end
         end
 
-        # Unconditional - not gated by transaction_tracer.cap_segment_artifacts.
-        # Dropping slow SQL data for segments already past limit_segments
-        # matches the shared cross-agent spec/behavior (PHP/Go/.NET/Java all
-        # cap per-transaction slow-SQL storage by default, unconditionally),
-        # so this doesn't need to be opt-in the way the exclusive-time
-        # accuracy tradeoff does.
         def test_notice_sql_not_recorded_when_segment_over_limit
           in_transaction do
             segment = NewRelic::Agent::Tracer.start_datastore_segment(
@@ -600,12 +594,8 @@ module NewRelic
           end
         end
 
-        # Regression test: the segment limit is a transaction-wide counter, but
-        # whether a given segment's own SQL gets recorded must depend on whether
-        # *that segment* was created past the limit (its own record_on_finish?),
-        # not on whether the transaction has hit the limit via a sibling. This
-        # mirrors test_sibling_within_limit_keeps_accurate_exclusive_duration_
-        # despite_sibling_over_limit in abstract_segment_test.rb.
+        # Regression test: gating must be per-segment (record_on_finish?), not
+        # transaction-wide, or a within-limit sibling would lose its SQL too.
         def test_notice_sql_recorded_for_sibling_within_limit_despite_sibling_over_limit
           with_config(:'transaction_tracer.limit_segments' => 2) do
             in_transaction do

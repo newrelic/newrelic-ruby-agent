@@ -320,10 +320,7 @@ module NewRelic
           end
         end
 
-        # transaction_tracer.cap_segment_artifacts defaults to false, so an
-        # over-limit child's timing is still recorded by default - existing
-        # behavior (and its associated unbounded @children_timings growth) is
-        # unchanged unless a customer opts in.
+        # cap_segment_artifacts defaults to false, so this is unaffected by default.
         def test_add_child_timing_still_recorded_for_over_limit_child_by_default
           segment = basic_segment
           child = basic_segment
@@ -336,18 +333,11 @@ module NewRelic
           assert_equal [[1.0, 2.0]], segment.instance_variable_get(:@children_timings)
         end
 
-        # Regression test: the segment limit is a transaction-wide counter, but
-        # whether a given segment's own timing gets folded into its parent's
-        # @children_timings must depend on whether *that segment* was created
-        # past the limit (its own record_on_finish?), not on whether the
-        # transaction has hit the limit anywhere else. Otherwise a sibling that
-        # never exceeded the limit would silently lose its overlap accounting
-        # the moment any later sibling tripped it. Only reachable with
-        # transaction_tracer.cap_segment_artifacts enabled.
+        # Regression test: gating must be per-segment (record_on_finish?), not
+        # transaction-wide, or a within-limit sibling would lose accuracy just
+        # because another segment tripped the limit.
         def test_sibling_within_limit_keeps_accurate_exclusive_duration_despite_sibling_over_limit
-          # limit is 3 to account for the transaction's own initial/root segment
-          # (created by in_transaction) plus segment_a and segment_b, so that
-          # segment_c is the one that lands over the limit.
+          # limit=3 accounts for in_transaction's root segment + segment_a + segment_b.
           with_config(:'transaction_tracer.limit_segments' => 3, :'transaction_tracer.cap_segment_artifacts' => true) do
             segment_a = segment_b = segment_c = nil
             in_transaction do |txn|
@@ -375,8 +365,6 @@ module NewRelic
             refute_predicate segment_b, :record_on_finish?
             assert_predicate segment_c, :record_on_finish?
 
-            # segment_b's overlap with segment_a is retained even though segment_c
-            # (created after the limit was hit) is excluded.
             assert_equal [[segment_b.start_time, segment_b.end_time]], segment_a.instance_variable_get(:@children_timings)
             assert_in_delta(3.0, segment_a.exclusive_duration)
           end
