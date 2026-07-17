@@ -578,28 +578,13 @@ module NewRelic
           end
         end
 
-        def test_notice_sql_not_recorded_when_segment_over_limit_and_cap_segment_artifacts_enabled
-          with_config(:'transaction_tracer.cap_segment_artifacts' => true) do
-            in_transaction do
-              segment = NewRelic::Agent::Tracer.start_datastore_segment(
-                product: 'SQLite',
-                operation: 'select'
-              )
-              segment.notice_sql('select * from blogs')
-              segment.record_on_finish = true
-              advance_process_time(2.0)
-              Agent.instance.sql_sampler.expects(:notice_sql_statement).never
-              segment.finish
-
-              assert_nil segment.params[:sql]
-            end
-          end
-        end
-
-        # transaction_tracer.cap_segment_artifacts defaults to false, so an
-        # over-limit segment's SQL is still recorded by default - existing
-        # behavior is unchanged unless a customer opts in.
-        def test_notice_sql_still_recorded_when_segment_over_limit_by_default
+        # Unconditional - not gated by transaction_tracer.cap_segment_artifacts.
+        # Dropping slow SQL data for segments already past limit_segments
+        # matches the shared cross-agent spec/behavior (PHP/Go/.NET/Java all
+        # cap per-transaction slow-SQL storage by default, unconditionally),
+        # so this doesn't need to be opt-in the way the exclusive-time
+        # accuracy tradeoff does.
+        def test_notice_sql_not_recorded_when_segment_over_limit
           in_transaction do
             segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: 'SQLite',
@@ -608,10 +593,10 @@ module NewRelic
             segment.notice_sql('select * from blogs')
             segment.record_on_finish = true
             advance_process_time(2.0)
-            Agent.instance.sql_sampler.expects(:notice_sql_statement).once
+            Agent.instance.sql_sampler.expects(:notice_sql_statement).never
             segment.finish
 
-            assert_equal('select * from blogs', segment.params[:sql].sql)
+            assert_nil segment.params[:sql]
           end
         end
 
@@ -620,10 +605,9 @@ module NewRelic
         # *that segment* was created past the limit (its own record_on_finish?),
         # not on whether the transaction has hit the limit via a sibling. This
         # mirrors test_sibling_within_limit_keeps_accurate_exclusive_duration_
-        # despite_sibling_over_limit in abstract_segment_test.rb. Only
-        # reachable with transaction_tracer.cap_segment_artifacts enabled.
+        # despite_sibling_over_limit in abstract_segment_test.rb.
         def test_notice_sql_recorded_for_sibling_within_limit_despite_sibling_over_limit
-          with_config(:'transaction_tracer.limit_segments' => 2, :'transaction_tracer.cap_segment_artifacts' => true) do
+          with_config(:'transaction_tracer.limit_segments' => 2) do
             in_transaction do
               segment_within_limit = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: 'SQLite',
