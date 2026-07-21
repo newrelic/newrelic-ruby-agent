@@ -11,16 +11,19 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.config.reset_to_defaults
     end
 
-    def with_otel_enabled
-      with_config(:'opentelemetry.enabled' => true) { yield }
-    end
+    def test_otel_env_vars_logging_lists_unknown_and_skips_known_vars
+      NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
+        with_environment('OTEL_TRACES_EXPORTER' => 'otlp', 'OTEL_SERVICE_NAME' => 'my-service') do
+          OpenTelemetrySource.new
 
-    def test_has_key_returns_false_when_opentelemetry_disabled
-      with_environment('OTEL_SERVICE_NAME' => 'my-service') do
-        source = OpenTelemetrySource.new
+          found = NewRelic::Agent.logger.messages.find { |m| m[1][0].include?('OpenTelemetry configurations found') }
+          level = found[0]
+          msg = found[1][0]
 
-        with_config(:'opentelemetry.enabled' => false) do
-          refute source.has_key?(:app_name)
+          assert_equal :debug, level
+          assert_includes msg, 'agent will ignore the following', 'Prefix for log message not found'
+          assert_includes msg, 'OTEL_TRACES_EXPORTER', 'OTEL_TRACES_EXPORTER not found in message. Unmapped environment variables should be included'
+          refute_includes msg, 'OTEL_SERVICE_NAME', 'OTEL_SERVICE_NAME found in message. Mapped environment variables should not be included'
         end
       end
     end
@@ -34,9 +37,7 @@ module NewRelic::Agent::Configuration
 
       source = OpenTelemetrySource.new
 
-      with_otel_enabled do
-        refute source.has_key?(:app_name)
-      end
+      refute source.has_key?(:app_name)
     ensure
       ENV['OTEL_SERVICE_NAME'] = service_name if var_present
     end
@@ -45,27 +46,21 @@ module NewRelic::Agent::Configuration
       with_environment('OTEL_SERVICE_NAME' => 'my-service') do
         source = OpenTelemetrySource.new
 
-        with_otel_enabled do
-          assert source.has_key?(:app_name)
-        end
+        assert source.has_key?(:app_name)
       end
     end
 
     def test_source_does_not_expose_opentelemetry_enabled_key
       source = OpenTelemetrySource.new
 
-      with_otel_enabled do
-        refute source.has_key?(:'opentelemetry.enabled')
-      end
+      refute source.has_key?(:'opentelemetry.enabled')
     end
 
     def test_otel_service_name_maps_to_app_name
       with_environment('OTEL_SERVICE_NAME' => 'my-otel-app') do
         source = OpenTelemetrySource.new
 
-        with_otel_enabled do
-          assert_equal 'my-otel-app', source[:app_name]
-        end
+        assert_equal 'my-otel-app', source[:app_name]
       end
     end
 
@@ -73,9 +68,7 @@ module NewRelic::Agent::Configuration
       with_environment('OTEL_LOG_LEVEL' => 'DEBUG') do
         source = OpenTelemetrySource.new
 
-        with_otel_enabled do
-          assert_equal 'debug', source[:log_level]
-        end
+        assert_equal 'debug', source[:log_level]
       end
     end
 
@@ -84,9 +77,7 @@ module NewRelic::Agent::Configuration
         with_environment('OTEL_LOG_LEVEL' => level) do
           source = OpenTelemetrySource.new
 
-          with_otel_enabled do
-            assert_equal level.downcase, source[:log_level]
-          end
+          assert_equal level.downcase, source[:log_level]
         end
       end
     end
@@ -95,9 +86,7 @@ module NewRelic::Agent::Configuration
       with_environment('OTEL_RESOURCE_ATTRIBUTES' => 'service.name=frontend,team=platform') do
         source = OpenTelemetrySource.new
 
-        with_otel_enabled do
-          assert_equal 'service.name:frontend;team:platform', source[:labels]
-        end
+        assert_equal 'service.name:frontend;team:platform', source[:labels]
       end
     end
 
@@ -105,54 +94,12 @@ module NewRelic::Agent::Configuration
       with_environment('OTEL_RESOURCE_ATTRIBUTES' => 'env=production') do
         source = OpenTelemetrySource.new
 
-        with_otel_enabled do
-          assert_equal 'env:production', source[:labels]
-        end
-      end
-    end
-
-    def test_otel_bsp_max_export_batch_size_maps_to_span_events
-      with_environment('OTEL_BSP_MAX_EXPORT_BATCH_SIZE' => '500') do
-        source = OpenTelemetrySource.new
-
-        with_otel_enabled do
-          assert source.has_key?(:'span_events.max_samples_stored')
-          assert_equal '500', source[:'span_events.max_samples_stored']
-        end
-      end
-    end
-
-    def test_otel_blrp_max_export_batch_size_maps_to_log_forwarding
-      with_environment('OTEL_BLRP_MAX_EXPORT_BATCH_SIZE' => '2000') do
-        source = OpenTelemetrySource.new
-
-        with_otel_enabled do
-          assert source.has_key?(:'application_logging.forwarding.max_samples_stored')
-          assert_equal '2000', source[:'application_logging.forwarding.max_samples_stored']
-        end
-      end
-    end
-
-    def test_bracket_accessor_returns_nil_when_otel_disabled
-      with_environment('OTEL_SERVICE_NAME' => 'lost-service') do
-        source = OpenTelemetrySource.new
-
-        with_config(:'opentelemetry.enabled' => false) do
-          assert_nil source[:app_name]
-        end
+        assert_equal 'env:production', source[:labels]
       end
     end
 
     def test_manager_includes_open_telemetry_source_in_stack
       assert_includes NewRelic::Agent.config.config_classes_for_testing, OpenTelemetrySource
-    end
-
-    def test_otel_source_is_above_default_source_in_stack
-      # NewRelic::Agent.config.replace_or_add_config(DefaultSource.new)
-      classes = NewRelic::Agent.config.config_classes_for_testing
-
-      assert classes.index(OpenTelemetrySource) < classes.index(DefaultSource),
-        'OpenTelemetrySource should have higher priority than DefaultSource'
     end
 
     def test_otel_source_is_below_environment_source_in_stack
@@ -162,12 +109,12 @@ module NewRelic::Agent::Configuration
         'EnvironmentSource should have higher priority than OpenTelemetrySource'
     end
 
-    def test_otel_source_is_below_yaml_source_in_stack
+    def test_otel_source_is_above_yaml_source_in_stack
       NewRelic::Agent.config.replace_or_add_config(YamlSource.new('test', 'test'))
       classes = NewRelic::Agent.config.config_classes_for_testing
 
-      assert classes.index(YamlSource) < classes.index(OpenTelemetrySource),
-        'YamlSource should have higher priority than OpenTelemetrySource'
+      assert classes.index(OpenTelemetrySource) < classes.index(YamlSource),
+        'OpenTelemetrySource should have higher priority than YamlSource'
     end
 
     def test_otel_service_name_used_via_config_when_otel_enabled
@@ -175,9 +122,7 @@ module NewRelic::Agent::Configuration
         # Reinitialize so OpenTelemetrySource picks up the env var
         NewRelic::Agent.config.replace_or_add_config(OpenTelemetrySource.new)
 
-        with_otel_enabled do
-          assert_equal ['test-service'], NewRelic::Agent.config[:app_name]
-        end
+        assert_equal ['test-service'], NewRelic::Agent.config[:app_name]
       end
     end
 
@@ -188,9 +133,7 @@ module NewRelic::Agent::Configuration
           NewRelic::Agent.config.replace_or_add_config(EnvironmentSource.new)
           NewRelic::Agent.config.replace_or_add_config(OpenTelemetrySource.new)
 
-          with_otel_enabled do
-            assert_equal ['from_nr'], NewRelic::Agent.config[:app_name]
-          end
+          assert_equal ['from_nr'], NewRelic::Agent.config[:app_name]
         end
       end
     end
