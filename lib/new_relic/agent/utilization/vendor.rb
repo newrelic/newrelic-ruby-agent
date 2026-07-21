@@ -78,6 +78,7 @@ module NewRelic
           NewRelic::Helper.fetch_metadata(endpoint, processed_headers)
         rescue
           NewRelic::Agent.logger.debug("#{vendor_name} environment not detected")
+          nil
         end
 
         def prepare_response(response)
