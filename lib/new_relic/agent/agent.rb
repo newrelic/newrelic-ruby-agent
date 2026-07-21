@@ -28,6 +28,7 @@ require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
 require 'new_relic/agent/log_event_aggregator'
+require 'new_relic/agent/continuous_profiling/session'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -121,6 +122,7 @@ module NewRelic
         @custom_event_aggregator = CustomEventAggregator.new(@events)
         @span_event_aggregator = SpanEventAggregator.new(@events)
         @log_event_aggregator = LogEventAggregator.new(@events)
+        @continuous_profiling_session = ContinuousProfiling::Session.new(@events)
       end
 
       def setup_attribute_filter
@@ -181,6 +183,7 @@ module NewRelic
         attr_reader :custom_event_aggregator
         attr_reader :span_event_aggregator
         attr_reader :log_event_aggregator
+        attr_reader :continuous_profiling_session
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler

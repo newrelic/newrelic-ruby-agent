@@ -1069,6 +1069,63 @@ module NewRelic
           :description => "If `true`, the agent will report source code level metrics for traced methods.\n\tSee: " \
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
+        # Continuous profiler
+        :'continuous_profiler.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, enables continuous profiling. Requires the `stackprof` and `google-protobuf` ' \
+            'gems to be present in the application. Not supported on JRuby. Automatically disabled when high ' \
+            'security mode is enabled.'
+        },
+        :'continuous_profiler.mode' => {
+          :default => 'wall',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :allowlist => %w[wall cpu object],
+          :description => 'The `stackprof` sampling mode to use for continuous profiling: `wall`, `cpu`, or `object`.'
+        },
+        :'continuous_profiler.sample_period' => {
+          :default => 0.01,
+          :public => true,
+          :type => Float,
+          :allowed_from_server => true,
+          :description => 'The interval, in seconds, between stack samples taken by the continuous profiler.'
+        },
+        :'continuous_profiler.harvest_period' => {
+          :default => 60,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The interval, in seconds, at which the continuous profiler converts and reports its ' \
+            'collected samples.'
+        },
+        :'continuous_profiler.otlp_endpoint.host' => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The host for the OTLP endpoint that continuous profiling data is sent to. This is an ' \
+            'interim setting; the mechanism for resolving this destination has not been finalized.'
+        },
+        :'continuous_profiler.otlp_endpoint.port' => {
+          :default => 443,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The port for the OTLP endpoint that continuous profiling data is sent to. This is an ' \
+            'interim setting; the mechanism for resolving this destination has not been finalized.'
+        },
+        :'continuous_profiler.otlp_endpoint.path' => {
+          :default => '/v1/profiles',
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The URL path for the OTLP endpoint that continuous profiling data is sent to. This ' \
+            'is an interim setting; the exact path has not been confirmed.'
+        },
         # Custom attributes
         :'custom_attributes.enabled' => {
           :default => true,

@@ -107,6 +107,24 @@ class AgentCommandRouterTest < Minitest::Test
     agent_commands.check_for_and_handle_agent_commands
   end
 
+  def test_start_continuous_profiling_command_dispatches_to_continuous_profiling_session
+    continuous_profiling_session = mock
+    NewRelic::Agent.agent.stubs(:continuous_profiling_session).returns(continuous_profiling_session)
+    command = create_agent_command
+    continuous_profiling_session.expects(:handle_start_command).with(command)
+
+    agent_commands.handlers[NewRelic::Agent::Commands::AgentCommandRouter::START_CONTINUOUS_PROFILING_COMMAND].call(command)
+  end
+
+  def test_stop_continuous_profiling_command_dispatches_to_continuous_profiling_session
+    continuous_profiling_session = mock
+    NewRelic::Agent.agent.stubs(:continuous_profiling_session).returns(continuous_profiling_session)
+    command = create_agent_command
+    continuous_profiling_session.expects(:handle_stop_command).with(command)
+
+    agent_commands.handlers[NewRelic::Agent::Commands::AgentCommandRouter::STOP_CONTINUOUS_PROFILING_COMMAND].call(command)
+  end
+
   def test_unrecognized_commands
     service.stubs(:get_agent_commands).returns([UNRECOGNIZED])
     service.stubs(:agent_command_results)

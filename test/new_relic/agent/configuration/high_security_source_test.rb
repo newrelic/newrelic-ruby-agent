@@ -98,5 +98,15 @@ module NewRelic::Agent::Configuration
 
       assert_empty source[:'attributes.include']
     end
+
+    def test_forces_continuous_profiler_disabled
+      local_settings = {
+        :'continuous_profiler.enabled' => true
+      }
+
+      source = HighSecuritySource.new(local_settings)
+
+      refute source[:'continuous_profiler.enabled']
+    end
   end
 end
