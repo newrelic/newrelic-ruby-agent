@@ -35,6 +35,7 @@ module NewRelic
           start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           response = http_connection(uri).request(request)
           record_metrics(body.bytesize, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)
+          log_response(response)
           response
         rescue => e
           NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{e.class}: #{e.message}")
@@ -43,6 +44,16 @@ module NewRelic
         end
 
         private
+
+        # Mirrors NewRelicService#log_response -- logs the raw HTTP response so a debug-level
+        # log can confirm whether the (currently placeholder, see OtlpEndpoint) destination
+        # actually accepted the export.
+        def log_response(response)
+          NewRelic::Agent.logger.debug(
+            "Received continuous profiling export response, status: #{response.code} #{response.message}, " \
+            "body: #{response.body}"
+          )
+        end
 
         def build_request(uri, body)
           request = Net::HTTP::Post.new(uri.request_uri)
