@@ -3,6 +3,15 @@ common: &default_settings
   log_level: info
   log_file_path: STDOUT
 
+  # Continuous profiling (placeholder config -- see CONTINUOUS_PROFILING_PLAN.md in the
+  # newrelic-ruby-agent repo). Disabled by default -- enable per perf run via
+  # NEW_RELIC_CONTINUOUS_PROFILER_ENABLED / _MODE env vars. otlp_endpoint.host is the
+  # otlp_receiver sidecar container's name, resolved via the shared perfverse_net Docker
+  # network -- see test/perfverse/otlp_receiver/.
+  continuous_profiler.otlp_endpoint.host: otlp-receiver
+  continuous_profiler.otlp_endpoint.port: 4318
+  continuous_profiler.otlp_endpoint.path: /v1/profiles
+
 development:
   <<: *default_settings
 production:

@@ -6,6 +6,11 @@ ruby '3.3.3'
 
 gem 'newrelic_rpm', '>= 8.8.0'
 
+# Soft deps for the (unreleased) continuous profiling feature -- see CONTINUOUS_PROFILING_PLAN.md
+# in the newrelic-ruby-agent repo.
+gem 'stackprof'
+gem 'google-protobuf'
+
 gem 'puma', '~> 5.0'
 gem 'rails', '~> 7.0.2', '>= 7.0.2.3'
 gem 'sprockets-rails'
