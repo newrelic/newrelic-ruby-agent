@@ -55,12 +55,22 @@ def run_otlp_receiver
   run_command('docker run -d --rm --name otlp-receiver --network perfverse_net otlp_receiver:local')
 end
 
+# Both the app and otlp-receiver containers run with --rm, so their logs vanish the moment
+# `docker stop` returns -- this must run on the still-running container, before it's stopped.
+def print_container_logs(container_id, grep_pattern)
+  output_line("#{container_id} logs (filtered: #{grep_pattern}):")
+  matched = run_command("docker logs #{container_id} 2>&1 | grep -iE \"#{grep_pattern}\"")
+  puts matched.empty? ? '(no matching log lines found)' : matched
+end
+
 def stop_otlp_receiver
+  print_container_logs('otlp-receiver', 'Received export|Failed to decode')
   output_line("Stopping otlp_receiver sidecar")
   run_command('docker stop otlp-receiver')
 end
 
 def shutdown_rails_app(container_id)
+  print_container_logs(container_id, 'continuous profil|stackprof|export')
   output_line("Shutting down rails app")
   run_command("docker stop #{container_id}")
 end
