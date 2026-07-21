@@ -45,7 +45,15 @@ module SidekiqTestHelpers
 
   def process_queued_jobs
     NRDeadEndJob.class_variable_set(NRDeadEndJob::COMPLETION_VAR, false)
-    config = cli.instance_variable_defined?(:@config) ? cli.instance_variable_get(:@config) : Sidekiq.options
+    base_config = cli.instance_variable_defined?(:@config) ? cli.instance_variable_get(:@config) : Sidekiq.options
+
+    # Manager#quiet (below) doesn't block for worker threads to exit, so leftover threads
+    # from prior tests can intermittently exhaust Sidekiq v5/v6's shared connection pool.
+    config = if Sidekiq::VERSION.split('.').first.to_i < 7
+      base_config.merge(concurrency: 1)
+    else
+      base_config
+    end
 
     # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
     require 'sidekiq/launcher' if Sidekiq::VERSION.split('.').first.to_i < 6

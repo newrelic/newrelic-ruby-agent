@@ -463,6 +463,77 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_resets_connection_after_failed_explain
+    with_config(:'transaction_tracer.explain_threshold' => -0.1) do
+      # first call: establish and cache the agent's dedicated explain connection
+      in_web_transaction { Order.first }
+      last_transaction_trace.prepare_to_send!
+
+      manager = NewRelic::Agent::Database::ConnectionManager.instance
+      connection = manager.instance_eval { @connections.values.first }
+
+      refute_nil connection, 'expected the agent to have cached a dedicated explain connection'
+
+      raw = connection.raw_connection
+      raw.query('BEGIN')
+      begin
+        raw.query('SELECT this_column_does_not_exist FROM orders')
+      rescue PG::Error
+      end
+
+      assert_equal(PG::PQTRANS_INERROR, raw.transaction_status,
+        'expected to have forced the connection into an aborted transaction')
+
+      # second call: explain fails against the still-poisoned connection, triggering a reset
+      in_web_transaction { Order.first }
+      last_transaction_trace.prepare_to_send!
+
+      assert_equal(PG::PQTRANS_IDLE, raw.transaction_status,
+        'expected the agent to reset the poisoned connection back to a clean state')
+
+      # third call: same connection, now healthy, should explain normally
+      in_web_transaction { Order.first }
+      sample = last_transaction_trace
+      metric = "Datastore/statement/#{current_product}/Order/find"
+      sql_node = find_node_with_name(sample, metric)
+      sample.prepare_to_send!
+
+      assert_same(connection, manager.instance_eval { @connections.values.first },
+        'expected the healed connection to still be the one cached and reused')
+      refute_nil(sql_node.params[:explain_plan],
+        "expected a real explain plan after the connection healed: #{sql_node}")
+    end
+  end
+
+  def test_discards_connection_when_it_cannot_be_reset
+    with_config(:'transaction_tracer.explain_threshold' => -0.1) do
+      in_web_transaction { Order.first }
+      last_transaction_trace.prepare_to_send!
+
+      manager = NewRelic::Agent::Database::ConnectionManager.instance
+      connection = manager.instance_eval { @connections.values.first }
+
+      refute_nil connection, 'expected the agent to have cached a dedicated explain connection'
+
+      connection.raw_connection.close
+
+      in_web_transaction { Order.first }
+      last_transaction_trace.prepare_to_send!
+
+      refute_same(connection, manager.instance_eval { @connections.values.first },
+        'expected the dead connection to be discarded and replaced')
+
+      in_web_transaction { Order.first }
+      sample = last_transaction_trace
+      metric = "Datastore/statement/#{current_product}/Order/find"
+      sql_node = find_node_with_name(sample, metric)
+      sample.prepare_to_send!
+
+      refute_nil(sql_node.params[:explain_plan],
+        "expected a real explain plan from the replacement connection: #{sql_node}")
+    end
+  end
+
   def test_sql_samplers_get_proper_metrics
     with_config(:'transaction_tracer.explain_threshold' => -0.1) do
       in_web_transaction do
