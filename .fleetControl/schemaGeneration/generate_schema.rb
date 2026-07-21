@@ -67,6 +67,23 @@ module GenerateSchema
     'slow_sql.record_sql' => %w[off none raw obfuscated]
   }.freeze
 
+  # minimum/maximum for settings that are effectively range-bound but carry no
+  # :min/:max in DEFAULTS — the range only exists in the prose description, and
+  # neither setting is clamped by any runtime code in this repo:
+  #   - span_events.max_samples_stored: default_source.rb, "Any Integer
+  #     between `1` and `10000` is valid."
+  #   - security.scan_controllers.iast_scan_request_rate_limit: default_source.rb,
+  #     "Any Integer between 12 and 3600 is valid." (not referenced elsewhere in
+  #     this repo — presumably enforced by the closed-source security agent gem)
+  #
+  # LONG-TERM FIX: same issue as BASE_ENUM_OVERRIDES above — a second source of
+  # truth that can drift from the docs. Add a :min/:max to each spec in
+  # default_source.rb instead, if the agent ever enforces these at runtime.
+  RANGE_OVERRIDES = {
+    'span_events.max_samples_stored' => {minimum: 1, maximum: 10_000},
+    'security.scan_controllers.iast_scan_request_rate_limit' => {minimum: 12, maximum: 3600}
+  }.freeze
+
   # instrumentation.* toggles. Most accept the standard set, reused directly
   # from dependency_detection.rb so it can't drift; a few are simple on/off.
   INSTRUMENTATION_STANDARD_VALUES = DependencyDetection::Dependent::VALID_CONFIG_VALUES.map(&:to_s).freeze
@@ -86,7 +103,7 @@ module GenerateSchema
       next unless public?(spec) && !deprecated?(spec)
       next if EXCLUDE_KEYS.include?(key)
 
-      properties[key.to_s] = build_property(spec, enum_override_for(key, spec))
+      properties[key.to_s] = build_property(spec, enum_override_for(key, spec), range_override_for(key, spec))
     end
 
     {
@@ -105,7 +122,7 @@ module GenerateSchema
     }
   end
 
-  def build_property(spec, enum_override = nil)
+  def build_property(spec, enum_override = nil, range_override = nil)
     property = spec[:type] == Array ? ARRAY_OR_STRING.dup : {'type' => json_type(spec[:type])}
 
     description = description_for(spec)
@@ -117,6 +134,11 @@ module GenerateSchema
     enum = spec[:allowlist] ? spec[:allowlist].map(&:to_s) : enum_override
     property['enum'] = enum if enum
     property['writeOnly'] = true if spec[:exclude_from_reported_settings]
+
+    if range_override
+      property['minimum'] = range_override[:minimum]
+      property['maximum'] = range_override[:maximum]
+    end
 
     property
   end
@@ -133,6 +155,14 @@ module GenerateSchema
     return nil unless key.start_with?('instrumentation.')
 
     INSTRUMENTATION_ONOFF_KEYS.include?(key) ? INSTRUMENTATION_ONOFF_VALUES : INSTRUMENTATION_STANDARD_VALUES
+  end
+
+  # minimum/maximum for a setting that has no :min/:max in DEFAULTS. Returns
+  # nil when the setting isn't range-bound. Only applies to numeric settings.
+  def range_override_for(key, spec)
+    return nil unless [Integer, Float].include?(spec[:type])
+
+    RANGE_OVERRIDES[key.to_s]
   end
 
   def to_json_string(defaults = DEFAULTS)

@@ -214,6 +214,47 @@ class GenerateSchemaTest < Minitest::Test
     assert_equal GenerateSchema::INSTRUMENTATION_STANDARD_VALUES, props['instrumentation.net_http']['enum']
   end
 
+  # --- range overrides (settings that are range-bound but carry no :min/:max) -
+
+  def test_build_property_uses_range_override
+    prop = GenerateSchema.build_property({:type => Integer}, nil, {:minimum => 1, :maximum => 10_000})
+
+    assert_equal 1, prop['minimum']
+    assert_equal 10_000, prop['maximum']
+  end
+
+  def test_build_property_omits_range_when_no_override
+    prop = GenerateSchema.build_property({:type => Integer})
+
+    refute prop.key?('minimum')
+    refute prop.key?('maximum')
+  end
+
+  def test_range_override_for_known_settings
+    assert_equal({:minimum => 1, :maximum => 10_000},
+      GenerateSchema.range_override_for('span_events.max_samples_stored', {:type => Integer}))
+    assert_equal({:minimum => 12, :maximum => 3600},
+      GenerateSchema.range_override_for('security.scan_controllers.iast_scan_request_rate_limit', {:type => Integer}))
+  end
+
+  def test_range_override_skips_non_numeric_and_unknown
+    # Range override only applies to numeric settings
+    assert_nil GenerateSchema.range_override_for('span_events.max_samples_stored', {:type => String})
+    # ordinary setting has no range
+    assert_nil GenerateSchema.range_override_for('transaction_events.max_samples_stored', {:type => Integer})
+  end
+
+  def test_range_overrides_defaults_fall_within_range
+    GenerateSchema::RANGE_OVERRIDES.each_key do |key|
+      spec = NewRelic::Agent::Configuration::DEFAULTS[key.to_sym]
+      default = spec[:documentation_default].nil? ? spec[:default] : spec[:documentation_default]
+      range = GenerateSchema::RANGE_OVERRIDES[key]
+
+      assert_operator default, :>=, range[:minimum], "#{key}'s default is below RANGE_OVERRIDES' minimum"
+      assert_operator default, :<=, range[:maximum], "#{key}'s default is above RANGE_OVERRIDES' maximum"
+    end
+  end
+
   # --- rendering --------------------------------------------------------------
 
   def test_empty_array_default_renders_inline

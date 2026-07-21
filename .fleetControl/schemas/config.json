@@ -1601,7 +1601,9 @@
     "security.scan_controllers.iast_scan_request_rate_limit": {
       "type": "integer",
       "description": "Sets the maximum number of HTTP requests allowed for the IAST scan per minute. Any Integer between 12 and 3600 is valid. The default value is 3600.",
-      "default": 3600
+      "default": 3600,
+      "minimum": 12,
+      "maximum": 3600
     },
     "security.scan_controllers.report_http_response_body": {
       "type": "boolean",
@@ -1767,7 +1769,9 @@
     "span_events.max_samples_stored": {
       "type": "integer",
       "description": "- Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid.' - When configuring the agent for AI monitoring, set to max value 10000.This ensures the agent captures the maximum amount of distributed traces.",
-      "default": 2000
+      "default": 2000,
+      "minimum": 1,
+      "maximum": 10000
     },
     "span_events.queue_size": {
       "type": "integer",
