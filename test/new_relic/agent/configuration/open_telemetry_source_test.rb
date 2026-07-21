@@ -64,11 +64,19 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_otel_log_level_maps_to_log_level
-      with_environment('OTEL_LOG_LEVEL' => 'DEBUG') do
+    def test_otel_sdk_disabled_false_makes_agent_enabled_true
+      with_environment('OTEL_SDK_DISABLED' => 'false') do
         source = OpenTelemetrySource.new
 
-        assert_equal 'debug', source[:log_level]
+        assert source[:agent_enabled]
+      end
+    end
+
+    def test_otel_sdk_disabled_true_makes_agent_enabled_false
+      with_environment('OTEL_SDK_DISABLED' => 'true') do
+        source = OpenTelemetrySource.new
+
+        refute source[:agent_enabled]
       end
     end
 
