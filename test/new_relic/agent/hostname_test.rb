@@ -80,6 +80,67 @@ module NewRelic
         end
       end
 
+      def test_gcp_cloud_run_reports_instance_id_as_host
+        NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
+
+        with_cloud_run_env('gcr-test.1', :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
+          assert_equal '1234567890', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_gcp_cloud_run_prepends_revision_when_configured
+        NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
+
+        with_cloud_run_env('gcr-test.1',
+          :'utilization.gcp_cloud_run.use_instance_as_host' => true,
+          :'utilization.gcp_cloud_run.include_revision_in_host' => true) do
+          assert_equal 'gcr-test.1-1234567890', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_gcp_cloud_run_uses_socket_hostname_when_use_instance_as_host_disabled
+        NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
+
+        with_cloud_run_env('gcr-test.1', :'utilization.gcp_cloud_run.use_instance_as_host' => false) do
+          assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_gcp_cloud_run_falls_back_to_socket_hostname_when_instance_id_unavailable
+        NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns(nil)
+
+        with_cloud_run_env('gcr-test.1', :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
+          assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_gcp_instance_id_parses_successful_response
+        NewRelic::Helper.stubs(:fetch_metadata).returns(stub(code: '200', body: "1234567890\n"))
+
+        assert_equal '1234567890', NewRelic::Agent::Hostname.gcp_instance_id
+      end
+
+      def test_gcp_instance_id_returns_nil_for_non_200_response
+        NewRelic::Helper.stubs(:fetch_metadata).returns(stub(code: '404', body: 'nope'))
+
+        assert_nil NewRelic::Agent::Hostname.gcp_instance_id
+      end
+
+      def test_gcp_instance_id_returns_nil_on_connection_error
+        NewRelic::Helper.stubs(:fetch_metadata).raises(Errno::ECONNREFUSED)
+
+        assert_nil NewRelic::Agent::Hostname.gcp_instance_id
+      end
+
+      def with_cloud_run_env(revision, config_options)
+        with_config(config_options) do
+          ENV[NewRelic::Agent::Hostname::CLOUD_RUN_REVISION] = revision
+          yield
+        end
+      ensure
+        ENV.delete(NewRelic::Agent::Hostname::CLOUD_RUN_REVISION)
+      end
+
       def test_local_predicate_true_when_host_local
         hosts = %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1
           0:0:0:0:0:0:0:0 ::1 ::]
