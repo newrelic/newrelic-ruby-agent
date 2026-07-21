@@ -73,10 +73,10 @@ module NewRelic
           source = case sym
           when :high_security then @high_security_source
           when :environment then @environment_source
+          when :open_telemetry then @otel_source
           when :server then @server_source
           when :manual then @manual_source
           when :yaml then @yaml_source
-          when :open_telemetry then @otel_source
           when :default then @default_source
           end
 
@@ -87,10 +87,10 @@ module NewRelic
           case source
           when HighSecuritySource then @high_security_source = nil
           when EnvironmentSource then @environment_source = nil
+          when OpenTelemetrySource then @otel_source = nil
           when ServerSource then @server_source = nil
           when ManualSource then @manual_source = nil
           when YamlSource then @yaml_source = nil
-          when OpenTelemetrySource then @otel_source = nil
           when DefaultSource then @default_source = nil
           else
             @configs_for_testing.delete_if { |src, lvl| src == source }
@@ -110,10 +110,10 @@ module NewRelic
           case source
           when HighSecuritySource then @high_security_source = source
           when EnvironmentSource then @environment_source = source
+          when OpenTelemetrySource then @otel_source = source
           when ServerSource then @server_source = source
           when ManualSource then @manual_source = source
           when YamlSource then @yaml_source = source
-          when OpenTelemetrySource then @otel_source = source
           when DefaultSource then @default_source = source
           else
             NewRelic::Agent.logger.warn("Invalid config format; config will be ignored: #{source}")
@@ -481,10 +481,10 @@ module NewRelic
           @high_security_source = nil
           @environment_source = EnvironmentSource.new
           log_config(:add, @environment_source) # this is the only place the EnvironmentSource is ever created, so we should log it
+          @otel_source = OpenTelemetrySource.new
           @server_source = nil
           @manual_source = nil
           @yaml_source = nil
-          @otel_source = OpenTelemetrySource.new
           @default_source = DefaultSource.new
 
           @configs_for_testing = []
@@ -534,9 +534,9 @@ module NewRelic
         def delete_all_configs_for_testing
           @high_security_source = nil
           @environment_source = nil
+          @otel_source = nil
           @server_source = nil
           @manual_source = nil
-          @otel_source = nil
           @yaml_source = nil
           @default_source = nil
           @configs_for_testing = []
@@ -555,10 +555,10 @@ module NewRelic
         def config_stack
           stack = [@high_security_source,
             @environment_source,
+            @otel_source,
             @server_source,
             @manual_source,
             @yaml_source,
-            @otel_source,
             @default_source]
 
           stack.compact!

@@ -6,16 +6,13 @@ module NewRelic
   module Agent
     module Configuration
       # Maps a subset of OpenTelemetry environment variable configuration to
-      # New Relic configuration equivalents. Values are only considered when
-      # opentelemetry.enabled is true, so that applications that do not use
-      # the OTel bridge are unaffected.
+      # New Relic configuration equivalents.
       class OpenTelemetrySource < DottedHash
         OTEL_ENV_MAPPINGS = {
           'OTEL_SERVICE_NAME' => :app_name,
           'OTEL_LOG_LEVEL' => :log_level,
           'OTEL_RESOURCE_ATTRIBUTES' => :labels,
-          'OTEL_BSP_MAX_EXPORT_BATCH_SIZE' => :'span_events.max_samples_stored',
-          'OTEL_BLRP_MAX_EXPORT_BATCH_SIZE' => :'application_logging.forwarding.max_samples_stored'
+          'OTEL_SDK_DISABLED' => :agent_enabled
         }.freeze
 
         def initialize
@@ -28,11 +25,14 @@ module NewRelic
             @otel_values[config_key] = transform(config_key, raw)
           end
 
+          # optional in the spec
+          log_ignored_keys
+
           super({})
         end
 
         def has_key?(key)
-          @otel_values.key?(key) && otel_enabled?
+          @otel_values.key?(key)
         end
 
         def [](key)
@@ -41,15 +41,12 @@ module NewRelic
 
         private
 
-        def otel_enabled?
-          NewRelic::Agent.config[:'opentelemetry.enabled']
-        end
-
         # Convert OTEL env var values to the format expected by NR config keys.
         def transform(config_key, value)
           case config_key
           when :labels then otel_resource_attributes_to_nr_labels(value)
           when :log_level then value.downcase
+          when :agent_enabled then !Manager::BOOLEAN_MAP[value]
           else value
           end
         end
@@ -58,6 +55,14 @@ module NewRelic
         # NR labels:                "key1:value1;key2:value2"
         def otel_resource_attributes_to_nr_labels(raw)
           raw.split(',').map { |pair| pair.sub('=', ':') }.join(';')
+        end
+
+        def log_ignored_keys
+          unmapped_otel_keys = ENV.each_key.select { |k| k.start_with?('OTEL') && !OTEL_ENV_MAPPINGS.key?(k) }
+
+          NewRelic::Agent.logger.debug('The New Relic agent will ignore the following ' \
+          'OpenTelemetry configurations found in the environment: ' \
+          "#{unmapped_otel_keys.join(', ')}.")
         end
       end
     end
