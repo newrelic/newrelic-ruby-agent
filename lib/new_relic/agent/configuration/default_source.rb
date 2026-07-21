@@ -1095,7 +1095,7 @@ module NewRelic
           :description => 'The interval, in seconds, between stack samples taken by the continuous profiler.'
         },
         :'continuous_profiler.harvest_period' => {
-          :default => 60,
+          :default => 10,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
