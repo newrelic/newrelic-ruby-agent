@@ -1080,7 +1080,7 @@ module NewRelic
             'security mode is enabled.'
         },
         :'continuous_profiler.mode' => {
-          :default => 'cpu',
+          :default => 'object',
           :public => true,
           :type => String,
           :allowed_from_server => true,
