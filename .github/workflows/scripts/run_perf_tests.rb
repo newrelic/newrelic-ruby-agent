@@ -3,7 +3,7 @@
 require 'json'
 
 def output_line(str)
-  puts "*" * 120
+  puts '*' * 120
   puts str
 end
 
@@ -24,32 +24,32 @@ def build_rails_app(git_tag)
 end
 
 def build_docker_monitor_report
-  output_line("Building docker monitor image")
+  output_line('Building docker monitor image')
   run_command('cd ./test/perfverse/docker_monitor && docker build --pull --progress=plain -t docker_monitor_report:local . ')
 end
 
 def pull_locust
-  output_line("Pulling locust docker image")
-  run_command("docker pull locustio/locust")
+  output_line('Pulling locust docker image')
+  run_command('docker pull locustio/locust')
 end
 
 def generate_otlp_cert
-  output_line("Generating local otlp_receiver cert")
+  output_line('Generating local otlp_receiver cert')
   run_command('./test/perfverse/bin/generate-otlp-cert.sh')
 end
 
 def ensure_network
-  output_line("Ensuring perfverse_net Docker network exists")
+  output_line('Ensuring perfverse_net Docker network exists')
   run_command('docker network create perfverse_net 2>/dev/null || true')
 end
 
 def build_otlp_receiver
-  output_line("Building otlp_receiver image")
+  output_line('Building otlp_receiver image')
   run_command('docker build --pull --progress=plain -f test/perfverse/otlp_receiver/Dockerfile -t otlp_receiver:local .')
 end
 
 def run_otlp_receiver
-  output_line("Starting otlp_receiver sidecar")
+  output_line('Starting otlp_receiver sidecar')
   # Container name doubles as its DNS name on perfverse_net -- must be hyphenated since
   # URI::HTTPS.build rejects underscores as an invalid host component.
   run_command('docker run -d --rm --name otlp-receiver --network perfverse_net otlp_receiver:local')
@@ -65,13 +65,13 @@ end
 
 def stop_otlp_receiver
   print_container_logs('otlp-receiver', 'Received export|Failed to decode')
-  output_line("Stopping otlp_receiver sidecar")
+  output_line('Stopping otlp_receiver sidecar')
   run_command('docker stop otlp-receiver')
 end
 
 def shutdown_rails_app(container_id)
   print_container_logs(container_id, 'continuous profil|stackprof|export')
-  output_line("Shutting down rails app")
+  output_line('Shutting down rails app')
   run_command("docker stop #{container_id}")
 end
 
@@ -118,13 +118,13 @@ def run_docker_report(agent_tag, container_ids, iteration)
     env_str += "-e DOCKER_MONITOR_OUTPUT_DIR=#{output_dir} "
     env_str += "-e MONITOR_CONTAINERS=#{container_ids} "
 
-    docker_mount_bind = "--mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
+    docker_mount_bind = '--mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock'
     output_mount_bind = "--mount type=bind,source=./#{output_dir},target=/app/#{output_dir}"
 
     command = "cd ./test/perfverse/docker_monitor && mkdir -p #{output_dir} && "
     command << "sudo docker run --rm --name docker_monitor_report #{env_str} #{docker_mount_bind} #{output_mount_bind} docker_monitor_report:local"
 
-    output_line("Running docker monitor report")
+    output_line('Running docker monitor report')
     output = run_command(command)
 
     output_line("Docker Monitor Report Output: \n" + output)
@@ -155,4 +155,3 @@ iterations.times do |i|
 end
 
 stop_otlp_receiver
-
