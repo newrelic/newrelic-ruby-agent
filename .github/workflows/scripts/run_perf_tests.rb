@@ -94,7 +94,10 @@ def run_rails_app(agent_tag, env_vars, iteration)
 
   app_name = "ruby_perf_app_#{ENV['TEST_TAG']}_#{agent_tag}_#{iteration}"
   output_line("Running ruby app in background. Name: #{app_name}")
-  cpu_mem = '--cpus 4 --memory 2G'
+  # runs-on: ubuntu-latest is a 2 vCPU host -- --cpus 4 was asking for more cores than the
+  # box has, so the app was already contending with Locust/docker_monitor/the OS for the
+  # same 2 real cores no matter what limit was set here. 1.5 leaves real headroom for those.
+  cpu_mem = '--cpus 1.5 --memory 2G'
 
   Thread.new do
     run_command("cd ./test/perfverse/ && docker run --rm --name #{app_name} --network perfverse_net #{cpu_mem} #{env_str} -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=#{app_name} -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local")
