@@ -67,18 +67,18 @@ end
 # Reads in all the data in the dockermon csv files
 # Files are structured like:
 # - inputs/
-#   - docker_monitor_report-agent_disabled/
-#     - run_0/
+#   - docker_monitor_report-iteration_0/
+#     - agent_disabled/
 #       - metadata.json
 #       - output_file.csv
-#     - run_1/
+#     - agent_version_1/
 #       - metadata.json
 #       - output_file.csv
-#   - docker_monitor_report-agent_version_1/
-#     - run_0/
+#   - docker_monitor_report-iteration_1/
+#     - agent_disabled/
 #       - metadata.json
 #       - output_file.csv
-#     - run_1/
+#     - agent_version_1/
 #       - metadata.json
 #       - output_file.csv
 ################################################
@@ -87,18 +87,15 @@ def dockermon_data
   Dir.entries('inputs/').each do |entry|
     next unless entry.start_with?('docker_monitor_report-')
 
-    Dir.entries("inputs/#{entry}").each do |run_iter|
-      next unless run_iter.start_with?('run_')
+    Dir.entries("inputs/#{entry}").each do |tag_dir|
+      metadata_path = "inputs/#{entry}/#{tag_dir}/metadata.json"
+      next unless File.exist?(metadata_path)
 
-      metadata = {}
-      File.open("inputs/#{entry}/#{run_iter}/metadata.json", 'r') do |f|
-        metadata = JSON.parse(f.read)
-      end
-      output_file_name = metadata['output_file_name']
+      metadata = JSON.parse(File.read(metadata_path))
       output_file_name = metadata['output_file'].split('/').last
       agent_version = display_agent_version(metadata['agent_version'])
 
-      read_csv("inputs/#{entry}/#{run_iter}/#{output_file_name}", agent_version, data)
+      read_csv("inputs/#{entry}/#{tag_dir}/#{output_file_name}", agent_version, data)
     end
   end
   data
@@ -177,11 +174,11 @@ end
 # Reads in all the locust stats_history csv files
 # Files are structured like:
 # - inputs/
-#   - locust_report-run_one/
-#     - run_0/
+#   - locust_report-iteration_0/
+#     - agent_disabled/
 #       - metadata.json
 #       - locust_stats_history.csv
-#     - run_1/
+#     - agent_version_1/
 #       - metadata.json
 #       - locust_stats_history.csv
 ################################################
@@ -195,13 +192,14 @@ def locust_data
   Dir.entries('inputs/').each do |entry|
     next unless entry.start_with?('locust_report-')
 
-    Dir.entries("inputs/#{entry}").each do |run_iter|
-      next unless run_iter.start_with?('run_')
+    Dir.entries("inputs/#{entry}").each do |tag_dir|
+      metadata_path = "inputs/#{entry}/#{tag_dir}/metadata.json"
+      next unless File.exist?(metadata_path)
 
-      metadata = JSON.parse(File.read("inputs/#{entry}/#{run_iter}/metadata.json"))
+      metadata = JSON.parse(File.read(metadata_path))
       agent_version = display_agent_version(metadata['agent_version'])
 
-      read_locust_stats_history("inputs/#{entry}/#{run_iter}/locust_stats_history.csv", agent_version, data)
+      read_locust_stats_history("inputs/#{entry}/#{tag_dir}/locust_stats_history.csv", agent_version, data)
     end
   end
   data
