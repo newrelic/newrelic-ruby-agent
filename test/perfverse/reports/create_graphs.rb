@@ -104,11 +104,11 @@ def dockermon_data
   data
 end
 
-def create_graph(data, key)
-  Charty.box_plot(data: data, x: :agent_version, y: key).save("output/#{key}.png")
+def create_graph(data, key, order)
+  Charty.box_plot(data: data, x: :agent_version, y: key, order: order).save("output/#{key}.png")
 end
 
-def create_network_output_graph(data)
+def create_network_output_graph(data, order)
   max = {}
 
   data[:network_output].each_with_index do |_val, index|
@@ -125,7 +125,7 @@ def create_network_output_graph(data)
     max_data[:network_output] << val[:max]
   end
 
-  create_graph(max_data, :network_output)
+  create_graph(max_data, :network_output, order)
 end
 
 # nil (rather than 0) for percentile columns Locust reports as "N/A" before any request completes
@@ -213,37 +213,46 @@ def with_present(data, key)
   data.transform_values { |values| indices.map { |i| values[i] } }
 end
 
-def create_line_graph(data, x, y, color, filename)
-  Charty.line_plot(data: data, x: x, y: y, color: color).save("output/#{filename}.png")
+def create_line_graph(data, x, y, color, filename, color_order)
+  Charty.line_plot(data: data, x: x, y: y, color: color, color_order: color_order).save("output/#{filename}.png")
+end
+
+# fixes agent_version -> color/x-position mapping across every graph -- without this, each
+# graph independently infers category order from Dir.entries/row order (neither of which is
+# guaranteed consistent between dockermon and locust data, or even between two runs of the
+# same graph), so the same version could end up a different color on every chart
+def agent_version_order(*datasets)
+  datasets.flat_map { |d| d[:agent_version] }.uniq.sort
 end
 
 ############################################################################################
 
 unzip_all
 data = dockermon_data
+locust = locust_data
+order = agent_version_order(data, locust)
 
 [:cpu_usage_perc, :cpu_usage, :memory_usage].each do |key|
   puts "key: #{key}, data: [#{data[key].min}, #{data[key].max}]"
-  create_graph(data, key)
+  create_graph(data, key, order)
 end
 
-create_network_output_graph(data)
+create_network_output_graph(data, order)
 
-locust = locust_data
-create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute')
-create_line_graph(locust, :elapsed_seconds, :failures_per_minute, :agent_version, 'failures_per_minute')
-create_line_graph(locust, :elapsed_seconds, :response_time_avg, :agent_version, 'response_time_avg_ms')
-create_line_graph(locust, :elapsed_seconds, :response_time_max, :agent_version, 'response_time_max_ms')
+create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute', order)
+create_line_graph(locust, :elapsed_seconds, :failures_per_minute, :agent_version, 'failures_per_minute', order)
+create_line_graph(locust, :elapsed_seconds, :response_time_avg, :agent_version, 'response_time_avg_ms', order)
+create_line_graph(locust, :elapsed_seconds, :response_time_max, :agent_version, 'response_time_max_ms', order)
 
 # separate charts per percentile rather than one combined chart -- :color is already used for
 # agent_version, and overlaying percentile as a second grouping made it unreadable
 [:response_time_50th, :response_time_95th, :response_time_99th].each do |key|
   filtered = with_present(locust, key)
-  create_line_graph(filtered, :elapsed_seconds, key, :agent_version, "#{key}_ms")
+  create_line_graph(filtered, :elapsed_seconds, key, :agent_version, "#{key}_ms", order)
 end
 
 # box-plot summary (pooling every sample across the run, same convention as the cpu/memory
 # box plots above) of p95 latency per version, for an at-a-glance "which version is slower"
-create_graph(with_present(locust, :response_time_95th), :response_time_95th)
+create_graph(with_present(locust, :response_time_95th), :response_time_95th, order)
 
 puts '***** COMPLETE *****'
