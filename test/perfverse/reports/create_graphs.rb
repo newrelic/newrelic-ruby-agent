@@ -5,6 +5,7 @@
 require 'charty'
 require 'zip'
 require 'matplotlib'
+require 'json'
 
 Charty::Backends.use(:pyplot)
 Matplotlib.use(:agg)
@@ -119,6 +120,84 @@ def create_network_output_graph(data)
   create_graph(max_data, :network_output)
 end
 
+# nil (rather than 0) for percentile columns Locust reports as "N/A" before any request completes
+def locust_row_value(raw)
+  raw == 'N/A' ? nil : raw.to_f
+end
+
+################################################
+# Reads in a single locust_stats_history.csv, keeping only the "Aggregated" row per
+# timestamp (there's one row per endpoint plus one Aggregated row, with --csv-full-history).
+# Timestamps are whole-second unix epoch values sampled once per second, so subtracting
+# each run's own first timestamp lines runs with different start times up on a shared
+# elapsed-seconds axis without any extra bucketing/rounding.
+################################################
+def read_locust_stats_history(file_path, agent_version, data)
+  start_timestamp = nil
+
+  File.open(file_path, 'r') do |f|
+    headers = f.readline.strip.split(',').map(&:strip)
+
+    f.each_line do |line|
+      values = line.strip.split(',')
+      next if values.length != headers.length
+
+      row = headers.zip(values).to_h
+      next unless row['Name'] == 'Aggregated'
+
+      timestamp = row['Timestamp'].to_i
+      start_timestamp ||= timestamp
+
+      data[:agent_version] << agent_version
+      data[:elapsed_seconds] << (timestamp - start_timestamp)
+      data[:requests_per_minute] << row['Requests/s'].to_f * 60
+      data[:response_time_95th] << locust_row_value(row['95%'])
+    end
+  end
+  data
+end
+
+################################################
+# Reads in all the locust stats_history csv files
+# Files are structured like:
+# - inputs/
+#   - locust_report-run_one/
+#     - run_0/
+#       - metadata.json
+#       - locust_stats_history.csv
+#     - run_1/
+#       - metadata.json
+#       - locust_stats_history.csv
+################################################
+def locust_data
+  data = {agent_version: [], elapsed_seconds: [], requests_per_minute: [], response_time_95th: []}
+
+  Dir.entries('inputs/').each do |entry|
+    next unless entry.start_with?('locust_report-')
+
+    Dir.entries("inputs/#{entry}").each do |run_iter|
+      next unless run_iter.start_with?('run_')
+
+      metadata = JSON.parse(File.read("inputs/#{entry}/#{run_iter}/metadata.json"))
+      agent_version = metadata['agent_version']
+      agent_version = 'disabled' if agent_version == 'AGENT_DISABLED'
+
+      read_locust_stats_history("inputs/#{entry}/#{run_iter}/locust_stats_history.csv", agent_version, data)
+    end
+  end
+  data
+end
+
+# drops rows where `key` is nil, keeping the remaining columns aligned
+def with_present(data, key)
+  indices = data[key].each_index.reject { |i| data[key][i].nil? }
+  data.transform_values { |values| indices.map { |i| values[i] } }
+end
+
+def create_line_graph(data, x, y, color, filename)
+  Charty.line_plot(data: data, x: x, y: y, color: color).save("output/#{filename}.png")
+end
+
 ############################################################################################
 
 unzip_all
@@ -130,5 +209,9 @@ data = dockermon_data
 end
 
 create_network_output_graph(data)
+
+locust = locust_data
+create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute')
+create_line_graph(with_present(locust, :response_time_95th), :elapsed_seconds, :response_time_95th, :agent_version, 'response_time_95th_ms')
 
 puts '***** COMPLETE *****'

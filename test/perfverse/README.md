@@ -92,19 +92,25 @@ Env vars you will need to pass in to dockermon: MONITOR_CONTAINERS, AGENT_VERSIO
 
 ### Locust
 
-This is the traffic driver. It is configured to provide a consistent load on the application being tested. You can change how long you want it to run by modifying the value of the `-t` flag.
+This is the traffic driver. It is configured to provide a consistent load on the application being tested (a fixed number of users, each targeting a constant request rate via `constant_throughput` -- no ramp-up/ramp-down shape). You can change how long you want it to run by modifying the value of the `-t` flag.
 
     cd ./test/perfverse/traffic
 
     docker pull locustio/locust
 
-    docker run -p 8089:8089 --network="host" -v $PWD:/mnt/locust locustio/locust -t 1m -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5
+    mkdir -p output/run_0
 
+    docker run -p 8089:8089 --network="host" -v $PWD:/mnt/locust locustio/locust -t 1m -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5 --csv=/mnt/locust/output/run_0/locust --csv-full-history
+
+The `--csv`/`--csv-full-history` flags make Locust write `output/run_0/locust_stats_history.csv`, a
+per-second history of throughput (`Requests/s`) and response-time percentiles for the run -- this is
+what gets graphed as requests-per-minute/response-time (below). `run_perf_tests.rb` also writes a
+`metadata.json` (`{"agent_version": ...}`) next to it, same role as dockermon's own metadata.json.
 
 
 ### Graphs
 
-This will create all the graphs from the dockermon data. It is expecting to find zip files in the inputs directory that are the ouput of several dockermon outputs. (Set up to upload and download artifacts on GHA). All graphs will be put in the outputs folder.
+This will create all the graphs from the dockermon and locust data. It is expecting to find zip files in the inputs directory that are the output of several dockermon/locust outputs. (Set up to upload and download artifacts on GHA). All graphs will be put in the outputs folder, including `requests_per_minute.png` and `response_time_95th_ms.png`.
 
     cd ./test/perfverse/reports
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 def output_line(str)
   puts "*" * 120
   puts str
@@ -75,9 +77,12 @@ def shutdown_rails_app(container_id)
   run_command("docker stop #{container_id}")
 end
 
-def run_traffic
+def run_traffic(agent_tag, iteration)
+  output_dir = "output/run_#{iteration}"
   output_line("Running locust traffic with #{ENV['RUN_TIME']} duration")
-  run_command("cd ./test/perfverse/traffic && docker run -p 8089:8089 --network=\"host\" -v $PWD:/mnt/locust locustio/locust -t $RUN_TIME -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5")
+  run_command("mkdir -p ./test/perfverse/traffic/#{output_dir}")
+  run_command("cd ./test/perfverse/traffic && docker run -p 8089:8089 --network=\"host\" -v $PWD:/mnt/locust locustio/locust -t $RUN_TIME -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5 --csv=/mnt/locust/#{output_dir}/locust --csv-full-history")
+  File.write("./test/perfverse/traffic/#{output_dir}/metadata.json", {agent_version: agent_tag}.to_json)
 end
 
 def run_rails_app(agent_tag, env_vars, iteration)
@@ -139,7 +144,7 @@ iterations.times do |i|
   build_rails_app(agent_tag)
 
   app_name, monitor_thread = run_rails_app(agent_tag, env_vars, i)
-  run_traffic
+  run_traffic(agent_tag, i)
 
   shutdown_rails_app(app_name)
   monitor_thread.join
