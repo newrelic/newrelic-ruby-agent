@@ -13,6 +13,15 @@ Matplotlib.use(:agg)
 CSV_SKIP_LAST = 15
 CSV_SKIP_FIRST = 6
 
+# shortens agent_version labels for graph readability -- "BRANCH_add_cont_profiling" is long
+# enough to overlap adjacent x-axis tick labels on the box plots
+def display_agent_version(agent_version)
+  return 'disabled' if agent_version == 'AGENT_DISABLED'
+  return agent_version.delete_prefix('BRANCH_') if agent_version.start_with?('BRANCH_')
+
+  agent_version
+end
+
 # currently only used for dockermon csv files
 def read_csv(file_path, agent_version, data)
   max_line_count = %x(wc -l "#{file_path}").split.first.to_i - CSV_SKIP_LAST
@@ -87,8 +96,7 @@ def dockermon_data
       end
       output_file_name = metadata['output_file_name']
       output_file_name = metadata['output_file'].split('/').last
-      agent_version = metadata['agent_version']
-      agent_version = 'disabled' if agent_version == 'AGENT_DISABLED'
+      agent_version = display_agent_version(metadata['agent_version'])
 
       read_csv("inputs/#{entry}/#{run_iter}/#{output_file_name}", agent_version, data)
     end
@@ -191,8 +199,7 @@ def locust_data
       next unless run_iter.start_with?('run_')
 
       metadata = JSON.parse(File.read("inputs/#{entry}/#{run_iter}/metadata.json"))
-      agent_version = metadata['agent_version']
-      agent_version = 'disabled' if agent_version == 'AGENT_DISABLED'
+      agent_version = display_agent_version(metadata['agent_version'])
 
       read_locust_stats_history("inputs/#{entry}/#{run_iter}/locust_stats_history.csv", agent_version, data)
     end
