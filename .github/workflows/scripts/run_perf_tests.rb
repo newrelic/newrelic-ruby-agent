@@ -50,10 +50,8 @@ end
 
 def run_otlp_receiver
   output_line("Starting otlp_receiver sidecar")
-  # Container name doubles as its DNS name on perfverse_net -- URI::HTTPS.build (used to
-  # resolve continuous_profiler.otlp_endpoint.host) rejects underscores as an invalid host
-  # component, so this must be hyphenated even though the image/dir/functions here use
-  # underscores.
+  # Container name doubles as its DNS name on perfverse_net -- must be hyphenated since
+  # URI::HTTPS.build rejects underscores as an invalid host component.
   run_command('docker run -d --rm --name otlp-receiver --network perfverse_net otlp_receiver:local')
 end
 

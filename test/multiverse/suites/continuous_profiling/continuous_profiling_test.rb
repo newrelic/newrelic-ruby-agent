@@ -38,8 +38,8 @@ class ContinuousProfilingTest < Minitest::Test
   end
 
   # Runs real sampling and real protobuf encoding end to end, stubbing only the final
-  # socket hop (Net::HTTP itself is a well-tested standard library; what's actually at risk
-  # here is whether a real StackProf report survives real protobuf encoding intact).
+  # socket hop -- what's at risk is whether a real StackProf report survives real
+  # protobuf encoding intact, not Net::HTTP itself.
   def test_full_pipeline_produces_a_decodable_export_profiles_service_request
     require 'new_relic/agent/continuous_profiling/profile_encoder'
 

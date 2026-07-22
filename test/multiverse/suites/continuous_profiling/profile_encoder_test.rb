@@ -2,13 +2,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# Exercises ProfileEncoder against the real `google-protobuf` gem. Requires google-protobuf
-# to instantiate/decode the generated OTel message classes, so this lives in the multiverse
+# Exercises ProfileEncoder against the real `google-protobuf` gem, hence the multiverse
 # suite rather than the main unit suite (which doesn't have that gem installed).
-#
-# ProfileEncoder is never required unconditionally by the main agent load path (loading it
-# would raise LoadError for the vast majority of customers who don't have google-protobuf
-# installed), so it must be required explicitly here.
+# ProfileEncoder is never required unconditionally by the main agent load path, so it must
+# be required explicitly here.
 require 'new_relic/agent/continuous_profiling/profile_encoder'
 
 OTelCollector = Opentelemetry::Proto::Collector::Profiles::V1development

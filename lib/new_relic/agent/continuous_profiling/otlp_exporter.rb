@@ -9,17 +9,13 @@ require_relative 'otlp_endpoint'
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Sends an already-encoded OTLP profile payload to the (currently placeholder --
-      # see OtlpEndpoint) destination over HTTP. This is deliberately independent of
-      # NewRelicService: that class is built around the RPM collector's invoke_remote
-      # protocol (query-string license-key auth, connect/agent_run_id handshake, the
-      # collector's own marshaller) -- none of which applies here. An OTLP export uses
-      # header-based auth, a raw protobuf body, and doesn't depend on a successful RPM
-      # connect. Only the low-level primitives (gzip, proxy-aware Net::HTTP, timeouts) are
-      # shared, by convention rather than by inheritance.
+      # Sends an already-encoded OTLP profile payload to the (placeholder, see
+      # OtlpEndpoint) destination over HTTP. Deliberately independent of NewRelicService,
+      # which is built around the RPM collector's own auth/connect protocol -- none of
+      # which applies to an OTLP export's header-based auth and raw protobuf body.
       #
-      # There is no retry queue: a failed export is logged and dropped. The next harvest
-      # tick tries again with fresh data.
+      # No retry queue: a failed export is logged and dropped. The next harvest tick
+      # tries again with fresh data.
       class OtlpExporter
         CONTENT_TYPE = 'application/x-protobuf'
         CONTENT_ENCODING = 'gzip'
@@ -45,9 +41,7 @@ module NewRelic
 
         private
 
-        # Mirrors NewRelicService#log_response -- logs the raw HTTP response so a debug-level
-        # log can confirm whether the (currently placeholder, see OtlpEndpoint) destination
-        # actually accepted the export.
+        # Mirrors NewRelicService#log_response, for debug-log visibility into export acceptance.
         def log_response(response)
           NewRelic::Agent.logger.debug(
             "Received continuous profiling export response, status: #{response.code} #{response.message}, " \

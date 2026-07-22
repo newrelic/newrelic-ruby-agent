@@ -7,11 +7,9 @@ require 'uri'
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Resolves the destination for continuous profiling's OTLP export. The real mechanism
-      # for locating this endpoint (e.g. via the connect response, the way the OTLP
-      # Metrics/Traces/Logs bridges do for other signals) is undecided -- this is a
-      # placeholder resolving from local config only, isolated here so swapping in the real
-      # mechanism later only touches this file.
+      # Placeholder OTLP destination resolution: the real mechanism (e.g. via the connect
+      # response) is undecided, so this resolves from local config only, isolated here so
+      # swapping in the real mechanism later only touches this file.
       module OtlpEndpoint
         def self.uri
           URI::HTTPS.build(

@@ -11,24 +11,21 @@ module NewRelic
     module ContinuousProfiling
       # Owns the lifecycle of continuous profiling: starting/stopping StackProf on a
       # dedicated background thread, and reacting to agent shutdown. Two activation
-      # triggers are currently wired in, since the collector-driven mechanism isn't
-      # finalized: server-side config changes (a placeholder, via evaluate_and_apply)
-      # and agent commands (handle_start_command/handle_stop_command, dispatched from
-      # Commands::AgentCommandRouter the same way the legacy thread profiler is). Both
-      # may not survive to GA -- whichever the collector team settles on stays.
+      # triggers are wired in since the collector-driven mechanism isn't finalized:
+      # server-side config (placeholder, via evaluate_and_apply) and agent commands
+      # (handle_start_command/handle_stop_command, dispatched from
+      # Commands::AgentCommandRouter like the legacy thread profiler). Whichever the
+      # collector team settles on stays; the other may not survive to GA.
       #
-      # Unlike the legacy thread profiler's BacktraceService/ThreadProfile trie, StackProf
-      # results are already a complete cumulative report each time they're pulled, so no
-      # aggregation step is needed here -- each harvest tick simply stops, collects, and
-      # restarts the sampler.
+      # Unlike the legacy thread profiler's trie, StackProf results are already a
+      # complete cumulative report each time they're pulled, so each harvest tick simply
+      # stops, collects, and restarts the sampler -- no aggregation needed.
       #
-      # Background threads don't survive fork -- only the forking thread continues in the
-      # child, so a process that forks after profiling has started (Puma cluster mode,
-      # Passenger, Resque, or just daemonizing) silently loses this thread in every child.
-      # Recovered the same way Harvester recovers the reporting thread: on the first
-      # transaction in any process, check whether the pid profiling last started in still
-      # matches, and if not, restart. This is dispatcher-agnostic -- no per-dispatcher fork
-      # hook is needed -- but only fires once a transaction actually runs in the child.
+      # Background threads don't survive fork, so a process that forks after profiling
+      # started (Puma cluster mode, Passenger, Resque, daemonizing) silently loses this
+      # thread in every child. Recovered the way Harvester recovers its reporting thread:
+      # on the first transaction in any process, check whether the pid profiling last
+      # started in still matches, and if not, restart.
       class Session
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
@@ -47,8 +44,8 @@ module NewRelic
           events&.subscribe(:start_transaction) { restart_if_forked }
         end
 
-        # Called once at start-up, after DependencyDetection has already confirmed the
-        # required gems are present and the platform is supported.
+        # Called once at start-up, after DependencyDetection has confirmed the required
+        # gems are present and the platform is supported.
         def maybe_start
           return unless enabled?
 
@@ -97,11 +94,10 @@ module NewRelic
 
         private
 
-        # Called on every :start_transaction, so this must stay cheap in the common case
-        # (no fork happened). StackProf itself already resets its own C-level running state
-        # on fork via pthread_atfork, so restarting the sampler here is always safe -- the
-        # only state that needs recovering is this object's own @running/@thread, which fork
-        # copies from the parent but which no longer reflect reality in the child.
+        # Runs on every :start_transaction, so must stay cheap when no fork happened.
+        # StackProf resets its own C-level running state on fork via pthread_atfork, so
+        # restarting the sampler here is always safe -- only @running/@thread (copied
+        # from the parent, no longer accurate in the child) need recovering.
         def restart_if_forked
           return unless @running && @starting_pid != Process.pid
 
@@ -132,9 +128,8 @@ module NewRelic
           raise_command_error(msg)
         end
 
-        # Re-evaluates whether profiling should be running whenever server-side config is
-        # (re-)applied, e.g. after connect/reconnect. This is the placeholder for the real
-        # collector-driven activation mechanism, which is not yet decided.
+        # Placeholder for the real collector-driven activation mechanism: re-evaluates
+        # whether profiling should run whenever server-side config is (re-)applied.
         def evaluate_and_apply
           if enabled? && !running?
             start
@@ -143,11 +138,8 @@ module NewRelic
           end
         end
 
-        # Gates every activation path (boot-time maybe_start, the SSC-reactive
-        # evaluate_and_apply, and agent-command handle_start_command) on the same three
-        # conditions, so none of them can call start without the gems StackProfSampler
-        # needs actually being loaded -- e.g. a collector-driven SSC change flipping this on
-        # for a customer who never added stackprof/google-protobuf to their Gemfile.
+        # Gates every activation path on the same three conditions, so an SSC change
+        # can't flip this on for a customer who never added stackprof/google-protobuf.
         def enabled?
           NewRelic::Agent.config[:'continuous_profiler.enabled'] && !NewRelic::LanguageSupport.jruby? && gems_present?
         end
@@ -177,9 +169,8 @@ module NewRelic
           @sampler.start if running?
         end
 
-        # Split out from harvest_and_send so tests can stub this one seam instead of the
-        # real ProfileEncoder require chain, which has a hard dependency on google-protobuf
-        # being loadable and is therefore never required unconditionally.
+        # Split out so tests can stub this one seam instead of the ProfileEncoder require
+        # chain, which has a hard dependency on google-protobuf being loadable.
         def encode_and_export(report)
           require 'new_relic/agent/continuous_profiling/profile_encoder'
           bytes = ProfileEncoder.encode(report)

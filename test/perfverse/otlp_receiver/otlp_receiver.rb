@@ -3,12 +3,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# Standalone local stand-in for the (not-yet-decided) real OTLP profiles destination, used by
-# perfverse so performance runs never send real data externally. Runs as its own sidecar
-# container (see Dockerfile in this directory) rather than inside the app container being
-# measured, so docker_monitor's CPU/memory numbers for the app stay uncontaminated by this
-# process. Listens over HTTPS with a self-signed cert (see test/perfverse/bin/generate-otlp-cert.sh),
-# decodes each POST as a gzip'd ExportProfilesServiceRequest, and logs a summary.
+# Local stand-in for the real OTLP profiles destination, so perfverse runs never send real
+# data externally. Runs as its own sidecar container (not inside the measured app container)
+# so docker_monitor's CPU/memory numbers for the app stay uncontaminated. Listens over HTTPS
+# with a self-signed cert (see bin/generate-otlp-cert.sh), decodes each POST as a gzip'd
+# ExportProfilesServiceRequest, and logs a summary.
 
 require 'webrick'
 require 'webrick/https'

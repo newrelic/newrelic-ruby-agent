@@ -13,22 +13,18 @@ namespace :continuous_profiling do
 end
 
 # Vendors New Relic's copy of the OpenTelemetry profiles signal proto files
-# (opentelemetry-proto, Apache-2.0) as Ruby classes for use by
+# (opentelemetry-proto, Apache-2.0) as Ruby classes for
 # NewRelic::Agent::ContinuousProfiling::ProfileEncoder.
 #
-# We vendor our own copies (rather than depending on a gem like
-# opentelemetry-exporter-otlp that already bundles them) to avoid pulling in
-# that gem's large dependency chain just for four generated files that aren't
-# part of its public API/versioning contract. Because other gems (notably
-# opentelemetry-exporter-otlp) vendor these exact same files at the exact same
-# logical paths, and Google::Protobuf::DescriptorPool is a single process-wide
-# global that raises if the same proto file is registered twice, every
-# generated file here is post-processed to:
-#   - require_relative its dependencies (so loading is deterministic and
-#     doesn't depend on gem load order / $LOAD_PATH contents), and
-#   - register itself into the DescriptorPool through
-#     NewRelic::Agent::ContinuousProfiling::Proto::Registrar, which skips
-#     registration if another gem already registered the same file first.
+# We vendor our own copies rather than depending on a gem like
+# opentelemetry-exporter-otlp, to avoid pulling in its large dependency chain just for
+# four generated files outside its public API. Other gems (notably
+# opentelemetry-exporter-otlp) vendor these same files at the same logical paths, and
+# Google::Protobuf::DescriptorPool raises if a proto file is registered twice -- so every
+# generated file here is post-processed to require_relative its dependencies (deterministic
+# loading, independent of gem load order) and register itself through
+# NewRelic::Agent::ContinuousProfiling::Proto::Registrar, which skips registration if
+# another gem already registered the file first.
 module ContinuousProfilingProto
   PROTO_DIR = File.expand_path('../new_relic/agent/continuous_profiling/proto', __dir__)
 

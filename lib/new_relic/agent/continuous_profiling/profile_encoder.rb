@@ -8,22 +8,18 @@ require_relative 'proto/opentelemetry/proto/collector/profiles/v1development/pro
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Converts a StackProf.results report Hash into a serialized OTel Profiles signal
-      # message (opentelemetry.proto.collector.profiles.v1development.ExportProfilesServiceRequest).
+      # Converts a StackProf.results report Hash into a serialized
+      # opentelemetry.proto.collector.profiles.v1development.ExportProfilesServiceRequest.
       #
-      # StackProf's :raw/:raw_lines arrays are a flat encoding of repeated
-      # [length, frame_id_1..frame_id_length, weight] (and the line-number equivalent)
-      # groups, one per distinct stack observed, ordered root-first. OTel's Stack wants
-      # location_indices ordered leaf-first, so each stack's frames are reversed on the way
-      # in. Every table in the OTel ProfilesDictionary (functions, locations, stacks,
-      # strings) is deduplicated within a single encode call -- dictionaries are scoped per
-      # message, not persisted across harvests, so nothing here is cached between calls.
+      # StackProf's :raw/:raw_lines are flat, root-first-ordered stack encodings; OTel's
+      # Stack wants location_indices leaf-first, so each stack is reversed on the way in.
+      # The ProfilesDictionary tables are deduped per encode call only -- nothing persists
+      # across harvests.
       #
-      # Sample values are the StackProf-reported sample count for that stack (its "weight"),
-      # not a time value -- pending confirmation of what the flame-graph UI actually expects
-      # (see CONTINUOUS_PROFILING_PLAN.md's open items). Likewise, samples carry no
-      # trace/span correlation and profile timestamps are approximate (wall-clock time at
-      # encode time, not the actual sampling window) -- both explicitly deferred.
+      # Sample values are StackProf's raw per-stack sample count, not a time value --
+      # pending confirmation of what the flame-graph UI expects. Samples carry no
+      # trace/span correlation, and timestamps are approximate (encode time, not the
+      # actual sampling window). Both deferred; see CONTINUOUS_PROFILING_PLAN.md.
       class ProfileEncoder
         OTEL_PROFILES = Opentelemetry::Proto::Profiles::V1development
         OTEL_COLLECTOR = Opentelemetry::Proto::Collector::Profiles::V1development
@@ -121,9 +117,8 @@ module NewRelic
           end
         end
 
-        # StackProf's :raw/:raw_lines are flat arrays of repeated
-        # [length, item_1, .., item_length, weight] groups. Returns an array of
-        # [items, weight] pairs.
+        # StackProf's :raw/:raw_lines are flat [length, item_1, .., item_length, weight]
+        # groups. Returns an array of [items, weight] pairs.
         def parse_raw_groups(flat_array)
           groups = []
           i = 0

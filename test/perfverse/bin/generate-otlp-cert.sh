@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Generates a self-signed cert for the local otlp_receiver sidecar (see
-# test/perfverse/otlp_receiver/) so perf tests never send real profile data to an external
-# OTLP destination. Not checked into the repo -- regenerated on demand into test/perfverse/certs/,
-# shared as Docker build context by both the otlp_receiver and rails7 app images.
+# Generates a self-signed cert for the local otlp_receiver sidecar. Not checked into the
+# repo -- regenerated on demand into test/perfverse/certs/, shared as Docker build context
+# by both the otlp_receiver and rails7 app images.
 
 cert_dir="$(dirname "${BASH_SOURCE[0]}")/../certs"
 mkdir -p "$cert_dir"
