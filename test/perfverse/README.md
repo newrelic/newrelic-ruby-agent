@@ -110,7 +110,7 @@ what gets graphed as requests-per-minute/response-time (below). `run_perf_tests.
 
 ### Graphs
 
-This will create all the graphs from the dockermon and locust data. It is expecting to find zip files in the inputs directory that are the output of several dockermon/locust outputs. (Set up to upload and download artifacts on GHA). All graphs will be put in the outputs folder, including `requests_per_minute.png` and `response_time_95th_ms.png`.
+This will create all the graphs from the dockermon and locust data. It is expecting to find zip files in the inputs directory that are the output of several dockermon/locust outputs. (Set up to upload and download artifacts on GHA). All graphs will be put in the outputs folder, including from the locust data: `requests_per_minute.png`, `failures_per_minute.png`, `response_time_avg_ms.png`, `response_time_max_ms.png`, `response_time_50th_ms.png`, `response_time_95th_ms.png`, `response_time_99th_ms.png` (each a time series over the run, colored by agent version), and `response_time_95th.png` (a box-plot summary of p95 latency per version, same style as the CPU/memory box plots).
 
     cd ./test/perfverse/reports
 

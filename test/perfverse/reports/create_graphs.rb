@@ -151,7 +151,15 @@ def read_locust_stats_history(file_path, agent_version, data)
       data[:agent_version] << agent_version
       data[:elapsed_seconds] << (timestamp - start_timestamp)
       data[:requests_per_minute] << row['Requests/s'].to_f * 60
+      data[:failures_per_minute] << row['Failures/s'].to_f * 60
+      data[:response_time_50th] << locust_row_value(row['50%'])
       data[:response_time_95th] << locust_row_value(row['95%'])
+      data[:response_time_99th] << locust_row_value(row['99%'])
+      # "Total" columns are cumulative-since-test-start (never "N/A"), unlike the percentile
+      # columns above -- Total Max Response Time in particular is a running max, so its graph
+      # only ever rises/plateaus rather than tracking a per-second max.
+      data[:response_time_avg] << row['Total Average Response Time'].to_f
+      data[:response_time_max] << row['Total Max Response Time'].to_f
     end
   end
   data
@@ -170,7 +178,11 @@ end
 #       - locust_stats_history.csv
 ################################################
 def locust_data
-  data = {agent_version: [], elapsed_seconds: [], requests_per_minute: [], response_time_95th: []}
+  data = {
+    agent_version: [], elapsed_seconds: [], requests_per_minute: [], failures_per_minute: [],
+    response_time_50th: [], response_time_95th: [], response_time_99th: [],
+    response_time_avg: [], response_time_max: []
+  }
 
   Dir.entries('inputs/').each do |entry|
     next unless entry.start_with?('locust_report-')
@@ -212,6 +224,19 @@ create_network_output_graph(data)
 
 locust = locust_data
 create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute')
-create_line_graph(with_present(locust, :response_time_95th), :elapsed_seconds, :response_time_95th, :agent_version, 'response_time_95th_ms')
+create_line_graph(locust, :elapsed_seconds, :failures_per_minute, :agent_version, 'failures_per_minute')
+create_line_graph(locust, :elapsed_seconds, :response_time_avg, :agent_version, 'response_time_avg_ms')
+create_line_graph(locust, :elapsed_seconds, :response_time_max, :agent_version, 'response_time_max_ms')
+
+# separate charts per percentile rather than one combined chart -- :color is already used for
+# agent_version, and overlaying percentile as a second grouping made it unreadable
+[:response_time_50th, :response_time_95th, :response_time_99th].each do |key|
+  filtered = with_present(locust, key)
+  create_line_graph(filtered, :elapsed_seconds, key, :agent_version, "#{key}_ms")
+end
+
+# box-plot summary (pooling every sample across the run, same convention as the cpu/memory
+# box plots above) of p95 latency per version, for an at-a-glance "which version is slower"
+create_graph(with_present(locust, :response_time_95th), :response_time_95th)
 
 puts '***** COMPLETE *****'
