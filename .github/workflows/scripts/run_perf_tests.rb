@@ -80,7 +80,10 @@ end
 def run_traffic(agent_tag, iteration)
   output_dir = "output/run_#{iteration}"
   output_line("Running locust traffic with #{ENV['RUN_TIME']} duration")
-  run_command("mkdir -p ./test/perfverse/traffic/#{output_dir}")
+  # locustio/locust runs as a non-root uid inside the container, so the bind-mounted
+  # output dir (created here as whatever uid the runner is) needs to be world-writable
+  # or Locust fails to open its --csv files and exits immediately.
+  run_command("mkdir -p ./test/perfverse/traffic/#{output_dir} && chmod 777 ./test/perfverse/traffic/#{output_dir}")
   run_command("cd ./test/perfverse/traffic && docker run -p 8089:8089 --network=\"host\" -v $PWD:/mnt/locust locustio/locust -t $RUN_TIME -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5 --csv=/mnt/locust/#{output_dir}/locust --csv-full-history")
   File.write("./test/perfverse/traffic/#{output_dir}/metadata.json", {agent_version: agent_tag}.to_json)
 end
