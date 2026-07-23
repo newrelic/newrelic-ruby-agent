@@ -138,8 +138,8 @@ end
 ###############################################################################
 
 iteration_index = ENV['ITERATION_INDEX'].to_i
-tags = JSON.parse(ENV['AGENT_TAGS']).map { |t| transform_agent_tags(t) }.rotate(iteration_index)
-output_line("Running perf test for iteration #{iteration_index} with #{ENV['RUN_TIME']} run time, tags (rotated): #{tags.map(&:first)}")
+tags = JSON.parse(ENV['AGENT_TAGS']).map { |t| transform_agent_tags(t) }.shuffle(random: Random.new(iteration_index))
+output_line("Running perf test for iteration #{iteration_index} with #{ENV['RUN_TIME']} run time, tags (shuffled): #{tags.map(&:first)}")
 
 generate_otlp_cert
 ensure_network
