@@ -46,11 +46,15 @@ class HTTPXInstrumentationTest < Minitest::Test
     request.expect :hash, 1138
     request.expect :connection=, nil, [nil]
 
+    standard_error = StandardError.new
+
     error = if NewRelic::Helper.version_satisfied?(::HTTPX::VERSION, '>=', '1.3.0')
       request.expect :options, ::HTTPX::Options.new({})
-      ::HTTPX::ErrorResponse.new(request, StandardError.new)
+      # 1.8.1+ now calls log_exception as well, so add it to our mock
+      request.expect :log_exception, nil, [standard_error] if NewRelic::Helper.version_satisfied?(::HTTPX::VERSION, '>=', '1.8.1')
+      ::HTTPX::ErrorResponse.new(request, standard_error)
     else
-      ::HTTPX::ErrorResponse.new(request, StandardError.new, {})
+      ::HTTPX::ErrorResponse.new(request, standard_error, {})
     end
     responses = {request => error}
 
@@ -113,8 +117,7 @@ class HTTPXInstrumentationTest < Minitest::Test
 
   # HttpClientTestCases required method
   def simulate_error_response
-    HTTPX::Connection.any_instance.stubs(:consume).raises(HTTPX::Error.new(OpenStruct.new))
-    get_response(default_url)
+    get_response('http://localhost:666/evil')
   end
 
   # HttpClientTestCases required method
