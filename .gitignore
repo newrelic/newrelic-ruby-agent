@@ -47,3 +47,4 @@ yarn-error.log
 
 test/perfverse/reports/inputs
 test/perfverse/reports/output
+test/perfverse/traffic/output
