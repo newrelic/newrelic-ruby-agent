@@ -274,7 +274,7 @@ if defined?(Rack::Test)
       body = ['<html><body>'.freeze, 'peanut butter cookies are okay</body></html>'.freeze]
       source = app.send(:gather_source, body)
 
-      assert_equal('<html><body>hi</body></html>', source)
+      assert_equal('<html><body>peanut butter cookies are okay</body></html>', source)
     end
 
     def test_content_length_set_when_we_modify_source
