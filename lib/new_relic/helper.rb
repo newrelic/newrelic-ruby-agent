@@ -4,6 +4,7 @@
 
 require 'new_relic/language_support'
 require 'open3'
+require 'net/http'
 
 module NewRelic
   class CommandExecutableNotFoundError < StandardError; end
@@ -44,6 +45,13 @@ module NewRelic
 
     def time_to_millis(time)
       (time.to_f * 1000).round
+    end
+
+    def fetch_metadata(uri, headers)
+      uri = URI(uri)
+      Net::HTTP.start(uri.host, uri.port, open_timeout: 1, read_timeout: 1) do |http|
+        http.request(Net::HTTP::Get.new(uri, headers))
+      end
     end
 
     def run_command(command)

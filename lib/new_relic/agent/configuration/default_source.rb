@@ -2088,15 +2088,14 @@ module NewRelic
         },
         # Puma
         :disable_puma_instrumentation => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => <<~DESCRIPTION
-            If `true`, disables the Puma server-statistics instrumentation that samples `Ruby/Puma/*` metrics from the Puma master process.
-
-            When enabled, the agent starts its reporting thread in the Puma master so the sampled metrics are delivered. (The agent otherwise defers that thread under forking dispatchers such as Puma, leaving metrics sampled in the master buffered but never sent.) The Puma master then reports to New Relic as its own instance.
-          DESCRIPTION
+          :description => 'If `true`, disables the Puma server-statistics instrumentation that samples ' \
+            '`Ruby/Puma/*` metrics from the Puma master process. This instrumentation is disabled by ' \
+            'default. When enabled, the agent starts a reporting thread in the Puma master process to ' \
+            'deliver these metrics.'
         },
         :'puma.sample_rate' => {
           :default => 60,
@@ -2357,6 +2356,20 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in an Google Cloud Platform environment.'
+        },
+        :'utilization.gcp_cloud_run.use_instance_as_host' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent reports the GCP instance id as the hostname when running on Google Cloud Run.'
+        },
+        :'utilization.gcp_cloud_run.include_revision_in_host' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent prepends the `K_REVISION` value to the GCP instance id to form the hostname (`{K_REVISION}-{instance id}`) on Google Cloud Run. Has no effect unless `utilization.gcp_cloud_run.use_instance_as_host` is also `true`.'
         },
         :'utilization.detect_kubernetes' => {
           :default => true,
