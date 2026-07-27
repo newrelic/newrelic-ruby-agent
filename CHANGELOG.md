@@ -10,6 +10,10 @@
 
   On Rails 7.2+, the agent gathered explain plans using a connection from the app's default/shared pool rather than a dedicated one. This primarily affected multi-database apps. Explain plans could be generated against the wrong database, and a failed explain could leave a shared connection in a bad state, affecting unrelated requests. The agent now uses its own dedicated connection for explain plans, as it did before Rails 7.2, and resets or discards that connection whenever an explain attempt fails, so a bad connection is never reused. Thank you, [@masiafrest](https://github.com/masiafrest) for the detailed report! [Issue#3610](https://github.com/newrelic/newrelic-ruby-agent/issues/3610) [PR#3612](https://github.com/newrelic/newrelic-ruby-agent/pull/3612)
 
+- **Bugfix: Browser monitoring instrumentation no longer fails with `FrozenError`**
+
+  When a response body's first fragment was a frozen `String` and there were multiple fragments, browser instrumentation hit a `FrozenError` and the browser timing header was never injected. This began appearing with `ERB` 6.0.3+, which started freezing more of its compiled strings. This issue is now fixed. Thank you to [@md5](https://github.com/md5) for reporting this issue! [Issue#3624](https://github.com/newrelic/newrelic-ruby-agent/issues/3624)[PR#3625](https://github.com/newrelic/newrelic-ruby-agent/pull/3625)
+
 ## v10.6.0
 
 - **Feature: SpanLink events are now supported for the Hybrid Agent**
