@@ -43,7 +43,6 @@ module NewRelic
         # Convert OTEL env var values to the format expected by NR config keys.
         def transform(config_key, value)
           case config_key
-          when :log_level then value.downcase
           when :agent_enabled then !Manager::BOOLEAN_MAP[value]
           else value
           end

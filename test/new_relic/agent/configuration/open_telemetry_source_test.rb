@@ -80,16 +80,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_otel_log_level_is_downcased
-      %w[DEBUG INFO WARN ERROR].each do |level|
-        with_environment('OTEL_LOG_LEVEL' => level) do
-          source = OpenTelemetrySource.new
-
-          assert_equal level.downcase, source[:log_level]
-        end
-      end
-    end
-
     def test_manager_includes_open_telemetry_source_in_stack
       assert_includes NewRelic::Agent.config.config_classes_for_testing, OpenTelemetrySource
     end
