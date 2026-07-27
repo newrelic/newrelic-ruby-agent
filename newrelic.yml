@@ -325,15 +325,6 @@ common: &default_settings
   # on the transaction may not reflect the altered value.
   # disable_middleware_instrumentation: false
 
-  # If true, disables the Puma server-statistics instrumentation that samples
-  # Ruby/Puma/* metrics from the Puma master process.
-  # 
-  # When enabled, the agent starts its reporting thread in the Puma master so the
-  # sampled metrics are delivered. (The agent otherwise defers that thread under
-  # forking dispatchers such as Puma, leaving metrics sampled in the master
-  # buffered but never sent.) The Puma master then reports to New Relic as its own
-  # instance.
-  # disable_puma_instrumentation: false
 
   # If true, disables agent middleware for Roda. This middleware is responsible
   # for advanced feature support such as page load timing and error collection.
