@@ -579,18 +579,22 @@ module NewRelic
         end
 
         def test_notice_sql_not_recorded_when_segment_over_limit
-          in_transaction do
-            segment = NewRelic::Agent::Tracer.start_datastore_segment(
-              product: 'SQLite',
-              operation: 'select'
-            )
-            segment.notice_sql('select * from blogs')
-            segment.record_on_finish = true
-            advance_process_time(2.0)
-            Agent.instance.sql_sampler.expects(:notice_sql_statement).never
-            segment.finish
+          with_config(:'transaction_tracer.limit_segments' => 1) do
+            in_transaction do
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
+                product: 'SQLite',
+                operation: 'select'
+              )
+              segment.notice_sql('select * from blogs')
 
-            assert_nil segment.params[:sql]
+              assert_predicate segment, :record_on_finish?
+
+              advance_process_time(2.0)
+              Agent.instance.sql_sampler.expects(:notice_sql_statement).never
+              segment.finish
+
+              assert_nil segment.params[:sql]
+            end
           end
         end
 
