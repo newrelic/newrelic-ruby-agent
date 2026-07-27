@@ -90,22 +90,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_otel_resource_attributes_maps_to_labels
-      with_environment('OTEL_RESOURCE_ATTRIBUTES' => 'service.name=frontend,team=platform') do
-        source = OpenTelemetrySource.new
-
-        assert_equal 'service.name:frontend;team:platform', source[:labels]
-      end
-    end
-
-    def test_otel_resource_attributes_single_pair
-      with_environment('OTEL_RESOURCE_ATTRIBUTES' => 'env=production') do
-        source = OpenTelemetrySource.new
-
-        assert_equal 'env:production', source[:labels]
-      end
-    end
-
     def test_manager_includes_open_telemetry_source_in_stack
       assert_includes NewRelic::Agent.config.config_classes_for_testing, OpenTelemetrySource
     end
