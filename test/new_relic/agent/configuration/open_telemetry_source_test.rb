@@ -44,9 +44,11 @@ module NewRelic::Agent::Configuration
 
     def test_has_key_returns_true_when_env_var_present_and_otel_enabled
       with_environment('OTEL_SERVICE_NAME' => 'my-service') do
-        source = OpenTelemetrySource.new
+        with_config('opentelemetry.enabled' => true) do
+          source = OpenTelemetrySource.new
 
-        assert source.has_key?(:app_name)
+          assert source.has_key?(:app_name)
+        end
       end
     end
 
@@ -58,25 +60,31 @@ module NewRelic::Agent::Configuration
 
     def test_otel_service_name_maps_to_app_name
       with_environment('OTEL_SERVICE_NAME' => 'my-otel-app') do
-        source = OpenTelemetrySource.new
+        with_config('opentelemetry.enabled' => true) do
+          source = OpenTelemetrySource.new
 
-        assert_equal 'my-otel-app', source[:app_name]
+          assert_equal 'my-otel-app', source[:app_name]
+        end
       end
     end
 
     def test_otel_sdk_disabled_false_makes_agent_enabled_true
       with_environment('OTEL_SDK_DISABLED' => 'false') do
-        source = OpenTelemetrySource.new
+        with_config('opentelemetry.enabled' => true) do
+          source = OpenTelemetrySource.new
 
-        assert source[:agent_enabled]
+          assert source[:agent_enabled]
+        end
       end
     end
 
     def test_otel_sdk_disabled_true_makes_agent_enabled_false
       with_environment('OTEL_SDK_DISABLED' => 'true') do
-        source = OpenTelemetrySource.new
+        with_config('opentelemetry.enabled' => true) do
+          source = OpenTelemetrySource.new
 
-        refute source[:agent_enabled]
+          refute source[:agent_enabled]
+        end
       end
     end
 
@@ -101,10 +109,12 @@ module NewRelic::Agent::Configuration
 
     def test_otel_service_name_used_via_config_when_otel_enabled
       with_environment('OTEL_SERVICE_NAME' => 'test-service') do
-        # Reinitialize so OpenTelemetrySource picks up the env var
-        NewRelic::Agent.config.replace_or_add_config(OpenTelemetrySource.new)
+        with_config('opentelemetry.enabled' => true) do
+          # Reinitialize so OpenTelemetrySource picks up the env var
+          NewRelic::Agent.config.replace_or_add_config(OpenTelemetrySource.new)
 
-        assert_equal ['test-service'], NewRelic::Agent.config[:app_name]
+          assert_equal ['test-service'], NewRelic::Agent.config[:app_name]
+        end
       end
     end
 
@@ -116,6 +126,26 @@ module NewRelic::Agent::Configuration
           NewRelic::Agent.config.replace_or_add_config(OpenTelemetrySource.new)
 
           assert_equal ['from_nr'], NewRelic::Agent.config[:app_name]
+        end
+      end
+    end
+
+    def test_has_key_returns_false_when_otel_not_enabled
+      with_environment('OTEL_SERVICE_NAME' => 'from_otel') do
+        with_config('opentelemetry.enabled' => false) do
+          source = OpenTelemetrySource.new
+
+          refute source.has_key?(:app_name)
+        end
+      end
+    end
+
+    def test_config_ignored_when_opentelemetry_enabled_false
+      with_environment('OTEL_SERVICE_NAME' => 'from_otel') do
+        with_config('opentelemetry.enabled' => false) do
+          source = OpenTelemetrySource.new
+
+          refute_equal 'from_otel', source[:app_name]
         end
       end
     end
