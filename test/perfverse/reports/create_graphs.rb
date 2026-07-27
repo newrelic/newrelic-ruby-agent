@@ -239,18 +239,7 @@ create_network_output_graph(data, order)
 
 create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute', order)
 create_line_graph(locust, :elapsed_seconds, :failures_per_minute, :agent_version, 'failures_per_minute', order)
-create_line_graph(locust, :elapsed_seconds, :response_time_avg, :agent_version, 'response_time_avg_ms', order)
-create_line_graph(locust, :elapsed_seconds, :response_time_max, :agent_version, 'response_time_max_ms', order)
 
-# separate charts per percentile rather than one combined chart -- :color is already used for
-# agent_version, and overlaying percentile as a second grouping made it unreadable
-[:response_time_50th, :response_time_95th, :response_time_99th].each do |key|
-  filtered = with_present(locust, key)
-  create_line_graph(filtered, :elapsed_seconds, key, :agent_version, "#{key}_ms", order)
-end
-
-# box-plot summary (pooling every sample across the run, same convention as the cpu/memory
-# box plots above) of p95 latency per version, for an at-a-glance "which version is slower"
-create_graph(with_present(locust, :response_time_95th), :response_time_95th, order)
+create_line_graph(with_present(locust, :response_time_50th), :elapsed_seconds, :response_time_50th, :agent_version, "response_time_50th_ms", order)
 
 puts '***** COMPLETE *****'
