@@ -31,7 +31,7 @@ module NewRelic
         end
 
         def has_key?(key)
-          @otel_values.key?(key)
+          @otel_values.key?(key) && otel_enabled?
         end
 
         def [](key)
@@ -39,6 +39,10 @@ module NewRelic
         end
 
         private
+
+        def otel_enabled?
+          NewRelic::Agent.config[:'opentelemetry.enabled']
+        end
 
         # Convert OTEL env var values to the format expected by NR config keys.
         def transform(config_key, value)
