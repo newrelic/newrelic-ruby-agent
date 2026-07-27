@@ -240,6 +240,6 @@ create_network_output_graph(data, order)
 create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute', order)
 create_line_graph(locust, :elapsed_seconds, :failures_per_minute, :agent_version, 'failures_per_minute', order)
 
-create_line_graph(with_present(locust, :response_time_50th), :elapsed_seconds, :response_time_50th, :agent_version, "response_time_50th_ms", order)
+create_line_graph(with_present(locust, :response_time_50th), :elapsed_seconds, :response_time_50th, :agent_version, 'response_time_50th_ms', order)
 
 puts '***** COMPLETE *****'
