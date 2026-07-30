@@ -1,6 +1,9 @@
 name: Update Config Docs
 
 on:
+  workflows: ["Release"]
+  types:
+    - completed
   workflow_dispatch:
 
 env:
@@ -9,6 +12,7 @@ env:
 
 jobs:
   regenerate_config_docs:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -27,7 +31,21 @@ jobs:
     - name: Generate config doc
       run: bundle exec rake newrelic:config:docs[html]
 
+    - name: Check if config doc has changed
+      id: check_changes
+      run: |
+        curl -sf -o published-config-doc.mdx \
+          "https://raw.githubusercontent.com/$DESTINATION_REPO/develop/src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx" \
+          || true
+        if [ -f published-config-doc.mdx ] && diff -q ruby-agent-configuration.mdx published-config-doc.mdx > /dev/null 2>&1; then
+          echo "No changes detected in the generated config doc. Skipping branch and PR creation." | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Create branch
+      if: steps.check_changes.outputs.changed == 'true'
       uses: dmnemec/copy_file_to_another_repo_action@c93037aa10fa8893de271f19978c980d0c1a9b37 # tag v1.1.1
       env:
         API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
@@ -42,6 +60,7 @@ jobs:
         commit_message: 'chore(ruby agent): Update config docs'
 
     - name: Create PR
+      if: steps.check_changes.outputs.changed == 'true'
       run: gh pr create --base "develop" --repo "$REPO" --head "$HEAD" --title "$TITLE" --body "$BODY"
       env:
         GH_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
