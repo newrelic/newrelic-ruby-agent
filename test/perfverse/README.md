@@ -38,7 +38,7 @@ Currently we only have a single rails 7 app. When running locally, you will need
 
     docker build --pull --build-arg AGENT_VERSION=9.0.0 --progress=plain -t ruby_perf_app:local .
 
-    docker run --rm --name perfverse_local --network perfverse_net -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=perfverse_local -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local
+    docker run --rm --name perfverse_local -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=perfverse_local -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local
 
 To performance-test an unreleased branch (before it has a git tag), prefix `AGENT_VERSION` with
 `BRANCH_`, e.g. `--build-arg AGENT_VERSION=BRANCH_add_cont_profiling`. This is a local/manual-run-only
@@ -46,35 +46,6 @@ convenience. Note the underscore, not a colon: the GHA workflow's `run_N` inputs
 overrides into the same string (`git_tag:ENV_VAR_1=one;ENV_VAR_2=two`, split on the first colon), so
 a `branch:` prefix would collide with that split -- `BRANCH_add_cont_profiling` doesn't.
 
-The app needs the `otlp-receiver` sidecar and `perfverse_net` network (below) to already exist
-before it starts, or continuous profiling's OTLP export will just fail to connect (harmless if
-continuous profiling is disabled, which is the default).
-
-### OTLP receiver (continuous profiling)
-
-Continuous profiling's OTLP export destination isn't finalized yet, so this app never sends that
-data to a real collector -- it points at a local sidecar container instead
-(`test/perfverse/otlp_receiver/`), which decodes and logs each export. Build the shared network and
-the sidecar once, before starting the rails app:
-
-    docker network create perfverse_net
-
-    ./test/perfverse/bin/generate-otlp-cert.sh
-
-    docker build --pull --progress=plain -f test/perfverse/otlp_receiver/Dockerfile -t otlp_receiver:local .
-
-    docker run -d --rm --name otlp-receiver --network perfverse_net otlp_receiver:local
-
-The sidecar runs in its own container -- deliberately not inside the rails app's container -- so
-`docker_monitor`'s CPU/memory measurements of the app stay unaffected by the receiver's own
-footprint. Continuous profiling is disabled by default; enable it (and pick a mode) per run with
-env vars passed to the rails app container, e.g.:
-
-    docker run --rm --name perfverse_local --network perfverse_net -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_CONTINUOUS_PROFILER_ENABLED=true -e NEW_RELIC_CONTINUOUS_PROFILER_MODE=cpu -e NEW_RELIC_APP_NAME=perfverse_local -e NEW_RELIC_HOST=staging-collector.newrelic.com -p 3000:3000 ruby_perf_app:local
-
-Repeat with `_MODE=wall` / `_MODE=object`, plus one run with `NEW_RELIC_CONTINUOUS_PROFILER_ENABLED`
-unset, to compare each mode against a profiler-disabled baseline. Check `docker logs otlp-receiver`
-to confirm exports are arriving.
 
 ### Dockermon
 

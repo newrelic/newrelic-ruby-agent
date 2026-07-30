@@ -33,40 +33,12 @@ def pull_locust
   run_command('docker pull locustio/locust')
 end
 
-def generate_otlp_cert
-  output_line('Generating local otlp_receiver cert')
-  run_command('./test/perfverse/bin/generate-otlp-cert.sh')
-end
-
-def ensure_network
-  output_line('Ensuring perfverse_net Docker network exists')
-  run_command('docker network create perfverse_net 2>/dev/null || true')
-end
-
-def build_otlp_receiver
-  output_line('Building otlp_receiver image')
-  run_command('docker build --pull --progress=plain -f test/perfverse/otlp_receiver/Dockerfile -t otlp_receiver:local .')
-end
-
-def run_otlp_receiver
-  output_line('Starting otlp_receiver sidecar')
-  # Container name doubles as its DNS name on perfverse_net -- must be hyphenated since
-  # URI::HTTPS.build rejects underscores as an invalid host component.
-  run_command('docker run -d --rm --name otlp-receiver --network perfverse_net otlp_receiver:local')
-end
-
-# Both the app and otlp-receiver containers run with --rm, so their logs vanish the moment
-# `docker stop` returns -- this must run on the still-running container, before it's stopped.
+# The app container runs with --rm, so its logs vanish the moment `docker stop` returns --
+# this must run on the still-running container, before it's stopped.
 def print_container_logs(container_id, grep_pattern)
   output_line("#{container_id} logs (filtered: #{grep_pattern}):")
   matched = run_command("docker logs #{container_id} 2>&1 | grep -iE \"#{grep_pattern}\"")
   puts matched.empty? ? '(no matching log lines found)' : matched
-end
-
-def stop_otlp_receiver
-  print_container_logs('otlp-receiver', 'Received export|Failed to decode')
-  output_line('Stopping otlp_receiver sidecar')
-  run_command('docker stop otlp-receiver')
 end
 
 def shutdown_rails_app(container_id)
@@ -100,7 +72,7 @@ def run_rails_app(agent_tag, env_vars, iteration)
   cpu_mem = '--cpus 1.5 --memory 2G'
 
   Thread.new do
-    run_command("cd ./test/perfverse/ && docker run --rm --name #{app_name} --network perfverse_net #{cpu_mem} #{env_str} -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=#{app_name} -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local")
+    run_command("cd ./test/perfverse/ && docker run --rm --name #{app_name} #{cpu_mem} #{env_str} -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=#{app_name} -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local")
   end
   sleep 2
   thread = run_docker_report(agent_tag, app_name, iteration)
@@ -137,12 +109,8 @@ iterations = ENV['ITERATIONS'].to_i
 agent_tag, env_vars = transform_agent_tags(ENV['AGENT_TAG'])
 output_line("Running perf test #{iterations} times for #{ENV['RUN_TIME']} with agent tag #{agent_tag} and env vars #{env_vars}")
 
-generate_otlp_cert
-ensure_network
 pull_locust
 build_docker_monitor_report
-build_otlp_receiver
-run_otlp_receiver
 
 iterations.times do |i|
   build_rails_app(agent_tag)
@@ -153,5 +121,3 @@ iterations.times do |i|
   shutdown_rails_app(app_name)
   monitor_thread.join
 end
-
-stop_otlp_receiver
