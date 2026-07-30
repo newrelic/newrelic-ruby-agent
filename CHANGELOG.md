@@ -16,7 +16,7 @@
 
   The agent now detects Cloud Run and reports the GCP instance id as the hostname so individual instances can be distinguished. Before this change, all Google Cloud Run hostnames were `localhost`. This feature is controlled by the new `utilization.gcp_cloud_run.use_instance_as_host` configuration option (default `true`). Set `utilization.gcp_cloud_run.include_revision_in_host` (default `false`) to `true` to report the hostname as `{K_REVISION}-{instance id}` instead, where [`K_REVISION`](https://docs.cloud.google.com/run/docs/container-contract#env-vars) is the Cloud Run revision name. Thank you to [@kawa-onushi](https://github.com/kawa-onushi) for suggesting this improvement. [Issue#3295](https://github.com/newrelic/newrelic-ruby-agent/issues/3295) [PR#3609](https://github.com/newrelic/newrelic-ruby-agent/pull/3609/)
 
-- **Bugfix: Slow SQL recorded after transaction_tracer.limit_segments exceeded**
+- **Bugfix: Slow SQL no longer recorded after transaction_tracer.limit_segments exceeded**
 
   Once a transaction exceeded [`transaction_tracer.limit_segments`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#transaction_tracer-limit_segments), datastore segments created afterward still could have their slow SQL recorded. The agent now stops recording slow SQL for any segment created after the limit is reached. [PR#3615](https://github.com/newrelic/newrelic-ruby-agent/pull/3615)
 
