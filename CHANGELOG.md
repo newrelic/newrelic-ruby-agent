@@ -4,7 +4,7 @@
 
 - **Feature: Add transaction_tracer.cap_segment_artifacts configuration option**
 
-  Long-running transactions with many segments can cause continuously increasing memory usage for the lifetime of the transaction. The agent now offers an opt-in `transaction_tracer.cap_segment_artifacts` configuration option (default `false`, local-only). When enabled, once [`transaction_tracer.limit_segments`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#transaction_tracer-limit_segments) is reached, the agent also stops recording exclusive time for any segments created afterward in that transaction, reducing memory usage at the cost of less accurate timing data for the transaction.[PR#3615](https://github.com/newrelic/newrelic-ruby-agent/pull/3615)
+  Long-running transactions with many segments can cause continuously increasing memory usage for the lifetime of the transaction. The agent now offers an opt-in `transaction_tracer.cap_segment_artifacts` configuration option (defaults to `false`). When enabled, once [`transaction_tracer.limit_segments`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#transaction_tracer-limit_segments) is reached, the agent also stops recording exclusive time for any segments created afterward in that transaction, reducing memory usage at the cost of less accurate timing data for the transaction.[PR#3615](https://github.com/newrelic/newrelic-ruby-agent/pull/3615)
 
 - **Feature: Add Puma server-statistics instrumentation**
 
