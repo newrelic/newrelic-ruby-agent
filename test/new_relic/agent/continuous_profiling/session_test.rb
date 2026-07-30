@@ -125,6 +125,17 @@ module NewRelic::Agent::ContinuousProfiling
       @session.send(:harvest_and_send)
     end
 
+    # The rest of encode_and_export needs google-protobuf, not loadable here -- this skip
+    # happens before that require, so it's the one part testable without the real gem.
+    def test_encode_and_export_skips_when_not_connected
+      NewRelic::Agent.agent.stubs(:connected?).returns(false)
+      NewRelic::Agent.agent.service.expects(:profiles_data).never
+
+      @session.send(:encode_and_export, {:samples => 0, :mode => :cpu})
+
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Export/SkippedNotConnected')
+    end
+
     def test_server_source_configuration_added_starts_session_when_newly_enabled
       @session.stubs(:gems_present?).returns(true)
 

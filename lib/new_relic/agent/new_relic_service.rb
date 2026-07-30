@@ -33,6 +33,14 @@ module NewRelic
       # Tomcat default (as of v8.5.78)
       MIN_BYTE_SIZE_TO_COMPRESS = 2048
 
+      # Continuous profiling's OTLP/HTTP export -- see #profiles_data.
+      PROFILES_PATH = '/v1/profiles'
+      PROFILES_CONTENT_TYPE = 'application/x-protobuf'
+      PROFILES_API_KEY_HEADER = 'api-key'
+      PROFILES_OUTPUT_BYTES_METRIC = 'Supportability/Ruby/OTLP/Profiles/Output/Bytes'
+      PROFILES_EXPORT_DURATION_METRIC = 'Supportability/Ruby/Profiling/Export/Duration'
+      PROFILES_EXPORT_FAILURE_METRIC = 'Supportability/Ruby/Profiling/Export/Failure'
+
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
 
@@ -191,6 +199,34 @@ module NewRelic
         NewRelic::Agent.record_metric('Supportability/Events/SpanEvents/Sent', :count => items.size)
         NewRelic::Agent.record_metric('Supportability/Events/SpanEvents/Seen', :count => metadata[:events_seen])
         response
+      end
+
+      # OTLP/HTTP to /v1/profiles, not the invoke_raw_method RPC other methods use. Uses
+      # create_http_connection directly (not the shared http_connection) -- a Net::HTTP
+      # connection isn't safe to share with the main harvest thread because the profiler/profile harvest
+      # because it's running on its own, independent of our normal harvest cycle.
+      def profiles_data(bytes)
+        start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        check_post_size(bytes, :profiles_data)
+        request = build_profiles_request(bytes)
+        response = create_http_connection.request(request)
+        log_response(response)
+        response
+      rescue => e
+        NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{e.class}: #{e.message}")
+        NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)
+        nil
+      ensure
+        NewRelic::Agent.record_metric(PROFILES_EXPORT_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_ts)
+        NewRelic::Agent.record_metric(PROFILES_OUTPUT_BYTES_METRIC, bytes.bytesize)
+      end
+
+      def build_profiles_request(bytes)
+        request = Net::HTTP::Post.new(PROFILES_PATH)
+        request['Content-Type'] = PROFILES_CONTENT_TYPE
+        request[PROFILES_API_KEY_HEADER] = license_key
+        request.body = bytes
+        request
       end
 
       def compress_request_if_needed(data, endpoint)

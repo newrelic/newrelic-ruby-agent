@@ -5,7 +5,6 @@
 require 'set'
 require 'new_relic/agent/threading/agent_thread'
 require 'new_relic/agent/continuous_profiling/stack_prof_sampler'
-require 'new_relic/agent/continuous_profiling/otlp_exporter'
 
 module NewRelic
   module Agent
@@ -33,6 +32,7 @@ module NewRelic
         SAMPLING_DURATION_METRIC = 'Supportability/Ruby/Profiling/Sampling/Duration'
         ACTIVE_TRACE_IDS_LIMIT_METRIC = 'Supportability/Ruby/Profiling/ActiveTraceIds/LimitExceeded'
         TRANSACTION_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/TransactionRanges/LimitExceeded'
+        SKIPPED_NOT_CONNECTED_METRIC = 'Supportability/Ruby/Profiling/Export/SkippedNotConnected'
 
         # These accumulate across *all* transactions between harvest ticks, so unbounded
         # throughput within one harvest_period (not transaction duration) is the growth axis.
@@ -47,7 +47,6 @@ module NewRelic
           @thread = nil
           @starting_pid = nil
           @sampler = StackProfSampler.new
-          @exporter = OtlpExporter.new
 
           # Whole-window correlation signal for :cpu mode: every trace_id active at some point
           # during the harvest window (see drain_active_trace_ids).
@@ -244,10 +243,19 @@ module NewRelic
 
         # Split out so tests can stub this one seam instead of the ProfileEncoder require
         # chain, which has a hard dependency on google-protobuf being loadable.
+        #
+        # profiles_data needs a connected redirect host. If not connected yet, drop this
+        # harvest's data -- the next tick tries again.
         def encode_and_export(report)
+          unless NewRelic::Agent.agent.connected?
+            NewRelic::Agent.increment_metric(SKIPPED_NOT_CONNECTED_METRIC)
+            NewRelic::Agent.logger.debug('Skipping continuous profiling export: agent is not connected')
+            return
+          end
+
           require 'new_relic/agent/continuous_profiling/profile_encoder'
           bytes = ProfileEncoder.encode(report)
-          @exporter.export(bytes)
+          NewRelic::Agent.agent.service.profiles_data(bytes)
         end
       end
     end

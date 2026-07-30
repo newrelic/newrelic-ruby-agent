@@ -263,12 +263,20 @@ module NewRelic
         @agent.transaction_event_aggregator.expects(:merge!).never
         @agent.sql_sampler.expects(:merge!).never
         @agent.log_event_aggregator.expects(:merge!).never
+        @agent.service.expects(:profiles_data).never
         @agent.merge_data_for_endpoint(:metric_data, [])
         @agent.merge_data_for_endpoint(:transaction_sample_data, [])
         @agent.merge_data_for_endpoint(:error_data, [])
         @agent.merge_data_for_endpoint(:sql_trace_data, [])
         @agent.merge_data_for_endpoint(:analytic_event_data, [])
         @agent.merge_data_for_endpoint(:log_event_data, [])
+        @agent.merge_data_for_endpoint(:profiles_data, '')
+      end
+
+      # No aggregator for profiles_data -- it should forward straight to the service.
+      def test_merge_data_for_endpoint_forwards_profiles_data_to_the_service
+        @agent.service.expects(:profiles_data).with('raw-profile-bytes')
+        @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
       end
 
       def test_merge_data_traces

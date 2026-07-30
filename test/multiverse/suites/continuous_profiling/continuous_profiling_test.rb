@@ -45,24 +45,27 @@ class ContinuousProfilingTest < Minitest::Test
 
     connection = stub_everything('http connection')
     request = nil
-    connection.stubs(:request).with { |req| request = req; true }.returns(stub_everything('response'))
+    response = stub_everything('response', :code => '202', :message => 'Accepted', :body => '')
+    connection.stubs(:request).with { |req| request = req; true }.returns(response)
     Net::HTTP.stubs(:new).returns(connection)
 
+    server = NewRelic::Control::Server.new('somewhere.example.com', 30303)
+    service = NewRelic::Agent::NewRelicService.new('license-key', server)
+    service.agent_id = 666
+
     with_config(:'continuous_profiler.mode' => 'cpu',
-      :'continuous_profiler.sample_period' => 0.001,
-      :'continuous_profiler.otlp_endpoint.host' => 'otlp.example.com') do
+      :'continuous_profiler.sample_period' => 0.001) do
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.start
       busy_wait(0.1)
       report = sampler.stop_and_collect
 
       bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-      NewRelic::Agent::ContinuousProfiling::OtlpExporter.new.export(bytes)
+      service.profiles_data(bytes)
     end
 
     refute_nil request
-    decompressed = Zlib.gunzip(request.body)
-    decoded = Opentelemetry::Proto::Collector::Profiles::V1development::ExportProfilesServiceRequest.decode(decompressed)
+    decoded = Opentelemetry::Proto::Collector::Profiles::V1development::ExportProfilesServiceRequest.decode(request.body)
 
     refute_empty decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples
   end

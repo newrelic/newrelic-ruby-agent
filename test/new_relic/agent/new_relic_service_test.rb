@@ -432,6 +432,68 @@ class NewRelicServiceTest < Minitest::Test
     @service.profile_data([])
   end
 
+  # profiles_data doesn't use invoke_raw_method like every other method here -- OTLP/HTTP
+  # directly to /v1/profiles, api-key header, no gzip.
+  def test_profiles_data_posts_to_the_v1_profiles_path
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal '/v1/profiles', @http_handle.last_request.path
+  end
+
+  def test_profiles_data_sends_the_license_key_as_the_api_key_header
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 'license-key', @http_handle.last_request['api-key']
+  end
+
+  def test_profiles_data_sends_the_raw_bytes_uncompressed_without_json_marshalling
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 'raw-profile-bytes', @http_handle.last_request.body
+  end
+
+  def test_profiles_data_sets_the_protobuf_content_type
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 'application/x-protobuf', @http_handle.last_request.content_type
+  end
+
+  def test_profiles_data_handles_a_202_accepted_response_without_raising
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    refute_nil response
+  end
+
+  def test_profiles_data_records_size_and_duration_supportability_metrics
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_metrics_recorded([
+      'Supportability/Ruby/OTLP/Profiles/Output/Bytes',
+      'Supportability/Ruby/Profiling/Export/Duration'
+    ])
+  end
+
+  def test_profiles_data_rescues_connection_failures_and_records_a_failure_metric
+    @service.stubs(:create_http_connection).raises(Errno::ECONNREFUSED)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
   def test_get_agent_commands
     @service.agent_id = 666
     @http_handle.respond_to(:get_agent_commands, [1, 2, 3])

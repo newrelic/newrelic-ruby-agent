@@ -1102,30 +1102,6 @@ module NewRelic
           :description => 'The interval, in seconds, at which the continuous profiler converts and reports its ' \
             'collected samples.'
         },
-        :'continuous_profiler.otlp_endpoint.host' => {
-          :default => '',
-          :public => false,
-          :type => String,
-          :allowed_from_server => true,
-          :description => 'The host for the OTLP endpoint that continuous profiling data is sent to. This is an ' \
-            'interim setting; the mechanism for resolving this destination has not been finalized.'
-        },
-        :'continuous_profiler.otlp_endpoint.port' => {
-          :default => 443,
-          :public => false,
-          :type => Integer,
-          :allowed_from_server => true,
-          :description => 'The port for the OTLP endpoint that continuous profiling data is sent to. This is an ' \
-            'interim setting; the mechanism for resolving this destination has not been finalized.'
-        },
-        :'continuous_profiler.otlp_endpoint.path' => {
-          :default => '/v1/profiles',
-          :public => false,
-          :type => String,
-          :allowed_from_server => true,
-          :description => 'The URL path for the OTLP endpoint that continuous profiling data is sent to. This ' \
-            'is an interim setting; the exact path has not been confirmed.'
-        },
         # Custom attributes
         :'custom_attributes.enabled' => {
           :default => true,

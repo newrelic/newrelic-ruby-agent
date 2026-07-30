@@ -64,6 +64,10 @@ module NewRelic
         write_to_pipe(:log_event_data, logs) if logs
       end
 
+      def profiles_data(bytes)
+        write_to_pipe(:profiles_data, bytes) if bytes
+      end
+
       def shutdown
         # no else branch coverage
         @pipe.close if @pipe # rubocop:disable Style/SafeNavigation

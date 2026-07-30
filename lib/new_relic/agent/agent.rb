@@ -352,6 +352,9 @@ module NewRelic
         end
 
         def merge_data_for_endpoint(endpoint, data)
+          # No aggregator for profiles_data -- forward it to the collector as-is.
+          return @service.profiles_data(data) if endpoint == :profiles_data && data && !data.empty?
+
           if data && !data.empty?
             container = container_for_endpoint(endpoint)
             if container.respond_to?(:has_metadata?) && container.has_metadata?
