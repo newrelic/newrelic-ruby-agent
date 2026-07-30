@@ -9,13 +9,11 @@ require_relative 'otlp_endpoint'
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Sends an already-encoded OTLP profile payload to the (placeholder, see
-      # OtlpEndpoint) destination over HTTP. Deliberately independent of NewRelicService,
-      # which is built around the RPM collector's own auth/connect protocol -- none of
-      # which applies to an OTLP export's header-based auth and raw protobuf body.
+      # Sends an encoded OTLP profile payload to OtlpEndpoint.uri over HTTP. Independent of
+      # NewRelicService -- that's built around the RPM collector's connect/auth protocol,
+      # which doesn't apply to OTLP's header-based auth and raw protobuf body.
       #
-      # No retry queue: a failed export is logged and dropped. The next harvest tick
-      # tries again with fresh data.
+      # No retry queue: a failed export is logged and dropped, and retried next harvest tick.
       class OtlpExporter
         CONTENT_TYPE = 'application/x-protobuf'
         CONTENT_ENCODING = 'gzip'

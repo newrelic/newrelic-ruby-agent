@@ -37,8 +37,26 @@ module NewRelic::Agent::ContinuousProfiling
     def test_stop_and_collect_stops_and_returns_results
       StackProf.expects(:stop)
       StackProf.expects(:results).returns({:samples => 1})
+      StackProf.stubs(:start)
+      @sampler.start
 
-      assert_equal({:samples => 1}, @sampler.stop_and_collect)
+      results = @sampler.stop_and_collect
+
+      assert_equal 1, results[:samples]
+    end
+
+    def test_stop_and_collect_includes_the_monotonic_to_realtime_clock_offset
+      StackProf.stubs(:start)
+      StackProf.stubs(:stop)
+      StackProf.stubs(:results).returns({})
+
+      Process.stub(:clock_gettime, ->(clock) { clock == Process::CLOCK_REALTIME ? 1_700_000_000.0 : 100.0 }) do
+        @sampler.start
+      end
+
+      results = @sampler.stop_and_collect
+
+      assert_in_delta(1_699_999_900.0, results[:clock_offset])
     end
 
     private

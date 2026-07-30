@@ -92,7 +92,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_harvest_and_send_collects_encodes_exports_and_restarts_the_sampler
-      report = {:samples => 3, :mode => :wall}
+      report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
       sampler.expects(:start)
@@ -114,7 +114,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_harvest_and_send_restarts_the_sampler_even_when_encode_and_export_raises
-      report = {:samples => 3, :mode => :wall}
+      report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
       sampler.expects(:start)
@@ -183,6 +183,97 @@ module NewRelic::Agent::ContinuousProfiling
       @events.notify(:start_transaction)
 
       refute_predicate @session, :running?
+    end
+
+    def test_start_transaction_records_the_active_trace_id_while_running
+      @session.instance_variable_set(:@running, true)
+
+      in_transaction('txn') do |txn|
+        @events.notify(:start_transaction)
+
+        assert_includes @session.instance_variable_get(:@active_trace_ids), txn.trace_id
+      end
+    end
+
+    def test_start_transaction_does_not_record_a_trace_id_when_not_running
+      in_transaction('txn') do
+        @events.notify(:start_transaction)
+
+        assert_empty @session.instance_variable_get(:@active_trace_ids)
+      end
+    end
+
+    def test_start_transaction_stops_recording_once_the_active_trace_ids_limit_is_reached
+      @session.instance_variable_set(:@running, true)
+      full_set = Set.new(1..Session::MAX_ACTIVE_TRACE_IDS)
+      @session.instance_variable_set(:@active_trace_ids, full_set)
+
+      # Capacity check short-circuits before Tracer.current_trace_id is called, so no
+      # transaction needs to be in flight here.
+      @events.notify(:start_transaction)
+
+      assert_equal Session::MAX_ACTIVE_TRACE_IDS, @session.instance_variable_get(:@active_trace_ids).size
+      assert_metrics_recorded('Supportability/Ruby/Profiling/ActiveTraceIds/LimitExceeded')
+    end
+
+    def test_transaction_finished_stops_recording_once_the_transaction_ranges_limit_is_reached
+      @session.instance_variable_set(:@running, true)
+      full_ranges = Array.new(Session::MAX_TRANSACTION_RANGES) { ['t', 's', 0.0, 1.0] }
+      @session.instance_variable_set(:@transaction_ranges, full_ranges)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => stub(:guid => 'span123'), :start_time => 10.0, :duration => 2.5)
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      @events.notify(:transaction_finished)
+
+      assert_equal Session::MAX_TRANSACTION_RANGES, @session.instance_variable_get(:@transaction_ranges).size
+      assert_metrics_recorded('Supportability/Ruby/Profiling/TransactionRanges/LimitExceeded')
+    end
+
+    def test_transaction_finished_records_a_range_while_running
+      @session.instance_variable_set(:@running, true)
+      segment = stub(:guid => 'span123')
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => segment, :start_time => 10.0, :duration => 2.5)
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      @events.notify(:transaction_finished)
+
+      assert_equal [['trace123', 'span123', 10.0, 12.5]], @session.instance_variable_get(:@transaction_ranges)
+    end
+
+    def test_transaction_finished_does_not_record_a_range_when_not_running
+      NewRelic::Agent::Tracer.expects(:current_transaction).never
+
+      @events.notify(:transaction_finished)
+
+      assert_empty @session.instance_variable_get(:@transaction_ranges)
+    end
+
+    def test_transaction_finished_does_not_record_a_range_without_a_current_transaction
+      @session.instance_variable_set(:@running, true)
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(nil)
+
+      @events.notify(:transaction_finished)
+
+      assert_empty @session.instance_variable_get(:@transaction_ranges)
+    end
+
+    def test_harvest_and_send_drains_active_trace_ids_and_transaction_ranges_into_the_report
+      report = {:samples => 3, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).returns(report)
+      sampler.expects(:start)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@active_trace_ids, Set.new(['abc123']))
+      @session.instance_variable_set(:@transaction_ranges, [['abc123', 'def456', 1.0, 2.0]])
+      @session.expects(:encode_and_export).with(
+        report.merge(active_trace_ids: ['abc123'], transaction_ranges: [['abc123', 'def456', 1.0, 2.0]])
+      )
+
+      @session.send(:harvest_and_send)
+
+      assert_empty @session.instance_variable_get(:@active_trace_ids)
+      assert_empty @session.instance_variable_get(:@transaction_ranges)
     end
 
     def test_before_shutdown_stops_the_session

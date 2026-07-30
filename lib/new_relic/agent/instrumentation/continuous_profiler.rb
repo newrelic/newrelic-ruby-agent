@@ -3,10 +3,9 @@
 # frozen_string_literal: true
 
 # Not "instrumentation" for a third-party library in the traditional DependencyDetection
-# sense -- gates New Relic's own continuous profiling feature on the customer having
-# added two optional gems (stackprof, google-protobuf) to their own Gemfile. Reuses
-# DependencyDetection's detection/logging/error-isolation machinery rather than
-# hand-rolling equivalents.
+# sense -- gates our own continuous profiling feature on stackprof/google-protobuf being
+# present, reusing DependencyDetection's detection/logging/error-isolation machinery
+# instead of hand-rolling it.
 
 DependencyDetection.defer do
   # Set +@name+ directly, as +puma+/+sequel+ do, rather than calling +named+: the

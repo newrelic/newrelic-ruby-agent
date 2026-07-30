@@ -12,19 +12,13 @@ namespace :continuous_profiling do
   end
 end
 
-# Vendors New Relic's copy of the OpenTelemetry profiles signal proto files
-# (opentelemetry-proto, Apache-2.0) as Ruby classes for
-# NewRelic::Agent::ContinuousProfiling::ProfileEncoder.
+# Vendors New Relic's copy of the OpenTelemetry profiles proto files (opentelemetry-proto,
+# Apache-2.0) as Ruby classes for ProfileEncoder, rather than depending on
+# opentelemetry-exporter-otlp just for four generated files outside its public API.
 #
-# We vendor our own copies rather than depending on a gem like
-# opentelemetry-exporter-otlp, to avoid pulling in its large dependency chain just for
-# four generated files outside its public API. Other gems (notably
-# opentelemetry-exporter-otlp) vendor these same files at the same logical paths, and
-# Google::Protobuf::DescriptorPool raises if a proto file is registered twice -- so every
-# generated file here is post-processed to require_relative its dependencies (deterministic
-# loading, independent of gem load order) and register itself through
-# NewRelic::Agent::ContinuousProfiling::Proto::Registrar, which skips registration if
-# another gem already registered the file first.
+# Generated files are post-processed to require_relative their dependencies (deterministic,
+# independent of gem load order) and register through Proto::Registrar instead of
+# Google::Protobuf directly -- see registrar.rb for why.
 module ContinuousProfilingProto
   PROTO_DIR = File.expand_path('../new_relic/agent/continuous_profiling/proto', __dir__)
 

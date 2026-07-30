@@ -15,6 +15,11 @@ module NewRelic
         def start
           mode = NewRelic::Agent.config[:'continuous_profiler.mode']
           NewRelic::Agent.increment_metric("#{MODE_METRIC_PREFIX}/#{mode}")
+          # StackProf's raw_sample_timestamps use CLOCK_MONOTONIC, unrelated to wall-clock time.
+          # Capturing both clocks at the same instant lets ProfileEncoder convert a tick's
+          # monotonic timestamp back to wall-clock time to match against Transaction#start_time.
+          @monotonic_to_realtime_offset =
+            Process.clock_gettime(Process::CLOCK_REALTIME) - Process.clock_gettime(Process::CLOCK_MONOTONIC)
           StackProf.start(
             mode: mode.to_sym,
             interval: sample_interval_in_microseconds,
@@ -24,7 +29,7 @@ module NewRelic
 
         def stop_and_collect
           StackProf.stop
-          StackProf.results
+          StackProf.results.merge(clock_offset: @monotonic_to_realtime_offset)
         end
 
         private

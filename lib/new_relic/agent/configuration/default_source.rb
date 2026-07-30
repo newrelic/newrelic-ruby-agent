@@ -1080,12 +1080,12 @@ module NewRelic
             'security mode is enabled.'
         },
         :'continuous_profiler.mode' => {
-          :default => 'wall',
+          :default => 'cpu',
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :allowlist => %w[wall cpu object],
-          :description => 'The `stackprof` sampling mode to use for continuous profiling: `wall`, `cpu`, or `object`.'
+          :allowlist => %w[cpu object],
+          :description => 'The `stackprof` sampling mode to use for continuous profiling: `cpu` or `object`.'
         },
         :'continuous_profiler.sample_period' => {
           :default => 0.01,

@@ -10,18 +10,18 @@ class ContinuousProfilingTest < Minitest::Test
   def test_stack_prof_sampler_round_trips_against_the_real_gem
     sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
 
-    with_config(:'continuous_profiler.mode' => 'wall', :'continuous_profiler.sample_period' => 0.001) do
+    with_config(:'continuous_profiler.mode' => 'cpu', :'continuous_profiler.sample_period' => 0.001) do
       sampler.start
       busy_wait(0.1)
       report = sampler.stop_and_collect
 
       assert_operator report[:samples], :>, 0
-      assert_equal :wall, report[:mode]
+      assert_equal :cpu, report[:mode]
     end
   end
 
   def test_session_runs_a_full_harvest_cycle_against_the_real_gem
-    with_config(:'continuous_profiler.mode' => 'wall',
+    with_config(:'continuous_profiler.mode' => 'cpu',
       :'continuous_profiler.sample_period' => 0.001,
       :'continuous_profiler.harvest_period' => 1) do
       session = NewRelic::Agent::ContinuousProfiling::Session.new(nil)
@@ -48,7 +48,7 @@ class ContinuousProfilingTest < Minitest::Test
     connection.stubs(:request).with { |req| request = req; true }.returns(stub_everything('response'))
     Net::HTTP.stubs(:new).returns(connection)
 
-    with_config(:'continuous_profiler.mode' => 'wall',
+    with_config(:'continuous_profiler.mode' => 'cpu',
       :'continuous_profiler.sample_period' => 0.001,
       :'continuous_profiler.otlp_endpoint.host' => 'otlp.example.com') do
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
