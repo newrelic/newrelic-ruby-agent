@@ -1,9 +1,10 @@
 name: Update Config Docs
 
 on:
-  workflows: ["Release"]
-  types:
-    - completed
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
   workflow_dispatch:
 
 env:
