@@ -279,17 +279,17 @@ module NewRelic::Agent::Configuration
       assert @source[:'ai_monitoring.enabled']
     end
 
-    def test_should_enable_ai_monitoring_when_agent_config_overrides_collect_ai
+    def test_collect_ai_false_disables_ai_monitoring_even_when_agent_config_enables_it
       rsp = {
         'collect_ai' => false,
         'agent_config' => {'ai_monitoring.enabled' => true}
       }
       @source = ServerSource.new(rsp, {})
 
-      assert @source[:'ai_monitoring.enabled']
+      refute @source[:'ai_monitoring.enabled']
     end
 
-    def test_should_disable_ai_monitoring_when_agent_config_overrides_collect_ai
+    def test_collect_ai_true_disables_when_agent_config_ai_monitoring_is_false
       rsp = {
         'collect_ai' => true,
         'agent_config' => {'ai_monitoring.enabled' => false}
@@ -297,6 +297,16 @@ module NewRelic::Agent::Configuration
       @source = ServerSource.new(rsp, {})
 
       refute @source[:'ai_monitoring.enabled']
+    end
+
+    def test_collect_ai_true_enables_via_agent_config_over_locally_disabled
+      rsp = {
+        'collect_ai' => true,
+        'agent_config' => {'ai_monitoring.enabled' => true}
+      }
+      @source = ServerSource.new(rsp, {:'ai_monitoring.enabled' => false})
+
+      assert @source[:'ai_monitoring.enabled']
     end
 
     def test_should_set_ai_monitoring_record_content_when_server_says_to

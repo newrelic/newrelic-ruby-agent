@@ -42,7 +42,6 @@ module NewRelic
           filter_keys(merged_settings)
 
           apply_feature_gates(merged_settings, connect_reply, existing_config)
-          apply_ai_monitoring_gate(merged_settings, connect_reply, existing_config)
 
           # The value under this key is a hash mapping transaction name strings
           # to apdex_t values. We don't want the nested hash to be flattened
@@ -140,7 +139,8 @@ module NewRelic
             'transaction_events.enabled' => 'collect_analytics_events',
             'custom_insights_events.enabled' => 'collect_custom_events',
             'error_collector.capture_events' => 'collect_error_events',
-            'span_events.enabled' => 'collect_span_events'
+            'span_events.enabled' => 'collect_span_events',
+            'ai_monitoring.enabled' => 'collect_ai'
           }
           gated_features.each do |config_key, gate_key|
             if connect_reply.has_key?(gate_key)
@@ -154,22 +154,6 @@ module NewRelic
 
         def ungated_value(key, merged_settings, existing_config)
           merged_settings.has_key?(key) ? merged_settings[key] : existing_config[key.to_sym]
-        end
-
-        # `ai_monitoring.enabled` is gated by the `collect_ai` flag, but a value
-        # sent directly in the agent_config takes precedence over that gate.
-        def apply_ai_monitoring_gate(merged_settings, connect_reply, existing_config)
-          config_key = 'ai_monitoring.enabled'
-          gate_key = 'collect_ai'
-
-          if connect_reply['agent_config']&.has_key?(config_key)
-            merged_settings[config_key] = connect_reply['agent_config'][config_key]
-          elsif connect_reply.has_key?(gate_key)
-            allowed_by_server = connect_reply[gate_key]
-            requested_value = ungated_value(config_key, merged_settings, existing_config)
-            effective_value = (allowed_by_server && requested_value)
-            merged_settings[config_key] = effective_value
-          end
         end
       end
     end

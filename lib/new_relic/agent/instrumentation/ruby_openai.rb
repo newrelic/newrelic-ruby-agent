@@ -38,6 +38,7 @@ end
 # enabled by server-side config after startup detection has run. Re-check the
 # dependency when the server source is applied.
 NewRelic::Agent.instance.events.subscribe(:server_source_configuration_added) do
+  binding.irb
   item = DependencyDetection.dependency_by_name(:'ruby_openai')
   item.execute if item && !item.executed && item.dependencies_satisfied?
 end
