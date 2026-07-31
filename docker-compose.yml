@@ -92,6 +92,8 @@ services:
       - /var/lib/redis
     expose:
       - "6379"
+    ports:
+      - "6379:6379"
   app:
     build:
       context: .
