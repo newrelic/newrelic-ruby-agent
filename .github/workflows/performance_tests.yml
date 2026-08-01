@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
         with:
           ref: 'main'
-      - uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # tag v1.321.0
         with:
           ruby-version: 3.4
       - run: bundle install
