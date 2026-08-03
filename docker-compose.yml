@@ -73,8 +73,7 @@ services:
     restart: always
     volumes:
       - /data/db
-    expose:
-      - "27017"
+    ports: ["27017:27017"]
   postgres:
     image: postgres:14.2
     restart: always
