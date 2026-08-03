@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.7.0
 
 - **Feature: Add transaction_tracer.cap_segment_artifacts configuration option**
 
