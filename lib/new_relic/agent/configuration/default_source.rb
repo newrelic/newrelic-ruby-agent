@@ -718,7 +718,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See `error_collector.backtrace_truncate_location` to customize the truncation location.'
         },
         :'error_collector.backtrace_truncate_location' => {
           :default => 'middle',

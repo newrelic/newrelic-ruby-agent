@@ -39,6 +39,10 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         redis.get('foo')
       end
 
+      # redis 6+ does an extra thing now
+      redis_6 = NewRelic::Helper.version_satisfied?(::Redis::VERSION, '>=', '6.0.0')
+      call_count = redis_6 ? 3 : 2
+
       expected = {
         'test_txn' => {:call_count => 1},
         'OtherTransactionTotalTime' => {:call_count => 1},
@@ -47,14 +51,19 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         'Datastore/operation/Redis/connect' => {:call_count => 1},
         ['Datastore/operation/Redis/get', 'test_txn'] => {:call_count => 1},
         'Datastore/operation/Redis/get' => {:call_count => 1},
-        'Datastore/Redis/allOther' => {:call_count => 2},
-        'Datastore/Redis/all' => {:call_count => 2},
-        'Datastore/allOther' => {:call_count => 2},
-        'Datastore/all' => {:call_count => 2},
-        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 2},
+        'Datastore/Redis/allOther' => {:call_count => call_count},
+        'Datastore/Redis/all' => {:call_count => call_count},
+        'Datastore/allOther' => {:call_count => call_count},
+        'Datastore/all' => {:call_count => call_count},
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => call_count},
         'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => {:call_count => 1},
         'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => {:call_count => 1}
       }
+
+      if redis_6
+        expected[['Datastore/operation/Redis/pipeline', 'test_txn']] = {:call_count => 1}
+        expected['Datastore/operation/Redis/pipeline'] = {:call_count => 1}
+      end
 
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
     end
