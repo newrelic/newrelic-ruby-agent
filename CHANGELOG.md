@@ -30,7 +30,7 @@
 
 - **Bugfix: Normalize boolean configuration values to allow all casing**
 
-  In version 9.x, the agent accepted capitalized boolean values, like "FALSE", and mixed-case values like "True". Version 10.0.0 included [PR#3341](https://github.com/newrelic/newrelic-ruby-agent/pull/3341), which unfortunately removed the case insensitive requirement. This caused users who had any casing besides all lowercase to have their configuration options fall back to the defaults. Now, the agent uses case-insensitive checks again. Our thanks go to [@willie](https://github.com/willie) for bringing this to our attention. [Issue#3632](https://github.com/newrelic/newrelic-ruby-agent/issues/3632) [PR#3633](https://github.com/newrelic/newrelic-ruby-agent/issues/3632)
+  In version 9.x, the agent accepted capitalized boolean values, like "FALSE", and mixed-case values like "True". Version 10.0.0 included [PR#3341](https://github.com/newrelic/newrelic-ruby-agent/pull/3341), which unintentionally removed the case-insensitive requirement. This caused users who had any casing besides all lowercase to have their configuration options fall back to the defaults. Now, the agent uses case-insensitive checks again. Our thanks go to [@willie](https://github.com/willie) for bringing this to our attention. [Issue#3632](https://github.com/newrelic/newrelic-ruby-agent/issues/3632) [PR#3633](https://github.com/newrelic/newrelic-ruby-agent/issues/3632)
 
 ## v10.6.0
 
