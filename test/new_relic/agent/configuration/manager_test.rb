@@ -610,6 +610,26 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_type_coercion_of_a_boolean_from_a_capitalized_string
+      key = :vm_performance_analysis
+      defaults = {key => {default: false, type: NewRelic::Agent::Configuration::Boolean}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'ON', :manual)
+
+        assert_equal true, value # rubocop:disable Minitest/AssertTruthy
+      end
+    end
+
+    def test_type_coercion_of_a_boolean_from_a_mixed_case_string
+      key = :vm_performance_analysis
+      defaults = {key => {default: true, type: NewRelic::Agent::Configuration::Boolean}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'fAlSe', :manual)
+
+        assert_equal false, value # rubocop:disable Minitest/RefuteFalse
+      end
+    end
+
     def test_type_coercion_of_an_integer_from_a_float
       key = :applied_jigawatts
       defaults = {key => {default: 0, type: Integer}}
