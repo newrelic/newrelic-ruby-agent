@@ -303,6 +303,25 @@ jobs:
           group: infinite_tracing
 
 
+  fleet_control_schema_tests:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
+      - uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
+        with:
+          ruby-version: 3.4
+      - run: bundle install
+
+      - name: Run Fleet Control schema generator tests
+        run: |
+          ruby .fleetControl/schemaGeneration/tests/generate_schema_test.rb
+          ruby .fleetControl/schemaGeneration/tests/schema_diff_test.rb
+          ruby .fleetControl/schemaGeneration/tests/bump_schema_version_test.rb
+
+
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_services_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04

@@ -137,7 +137,7 @@ class SchemaDiffTest < Minitest::Test
   end
 
   def test_recommend_bump_cosmetic_only_is_patch
-    assert_equal 'patch', SchemaDiff.recommend_bump([{severity: 'cosmetic'}])
+    assert_equal 'patch', SchemaDiff.recommend_bump([{severity: 'fix'}])
   end
 
   def test_recommend_bump_no_changes_is_none

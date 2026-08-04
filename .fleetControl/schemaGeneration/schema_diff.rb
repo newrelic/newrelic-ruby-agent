@@ -90,7 +90,7 @@ module SchemaDiff
     severities = changes.map { |c| c[:severity] }
     return 'major' if severities.include?('breaking')
     return 'minor' if severities.include?('additive')
-    return 'patch' if severities.include?('cosmetic')
+    return 'patch' if severities.include?('fix')
 
     'none'
   end
@@ -144,9 +144,13 @@ module SchemaDiff
     raise ArgumentError, "unclassified change kind: #{kind.inspect}"
   end
 
-  # The type aspect of a property: its `anyOf` shape if present, else its `type`.
+  # The type aspect of a property, normalized to an array of type names —
+  # a plain "type" becomes a single-element array, so callers don't need to
+  # special-case the anyOf vs. plain-type shape.
   def type_signature(prop)
-    prop['anyOf'] || prop['type']
+    return prop['anyOf'].map { |branch| branch['type'] || 'unknown' } if prop['anyOf']
+
+    [prop['type']]
   end
 
   def type_changes(old_prop, new_prop, path)
@@ -158,7 +162,7 @@ module SchemaDiff
   end
 
   def describe_type(signature)
-    signature.is_a?(String) ? signature : 'array-or-string'
+    signature.join('-or-')
   end
 
   def enum_changes(old_prop, new_prop, path)
