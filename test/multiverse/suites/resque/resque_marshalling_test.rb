@@ -31,6 +31,7 @@ if NewRelic::LanguageSupport.can_fork?
 
       if child_pid
         Process.wait(child_pid)
+        wait_for_pipe_to_close(job.object_id)
       else
         invoke_hook(:after_fork, job)
         yield
@@ -42,6 +43,18 @@ if NewRelic::LanguageSupport.can_fork?
 
     def after_each
       NewRelic::Agent::PipeChannelManager.listener.stop
+    end
+
+    def wait_for_pipe_to_close(channel_id, timeout: 5)
+      deadline = Process.clock_gettime(Process::CLOCK_REALTIME) + timeout
+
+      loop do
+        pipe = NewRelic::Agent::PipeChannelManager.channels[channel_id]
+        break if pipe.nil? || pipe.closed?
+        raise "Timed out waiting for pipe channel #{channel_id} to close" if Process.clock_gettime(Process::CLOCK_REALTIME) > deadline
+
+        sleep(0.01)
+      end
     end
   end
 

@@ -37,6 +37,13 @@ class PipeServiceTest < Minitest::Test
     service.metric_data({})
   end
 
+  def test_write_to_pipe_with_nil_pipe_does_not_raise
+    service = NewRelic::Agent::PipeService.new(:non_existant)
+    service.instance_variable_set(:@pipe, nil)
+
+    assert_empty(service.metric_data({}))
+  end
+
   if NewRelic::LanguageSupport.can_fork?
 
     def test_metric_data

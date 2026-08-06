@@ -217,7 +217,9 @@ module NewRelic
           return string_conversion(value) if STRINGLIKE_TYPES.include?(type) && STRINGLIKE_TYPES.include?(value.class)
 
           # convert bool to string for regex usage and bool hash lookup
-          value = value.to_s if type == Boolean
+          # normalize case for backwards-compatibility
+          # fixes: https://github.com/newrelic/newrelic-ruby-agent/issues/3632
+          value = value.to_s.downcase if type == Boolean
           if value.class != String
             return value if category == :test || likely_transformed_already?(key, value)
 

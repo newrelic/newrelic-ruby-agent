@@ -4,6 +4,7 @@
 
 require 'new_relic/language_support'
 require 'open3'
+require 'net/http'
 
 module NewRelic
   class CommandExecutableNotFoundError < StandardError; end
@@ -46,6 +47,13 @@ module NewRelic
       (time.to_f * 1000).round
     end
 
+    def fetch_metadata(uri, headers)
+      uri = URI(uri)
+      Net::HTTP.start(uri.host, uri.port, open_timeout: 1, read_timeout: 1) do |http|
+        http.request(Net::HTTP::Get.new(uri, headers))
+      end
+    end
+
     def run_command(command)
       executable = command.split(' ').first
       unless executable_in_path?(executable)
@@ -63,8 +71,7 @@ module NewRelic
         raise NewRelic::CommandRunFailedError.new("Failed to run command '#{command}': #{message}")
       end
 
-      # needs else branch coverage
-      output.chomp if output # rubocop:disable Style/SafeNavigation
+      output&.chomp
     end
 
     # TODO: Open3 defers the actual execution of a binary to Process.spawn,

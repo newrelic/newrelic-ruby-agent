@@ -134,6 +134,8 @@ module NewRelic
         end
 
         def notice_sql_statement
+          return if record_on_finish?
+
           params[:sql] = sql_statement
           NewRelic::Agent.instance.sql_sampler.notice_sql_statement(sql_statement.dup, name, duration)
         end

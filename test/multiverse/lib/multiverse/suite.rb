@@ -328,6 +328,11 @@ module Multiverse
         require 'minitest/unit'
       end
       require 'minitest/mock'
+      # Minitest 5.25+ dropped the legacy camelCase `MiniTest` namespace that
+      # this harness references throughout. Recreate the alias ourselves so we
+      # keep supporting old and new Minitest alike. No-op where it still exists.
+      # (const_set, not `=`, since constant assignment isn't allowed in a method.)
+      Object.const_set(:MiniTest, ::Minitest) unless defined?(::MiniTest)
     end
 
     def print_environment
@@ -607,10 +612,13 @@ module Multiverse
     # Rails and minitest_tu_shim both want to do MiniTest::Unit.autorun for us
     # We can't sidestep, so just gut the method to avoid doubled test runs
     def prevent_minitest_auto_run
-      # MiniTest 4.x
-      ::MiniTest::Unit.class_eval do
-        def self.autorun
-          # NO-OP
+      # TODO: OLD RUBIES - 2.6 - Remove this method when we drop support
+      # MiniTest 4.x (absent on modern Minitest, which has no MiniTest::Unit)
+      if defined?(::MiniTest::Unit)
+        ::MiniTest::Unit.class_eval do
+          def self.autorun
+            # NO-OP
+          end
         end
       end
 

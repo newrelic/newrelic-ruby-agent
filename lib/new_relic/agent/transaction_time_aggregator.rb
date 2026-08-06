@@ -115,8 +115,7 @@ module NewRelic
 
         def thread_is_alive?(thread_id)
           thread = thread_by_id(thread_id)
-          # needs else branch coverage
-          thread && thread.alive? # rubocop:disable Style/SafeNavigation
+          thread&.alive?
         rescue StandardError
           false
         end

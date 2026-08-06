@@ -23,11 +23,11 @@ module NewRelic::Agent::Instrumentation
 
     def test_start
       in_transaction do |txn|
-        time = Time.now.to_f
+        time = nr_freeze_process_time
         SUBSCRIBER.start(NAME, ID, {middleware: TestMiddleware.name})
         segment = txn.segments.last
 
-        assert_in_delta time, segment.start_time
+        assert_equal time, segment.start_time
         assert_equal "Ruby/ActionDispatch/#{TestMiddleware.name}/process_middleware", segment.name
       end
     end
@@ -70,11 +70,11 @@ module NewRelic::Agent::Instrumentation
         started_segment = NewRelic::Agent::Tracer.start_transaction_or_segment(name: NAME, category: :testing)
         SUBSCRIBER.push_segment(ID, started_segment)
 
-        time = Time.now.to_f
+        time = nr_freeze_process_time
         SUBSCRIBER.finish(NAME, ID, {})
         segment = txn.segments.last
 
-        assert_in_delta time, segment.end_time
+        assert_equal time, segment.end_time
         assert_predicate(segment, :finished?)
       end
     end

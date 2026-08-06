@@ -33,3 +33,11 @@ DependencyDetection.defer do
     end
   end
 end
+
+# `ai_monitoring.enabled` gates this instrumentation at install time, but can be
+# enabled by server-side config after startup detection has run. Re-check the
+# dependency when the server source is applied.
+NewRelic::Agent.instance.events.subscribe(:server_source_configuration_added) do
+  item = DependencyDetection.dependency_by_name(:'ruby_openai')
+  item.execute if item && !item.executed && item.dependencies_satisfied?
+end

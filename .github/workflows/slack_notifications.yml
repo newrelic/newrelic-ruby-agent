@@ -11,10 +11,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # tag v1.310.0
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # tag v1.321.0
         with:
           ruby-version: 3.4
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # tag v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
       - run: gem install httparty
       - name: Check for outdated gems
         run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb

@@ -133,6 +133,10 @@ if defined?(Rack::Test)
       refute app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), 'Expected not to instrument requests with content type other than text/html.'
     end
 
+    def test_should_not_instrument_when_content_type_missing
+      refute app.should_instrument?({}, 200, {})
+    end
+
     def test_should_not_instrument_when_content_disposition
       refute app.should_instrument?({}, 200, {'Content-Type' => 'text/html', 'Content-Disposition' => 'attachment; filename=test.html'})
     end
@@ -254,6 +258,23 @@ if defined?(Rack::Test)
       get('/')
 
       assert_predicate last_response, :ok?
+    end
+
+    def test_instruments_response_with_frozen_body_fragments
+      TestApp.next_response = ['<html><body>'.freeze, 'chocolate chip cookies are delicious</body></html>'.freeze]
+      NewRelic::Agent.stubs(:browser_timing_header).returns(RUM_PLACEHOLDER)
+
+      get('/')
+
+      assert_predicate last_response, :ok?
+      assert_includes(last_response.body, RUM_PLACEHOLDER)
+    end
+
+    def test_gather_source_handles_frozen_first_fragment
+      body = ['<html><body>'.freeze, 'peanut butter cookies are okay</body></html>'.freeze]
+      source = app.send(:gather_source, body)
+
+      assert_equal('<html><body>peanut butter cookies are okay</body></html>', source)
     end
 
     def test_content_length_set_when_we_modify_source

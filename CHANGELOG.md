@@ -1,14 +1,46 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.7.0
+
+- **Feature: Add transaction_tracer.cap_segment_artifacts configuration option**
+
+  Long-running transactions with many segments can cause continuously increasing memory usage for the lifetime of the transaction. The agent now offers an opt-in `transaction_tracer.cap_segment_artifacts` configuration option (defaults to `false`). When enabled, once [`transaction_tracer.limit_segments`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#transaction_tracer-limit_segments) is reached, the agent also stops recording exclusive time for any segments created afterward in that transaction, reducing memory usage at the cost of less accurate timing data for the transaction.[PR#3615](https://github.com/newrelic/newrelic-ruby-agent/pull/3615)
+
+- **Feature: Add Puma server-statistics instrumentation**
+
+  The agent now samples Puma's cluster-wide server statistics and reports them as `Ruby/Puma/*` timeslice metrics, including `backlog`, `running`, `pool_capacity`, `max_threads`, and `requests_count`. Statistics are sampled in single mode and in clustered mode when `preload_app!` is enabled. This instrumentation is disabled by default; enable it by setting `disable_puma_instrumentation` to `false`. When enabled, the agent starts a reporting thread in the Puma master process to deliver these metrics, which runs an additional agent connection alongside the Puma workers. The sampling interval is configurable via the new `puma.sample_rate` setting (default 60 seconds). Requires Puma 6.6 or later. See [our docs](https://docs.newrelic.com/docs/apm/agents/ruby-agent/instrumented-gems/puma-instrumentation/) for more information.
+
+  Thanks so much to [@ashleyboehs](https://github.com/ashleyboehs) contributing this new feature. [PR#3578](https://github.com/newrelic/newrelic-ruby-agent/pull/3578)
+
+- **Feature: Report a unique hostname for Google Cloud Run instances**
+
+  The agent now detects Cloud Run and reports the GCP instance id as the hostname so individual instances can be distinguished. Before this change, all Google Cloud Run hostnames were `localhost`. This feature is controlled by the new `utilization.gcp_cloud_run.use_instance_as_host` configuration option (default `true`). Set `utilization.gcp_cloud_run.include_revision_in_host` (default `false`) to `true` to report the hostname as `{K_REVISION}-{instance id}` instead, where [`K_REVISION`](https://docs.cloud.google.com/run/docs/container-contract#env-vars) is the Cloud Run revision name. Thank you to [@kawa-onushi](https://github.com/kawa-onushi) for suggesting this improvement. [Issue#3295](https://github.com/newrelic/newrelic-ruby-agent/issues/3295) [PR#3609](https://github.com/newrelic/newrelic-ruby-agent/pull/3609/)
+
+- **Bugfix: Slow SQL no longer recorded after transaction_tracer.limit_segments exceeded**
+
+  Once a transaction exceeded [`transaction_tracer.limit_segments`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#transaction_tracer-limit_segments), datastore segments created afterward still could have their slow SQL recorded. The agent now stops recording slow SQL for any segment created after the limit is reached. [PR#3615](https://github.com/newrelic/newrelic-ruby-agent/pull/3615)
+
+- **Bugfix: Explain plans could target the wrong database in multi-database Rails apps (Rails >= 7.2)**
+
+  On Rails 7.2+, the agent gathered explain plans using a connection from the app's default/shared pool rather than a dedicated one. This primarily affected multi-database apps. Explain plans could be generated against the wrong database, and a failed explain could leave a shared connection in a bad state, affecting unrelated requests. The agent now uses its own dedicated connection for explain plans, as it did before Rails 7.2, and resets or discards that connection whenever an explain attempt fails, so a bad connection is never reused. Thank you, [@masiafrest](https://github.com/masiafrest) for the detailed report! [Issue#3610](https://github.com/newrelic/newrelic-ruby-agent/issues/3610) [PR#3612](https://github.com/newrelic/newrelic-ruby-agent/pull/3612)
+
+- **Bugfix: Browser monitoring instrumentation no longer fails with `FrozenError`**
+
+  When a response body's first fragment was a frozen `String` and there were multiple fragments, browser instrumentation hit a `FrozenError` and the browser timing header was never injected. This began appearing with `ERB` 6.0.3+, which started freezing more of its compiled strings. This issue is now fixed. Thank you to [@md5](https://github.com/md5) for reporting this issue! [Issue#3624](https://github.com/newrelic/newrelic-ruby-agent/issues/3624)[PR#3625](https://github.com/newrelic/newrelic-ruby-agent/pull/3625)
+
+- **Bugfix: Normalize boolean configuration values to allow all casing**
+
+  In version 9.x, the agent accepted capitalized boolean values, like "FALSE", and mixed-case values like "True". Version 10.0.0 included [PR#3341](https://github.com/newrelic/newrelic-ruby-agent/pull/3341), which unintentionally removed the case-insensitive requirement. This caused users who had any casing besides all lowercase to have their configuration options fall back to the defaults. Now, the agent uses case-insensitive checks again. Our thanks go to [@willie](https://github.com/willie) for bringing this to our attention. [Issue#3632](https://github.com/newrelic/newrelic-ruby-agent/issues/3632) [PR#3633](https://github.com/newrelic/newrelic-ruby-agent/issues/3632)
+
 ## v10.6.0
 
 - **Feature: SpanLink events are now supported for the Hybrid Agent**
 
-Spans created by an OpenTelemetry API can now have [Span Links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
+  Spans created by an OpenTelemetry API can now have [Span Links](https://opentelemetry.io/docs/concepts/signals/traces/#span-links) associated with them. Links can be added on a span's start, by passing them to the `links` argument, or by calling the `OpenTelemetry::Trace::Span#add_link` API. [PR#3586](https://github.com/newrelic/newrelic-ruby-agent/pull/3586)
 
 - **Feature: SpanEvent events are now supported for the Hybrid Agent**
 
-Spans created by an OpenTelemetry API can now have [SpanEvent events](https://opentelemetry.io/docs/concepts/signals/traces/#span-events) associated with them via the `OpenTelemetry::Trace::Span#add_event` API. SpanEvent events capture timestamped annotations on a span and are sent to New Relic alongside the parent span. [PR#3587](https://github.com/newrelic/newrelic-ruby-agent/pull/3587)
+  Spans created by an OpenTelemetry API can now have [SpanEvent events](https://opentelemetry.io/docs/concepts/signals/traces/#span-events) associated with them via the `OpenTelemetry::Trace::Span#add_event` API. SpanEvent events capture timestamped annotations on a span and are sent to New Relic alongside the parent span. [PR#3587](https://github.com/newrelic/newrelic-ruby-agent/pull/3587)
 
 - **Feature: Set Span Kind on all Hybrid Agent spans**
 

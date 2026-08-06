@@ -325,6 +325,12 @@ common: &default_settings
   # on the transaction may not reflect the altered value.
   # disable_middleware_instrumentation: false
 
+  # If true, disables the Puma server-statistics instrumentation that samples
+  # Ruby/Puma/* metrics from the Puma master process. This instrumentation is
+  # disabled by default. When enabled, the agent starts a reporting thread in the
+  # Puma master process to deliver these metrics.
+  # disable_puma_instrumentation: true
+
   # If true, disables agent middleware for Roda. This middleware is responsible
   # for advanced feature support such as page load timing and error collection.
   # disable_roda_auto_middleware: false
@@ -435,8 +441,10 @@ common: &default_settings
   # error_collector.ignore_status_codes: ""
 
   # Defines the maximum number of frames in an error backtrace. Backtraces over
-  # this amount are truncated in the middle, preserving the beginning and the end
-  # of the stack trace.
+  # this amount are truncated in the middle by default, preserving the beginning
+  # and the end of the stack trace. See
+  # error_collector.backtrace_truncate_location to customize the truncation
+  # location.
   # error_collector.max_backtrace_frames: 50
 
   # Defines the maximum number of TransactionError events reported per harvest
@@ -815,6 +823,10 @@ common: &default_settings
   # server.
   # proxy_user: nil
 
+  # Number of seconds between samples of Puma server statistics taken in the Puma
+  # master process.
+  # puma.sample_rate: 60
+
   # Timeout for waiting on connect to complete before a rake task
   # rake.connect_timeout: 10
 
@@ -999,6 +1011,13 @@ common: &default_settings
   # end.
   # transaction_tracer.attributes.include: []
 
+  # If true, once transaction_tracer.limit_segments is reached, the agent will
+  # also stop recording exclusive time for any segments created afterward in that
+  # transaction. This can reduce memory usage for very long-running transactions
+  # with many segments, at the cost of less accurate timing data for segments in
+  # the transaction if the segment limit is reached.
+  # transaction_tracer.cap_segment_artifacts: false
+
   # If true, enables collection of transaction traces.
   # transaction_tracer.enabled: true
 
@@ -1061,6 +1080,15 @@ common: &default_settings
   # If true, the agent automatically detects that it is running in a Pivotal Cloud
   # Foundry environment.
   # utilization.detect_pcf: true
+
+  # If true, the agent prepends the K_REVISION value to the GCP instance id to
+  # form the hostname ({K_REVISION}-{instance id}) on Google Cloud Run. Has no
+  # effect unless utilization.gcp_cloud_run.use_instance_as_host is also true.
+  # utilization.gcp_cloud_run.include_revision_in_host: false
+
+  # If true, the agent reports the GCP instance id as the hostname when running on
+  # Google Cloud Run.
+  # utilization.gcp_cloud_run.use_instance_as_host: true
 
   # BEGIN security agent
   #

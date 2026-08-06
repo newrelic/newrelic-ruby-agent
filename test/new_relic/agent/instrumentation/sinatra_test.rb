@@ -59,6 +59,14 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     @app.route_eval_with_tracing
   end
 
+  def test_try_to_use_with_nil_middleware
+    fake_app = mock('app')
+    fake_app.stubs(:middleware).returns(nil)
+    fake_app.expects(:use).once
+
+    @app.try_to_use(fake_app, Class.new)
+  end
+
   def assert_transaction_name(expected, original)
     assert_equal expected, NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name(original, nil)
   end

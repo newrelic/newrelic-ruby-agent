@@ -88,6 +88,25 @@ class TiltInstrumentationTest < Minitest::Test
     assert_transaction_noticed_error txn, exception_class.name
   end
 
+  def test_finish_called_on_segment
+    mock_segment = stub_everything('segment')
+    mock_segment.expects(:finish).once
+    NewRelic::Agent::Tracer.stubs(:start_segment).returns(mock_segment)
+
+    in_transaction { haml_template }
+  end
+
+  def test_finish_called_on_segment_even_when_render_raises
+    mock_segment = stub_everything('segment')
+    mock_segment.expects(:finish).once
+    NewRelic::Agent::Tracer.stubs(:start_segment).returns(mock_segment)
+    Tilt::Template.any_instance.stubs(:evaluate).raises(TypeError)
+
+    assert_raises(TypeError) do
+      in_transaction { haml_template }
+    end
+  end
+
   def test_records_nothing_if_tracing_disabled
     NewRelic::Agent.disable_all_tracing do
       in_transaction do

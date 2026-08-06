@@ -100,8 +100,7 @@ module NewRelic
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
-            # the following line needs else branch coverage
-            if ENV['GEM_HOME'] && ENV['GEM_HOME'].end_with?('.jar!') # rubocop:disable Style/SafeNavigation
+            if ENV['GEM_HOME']&.end_with?('.jar!')
               app_name = File.basename(ENV['GEM_HOME'], '.jar!')
               paths << File.join(ENV['GEM_HOME'], app_name, config_yaml)
               paths << File.join(ENV['GEM_HOME'], app_name, config_erb)
@@ -330,14 +329,14 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         :'ai_monitoring.record_content.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => <<~DESCRIPTION
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
@@ -610,6 +609,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Specify a threshold in seconds. The agent includes stack traces in transaction trace nodes when the stack trace duration exceeds this threshold.'
         },
+        :'transaction_tracer.cap_segment_artifacts' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, once [`transaction_tracer.limit_segments`](#transaction_tracer-limit_segments) is reached, the agent will also stop recording exclusive time for any segments created afterward in that transaction. This can reduce memory usage for very long-running transactions with many segments, at the cost of less accurate timing data for segments in the transaction if the segment limit is reached.'
+        },
         :'transaction_tracer.transaction_threshold' => {
           :default => DefaultSource.transaction_tracer_transaction_threshold,
           :public => true,
@@ -712,7 +718,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See `error_collector.backtrace_truncate_location` to customize the truncation location.'
         },
         :'error_collector.backtrace_truncate_location' => {
           :default => 'middle',
@@ -2080,6 +2086,25 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
+        # Puma
+        :disable_puma_instrumentation => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables the Puma server-statistics instrumentation that samples ' \
+            '`Ruby/Puma/*` metrics from the Puma master process. This instrumentation is disabled by ' \
+            'default. When enabled, the agent starts a reporting thread in the Puma master process to ' \
+            'deliver these metrics.'
+        },
+        :'puma.sample_rate' => {
+          :default => 60,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => false,
+          :description => 'Number of seconds between samples of Puma server statistics taken in the ' \
+            'Puma master process.'
+        },
         # Rails
         :'defer_rails_initialization' => {
           :default => false,
@@ -2331,6 +2356,20 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in an Google Cloud Platform environment.'
+        },
+        :'utilization.gcp_cloud_run.use_instance_as_host' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent reports the GCP instance id as the hostname when running on Google Cloud Run.'
+        },
+        :'utilization.gcp_cloud_run.include_revision_in_host' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent prepends the `K_REVISION` value to the GCP instance id to form the hostname (`{K_REVISION}-{instance id}`) on Google Cloud Run. Has no effect unless `utilization.gcp_cloud_run.use_instance_as_host` is also `true`.'
         },
         :'utilization.detect_kubernetes' => {
           :default => true,

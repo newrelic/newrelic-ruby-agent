@@ -16,4 +16,11 @@ development:
     enabled: true
     stack_trace_threshold: 0.5
     transaction_threshold: 1.0
+  utilization:
+    detect_aws: false
+    detect_azure: false
+    detect_docker: false
+    detect_gcp: false
+    detect_kubernetes: false
+    detect_pcf: false
 capture_params: false

@@ -153,8 +153,7 @@ module NewRelic
         yield
       ensure
         begin
-          # the following line needs else branch coverage
-          txn.finish if txn # rubocop:disable Style/SafeNavigation
+          txn&.finish
         rescue => e
           NewRelic::Agent.logger.error('Error stopping Message Broker consume transaction', e)
         end
@@ -195,8 +194,7 @@ module NewRelic
         correlation_id: nil,
         exchange_type: nil)
 
-        # The following line needs else branch coverage
-        original_headers = headers.nil? ? nil : headers.dup # rubocop:disable Style/SafeNavigation
+        original_headers = headers&.dup
 
         segment = Tracer.start_message_broker_segment(
           action: :produce,
