@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add span.kind to Sidekiq and ActiveJob spans**
+
+  Now, the `span.kind` attribute will be added to `produce` and `consume` operations from these libraries. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
+
 ## v10.7.0
 
 - **Feature: Add transaction_tracer.cap_segment_artifacts configuration option**

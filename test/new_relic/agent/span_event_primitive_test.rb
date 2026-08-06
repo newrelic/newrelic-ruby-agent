@@ -389,6 +389,23 @@ module NewRelic
           end
         end
 
+        def test_span_kind_is_added_to_span_events_when_set_on_segment
+          in_transaction do |txn|
+            txn.current_segment.span_kind = SpanEventPrimitive::CONSUMER
+            intrinsics, _custom, _agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
+
+            assert_equal SpanEventPrimitive::CONSUMER, intrinsics['span.kind']
+          end
+        end
+
+        def test_span_kind_is_absent_from_span_events_when_unset_on_segment
+          in_transaction do |txn|
+            intrinsics, _custom, _agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
+
+            refute intrinsics.key?('span.kind')
+          end
+        end
+
         def test_thread_id_is_added_to_span_events
           harvest_span_events! # clear out any previous events
           thread_id = nil
