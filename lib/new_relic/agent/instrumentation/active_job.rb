@@ -91,6 +91,7 @@ module NewRelic
           options = {} if options.frozen? # the hash will be added to later
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
             category: :other, options: options) do
+            # this method is only called on perform actions, so the kind will always be consumer
             ::NewRelic::Agent::Tracer.current_segment&.span_kind = ::NewRelic::Agent::SpanEventPrimitive::CONSUMER
             block.call
           end
