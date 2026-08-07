@@ -41,8 +41,7 @@ Currently we only have a single rails 7 app. When running locally, you will need
     docker run --rm --name perfverse_local -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=perfverse_local -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local
 
 To performance-test an unreleased branch (before it has a git tag), prefix `AGENT_VERSION` with
-`BRANCH_`, e.g. `--build-arg AGENT_VERSION=BRANCH_my_feature_branch`. This is a local/manual-run-only
-convenience. Note the underscore, not a colon: the GHA workflow's `run_N` inputs pack env var
+`BRANCH_`, e.g. `--build-arg AGENT_VERSION=BRANCH_my_feature_branch`. Note the underscore, not a colon: the GHA workflow's `run_N` inputs pack env var
 overrides into the same string (`git_tag:ENV_VAR_1=one;ENV_VAR_2=two`, split on the first colon), so
 a `branch:` prefix would collide with that split -- `BRANCH_my_feature_branch` doesn't.
 
