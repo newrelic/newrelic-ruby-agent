@@ -139,7 +139,8 @@ module NewRelic
             'transaction_events.enabled' => 'collect_analytics_events',
             'custom_insights_events.enabled' => 'collect_custom_events',
             'error_collector.capture_events' => 'collect_error_events',
-            'span_events.enabled' => 'collect_span_events'
+            'span_events.enabled' => 'collect_span_events',
+            'ai_monitoring.enabled' => 'collect_ai'
           }
           gated_features.each do |config_key, gate_key|
             if connect_reply.has_key?(gate_key)

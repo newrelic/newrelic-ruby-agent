@@ -295,6 +295,81 @@ module NewRelic
           assert_predicate segment, :children_time_ranges?
         end
 
+        def test_add_child_timing_appends_when_child_within_limit
+          segment = basic_segment
+          child = basic_segment
+          child.instance_variable_set(:@start_time, 1.0)
+          child.instance_variable_set(:@end_time, 2.0)
+
+          segment.send(:add_child_timing, child)
+
+          assert_equal [[1.0, 2.0]], segment.instance_variable_get(:@children_timings)
+        end
+
+        def test_add_child_timing_not_recorded_when_child_over_segment_limit_and_cap_segment_artifacts_enabled
+          with_config(:'transaction_tracer.cap_segment_artifacts' => true) do
+            segment = basic_segment
+            child = basic_segment
+            child.instance_variable_set(:@start_time, 1.0)
+            child.instance_variable_set(:@end_time, 2.0)
+            child.record_on_finish = true
+
+            segment.send(:add_child_timing, child)
+
+            assert_empty segment.instance_variable_get(:@children_timings)
+          end
+        end
+
+        # cap_segment_artifacts defaults to false, so this is unaffected by default.
+        def test_add_child_timing_still_recorded_for_over_limit_child_by_default
+          segment = basic_segment
+          child = basic_segment
+          child.instance_variable_set(:@start_time, 1.0)
+          child.instance_variable_set(:@end_time, 2.0)
+          child.record_on_finish = true
+
+          segment.send(:add_child_timing, child)
+
+          assert_equal [[1.0, 2.0]], segment.instance_variable_get(:@children_timings)
+        end
+
+        # Regression test: gating must be per-segment (record_on_finish?), not
+        # transaction-wide, or a within-limit sibling would lose accuracy just
+        # because another segment tripped the limit.
+        def test_sibling_within_limit_keeps_accurate_exclusive_duration_despite_sibling_over_limit
+          # limit=3 accounts for in_transaction's root segment + segment_a + segment_b.
+          with_config(:'transaction_tracer.limit_segments' => 3, :'transaction_tracer.cap_segment_artifacts' => true) do
+            segment_a = segment_b = segment_c = nil
+            in_transaction do |txn|
+              segment_a = BasicSegment.new('segment_a')
+              txn.add_segment(segment_a)
+              segment_a.start
+              advance_process_time(1)
+
+              segment_b = BasicSegment.new('segment_b')
+              txn.add_segment(segment_b, segment_a)
+              segment_b.start
+              advance_process_time(1)
+
+              segment_c = BasicSegment.new('segment_c')
+              txn.add_segment(segment_c, segment_a) # 4th segment - exceeds the limit of 3
+              segment_c.start
+              advance_process_time(1)
+
+              segment_b.finish
+              advance_process_time(2)
+              segment_c.finish
+              segment_a.finish
+            end
+
+            refute_predicate segment_b, :record_on_finish?
+            assert_predicate segment_c, :record_on_finish?
+
+            assert_equal [[segment_b.start_time, segment_b.end_time]], segment_a.instance_variable_get(:@children_timings)
+            assert_in_delta(3.0, segment_a.exclusive_duration)
+          end
+        end
+
         def test_ranges_intersect_they_do
           assert basic_segment.send(:ranges_intersect?, 1..3, 2..4)
         end

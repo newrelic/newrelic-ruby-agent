@@ -61,6 +61,20 @@ module NewRelic::Agent::Configuration
       refute @manager['capture_params']
     end
 
+    def test_high_security_overrides_server_side_ai_monitoring_enabled
+      # in order of precedence
+      high_security = HighSecuritySource.new({})
+      server_source = ServerSource.new('agent_config' => {'ai_monitoring.enabled' => true})
+      manual_source = ManualSource.new(:'ai_monitoring.enabled' => true)
+
+      # load them out of order
+      @manager.replace_or_add_config(manual_source)
+      @manager.replace_or_add_config(server_source)
+      @manager.replace_or_add_config(high_security)
+
+      refute @manager[:'ai_monitoring.enabled']
+    end
+
     def test_identifying_config_source
       hash_source = {:foo => 'foo', :bar => 'default'}
       @manager.add_config_for_testing(hash_source, false)
@@ -593,6 +607,26 @@ module NewRelic::Agent::Configuration
         value = @manager.type_coerce(key, 'on', :manual)
 
         assert_equal true, value # rubocop:disable Minitest/AssertTruthy
+      end
+    end
+
+    def test_type_coercion_of_a_boolean_from_a_capitalized_string
+      key = :vm_performance_analysis
+      defaults = {key => {default: false, type: NewRelic::Agent::Configuration::Boolean}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'ON', :manual)
+
+        assert_equal true, value # rubocop:disable Minitest/AssertTruthy
+      end
+    end
+
+    def test_type_coercion_of_a_boolean_from_a_mixed_case_string
+      key = :vm_performance_analysis
+      defaults = {key => {default: true, type: NewRelic::Agent::Configuration::Boolean}}
+      NewRelic::Agent::Configuration::Manager.stub_const(:DEFAULTS, defaults) do
+        value = @manager.type_coerce(key, 'fAlSe', :manual)
+
+        assert_equal false, value # rubocop:disable Minitest/RefuteFalse
       end
     end
 
