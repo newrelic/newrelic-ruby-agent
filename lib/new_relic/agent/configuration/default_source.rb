@@ -311,19 +311,14 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :description => <<~DESCRIPTION
-            An array of ActiveSupport custom event names to subscribe to and instrument. For example,
-            \t\t- one.custom.event
-            \t\t- another.event
-            \t\t- a.third.event
-          DESCRIPTION
+          :description => 'An array of ActiveSupport custom event names to subscribe to and instrument. For example: [one.custom.event, another.event, a.third.event]'
         },
         :active_record_use_table_name => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent will use the Active Record model\'s table name instead of the class name when naming Active Record metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
+          :description => 'If `true`, the agent will use the ActiveRecord model\'s table name instead of the class name when naming Active Record metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
         },
         :'ai_monitoring.enabled' => {
           :default => false,
@@ -337,15 +332,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => <<~DESCRIPTION
-            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
-
-            \tThe excluded attributes include:
-            \t- `content` from LlmChatCompletionMessage events
-            \t- `input` from LlmEmbedding events
-
-            \tThis is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
-          DESCRIPTION
+          :description => 'If `false`, LLM instrumentation (OpenAI only for now) will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.'
         },
         # this is only set via server side config
         :apdex_t => {
@@ -375,7 +362,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'Enable or disable the capture of memcache keys from transaction traces.'
+          :description => 'If `true`, the agent captures memcache keys in transaction traces.'
         },
         :capture_params => {
           :default => false,
@@ -384,7 +371,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
             When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
-
             <Callout variant="caution">
             \tWhen using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
             </Callout>
@@ -403,7 +389,7 @@ module NewRelic
           :type => String,
           :allow_nil => true,
           :allowed_from_server => false,
-          :description => 'The AWS account ID for the AWS account associated with this app'
+          :description => 'The AWS account ID associated with this application.'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -423,7 +409,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'Allows newrelic distributed tracing headers to be suppressed on outbound requests.'
+          :description => 'If `true`, suppresses the `newrelic` distributed tracing header on outbound requests.'
         },
         :force_install_exit_handler => {
           :default => false,
@@ -431,12 +417,12 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESC
-            The exit handler that sends all cached data to the collector before shutting down is forcibly installed. \
-            This is true even when it detects scenarios where it generally should not be. The known use case for this \
-            option is when Sinatra runs as an embedded service within another framework. The agent detects the Sinatra \
-            app and skips the `at_exit` handler as a result. Sinatra classically runs the entire application in an \
-            `at_exit` block and would otherwise misbehave if the agent's `at_exit` handler was also installed in those \
-            circumstances. Note: `send_data_on_exit` should also be set to `true` in tandem with this setting.
+            If `true`, forces the agent to install its exit handler (which sends all cached data to the collector \
+            before shutting down), even in cases where the agent would normally skip it, such as when it detects \
+            Sinatra running as an embedded service within another framework. Sinatra runs the entire application \
+            inside its own `at_exit` block, so the agent skips its own `at_exit` handler by default to avoid \
+            conflicts. This setting overrides that. Note: `send_data_on_exit` must also be `true` for this setting \
+            to have any effect.
           DESC
         },
         :high_security => {
@@ -466,7 +452,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a path to the agent log file, excluding the filename. If you want to send your agent logs to standard out, set this to STDOUT.'
+          :description => 'Defines a path to the agent log file, excluding the filename. If you want to send your agent logs to standard out, set this to `STDOUT`.'
         },
         :marshaller => {
           :default => 'json',
@@ -543,7 +529,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, tracer state storage is thread-local, otherwise, fiber-local'
+          :description => 'If `true`, tracer state storage is thread-local, otherwise, fiber-local.'
         },
         :timeout => {
           :default => 2 * 60, # 2 minutes
@@ -601,7 +587,6 @@ module NewRelic
             \t- When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
           DESC
         },
-
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
           :public => true,
@@ -672,7 +657,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be treated as expected.'
+          :description => 'A comma-separated list of HTTP status codes and/or status code ranges (for example, `404, 429, 500-599`). Errors associated with a matching status code, if the error has one, will be treated as expected.'
         },
         :'error_collector.ignore_classes' => {
           :default => ['ActionController::RoutingError', 'Sinatra::NotFound'],
@@ -711,14 +696,14 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be ignored.'
+          :description => 'A comma-separated list of HTTP status codes and/or status code ranges (for example, `404, 429, 500-599`). Errors associated with a matching status code, if the error has one, will be ignored.'
         },
         :'error_collector.max_backtrace_frames' => {
           :default => 50,
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See `error_collector.backtrace_truncate_location` to customize the truncation location.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See [\error_collector.backtrace_truncate_location`](#error_collector-backtrace_truncate_location) to customize the truncation location.'
         },
         :'error_collector.backtrace_truncate_location' => {
           :default => 'middle',
@@ -726,7 +711,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :allowlist => %w[top middle end],
-          :description => 'Specifies where in the backtrace to truncate when the number of frames exceeds `error_collector.max_backtrace_frames`. Options are `top` (remove frames from the beginning), `middle` (remove frames from the middle, preserving the beginning and end), or `end` (remove frames from the end).'
+          :description => 'Specifies where in the backtrace to truncate when the number of frames exceeds [\error_collector.max_backtrace_frames`](#error_collector-max_backtrace_frames). Options are `top` (remove frames from the beginning), `middle` (remove frames from the middle, preserving the beginning and end), or `end` (remove frames from the end).'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
@@ -790,21 +775,9 @@ module NewRelic
           :allowed_from_server => false,
           :allowlist => %w[debug info warn error fatal unknown DEBUG INFO WARN ERROR FATAL UNKNOWN],
           :description => <<~DESCRIPTION
-            Sets the minimum level a log event must have to be forwarded to New Relic.
+            Sets the minimum level a log event must have to be forwarded to New Relic. Logs at the configured level and any higher severity are forwarded, for example, `debug` forwards all log events, while `error` forwards only `error`, `fatal`, and `unknown` events. Valid values, lowest to highest severity: `debug`, `info`, `warn`, `error`, `fatal`, `unknown` (case-sensitive; uppercase forms are also accepted).
 
-            \tThis is based on the integer values of [Ruby's `Logger::Severity` constants](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
-
-            \tThe intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
-
-            \tFor example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
-
-            \tValid values (ordered lowest to highest):
-            \t- "debug"
-            \t- "info"
-            \t- "warn"
-            \t- "error"
-            \t- "fatal"
-            \t- "unknown"
+            \tThis ordering is based on the integer values of Ruby's `Logger::Severity` constants (see https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
           DESCRIPTION
         },
         :'application_logging.forwarding.custom_attributes' => {
@@ -1020,7 +993,7 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
-          :description => 'List of allowed endpoints to include in audit log.'
+          :description => 'List of allowed endpoints to include in the audit log.'
         },
         :'audit_log.path' => {
           :default => DefaultSource.audit_log_path,
@@ -1162,7 +1135,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `false`, the agent will not add `database_name` parameter to transaction or slow sql traces.'
+          :description => 'If `false`, the agent will not add `database_name` parameter to transaction or slow SQL traces.'
         },
         :'datastore_tracer.instance_reporting.enabled' => {
           :default => true,
@@ -1269,7 +1242,7 @@ module NewRelic
           :dynamic_name => true,
           :aliases => %i[disable_activerecord_notifications],
           :allowed_from_server => false,
-          :description => 'If `true`, disables instrumentation for Active Record 4+'
+          :description => 'If `true`, disables instrumentation for Active Record 4+.'
         },
         :disable_cpu_sampler => {
           :default => false,
@@ -1292,7 +1265,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables the use of `GC::Profiler` to measure time spent in garbage collection'
+          :description => 'If `true`, disables the use of `GC::Profiler` to measure time spent in garbage collection.'
         },
         :disable_memory_sampler => {
           :default => false,
@@ -1309,7 +1282,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
             If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
-
             <Callout variant="important">
             When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
             </Callout>
@@ -1385,7 +1357,7 @@ module NewRelic
             :'distributed_tracing.sampler.root',
             :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
           ),
-          :description => 'This setting controls the behavior of transaction sampling for transactions without a remote parent, traces that originate within this instance of the New Relic agent. Available values are `adaptive` (the default), `always_on`, `always_off`, and `trace_id_ratio_based`.'
+          :description => 'This setting controls the behavior of transaction sampling for transactions without a remote parent (traces that originate within this instance of the New Relic agent). Available values are `adaptive` (the default), `always_on`, `always_off`, and `trace_id_ratio_based`.'
         },
         :'distributed_tracing.sampler.remote_parent_sampled' => {
           :default => 'adaptive',
@@ -1508,18 +1480,12 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :description => <<~ACTIVE_SUPPORT_EVENTS.chomp.tr("\n", ' ')
-            An allowlist array of Active Support notifications events specific to the Active Support library
-            itself that the agent should subscribe to. The Active Support library specific events focus primarily
-            on caching. Any event name not included in this list will be ignored by the agent. Provide complete event
-            names such as 'cache_fetch_hit.active_support'. Do not provide asterisks or regex patterns, and do not
+          :description => <<~DESC
+            An allowlist of ActiveSupport notification event names (mostly caching events and message-serializer events) that the agent subscribes to. Any event name not included here is ignored. Provide complete event names only, such as `cache_fetch_hit.active_support`. Do not provide asterisks or regex patterns, and do not \
             escape any characters with backslashes.
 
-            For a complete list of all possible Active Support event names, see the
-            [list of caching names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-caching)
-            and the [list of messages names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-messages)
-            from the official Rails documentation.
-          ACTIVE_SUPPORT_EVENTS
+            \tFor the complete list of possible event names, see the Rails documentation's list of [caching names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-caching) and [messages names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-messages).
+          DESC
         },
         :'instrumentation.active_support_broadcast_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
@@ -1696,7 +1662,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of ethon at start up. May be one of `auto`, `prepend`, `chain`, `disabled`'
+          :description => 'Controls auto-instrumentation of ethon at start up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.excon' => {
           :default => 'enabled',
@@ -1732,7 +1698,9 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
-          :description => %Q(Specifies a list of hostname patterns separated by commas that will match gRPC hostnames that traffic is to be ignored by New Relic for. New Relic's gRPC client instrumentation will ignore traffic streamed to a host matching any of these patterns, and New Relic's gRPC server instrumentation will ignore traffic for a server running on a host whose hostname matches any of these patterns. By default, no traffic is ignored when gRPC instrumentation is itself enabled. For example, `"private.com$,exception.*"`)
+          :description => <<~DESC
+            A comma-separated list of regular expression patterns matching gRPC hostnames whose traffic New Relic should ignore. New Relic's gRPC client instrumentation skips tracing calls made to a host matching any of these patterns, and its gRPC server instrumentation skips tracing requests received by a server running on a matching host. Empty by default, meaning no traffic is ignored. For example, `"private.com$,exception.*"`.
+          DESC
         },
         :'instrumentation.grpc_server' => {
           :default => 'auto',
@@ -1768,7 +1736,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of httpx at start up. May be one of `auto`, `prepend`, `chain`, `disabled`'
+          :description => 'Controls auto-instrumentation of httpx at start up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
@@ -1811,11 +1779,11 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            An array of Rails.event names to capture as structured log events. For example,
+            An array of `Rails.event` names to capture as structured log events. For example,
             \t\t- user.signup
             \t\t- payment.processed
             \t\t- order.created
-            Leave empty to capture all Rails.event notifications. Events are logged with level UNKNOWN (ensuring they're never filtered) unless overridden via :level key in the event payload.
+            Leave empty to capture all `Rails.event` notifications. Events are logged with level `UNKNOWN` (ensuring they're never filtered) unless overridden via a `:level` key in the event payload.
           DESCRIPTION
         },
         :'instrumentation.memcache' => {
@@ -1980,8 +1948,8 @@ module NewRelic
           dynamic_name: true,
           allowed_from_server: false,
           :description => <<~DESCRIPTION
-            An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported
-            to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
+            An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported \
+            to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to \
             enable advanced matching. Setting the value to `["."]` will report all `user_data`.
           DESCRIPTION
         },
@@ -1992,11 +1960,11 @@ module NewRelic
           dynamic_name: true,
           allowed_from_server: false,
           :description => <<~DESCRIPTION
-            An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
-            \tnot be reported to New Relic. Each string in this array will be turned into a regular expression via
-            \t`Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the pair
-            \tisn't reported. By default, no `user_data` is reported. Use this option only if the
-            \t`stripe.user_data.include` option is also used.
+            An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should \
+            not be reported to New Relic. Each string in this array will be turned into a regular expression via \
+            `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the pair \
+            isn't reported. By default, no `user_data` is reported. Use this option only if the \
+            `stripe.user_data.include` option is also used.
           DESCRIPTION
         },
         :'instrumentation.thread' => {
@@ -2020,7 +1988,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If enabled, will append the current Thread and Fiber object ids onto the segment names of segments created in Threads and concurrent-ruby'
+          :description => 'If `true`, appends the current `Thread` and `Fiber` object ids onto the segment names of segments created in Threads and concurrent-ruby.'
         },
         :'instrumentation.tilt' => {
           :default => 'auto',
@@ -2084,7 +2052,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
+          :description => 'Specify a custom hostname for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
         # Puma
         :disable_puma_instrumentation => {
@@ -2112,9 +2080,8 @@ module NewRelic
           :type => Boolean,
           :external => true, # this config is used directly from the ENV variables
           :allowed_from_server => false,
-          :description => <<-DESCRIPTION
+          :description => <<~DESCRIPTION
             If `true`, when the agent is in an application using Ruby on Rails, it will start after `config/initializers` run.
-
             <Callout variant="caution">
             \tThis option may only be set by environment variable.
             </Callout>
@@ -2128,7 +2095,7 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
-          :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
+          :description => 'Specify an array of Rake tasks to automatically instrument. ' \
           'This configuration option converts the Array to a RegEx list. If you\'d like ' \
           'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
           'instrumented unless they\'re added to this list. For more information, ' \
@@ -2139,7 +2106,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Timeout for waiting on connect to complete before a rake task'
+          :description => 'Defines the number of seconds to wait for a connection to complete before running a Rake task.'
         },
         # Rules
         :'rules.ignore_url_regexes' => {
@@ -2149,7 +2116,7 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
-          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
+          :description => 'Define transactions you want the agent to ignore by specifying a list of patterns matching the URIs to exclude. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
         },
         # Serverless
         :'serverless_mode.enabled' => {
@@ -2170,14 +2137,14 @@ module NewRelic
           type: Array,
           dynamic_name: true,
           allowed_from_server: false,
-          description: <<~SIDEKIQ_ARGS_INCLUDE.chomp.tr("\n", ' ')
-            An array of strings that will collectively serve as an allowlist for filtering which Sidekiq
-            job arguments get reported to New Relic. To capture any Sidekiq arguments,
-            'job.sidekiq.args.*' must be added to the separate `:'attributes.include'` configuration option. Each
-            string in this array will be turned into a regular expression via `Regexp.new` to permit advanced
-            matching. For job argument hashes, if either a key or value matches the pair will be included. All
-            matching job argument array elements and job argument scalars will be included.
-          SIDEKIQ_ARGS_INCLUDE
+          description: <<~DESC
+            An array of strings that will collectively serve as an allowlist for filtering which Sidekiq job \
+            arguments get reported to New Relic. To capture any Sidekiq arguments, `job.sidekiq.args.*` must \
+            also be added to the separate `attributes.include` configuration option. Each string in this array \
+            will be turned into a regular expression via `Regexp.new` to permit advanced matching. For job \
+            argument hashes, if either a key or value matches, the pair will be included. All matching job \
+            argument array elements and job argument scalars will be included.
+          DESC
         },
         :'sidekiq.args.exclude' => {
           default: NewRelic::EMPTY_ARRAY,
@@ -2185,14 +2152,14 @@ module NewRelic
           type: Array,
           dynamic_name: true,
           allowed_from_server: false,
-          description: <<~SIDEKIQ_ARGS_EXCLUDE.chomp.tr("\n", ' ')
-            An array of strings that will collectively serve as a denylist for filtering which Sidekiq
-            job arguments get reported to New Relic. To capture any Sidekiq arguments,
-            'job.sidekiq.args.*' must be added to the separate `:'attributes.include'` configuration option. Each string
-            in this array will be turned into a regular expression via `Regexp.new` to permit advanced matching.
-            For job argument hashes, if either a key or value matches the pair will be excluded. All matching job
+          description: <<~DESC
+            An array of strings that will collectively serve as a denylist for filtering which Sidekiq job \
+            arguments get reported to New Relic. To capture any Sidekiq arguments, `job.sidekiq.args.*` must \
+            also be added to the separate `attributes.include` configuration option. Each string in this array \
+            will be turned into a regular expression via `Regexp.new` to permit advanced matching. For job \
+            argument hashes, if either a key or value matches, the pair will be excluded. All matching job \
             argument array elements and job argument scalars will be excluded.
-          SIDEKIQ_ARGS_EXCLUDE
+          DESC
         },
         :'sidekiq.ignore_retry_errors' => {
           :default => false,
@@ -2246,7 +2213,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'Generate a longer `sql_id` for slow SQL traces. `sql_id` is used for aggregation of similar queries.'
+          :description => 'If `true`, the agent generates a longer `sql_id` for slow SQL traces. `sql_id` is used for aggregation of similar queries.'
         },
         # Span events
         :'span_events.enabled' => {
@@ -2283,7 +2250,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If true, the agent strips messages from all exceptions except those in the [allowed classes list](#strip_exception_messages-allowed_classes). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
+          :description => 'If `true`, the agent strips messages from all exceptions except those in the [allowed classes list](#strip_exception_messages-allowed_classes). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
         },
         :'strip_exception_messages.allowed_classes' => {
           :default => NewRelic::EMPTY_ARRAY,
@@ -2300,7 +2267,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Boolean value that denotes whether Agent Control functionality should be enabled. At the moment, this functionality is limited to whether agent health should be reported. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
+          :description => 'If `true`, enables Agent Control functionality. At the moment, this functionality is limited to whether agent health should be reported. This configuration is set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
         },
         :'agent_control.health.delivery_location' => {
           :default => '/newrelic/apm/health',
@@ -2355,7 +2322,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description => 'If `true`, the agent automatically detects that it is running in an Google Cloud Platform environment.'
+          :description => 'If `true`, the agent automatically detects that it is running in a Google Cloud Platform environment.'
         },
         :'utilization.gcp_cloud_run.use_instance_as_host' => {
           :default => true,
@@ -2407,7 +2374,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
+          :description => 'If `true`, attempt to keep the TCP connection to the collector alive between harvests.'
         },
         :application_id => {
           :default => '',
@@ -2464,7 +2431,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Encoding to use if data needs to be compressed. The options are deflate and gzip.'
+          :description => 'Encoding to use if data needs to be compressed. The options are `deflate` and `gzip`.'
         },
         :config_search_paths => {
           :default => DefaultSource.config_search_paths,
@@ -2499,7 +2466,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Internal name for controlling Rails 3+ middleware instrumentation'
+          :description => 'Internal name for controlling Rails 3+ middleware instrumentation.'
         },
         :enabled => {
           :default => true,
@@ -2583,7 +2550,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'A global configuration option for disabling all OpenTelemetry signals sent through New Relic. If false, no OpenTelemetry signals will be sent to New Relic. If true, the signal-specific enabled config option (e.g. opentelemetry.traces.enabled) determines whether telemetry of that signal type will be reported to New Relic.'
+          :description => 'A global configuration option for disabling all OpenTelemetry signals sent through New Relic. If `false`, no OpenTelemetry signals will be sent to New Relic. If `true`, the signal-specific enabled config option (e.g. opentelemetry.traces.enabled) determines whether telemetry of that signal type will be reported to New Relic.'
         },
         :'opentelemetry.traces.enabled' => {
           :default => true,
@@ -2670,7 +2637,7 @@ module NewRelic
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
+          :description => 'Timeout in seconds for keep alive on TCP connection to the collector, if supported by the Ruby version. Only used when `aggressive_keepalive` is enabled.'
         },
         :max_payload_size_in_bytes => {
           :default => 1000000,
@@ -2727,7 +2694,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Replace the libc DNS resolver with the all Ruby resolver Resolv'
+          :description => 'If `true`, replaces the libc DNS resolver with Ruby\'s pure-Ruby `Resolv` resolver.'
         },
         :'rum.enabled' => {
           :default => true,
@@ -2776,14 +2743,14 @@ module NewRelic
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Maximum number of synthetics transaction traces to hold for a given harvest'
+          :description => 'Maximum number of synthetics transaction traces to hold for a given harvest.'
         },
         :'synthetics.events_limit' => {
           :default => 200,
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Maximum number of synthetics transaction events to hold for a given harvest'
+          :description => 'Maximum number of synthetics transaction events to hold for a given harvest.'
         },
         :test_mode => {
           :default => false,
@@ -2797,7 +2764,7 @@ module NewRelic
           :public => false,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Maximum overhead percentage for thread profiling before agent reduces polling frequency'
+          :description => 'Maximum overhead percentage for thread profiling before agent reduces polling frequency.'
         },
         :trusted_account_ids => {
           :default => [],
@@ -2820,7 +2787,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => false,
-          :description => 'The configured server name by a customer.'
+          :description => 'The server name configured by the customer.'
         },
         :'utilization.logical_processors' => {
           :default => nil,
@@ -2845,7 +2812,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
+          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)."
         },
         :'security.enabled' => {
           :default => false,
@@ -2853,7 +2820,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the security agent is started (the agent runs in its event loop)'
+          :description => 'If `true`, the security agent is started (the agent runs in its event loop).'
         },
         :'security.mode' => {
           :default => 'IAST',
@@ -2862,7 +2829,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :allowlist => %w[IAST RASP],
-          :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported',
+          :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported.',
           :dynamic_name => true
         },
         :'security.validator_service_url' => {
@@ -2871,7 +2838,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Defines the endpoint URL for posting security-related data',
+          :description => 'Defines the endpoint URL for posting security-related data.',
           :dynamic_name => true
         },
         :'security.application_info.port' => {
@@ -2921,7 +2888,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables the detection of low-severity insecure settings. For example, hash, crypto, cookie, random generators, trust boundary).'
+          :description => 'If `true`, disables the detection of low-severity insecure settings. For example, hash, crypto, cookie, random generators, and trust boundary.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access' => {
           :default => false,
@@ -2945,7 +2912,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables NOSQL injection detection in IAST scans.'
+          :description => 'If `true`, disables NoSQL injection detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.ldap_injection' => {
           :default => false,
@@ -2961,7 +2928,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables Javascript injection detection in IAST scans.'
+          :description => 'If `true`, disables JavaScript injection detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.command_injection' => {
           :default => false,
@@ -2977,7 +2944,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables XPATH injection detection in IAST scans.'
+          :description => 'If `true`, disables XPath injection detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.ssrf' => {
           :default => false,
@@ -2985,7 +2952,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables Sever-Side Request Forgery (SSRF) detection in IAST scans.'
+          :description => 'If `true`, disables Server-Side Request Forgery (SSRF) detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.rxss' => {
           :default => false,
@@ -3009,7 +2976,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Indicates the duration (in minutes) for which the IAST scan will be performed.'
+          :description => 'Specifies the duration (in minutes) for which the IAST scan is performed.'
         },
         :'security.scan_schedule.schedule' => {
           :default => '',
@@ -3034,7 +3001,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Sets the maximum number of HTTP requests allowed for the IAST scan per minute. Any Integer between 12 and 3600 is valid. The default value is 3600.'
+          :description => 'Sets the maximum number of HTTP requests allowed per minute for the IAST scan. Must be an integer between 12 and 3600.'
         },
         :'security.scan_controllers.scan_instance_count' => {
           :default => 0,
@@ -3059,7 +3026,7 @@ module NewRelic
           :type => String,
           :external => true,
           :allowed_from_server => true,
-          :description => 'A unique test identifier when runnning IAST in a CI/CD environment to differentiate between different test runs. For example, a build number.'
+          :description => 'A unique test identifier when running IAST in a CI/CD environment to differentiate between different test runs. For example, a build number.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
