@@ -396,13 +396,13 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order):
             \t- `config/newrelic.yml`
             \t- `newrelic.yml`
             \t- `$HOME/.newrelic/newrelic.yml`
             \t- `$HOME/newrelic.yml`
-          DESC
+          DESCRIPTION
         },
         :'exclude_newrelic_header' => {
           :default => false,
@@ -416,14 +416,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             If `true`, forces the agent to install its exit handler (which sends all cached data to the collector \
             before shutting down), even in cases where the agent would normally skip it, such as when it detects \
             Sinatra running as an embedded service within another framework. Sinatra runs the entire application \
             inside its own `at_exit` block, so the agent skips its own `at_exit` handler by default to avoid \
             conflicts. This setting overrides that. Note: `send_data_on_exit` must also be `true` for this setting \
             to have any effect.
-          DESC
+          DESCRIPTION
         },
         :high_security => {
           :default => false,
@@ -579,13 +579,13 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             Obfuscation level for SQL queries reported in transaction trace nodes.
             \tBy default, this is set to `obfuscated`, which strips out the numeric and string literals.
             \t- If you do not want the agent to capture query information, set this to `none`.
             \t- If you want the agent to capture all query information in its original form, set this to `raw`.
             \t- When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
-          DESC
+          DESCRIPTION
         },
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
@@ -703,7 +703,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See [\error_collector.backtrace_truncate_location`](#error_collector-backtrace_truncate_location) to customize the truncation location.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See [`error_collector.backtrace_truncate_location`](#error_collector-backtrace_truncate_location) to customize the truncation location.'
         },
         :'error_collector.backtrace_truncate_location' => {
           :default => 'middle',
@@ -711,7 +711,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :allowlist => %w[top middle end],
-          :description => 'Specifies where in the backtrace to truncate when the number of frames exceeds [\error_collector.max_backtrace_frames`](#error_collector-max_backtrace_frames). Options are `top` (remove frames from the beginning), `middle` (remove frames from the middle, preserving the beginning and end), or `end` (remove frames from the end).'
+          :description => 'Specifies where in the backtrace to truncate when the number of frames exceeds [`error_collector.max_backtrace_frames`](#error_collector-max_backtrace_frames). Options are `top` (remove frames from the beginning), `middle` (remove frames from the middle, preserving the beginning and end), or `end` (remove frames from the end).'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
@@ -1123,11 +1123,11 @@ module NewRelic
           :allowed_from_server => true,
           :dynamic_name => true,
           # Keep the extra two-space indent before the second bullet to appease translation tool
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             - Specify a maximum number of custom events to buffer in memory at a time.
               - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
             set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
-          DESC
+          DESCRIPTION
         },
         # Datastore tracer
         :'datastore_tracer.database_name_reporting.enabled' => {
@@ -1480,12 +1480,12 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             An allowlist of ActiveSupport notification event names (mostly caching events and message-serializer events) that the agent subscribes to. Any event name not included here is ignored. Provide complete event names only, such as `cache_fetch_hit.active_support`. Do not provide asterisks or regex patterns, and do not \
             escape any characters with backslashes.
 
             \tFor the complete list of possible event names, see the Rails documentation's list of [caching names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-caching) and [messages names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-messages).
-          DESC
+          DESCRIPTION
         },
         :'instrumentation.active_support_broadcast_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
@@ -1698,9 +1698,9 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             A comma-separated list of regular expression patterns matching gRPC hostnames whose traffic New Relic should ignore. New Relic's gRPC client instrumentation skips tracing calls made to a host matching any of these patterns, and its gRPC server instrumentation skips tracing requests received by a server running on a matching host. Empty by default, meaning no traffic is ignored. For example, `"private.com$,exception.*"`.
-          DESC
+          DESCRIPTION
         },
         :'instrumentation.grpc_server' => {
           :default => 'auto',
@@ -2137,14 +2137,14 @@ module NewRelic
           type: Array,
           dynamic_name: true,
           allowed_from_server: false,
-          description: <<~DESC
+          description: <<~DESCRIPTION
             An array of strings that will collectively serve as an allowlist for filtering which Sidekiq job \
             arguments get reported to New Relic. To capture any Sidekiq arguments, `job.sidekiq.args.*` must \
             also be added to the separate `attributes.include` configuration option. Each string in this array \
             will be turned into a regular expression via `Regexp.new` to permit advanced matching. For job \
             argument hashes, if either a key or value matches, the pair will be included. All matching job \
             argument array elements and job argument scalars will be included.
-          DESC
+          DESCRIPTION
         },
         :'sidekiq.args.exclude' => {
           default: NewRelic::EMPTY_ARRAY,
@@ -2152,14 +2152,14 @@ module NewRelic
           type: Array,
           dynamic_name: true,
           allowed_from_server: false,
-          description: <<~DESC
+          description: <<~DESCRIPTION
             An array of strings that will collectively serve as a denylist for filtering which Sidekiq job \
             arguments get reported to New Relic. To capture any Sidekiq arguments, `job.sidekiq.args.*` must \
             also be added to the separate `attributes.include` configuration option. Each string in this array \
             will be turned into a regular expression via `Regexp.new` to permit advanced matching. For job \
             argument hashes, if either a key or value matches, the pair will be excluded. All matching job \
             argument array elements and job argument scalars will be excluded.
-          DESC
+          DESCRIPTION
         },
         :'sidekiq.ignore_retry_errors' => {
           :default => false,
@@ -2237,11 +2237,11 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           # Keep the extra two-space indent before the second bullet to appease translation tool
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             - Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
               - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
             This ensures the agent captures the maximum amount of distributed traces.
-          DESC
+          DESCRIPTION
         },
         # Strip exception messages
         :'strip_exception_messages.enabled' => {
@@ -2611,11 +2611,11 @@ module NewRelic
           :allowed_from_server => false,
           :allowlist => %i[none low medium high],
           :external => :infinite_tracing,
-          :description => <<~DESC
+          :description => <<~DESCRIPTION
             Configure the compression level for data sent to the trace observer. \
             May be one of: `:none`, `:low`, `:medium`, `:high`. \
             Set the level to `:none` to disable compression.
-          DESC
+          DESCRIPTION
         },
         :js_agent_file => {
           :default => '',
