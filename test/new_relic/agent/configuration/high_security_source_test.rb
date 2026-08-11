@@ -101,12 +101,12 @@ module NewRelic::Agent::Configuration
 
     def test_forces_continuous_profiler_disabled
       local_settings = {
-        :'continuous_profiler.enabled' => true
+        :'profiling.enabled' => true
       }
 
       source = HighSecuritySource.new(local_settings)
 
-      refute source[:'continuous_profiler.enabled']
+      refute source[:'profiling.enabled']
     end
   end
 end

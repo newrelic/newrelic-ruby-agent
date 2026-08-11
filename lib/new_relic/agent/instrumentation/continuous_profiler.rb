@@ -11,13 +11,13 @@ DependencyDetection.defer do
   # Set +@name+ directly, as +puma+/+sequel+ do, rather than calling +named+: the
   # orphan-config test treats +named+ as a promise that +disable_<name>+/
   # +instrumentation.<name>+ config keys exist, and those carry chain/prepend semantics
-  # that don't apply here (continuous_profiler.enabled below is the real toggle).
+  # that don't apply here (profiling.enabled below is the real toggle).
   @name = :continuous_profiler
 
   depends_on do
     defined?(StackProf) &&
       defined?(Google::Protobuf) &&
-      NewRelic::Agent.config[:'continuous_profiler.enabled'] &&
+      NewRelic::Agent.config[:'profiling.enabled'] &&
       !NewRelic::LanguageSupport.jruby?
   end
 

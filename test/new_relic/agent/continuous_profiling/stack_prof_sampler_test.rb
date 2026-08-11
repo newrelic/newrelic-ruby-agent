@@ -17,7 +17,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_start_passes_mode_interval_and_raw_to_stackprof
-      with_config(:'continuous_profiler.mode' => 'cpu', :'continuous_profiler.sample_period' => 0.05) do
+      with_config(:'profiling.mode' => 'cpu', :'profiling.sample_period' => 0.05) do
         StackProf.expects(:start).with(mode: :cpu, interval: 50_000, raw: true)
 
         @sampler.start
@@ -27,7 +27,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_start_records_a_mode_supportability_metric
       StackProf.stubs(:start)
 
-      with_config(:'continuous_profiler.mode' => 'object') do
+      with_config(:'profiling.mode' => 'object') do
         @sampler.start
 
         assert_metrics_recorded('Supportability/Ruby/Profiling/Mode/object')

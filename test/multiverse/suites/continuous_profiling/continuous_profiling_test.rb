@@ -10,7 +10,7 @@ class ContinuousProfilingTest < Minitest::Test
   def test_stack_prof_sampler_round_trips_against_the_real_gem
     sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
 
-    with_config(:'continuous_profiler.mode' => 'cpu', :'continuous_profiler.sample_period' => 0.001) do
+    with_config(:'profiling.mode' => 'cpu', :'profiling.sample_period' => 0.001) do
       sampler.start
       busy_wait(0.1)
       report = sampler.stop_and_collect
@@ -21,9 +21,9 @@ class ContinuousProfilingTest < Minitest::Test
   end
 
   def test_session_runs_a_full_harvest_cycle_against_the_real_gem
-    with_config(:'continuous_profiler.mode' => 'cpu',
-      :'continuous_profiler.sample_period' => 0.001,
-      :'continuous_profiler.harvest_period' => 1) do
+    with_config(:'profiling.mode' => 'cpu',
+      :'profiling.sample_period' => 0.001,
+      :'profiling.harvest_period' => 1) do
       session = NewRelic::Agent::ContinuousProfiling::Session.new(nil)
 
       log = with_array_logger(:debug) do
@@ -53,8 +53,8 @@ class ContinuousProfilingTest < Minitest::Test
     service = NewRelic::Agent::NewRelicService.new('license-key', server)
     service.agent_id = 666
 
-    with_config(:'continuous_profiler.mode' => 'cpu',
-      :'continuous_profiler.sample_period' => 0.001) do
+    with_config(:'profiling.mode' => 'cpu',
+      :'profiling.sample_period' => 0.001) do
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.start
       busy_wait(0.1)

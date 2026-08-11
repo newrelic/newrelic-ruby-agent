@@ -1070,7 +1070,7 @@ module NewRelic
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
         # Continuous profiler
-        :'continuous_profiler.enabled' => {
+        :'profiling.enabled' => {
           :default => false,
           :public => true,
           :type => Boolean,
@@ -1079,7 +1079,7 @@ module NewRelic
             'gems to be present in the application. Not supported on JRuby. Automatically disabled when high ' \
             'security mode is enabled.'
         },
-        :'continuous_profiler.mode' => {
+        :'profiling.mode' => {
           :default => 'cpu',
           :public => true,
           :type => String,
@@ -1087,14 +1087,14 @@ module NewRelic
           :allowlist => %w[cpu object],
           :description => 'The `stackprof` sampling mode to use for continuous profiling: `cpu` or `object`.'
         },
-        :'continuous_profiler.sample_period' => {
+        :'profiling.sample_period' => {
           :default => 0.01,
           :public => true,
           :type => Float,
           :allowed_from_server => true,
           :description => 'The interval, in seconds, between stack samples taken by the continuous profiler.'
         },
-        :'continuous_profiler.harvest_period' => {
+        :'profiling.harvest_period' => {
           :default => 10,
           :public => true,
           :type => Integer,

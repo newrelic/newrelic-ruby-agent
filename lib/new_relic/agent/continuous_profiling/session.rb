@@ -156,7 +156,7 @@ module NewRelic
 
           trace_id = txn.trace_id_if_generated
           root = txn.initial_segment
-          min_duration = NewRelic::Agent.config[:'continuous_profiler.sample_period']
+          min_duration = NewRelic::Agent.config[:'profiling.sample_period']
 
           candidates = txn.segments.select do |segment|
             segment.finished? && (segment.equal?(root) || segment.duration >= min_duration)
@@ -204,7 +204,7 @@ module NewRelic
 
         def raise_unsupported_error
           msg = 'Continuous profiling is not available: requires the stackprof and google-protobuf gems, ' \
-            "is not supported on JRuby, and requires config 'continuous_profiler.enabled' = true."
+            "is not supported on JRuby, and requires config 'profiling.enabled' = true."
           raise_command_error(msg)
         end
 
@@ -226,11 +226,11 @@ module NewRelic
         # Gates every activation path on the same three conditions, so an SSC change
         # can't flip this on for a customer who never added stackprof/google-protobuf.
         def enabled?
-          NewRelic::Agent.config[:'continuous_profiler.enabled'] && !NewRelic::LanguageSupport.jruby? && gems_present?
+          NewRelic::Agent.config[:'profiling.enabled'] && !NewRelic::LanguageSupport.jruby? && gems_present?
         end
 
         def harvest_period
-          NewRelic::Agent.config[:'continuous_profiler.harvest_period']
+          NewRelic::Agent.config[:'profiling.harvest_period']
         end
 
         def run_loop

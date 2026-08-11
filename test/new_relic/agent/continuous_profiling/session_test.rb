@@ -16,14 +16,14 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_maybe_start_does_nothing_when_disabled
-      with_config(:'continuous_profiler.enabled' => false) do
+      with_config(:'profiling.enabled' => false) do
         @session.expects(:start).never
         @session.maybe_start
       end
     end
 
     def test_maybe_start_does_nothing_on_jruby
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, true do
           @session.expects(:start).never
           @session.maybe_start
@@ -34,7 +34,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_maybe_start_starts_when_enabled_and_supported
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           @session.expects(:start)
           @session.maybe_start
@@ -45,7 +45,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_maybe_start_does_nothing_when_gems_missing
       @session.stubs(:gems_present?).returns(false)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           @session.expects(:start).never
           @session.maybe_start
@@ -139,7 +139,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_server_source_configuration_added_starts_session_when_newly_enabled
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           @session.expects(:start)
           @events.notify(:server_source_configuration_added)
@@ -150,7 +150,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_server_source_configuration_added_does_not_start_when_gems_missing
       @session.stubs(:gems_present?).returns(false)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           @session.expects(:start).never
           @events.notify(:server_source_configuration_added)
@@ -161,7 +161,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_server_source_configuration_added_stops_session_when_newly_disabled
       @session.start
 
-      with_config(:'continuous_profiler.enabled' => false) do
+      with_config(:'profiling.enabled' => false) do
         @session.expects(:stop)
         @events.notify(:server_source_configuration_added)
       end
@@ -263,7 +263,7 @@ module NewRelic::Agent::ContinuousProfiling
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
-      with_config(:'continuous_profiler.sample_period' => 0.01) do
+      with_config(:'profiling.sample_period' => 0.01) do
         @events.notify(:transaction_finished)
       end
 
@@ -280,7 +280,7 @@ module NewRelic::Agent::ContinuousProfiling
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
-      with_config(:'continuous_profiler.sample_period' => 0.01) do
+      with_config(:'profiling.sample_period' => 0.01) do
         @events.notify(:transaction_finished)
       end
 
@@ -345,7 +345,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_handle_start_command_raises_when_gems_missing
       @session.stubs(:gems_present?).returns(false)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
           @session.handle_start_command(create_agent_command)
         end
@@ -357,7 +357,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_handle_start_command_raises_when_disabled_via_config
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'continuous_profiler.enabled' => false) do
+      with_config(:'profiling.enabled' => false) do
         assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
           @session.handle_start_command(create_agent_command)
         end
@@ -369,7 +369,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_handle_start_command_raises_when_already_running
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         @session.start
 
         assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
@@ -381,7 +381,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_handle_start_command_starts_when_enabled
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         @session.expects(:start)
         @session.handle_start_command(create_agent_command)
       end

@@ -24,7 +24,7 @@ module NewRelic::Agent::Instrumentation
       define_fake_gems(stackprof: false, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           load(CONTINUOUS_PROFILER_FILE)
           DependencyDetection.detect!
@@ -38,7 +38,7 @@ module NewRelic::Agent::Instrumentation
       define_fake_gems(stackprof: true, protobuf: false)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           load(CONTINUOUS_PROFILER_FILE)
           DependencyDetection.detect!
@@ -52,7 +52,7 @@ module NewRelic::Agent::Instrumentation
       define_fake_gems(stackprof: true, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
-      with_config(:'continuous_profiler.enabled' => false) do
+      with_config(:'profiling.enabled' => false) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           load(CONTINUOUS_PROFILER_FILE)
           DependencyDetection.detect!
@@ -66,7 +66,7 @@ module NewRelic::Agent::Instrumentation
       define_fake_gems(stackprof: true, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, true do
           load(CONTINUOUS_PROFILER_FILE)
           DependencyDetection.detect!
@@ -80,7 +80,7 @@ module NewRelic::Agent::Instrumentation
       define_fake_gems(stackprof: true, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start)
 
-      with_config(:'continuous_profiler.enabled' => true) do
+      with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
           load(CONTINUOUS_PROFILER_FILE)
           DependencyDetection.detect!

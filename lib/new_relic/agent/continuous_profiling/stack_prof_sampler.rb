@@ -13,7 +13,7 @@ module NewRelic
         MODE_METRIC_PREFIX = 'Supportability/Ruby/Profiling/Mode'
 
         def start
-          mode = NewRelic::Agent.config[:'continuous_profiler.mode']
+          mode = NewRelic::Agent.config[:'profiling.mode']
           NewRelic::Agent.increment_metric("#{MODE_METRIC_PREFIX}/#{mode}")
           # StackProf's raw_sample_timestamps use CLOCK_MONOTONIC, unrelated to wall-clock time.
           # Capturing both clocks at the same instant lets ProfileEncoder convert a tick's
@@ -35,7 +35,7 @@ module NewRelic
         private
 
         def sample_interval_in_microseconds
-          (NewRelic::Agent.config[:'continuous_profiler.sample_period'] * MICROSECONDS_PER_SECOND).to_i
+          (NewRelic::Agent.config[:'profiling.sample_period'] * MICROSECONDS_PER_SECOND).to_i
         end
       end
     end
