@@ -1270,6 +1270,21 @@ module NewRelic::Agent
       end
     end
 
+    def test_web_transaction_entry_segment_gets_server_span_kind
+      Transaction::WEB_TRANSACTION_CATEGORIES.each do |web_category|
+        in_transaction('test', :category => web_category) do |txn|
+          assert_equal NewRelic::Agent::SpanEventPrimitive::SERVER, txn.initial_segment.span_kind,
+            "expected category #{web_category} to produce a server-kind entry segment"
+        end
+      end
+    end
+
+    def test_background_transaction_entry_segment_does_not_get_server_span_kind
+      in_transaction('test', :category => :other) do |txn|
+        assert_nil txn.initial_segment.span_kind
+      end
+    end
+
     def test_set_overriding_transaction_name_sets_name_from_api
       in_transaction('test') do |txn|
         txn.class.set_overriding_transaction_name('name_from_api', 'category')

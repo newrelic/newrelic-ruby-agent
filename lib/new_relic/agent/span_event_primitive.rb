@@ -56,6 +56,7 @@ module NewRelic
       CLIENT = 'client'
       PRODUCER = 'producer'
       CONSUMER = 'consumer'
+      SERVER = 'server'
 
       DB_STATEMENT_MAX_BYTES = 4096
 

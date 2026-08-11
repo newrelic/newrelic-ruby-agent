@@ -13,6 +13,7 @@ require 'new_relic/agent/transaction/distributed_tracer'
 require 'new_relic/agent/transaction_time_aggregator'
 require 'new_relic/agent/deprecator'
 require 'new_relic/agent/guid_generator'
+require 'new_relic/agent/span_event_primitive'
 
 module NewRelic
   module Agent
@@ -464,6 +465,7 @@ module NewRelic
         ignore! if user_defined_rules_ignore?
 
         create_initial_segment(options)
+        initial_segment.span_kind = SpanEventPrimitive::SERVER if recording_web_transaction?
         Segment.merge_untrusted_agent_attributes( \
           @filtered_params,
           :'request.parameters',

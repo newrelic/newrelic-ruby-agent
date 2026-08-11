@@ -14,7 +14,8 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
 
     attr_reader :category
 
-    def initialize(&blk)
+    def initialize(category = :rack, &blk)
+      @category = category
       @action = blk
     end
 
@@ -23,7 +24,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
     end
 
     def transaction_options
-      {}
+      {:transaction_name => 'test'}
     end
 
     def traced_call(env)
@@ -45,5 +46,17 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
 
     middleware = HostClass.new { [200, {}, ['hi!']] }
     middleware.call({})
+  end
+
+  def test_rack_entry_span_gets_server_span_kind
+    captured_kind = nil
+    middleware = HostClass.new(:rack) do
+      captured_kind = NewRelic::Agent::Tracer.current_segment.span_kind
+      [200, {}, ['hi!']]
+    end
+
+    middleware.call({})
+
+    assert_equal NewRelic::Agent::SpanEventPrimitive::SERVER, captured_kind
   end
 end
