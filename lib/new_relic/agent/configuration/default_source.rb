@@ -397,11 +397,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order):
-            \t- `config/newrelic.yml`
-            \t- `newrelic.yml`
-            \t- `$HOME/.newrelic/newrelic.yml`
-            \t- `$HOME/newrelic.yml`
+            Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order): config/newrelic.yml` -> `newrelic.yml` -> `$HOME/.newrelic/newrelic.yml` -> `$HOME/newrelic.yml`
           DESCRIPTION
         },
         :'exclude_newrelic_header' => {
@@ -580,8 +576,8 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :description => <<~DESCRIPTION
-            Obfuscation level for SQL queries reported in transaction trace nodes.
-            \tBy default, this is set to `obfuscated`, which strips out the numeric and string literals.
+            Obfuscation level for SQL queries reported in transaction trace nodes. By default, this is set to `obfuscated`, which strips out the numeric and string literals.
+
             \t- If you do not want the agent to capture query information, set this to `none`.
             \t- If you want the agent to capture all query information in its original form, set this to `raw`.
             \t- When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
@@ -1122,11 +1118,8 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :dynamic_name => true,
-          # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESCRIPTION
-            - Specify a maximum number of custom events to buffer in memory at a time.
-              - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
-            set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
+            Specify a maximum number of custom events to buffer in memory at a time. When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
           DESCRIPTION
         },
         # Datastore tracer
@@ -1699,7 +1692,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
           :description => <<~DESCRIPTION
-            A comma-separated list of regular expression patterns matching gRPC hostnames whose traffic New Relic should ignore. New Relic's gRPC client instrumentation skips tracing calls made to a host matching any of these patterns, and its gRPC server instrumentation skips tracing requests received by a server running on a matching host. Empty by default, meaning no traffic is ignored. For example, `"private.com$,exception.*"`.
+            A comma-separated list of regular expression patterns matching gRPC hostnames whose traffic New Relic should ignore. New Relic's gRPC client instrumentation skips tracing calls made to a host matching any of these patterns, and its gRPC server instrumentation skips tracing requests received by a server running on a matching host. For example, `"private.com$,exception.*" Empty by default, meaning no traffic is ignored.`.
           DESCRIPTION
         },
         :'instrumentation.grpc_server' => {
@@ -1779,11 +1772,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            An array of `Rails.event` names to capture as structured log events. For example,
-            \t\t- user.signup
-            \t\t- payment.processed
-            \t\t- order.created
-            Leave empty to capture all `Rails.event` notifications. Events are logged with level `UNKNOWN` (ensuring they're never filtered) unless overridden via a `:level` key in the event payload.
+            An array of `Rails.event` names to capture as structured log events. For example: [user.signup, payment.processed, order.created]. Leave empty to capture all `Rails.event` notifications. Events are logged with level `UNKNOWN` (ensuring they're never filtered) unless overridden via a `:level` key in the event payload.
           DESCRIPTION
         },
         :'instrumentation.memcache' => {
@@ -2096,10 +2085,10 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
           :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
-          'This configuration option converts the Array to a RegEx list. If you\'d like ' \
-          'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
-          'instrumented unless they\'re added to this list. For more information, ' \
-          'visit the [New Relic Rake Instrumentation docs](/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation).'
+          'This configuration option converts the Array to a RegEx list. No rake tasks will ' \
+          'be instrumented unless they\'re added to this list. If you\'d like to allow all ' \
+          'tasks by default, use `rake.tasks: [.+]`. For more information, visit the ' \
+          '[New Relic Rake Instrumentation docs](/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation).'
         },
         :'rake.connect_timeout' => {
           :default => 10,
@@ -2236,11 +2225,8 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESCRIPTION
-            - Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
-              - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
-            This ensures the agent captures the maximum amount of distributed traces.
+            Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid. When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`. This ensures the agent captures the maximum amount of distributed traces.
           DESCRIPTION
         },
         # Strip exception messages
