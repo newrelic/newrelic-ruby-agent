@@ -227,28 +227,76 @@ module NewRelic::Agent::ContinuousProfiling
       assert_metrics_recorded('Supportability/Ruby/Profiling/ActiveTraceIds/LimitExceeded')
     end
 
-    def test_transaction_finished_stops_recording_once_the_transaction_ranges_limit_is_reached
-      @session.instance_variable_set(:@running, true)
-      full_ranges = Array.new(Session::MAX_TRANSACTION_RANGES) { ['t', 's', 0.0, 1.0] }
-      @session.instance_variable_set(:@transaction_ranges, full_ranges)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => stub(:guid => 'span123'), :start_time => 10.0, :duration => 2.5)
-      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
-
-      @events.notify(:transaction_finished)
-
-      assert_equal Session::MAX_TRANSACTION_RANGES, @session.instance_variable_get(:@transaction_ranges).size
-      assert_metrics_recorded('Supportability/Ruby/Profiling/TransactionRanges/LimitExceeded')
+    def stub_segment(guid:, start_time:, duration:, finished: true)
+      stub(:guid => guid, :start_time => start_time, :end_time => start_time + duration, :duration => duration, :finished? => finished)
     end
 
-    def test_transaction_finished_records_a_range_while_running
+    def test_transaction_finished_stops_recording_once_the_segment_ranges_limit_is_reached
       @session.instance_variable_set(:@running, true)
-      segment = stub(:guid => 'span123')
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => segment, :start_time => 10.0, :duration => 2.5)
+      full_ranges = Array.new(Session::MAX_SEGMENT_RANGES) { ['t', 's', 0.0, 1.0] }
+      @session.instance_variable_set(:@segment_ranges, full_ranges)
+      root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
 
-      assert_equal [['trace123', 'span123', 10.0, 12.5]], @session.instance_variable_get(:@transaction_ranges)
+      assert_equal Session::MAX_SEGMENT_RANGES, @session.instance_variable_get(:@segment_ranges).size
+      assert_metrics_recorded('Supportability/Ruby/Profiling/SegmentRanges/LimitExceeded')
+    end
+
+    def test_transaction_finished_records_a_range_for_the_root_segment_while_running
+      @session.instance_variable_set(:@running, true)
+      root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      @events.notify(:transaction_finished)
+
+      assert_equal [['trace123', 'span123', 10.0, 12.5]], @session.instance_variable_get(:@segment_ranges)
+    end
+
+    def test_transaction_finished_records_ranges_for_qualifying_child_segments_too
+      @session.instance_variable_set(:@running, true)
+      root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
+      child = stub_segment(guid: 'child_span', start_time: 10.5, duration: 0.5)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, child])
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      with_config(:'continuous_profiler.sample_period' => 0.01) do
+        @events.notify(:transaction_finished)
+      end
+
+      assert_equal(
+        [['trace123', 'root_span', 10.0, 12.5], ['trace123', 'child_span', 10.5, 11.0]],
+        @session.instance_variable_get(:@segment_ranges)
+      )
+    end
+
+    def test_transaction_finished_excludes_child_segments_shorter_than_one_sample_period
+      @session.instance_variable_set(:@running, true)
+      root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
+      tiny_child = stub_segment(guid: 'tiny_child_span', start_time: 10.5, duration: 0.001)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      with_config(:'continuous_profiler.sample_period' => 0.01) do
+        @events.notify(:transaction_finished)
+      end
+
+      assert_equal [['trace123', 'root_span', 10.0, 12.5]], @session.instance_variable_get(:@segment_ranges)
+    end
+
+    def test_transaction_finished_excludes_unfinished_segments
+      @session.instance_variable_set(:@running, true)
+      root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
+      unfinished_child = stub_segment(guid: 'unfinished_span', start_time: 10.5, duration: 1.0, finished: false)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      @events.notify(:transaction_finished)
+
+      assert_equal [['trace123', 'root_span', 10.0, 12.5]], @session.instance_variable_get(:@segment_ranges)
     end
 
     def test_transaction_finished_does_not_record_a_range_when_not_running
@@ -256,7 +304,7 @@ module NewRelic::Agent::ContinuousProfiling
 
       @events.notify(:transaction_finished)
 
-      assert_empty @session.instance_variable_get(:@transaction_ranges)
+      assert_empty @session.instance_variable_get(:@segment_ranges)
     end
 
     def test_transaction_finished_does_not_record_a_range_without_a_current_transaction
@@ -265,10 +313,10 @@ module NewRelic::Agent::ContinuousProfiling
 
       @events.notify(:transaction_finished)
 
-      assert_empty @session.instance_variable_get(:@transaction_ranges)
+      assert_empty @session.instance_variable_get(:@segment_ranges)
     end
 
-    def test_harvest_and_send_drains_active_trace_ids_and_transaction_ranges_into_the_report
+    def test_harvest_and_send_drains_active_trace_ids_and_segment_ranges_into_the_report
       report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
@@ -276,15 +324,15 @@ module NewRelic::Agent::ContinuousProfiling
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
       @session.instance_variable_set(:@active_trace_ids, Set.new(['abc123']))
-      @session.instance_variable_set(:@transaction_ranges, [['abc123', 'def456', 1.0, 2.0]])
+      @session.instance_variable_set(:@segment_ranges, [['abc123', 'def456', 1.0, 2.0]])
       @session.expects(:encode_and_export).with(
-        report.merge(active_trace_ids: ['abc123'], transaction_ranges: [['abc123', 'def456', 1.0, 2.0]])
+        report.merge(active_trace_ids: ['abc123'], segment_ranges: [['abc123', 'def456', 1.0, 2.0]])
       )
 
       @session.send(:harvest_and_send)
 
       assert_empty @session.instance_variable_get(:@active_trace_ids)
-      assert_empty @session.instance_variable_get(:@transaction_ranges)
+      assert_empty @session.instance_variable_get(:@segment_ranges)
     end
 
     def test_before_shutdown_stops_the_session

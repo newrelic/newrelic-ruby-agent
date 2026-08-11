@@ -92,8 +92,8 @@ class ProfileEncoderTest < Minitest::Test
     assert_empty decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples
   end
 
-  def test_without_transaction_ranges_or_active_trace_ids_only_the_placeholders_exist
-    # REPORT carries no :transaction_ranges/:active_trace_ids/:clock_offset keys, as when
+  def test_without_segment_ranges_or_active_trace_ids_only_the_placeholders_exist
+    # REPORT carries no :segment_ranges/:active_trace_ids/:clock_offset keys, as when
     # Session hasn't populated them yet or nothing was seen during the harvest.
     assert_equal 1, @dict.link_table.length
     assert_equal 1, @dict.attribute_table.length
@@ -101,11 +101,11 @@ class ProfileEncoderTest < Minitest::Test
     assert_empty @profile.attribute_indices
   end
 
-  def test_links_a_sample_to_the_single_matching_transaction_range
+  def test_links_a_sample_to_the_single_matching_segment_range
     report = REPORT.merge(
       raw_sample_timestamps: [1_000_000, 1_000_000, 2_000_000],
       clock_offset: 0.0,
-      transaction_ranges: [['a' * 32, 'b' * 16, 0.5, 1.5]]
+      segment_ranges: [['a' * 32, 'b' * 16, 0.5, 1.5]]
     )
 
     bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
@@ -120,11 +120,11 @@ class ProfileEncoderTest < Minitest::Test
     assert_equal 'b' * 16, link.span_id.unpack1('H*')
   end
 
-  def test_leaves_a_tick_unlinked_when_multiple_ranges_overlap_it
+  def test_leaves_a_tick_unlinked_when_ranges_from_different_transactions_overlap_it
     report = REPORT.merge(
       raw_sample_timestamps: [1_000_000, 1_000_000, 2_000_000],
       clock_offset: 0.0,
-      transaction_ranges: [
+      segment_ranges: [
         ['a' * 32, 'b' * 16, 0.5, 1.5],
         ['c' * 32, 'd' * 16, 0.8, 1.2]
       ]
@@ -138,9 +138,32 @@ class ProfileEncoderTest < Minitest::Test
     assert_equal 0, bar_sample.link_index
   end
 
+  def test_prefers_the_narrowest_matching_range_within_the_same_transaction
+    # Root spans the whole window; child only covers the bar-leaf ticks. Same trace_id, so
+    # the child should win where it applies; the baz-leaf tick falls back to the root.
+    report = REPORT.merge(
+      raw_sample_timestamps: [1_000_000, 1_000_000, 2_000_000],
+      clock_offset: 0.0,
+      segment_ranges: [
+        ['a' * 32, 'b' * 16, 0.0, 3.0],
+        ['a' * 32, 'e' * 16, 0.8, 1.2]
+      ]
+    )
+
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
+    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    dict = decoded.dictionary
+    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    bar_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#bar' }
+    baz_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#baz' }
+
+    assert_equal 'e' * 16, dict.link_table[bar_sample.link_index].span_id.unpack1('H*')
+    assert_equal 'b' * 16, dict.link_table[baz_sample.link_index].span_id.unpack1('H*')
+  end
+
   def test_splits_a_stackprof_collapsed_run_when_ticks_match_different_transactions
     # raw: [1, 1, 2] is a single collapsed group (weight 2) whose two ticks land in different
-    # transaction_ranges below.
+    # segment_ranges below.
     report = {
       mode: :cpu, interval: 1000,
       frames: {1 => {name: 'Object#main', file: '/app/main.rb', line: 1}},
@@ -148,7 +171,7 @@ class ProfileEncoderTest < Minitest::Test
       raw_lines: [1, 1, 2],
       raw_sample_timestamps: [1_000_000, 5_000_000],
       clock_offset: 0.0,
-      transaction_ranges: [
+      segment_ranges: [
         ['a' * 32, 'b' * 16, 0.5, 2.0],
         ['c' * 32, 'd' * 16, 4.5, 6.0]
       ]

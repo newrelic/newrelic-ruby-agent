@@ -31,7 +31,7 @@ module NewRelic
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
         SAMPLING_DURATION_METRIC = 'Supportability/Ruby/Profiling/Sampling/Duration'
         ACTIVE_TRACE_IDS_LIMIT_METRIC = 'Supportability/Ruby/Profiling/ActiveTraceIds/LimitExceeded'
-        TRANSACTION_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/TransactionRanges/LimitExceeded'
+        SEGMENT_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/SegmentRanges/LimitExceeded'
         SKIPPED_NOT_CONNECTED_METRIC = 'Supportability/Ruby/Profiling/Export/SkippedNotConnected'
 
         # These accumulate across *all* transactions between harvest ticks, so unbounded
@@ -39,7 +39,7 @@ module NewRelic
         # Capped like other per-harvest buffers (EventBuffer/PrioritySampledBuffer) -- this is
         # best-effort correlation data, so a hard cap is enough; no need for reservoir sampling.
         MAX_ACTIVE_TRACE_IDS = 10_000
-        MAX_TRANSACTION_RANGES = 10_000
+        MAX_SEGMENT_RANGES = 10_000
 
         def initialize(events)
           @lock = Mutex.new
@@ -53,11 +53,12 @@ module NewRelic
           @active_trace_ids = Set.new
           @active_trace_ids_lock = Mutex.new
 
-          # Per-sample correlation signal for both modes: wall-clock range of each transaction
-          # that finished during the harvest window, matched against sample timestamps in
-          # ProfileEncoder (see drain_transaction_ranges).
-          @transaction_ranges = []
-          @transaction_ranges_lock = Mutex.new
+          # Per-sample correlation signal for both modes: wall-clock range of every qualifying
+          # segment (not just the root) of each transaction that finished during the harvest
+          # window, matched against sample timestamps in ProfileEncoder (see
+          # drain_segment_ranges).
+          @segment_ranges = []
+          @segment_ranges_lock = Mutex.new
 
           events&.subscribe(:server_source_configuration_added) { evaluate_and_apply }
           events&.subscribe(:before_shutdown) { stop }
@@ -144,22 +145,36 @@ module NewRelic
           end
         end
 
-        # Uses initial_segment, not current_segment: by the time :transaction_finished fires,
-        # current_segment_by_thread has already been emptied out, so current_segment is always
-        # nil here -- that would leave span_id (and every Sample.link_index) always unset.
-        # segments is never cleared, so initial_segment stays valid after the transaction ends.
+        # current_segment is already nil by :transaction_finished time; segments (never
+        # cleared) is used instead. Segments under one sample_period are skipped (bounds
+        # memory, unlikely to ever match a tick); the root is always kept as a fallback.
         def on_transaction_finished
           return unless @running
 
           txn = Tracer.current_transaction
           return unless txn
 
-          @transaction_ranges_lock.synchronize do
-            if @transaction_ranges.size >= MAX_TRANSACTION_RANGES
-              NewRelic::Agent.increment_metric(TRANSACTION_RANGES_LIMIT_METRIC)
-            else
-              @transaction_ranges << [txn.trace_id_if_generated, txn.initial_segment&.guid, txn.start_time, txn.start_time + txn.duration]
+          trace_id = txn.trace_id_if_generated
+          root = txn.initial_segment
+          min_duration = NewRelic::Agent.config[:'continuous_profiler.sample_period']
+
+          candidates = txn.segments.select do |segment|
+            segment.finished? && (segment.equal?(root) || segment.duration >= min_duration)
+          end
+
+          @segment_ranges_lock.synchronize do
+            dropped = false
+
+            candidates.each do |segment|
+              if @segment_ranges.size >= MAX_SEGMENT_RANGES
+                dropped = true
+                break
+              end
+
+              @segment_ranges << [trace_id, segment.guid, segment.start_time, segment.end_time]
             end
+
+            NewRelic::Agent.increment_metric(SEGMENT_RANGES_LIMIT_METRIC) if dropped
           end
         end
 
@@ -171,10 +186,10 @@ module NewRelic
           end
         end
 
-        def drain_transaction_ranges
-          @transaction_ranges_lock.synchronize do
-            ranges = @transaction_ranges
-            @transaction_ranges = []
+        def drain_segment_ranges
+          @segment_ranges_lock.synchronize do
+            ranges = @segment_ranges
+            @segment_ranges = []
             ranges
           end
         end
@@ -229,7 +244,7 @@ module NewRelic
           start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           report = @sampler.stop_and_collect
           report[:active_trace_ids] = drain_active_trace_ids
-          report[:transaction_ranges] = drain_transaction_ranges
+          report[:segment_ranges] = drain_segment_ranges
           NewRelic::Agent.record_metric(SAMPLING_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)
           NewRelic::Agent.logger.debug(
             "Continuous profiling collected #{report[:samples]} sample(s) in #{report[:mode]} mode"

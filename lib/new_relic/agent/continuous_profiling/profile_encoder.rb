@@ -21,7 +21,9 @@ module NewRelic
       # -- not a raw tick count. Timestamps are approximate (encode time, not the actual
       # sampling window) -- deferred, see CONTINUOUS_PROFILING_PLAN.md.
       #
-      # Trace/span correlation is per-transaction, not truly per-sample -- see correlation_for.
+      # Trace/span correlation matches each tick's wall-clock time against segment ranges,
+      # preferring the narrowest match -- see build_tick_links. Genuinely ambiguous overlaps
+      # are left unlinked, since StackProf gives no per-tick thread affinity to disambiguate.
       class ProfileEncoder
         OTEL_PROFILES = Opentelemetry::Proto::Profiles::V1development
         OTEL_COLLECTOR = Opentelemetry::Proto::Collector::Profiles::V1development
@@ -53,10 +55,22 @@ module NewRelic
         end
 
         def encode
-          OTEL_COLLECTOR::ExportProfilesServiceRequest.encode(request)
+          req = request
+          log_correlation_summary
+          OTEL_COLLECTOR::ExportProfilesServiceRequest.encode(req)
         end
 
         private
+
+        # link_table only fills in once `request` builds every Sample -- logged here after
+        # that, since Session never sees these tables.
+        def log_correlation_summary
+          distinct_spans = @link_table.length - 1
+          distinct_traces = @link_table[1..].map(&:trace_id).uniq.length
+          NewRelic::Agent.logger.debug(
+            "Continuous profiling correlated samples to #{distinct_spans} distinct span(s) across #{distinct_traces} distinct trace(s)"
+          )
+        end
 
         def request
           OTEL_COLLECTOR::ExportProfilesServiceRequest.new(
@@ -134,6 +148,7 @@ module NewRelic
         def expand_ticks
           frame_groups = parse_raw_groups(@report[:raw])
           line_groups = parse_raw_groups(@report[:raw_lines])
+          tick_links = build_tick_links
           tick = 0
           ticks = []
 
@@ -143,7 +158,7 @@ module NewRelic
             location_ids.reverse! # StackProf stores root-first; OTel Stacks want leaf-first
 
             weight.times do
-              ticks << [location_ids, *correlation_for(tick)]
+              ticks << [location_ids, *tick_links[tick]]
               tick += 1
             end
           end
@@ -168,29 +183,47 @@ module NewRelic
           groups
         end
 
-        # tick_index is the tick's position in raw_sample_timestamps order. Returns
-        # [trace_id, span_id] only when exactly one transaction range contains this tick's
-        # wall-clock time; [nil, nil] otherwise (no match, or ambiguous under concurrency).
-        def correlation_for(tick_index)
-          ranges = @report[:transaction_ranges]
-          return [nil, nil] if ranges.nil? || ranges.empty?
+        # Sweeps ticks (already in chronological order) against ranges sorted by start_time,
+        # instead of scanning every range per tick -- active-set size is bounded by real
+        # concurrency, not total range count.
+        def build_tick_links
+          timestamps = @report[:raw_sample_timestamps]
+          return [] if timestamps.nil? || timestamps.empty?
 
-          timestamp = tick_realtime(tick_index)
-          return [nil, nil] unless timestamp
+          ranges = @report[:segment_ranges]
+          return Array.new(timestamps.length) { [nil, nil] } if ranges.nil? || ranges.empty?
 
-          matches = ranges.select { |(_trace_id, _span_id, start_time, end_time)| timestamp >= start_time && timestamp < end_time }
-          return [nil, nil] unless matches.length == 1
+          clock_offset = @report[:clock_offset]
+          sorted = ranges.sort_by { |(_trace_id, _span_id, start_time, _end_time)| start_time }
+          active = []
+          idx = 0
 
-          trace_id, span_id, = matches.first
-          [trace_id, span_id]
+          timestamps.map do |monotonic_usec|
+            next [nil, nil] unless clock_offset
+
+            timestamp = clock_offset + (monotonic_usec / 1_000_000.0)
+
+            while idx < sorted.length && sorted[idx][2] <= timestamp
+              active << sorted[idx]
+              idx += 1
+            end
+            active.reject! { |(_trace_id, _span_id, _start_time, end_time)| end_time <= timestamp }
+
+            link_for(active)
+          end
         end
 
-        def tick_realtime(tick_index)
-          monotonic_usec = @report[:raw_sample_timestamps]&.[](tick_index)
-          clock_offset = @report[:clock_offset]
-          return nil unless monotonic_usec && clock_offset
+        # More than one trace_id among matches means concurrent transactions -- unknowable
+        # from timestamp alone, so left unlinked. One trace_id picks the narrowest match.
+        def link_for(matches)
+          return [nil, nil] if matches.empty?
 
-          clock_offset + (monotonic_usec / 1_000_000.0)
+          trace_ids = matches.map { |(trace_id, *)| trace_id }.uniq
+          return [nil, nil] if trace_ids.length > 1
+
+          narrowest = matches.min_by { |(_trace_id, _span_id, start_time, end_time)| end_time - start_time }
+          trace_id, span_id, = narrowest
+          [trace_id, span_id]
         end
 
         # StackProf's :raw/:raw_lines are flat [length, item_1, .., item_length, weight]
@@ -241,7 +274,7 @@ module NewRelic
           end
         end
 
-        # Index 0 is the required all-zero placeholder Link, returned when correlation_for
+        # Index 0 is the required all-zero placeholder Link, returned when build_tick_links
         # couldn't attribute a tick to exactly one transaction.
         def link_index(trace_id, span_id)
           return 0 unless trace_id && span_id
