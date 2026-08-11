@@ -1977,7 +1977,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, appends the current `Thread` and `Fiber` object ids onto the segment names of segments created in Threads and concurrent-ruby.'
+          :description => 'If `true`, appends the current `Thread` and `Fiber` object ids onto the segment names of segments created in threads and concurrent-ruby.'
         },
         :'instrumentation.tilt' => {
           :default => 'auto',
