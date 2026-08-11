@@ -318,7 +318,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent will use the ActiveRecord model\'s table name instead of the class name when naming Active Record metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
+          :description => 'If `true`, the agent will use the ActiveRecord model\'s table name instead of the class name when naming ActiveRecord metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
         },
         :'ai_monitoring.enabled' => {
           :default => false,
@@ -2095,7 +2095,7 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :transformed_type => Array,
-          :description => 'Specify an array of Rake tasks to automatically instrument. ' \
+          :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
           'This configuration option converts the Array to a RegEx list. If you\'d like ' \
           'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
           'instrumented unless they\'re added to this list. For more information, ' \
@@ -3001,7 +3001,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Sets the maximum number of HTTP requests allowed per minute for the IAST scan. Must be an integer between 12 and 3600.'
+          :description => 'Sets the maximum number of HTTP requests allowed per minute for the IAST scan. Must be an integer between 12 and 3600 (default).'
         },
         :'security.scan_controllers.scan_instance_count' => {
           :default => 0,
