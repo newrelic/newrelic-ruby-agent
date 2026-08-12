@@ -40,92 +40,50 @@ on:
 
 
 jobs:
-  run_perf_tests_1:
+  prep:
     runs-on: ubuntu-latest
+    outputs:
+      iterations_json: ${{ steps.build.outputs.iterations_json }}
+      tags_json: ${{ steps.build.outputs.tags_json }}
+    steps:
+      - name: Build matrix inputs
+        id: build
+        run: |
+          iterations_json=$(jq -nc --argjson n "${{ inputs.iterations }}" '[range($n)]')
+          echo "iterations_json=$iterations_json" >> "$GITHUB_OUTPUT"
+
+          tags_json=$(jq -nc \
+            --arg r1 "${{ inputs.run_1 }}" \
+            --arg r2 "${{ inputs.run_2 }}" \
+            --arg r3 "${{ inputs.run_3 }}" \
+            --arg r4 "${{ inputs.run_4 }}" \
+            --argjson disabled ${{ inputs.agent_test_agent_disabled }} \
+            '[$r1, $r2, $r3, $r4] | map(select(. != ""))
+             + (if $disabled then ["AGENT_DISABLED:NEW_RELIC_AGENT_ENABLED=false"] else [] end)')
+          echo "tags_json=$tags_json" >> "$GITHUB_OUTPUT"
+
+  run_perf_tests:
+    needs: prep
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        iteration: ${{ fromJSON(needs.prep.outputs.iterations_json) }}
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
 
-      - name: run 1st version
+      - name: run all tags for this iteration
         uses: ./.github/actions/run_perfverse
         with:
-          agent_tag: ${{ inputs.run_1 }}
+          agent_tags: ${{ needs.prep.outputs.tags_json }}
+          iteration_index: ${{ matrix.iteration }}
           run_time: ${{ inputs.run_time }}
           nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-          iterations: ${{ inputs.iterations }}
-          run_label: run_one
-
-  run_perf_tests_2:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.run_2 != '' }}
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-
-      - name: run 2nd version
-        uses: ./.github/actions/run_perfverse
-        with:
-          agent_tag: ${{ inputs.run_2 }}
-          run_time: ${{ inputs.run_time }}
-          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-          iterations: ${{ inputs.iterations }}
-          run_label: run_two
-
-  run_perf_tests_3:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.run_3 != '' }}
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-
-      - name: run 3rd version
-        uses: ./.github/actions/run_perfverse
-        with:
-          agent_tag: ${{ inputs.run_3 }}
-          run_time: ${{ inputs.run_time }}
-          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-          iterations: ${{ inputs.iterations }}
-          run_label: run_three
-
-  run_perf_tests_4:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.run_4 != '' }}
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-
-      - name: run 4th version
-        uses: ./.github/actions/run_perfverse
-        with:
-          agent_tag: ${{ inputs.run_4 }}
-          run_time: ${{ inputs.run_time }}
-          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-          iterations: ${{ inputs.iterations }}
-          run_label: run_four
-
-  run_perf_tests_disabled:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.agent_test_agent_disabled }}
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-
-      - name: run agent disabled version
-        uses: ./.github/actions/run_perfverse
-        with:
-          agent_tag: "AGENT_DISABLED:NEW_RELIC_AGENT_ENABLED=false"
-          run_time: ${{ inputs.run_time }}
-          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-          iterations: ${{ inputs.iterations }}
-          run_label: run_agent_disabled
 
   create_graphs:
-    needs: [run_perf_tests_disabled, run_perf_tests_4, run_perf_tests_3, run_perf_tests_2, run_perf_tests_1]
+    needs: [run_perf_tests]
     if: always()
     runs-on: ubuntu-latest
     steps:

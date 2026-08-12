@@ -18,6 +18,10 @@ def transform_agent_tags(agent_tag)
   end
 end
 
+def sanitize_tag(tag)
+  tag.gsub(/[^\w.-]/, '_')
+end
+
 def build_rails_app(git_tag)
   output_line("Building rails app with git tag #{git_tag}")
   run_command("cd ./test/perfverse/ && docker build --pull --build-arg AGENT_VERSION=#{git_tag} --progress=plain -t ruby_perf_app:local .")
@@ -47,8 +51,8 @@ def shutdown_rails_app(container_id)
   run_command("docker stop #{container_id}")
 end
 
-def run_traffic(agent_tag, iteration)
-  output_dir = "output/run_#{iteration}"
+def run_traffic(agent_tag)
+  output_dir = "output/#{sanitize_tag(agent_tag)}"
   output_line("Running locust traffic with #{ENV['RUN_TIME']} duration")
   # locustio/locust runs as a non-root uid inside the container, so the bind-mounted
   # output dir (created here as whatever uid the runner is) needs to be world-writable
@@ -58,13 +62,13 @@ def run_traffic(agent_tag, iteration)
   File.write("./test/perfverse/traffic/#{output_dir}/metadata.json", {agent_version: agent_tag}.to_json)
 end
 
-def run_rails_app(agent_tag, env_vars, iteration)
+def run_rails_app(agent_tag, env_vars)
   env_str = ''
   env_vars&.each do |env_var|
     env_str += "-e #{env_var} "
   end
 
-  app_name = "ruby_perf_app_#{ENV['TEST_TAG']}_#{agent_tag}_#{iteration}"
+  app_name = "ruby_perf_app_#{ENV['TEST_TAG']}_#{sanitize_tag(agent_tag)}"
   output_line("Running ruby app in background. Name: #{app_name}")
   # runs-on: ubuntu-latest is a 2 vCPU host -- --cpus 4 was asking for more cores than the
   # box has, so the app was already contending with Locust/docker_monitor/the OS for the
@@ -75,15 +79,15 @@ def run_rails_app(agent_tag, env_vars, iteration)
     run_command("cd ./test/perfverse/ && docker run --rm --name #{app_name} #{cpu_mem} #{env_str} -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=#{app_name} -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local")
   end
   sleep 2
-  thread = run_docker_report(agent_tag, app_name, iteration)
+  thread = run_docker_report(agent_tag, app_name)
   sleep 1
 
   [app_name, thread]
 end
 
-def run_docker_report(agent_tag, container_ids, iteration)
+def run_docker_report(agent_tag, container_ids)
   Thread.new do
-    output_dir = "#{ENV['DOCKER_MONITOR_OUTPUT_DIR']}/run_#{iteration}"
+    output_dir = "#{ENV['DOCKER_MONITOR_OUTPUT_DIR']}/#{sanitize_tag(agent_tag)}"
     env_str = ''
     env_str += "-e TEST_TAG=#{ENV['TEST_TAG']} "
     env_str += "-e AGENT_VERSION=#{agent_tag} "
@@ -105,18 +109,25 @@ end
 
 ###############################################################################
 
-iterations = ENV['ITERATIONS'].to_i
-agent_tag, env_vars = transform_agent_tags(ENV['AGENT_TAG'])
-output_line("Running perf test #{iterations} times for #{ENV['RUN_TIME']} with agent tag #{agent_tag} and env vars #{env_vars}")
+iteration_index = ENV['ITERATION_INDEX'].to_i
+# A plain rotate(iteration_index) only redistributes which tag lands in absolute position 1 --
+# it preserves the cyclic adjacency between tags (whichever tag is coded immediately after
+# another always stays immediately after it, every iteration). That's enough to average out a
+# "which VM/how far into the job" effect, but not a "runs right after tag X" carryover effect --
+# confirmed via an identical-code control (every tag pointing at the same commit still showed a
+# sustained ~10-20% response-time gap between tags under plain rotation). Shuffling per iteration
+# (seeded by iteration_index for reproducibility) breaks adjacency too, not just starting offset.
+tags = JSON.parse(ENV['AGENT_TAGS']).map { |t| transform_agent_tags(t) }.shuffle(random: Random.new(iteration_index))
+output_line("Running perf test for iteration #{iteration_index} with #{ENV['RUN_TIME']} run time, tags (shuffled): #{tags.map(&:first)}")
 
 pull_locust
 build_docker_monitor_report
 
-iterations.times do |i|
+tags.each do |agent_tag, env_vars|
   build_rails_app(agent_tag)
 
-  app_name, monitor_thread = run_rails_app(agent_tag, env_vars, i)
-  run_traffic(agent_tag, i)
+  app_name, monitor_thread = run_rails_app(agent_tag, env_vars)
+  run_traffic(agent_tag)
 
   shutdown_rails_app(app_name)
   monitor_thread.join

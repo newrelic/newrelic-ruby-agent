@@ -13,7 +13,7 @@ Matplotlib.use(:agg)
 CSV_SKIP_LAST = 15
 CSV_SKIP_FIRST = 6
 
-# shortens agent_version labels for graph readability -- "BRANCH_add_cont_profiling" is long
+# shortens agent_version labels for graph readability -- a long unreleased-branch name is long
 # enough to overlap adjacent x-axis tick labels on the box plots
 def display_agent_version(agent_version)
   return 'disabled' if agent_version == 'AGENT_DISABLED'
@@ -67,18 +67,18 @@ end
 # Reads in all the data in the dockermon csv files
 # Files are structured like:
 # - inputs/
-#   - docker_monitor_report-agent_disabled/
-#     - run_0/
+#   - docker_monitor_report-iteration_0/
+#     - agent_disabled/
 #       - metadata.json
 #       - output_file.csv
-#     - run_1/
+#     - agent_version_1/
 #       - metadata.json
 #       - output_file.csv
-#   - docker_monitor_report-agent_version_1/
-#     - run_0/
+#   - docker_monitor_report-iteration_1/
+#     - agent_disabled/
 #       - metadata.json
 #       - output_file.csv
-#     - run_1/
+#     - agent_version_1/
 #       - metadata.json
 #       - output_file.csv
 ################################################
@@ -87,18 +87,15 @@ def dockermon_data
   Dir.entries('inputs/').each do |entry|
     next unless entry.start_with?('docker_monitor_report-')
 
-    Dir.entries("inputs/#{entry}").each do |run_iter|
-      next unless run_iter.start_with?('run_')
+    Dir.entries("inputs/#{entry}").each do |tag_dir|
+      metadata_path = "inputs/#{entry}/#{tag_dir}/metadata.json"
+      next unless File.exist?(metadata_path)
 
-      metadata = {}
-      File.open("inputs/#{entry}/#{run_iter}/metadata.json", 'r') do |f|
-        metadata = JSON.parse(f.read)
-      end
-      output_file_name = metadata['output_file_name']
+      metadata = JSON.parse(File.read(metadata_path))
       output_file_name = metadata['output_file'].split('/').last
       agent_version = display_agent_version(metadata['agent_version'])
 
-      read_csv("inputs/#{entry}/#{run_iter}/#{output_file_name}", agent_version, data)
+      read_csv("inputs/#{entry}/#{tag_dir}/#{output_file_name}", agent_version, data)
     end
   end
   data
@@ -177,11 +174,11 @@ end
 # Reads in all the locust stats_history csv files
 # Files are structured like:
 # - inputs/
-#   - locust_report-run_one/
-#     - run_0/
+#   - locust_report-iteration_0/
+#     - agent_disabled/
 #       - metadata.json
 #       - locust_stats_history.csv
-#     - run_1/
+#     - agent_version_1/
 #       - metadata.json
 #       - locust_stats_history.csv
 ################################################
@@ -195,13 +192,14 @@ def locust_data
   Dir.entries('inputs/').each do |entry|
     next unless entry.start_with?('locust_report-')
 
-    Dir.entries("inputs/#{entry}").each do |run_iter|
-      next unless run_iter.start_with?('run_')
+    Dir.entries("inputs/#{entry}").each do |tag_dir|
+      metadata_path = "inputs/#{entry}/#{tag_dir}/metadata.json"
+      next unless File.exist?(metadata_path)
 
-      metadata = JSON.parse(File.read("inputs/#{entry}/#{run_iter}/metadata.json"))
+      metadata = JSON.parse(File.read(metadata_path))
       agent_version = display_agent_version(metadata['agent_version'])
 
-      read_locust_stats_history("inputs/#{entry}/#{run_iter}/locust_stats_history.csv", agent_version, data)
+      read_locust_stats_history("inputs/#{entry}/#{tag_dir}/locust_stats_history.csv", agent_version, data)
     end
   end
   data
@@ -241,18 +239,7 @@ create_network_output_graph(data, order)
 
 create_line_graph(locust, :elapsed_seconds, :requests_per_minute, :agent_version, 'requests_per_minute', order)
 create_line_graph(locust, :elapsed_seconds, :failures_per_minute, :agent_version, 'failures_per_minute', order)
-create_line_graph(locust, :elapsed_seconds, :response_time_avg, :agent_version, 'response_time_avg_ms', order)
-create_line_graph(locust, :elapsed_seconds, :response_time_max, :agent_version, 'response_time_max_ms', order)
 
-# separate charts per percentile rather than one combined chart -- :color is already used for
-# agent_version, and overlaying percentile as a second grouping made it unreadable
-[:response_time_50th, :response_time_95th, :response_time_99th].each do |key|
-  filtered = with_present(locust, key)
-  create_line_graph(filtered, :elapsed_seconds, key, :agent_version, "#{key}_ms", order)
-end
-
-# box-plot summary (pooling every sample across the run, same convention as the cpu/memory
-# box plots above) of p95 latency per version, for an at-a-glance "which version is slower"
-create_graph(with_present(locust, :response_time_95th), :response_time_95th, order)
+create_line_graph(with_present(locust, :response_time_50th), :elapsed_seconds, :response_time_50th, :agent_version, 'response_time_50th_ms', order)
 
 puts '***** COMPLETE *****'

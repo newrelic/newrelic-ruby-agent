@@ -41,10 +41,9 @@ Currently we only have a single rails 7 app. When running locally, you will need
     docker run --rm --name perfverse_local -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=perfverse_local -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local
 
 To performance-test an unreleased branch (before it has a git tag), prefix `AGENT_VERSION` with
-`BRANCH_`, e.g. `--build-arg AGENT_VERSION=BRANCH_add_cont_profiling`. This is a local/manual-run-only
-convenience. Note the underscore, not a colon: the GHA workflow's `run_N` inputs pack env var
+`BRANCH_`, e.g. `--build-arg AGENT_VERSION=BRANCH_my_feature_branch`. Note the underscore, not a colon: the GHA workflow's `run_N` inputs pack env var
 overrides into the same string (`git_tag:ENV_VAR_1=one;ENV_VAR_2=two`, split on the first colon), so
-a `branch:` prefix would collide with that split -- `BRANCH_add_cont_profiling` doesn't.
+a `branch:` prefix would collide with that split -- `BRANCH_my_feature_branch` doesn't.
 
 
 ### Dockermon
@@ -69,11 +68,11 @@ This is the traffic driver. It is configured to provide a consistent load on the
 
     docker pull locustio/locust
 
-    mkdir -p output/run_0
+    mkdir -p output/my_tag
 
-    docker run -p 8089:8089 --network="host" -v $PWD:/mnt/locust locustio/locust -t 1m -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5 --csv=/mnt/locust/output/run_0/locust --csv-full-history
+    docker run -p 8089:8089 --network="host" -v $PWD:/mnt/locust locustio/locust -t 1m -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5 --csv=/mnt/locust/output/my_tag/locust --csv-full-history
 
-The `--csv`/`--csv-full-history` flags make Locust write `output/run_0/locust_stats_history.csv`, a
+The `--csv`/`--csv-full-history` flags make Locust write `output/my_tag/locust_stats_history.csv`, a
 per-second history of throughput (`Requests/s`) and response-time percentiles for the run -- this is
 what gets graphed as requests-per-minute/response-time (below). `run_perf_tests.rb` also writes a
 `metadata.json` (`{"agent_version": ...}`) next to it, same role as dockermon's own metadata.json.
