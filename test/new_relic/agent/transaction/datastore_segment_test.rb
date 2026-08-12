@@ -578,6 +578,58 @@ module NewRelic
           end
         end
 
+        def test_notice_sql_not_recorded_when_segment_over_limit
+          with_config(:'transaction_tracer.limit_segments' => 1) do
+            in_transaction do
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
+                product: 'SQLite',
+                operation: 'select'
+              )
+              segment.notice_sql('select * from blogs')
+
+              assert_predicate segment, :record_on_finish?
+
+              advance_process_time(2.0)
+              Agent.instance.sql_sampler.expects(:notice_sql_statement).never
+              segment.finish
+
+              assert_nil segment.params[:sql]
+            end
+          end
+        end
+
+        # Regression test: gating must be per-segment (record_on_finish?), not
+        # transaction-wide, or a within-limit sibling would lose its SQL too.
+        def test_notice_sql_recorded_for_sibling_within_limit_despite_sibling_over_limit
+          with_config(:'transaction_tracer.limit_segments' => 2) do
+            in_transaction do
+              segment_within_limit = NewRelic::Agent::Tracer.start_datastore_segment(
+                product: 'SQLite',
+                operation: 'select'
+              )
+              segment_within_limit.notice_sql('select * from blogs')
+
+              segment_over_limit = NewRelic::Agent::Tracer.start_datastore_segment(
+                product: 'SQLite',
+                operation: 'select'
+              )
+              segment_over_limit.notice_sql('select * from posts')
+
+              refute_predicate segment_within_limit, :record_on_finish?
+              assert_predicate segment_over_limit, :record_on_finish?
+
+              advance_process_time(2.0)
+              Agent.instance.sql_sampler.expects(:notice_sql_statement).once
+
+              segment_within_limit.finish
+              segment_over_limit.finish
+
+              assert_equal('select * from blogs', segment_within_limit.params[:sql].sql)
+              assert_nil segment_over_limit.params[:sql]
+            end
+          end
+        end
+
         def test_notice_sql_not_recording
           state = NewRelic::Agent::Tracer.state
           state.record_sql = false

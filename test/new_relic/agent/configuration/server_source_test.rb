@@ -263,6 +263,66 @@ module NewRelic::Agent::Configuration
       assert @source[:'custom_insights_events.enabled']
     end
 
+    def test_should_disable_ai_monitoring_when_server_says_to
+      rsp = {'collect_ai' => false}
+      existing_config = {:'ai_monitoring.enabled' => true}
+      @source = ServerSource.new(rsp, existing_config)
+
+      refute @source[:'ai_monitoring.enabled']
+    end
+
+    def test_should_enable_ai_monitoring_when_server_says_to
+      rsp = {'collect_ai' => true}
+      existing_config = {:'ai_monitoring.enabled' => true}
+      @source = ServerSource.new(rsp, existing_config)
+
+      assert @source[:'ai_monitoring.enabled']
+    end
+
+    def test_collect_ai_false_disables_ai_monitoring_even_when_agent_config_enables_it
+      rsp = {
+        'collect_ai' => false,
+        'agent_config' => {'ai_monitoring.enabled' => true}
+      }
+      @source = ServerSource.new(rsp, {})
+
+      refute @source[:'ai_monitoring.enabled']
+    end
+
+    def test_collect_ai_true_disables_when_agent_config_ai_monitoring_is_false
+      rsp = {
+        'collect_ai' => true,
+        'agent_config' => {'ai_monitoring.enabled' => false}
+      }
+      @source = ServerSource.new(rsp, {})
+
+      refute @source[:'ai_monitoring.enabled']
+    end
+
+    def test_collect_ai_true_enables_via_agent_config_over_locally_disabled
+      rsp = {
+        'collect_ai' => true,
+        'agent_config' => {'ai_monitoring.enabled' => true}
+      }
+      @source = ServerSource.new(rsp, {:'ai_monitoring.enabled' => false})
+
+      assert @source[:'ai_monitoring.enabled']
+    end
+
+    def test_should_set_ai_monitoring_record_content_when_server_says_to
+      rsp = {'agent_config' => {'ai_monitoring.record_content.enabled' => false}}
+      @source = ServerSource.new(rsp, {})
+
+      refute @source[:'ai_monitoring.record_content.enabled']
+    end
+
+    def test_should_not_set_ai_monitoring_when_no_server_keys_present
+      rsp = {'agent_config' => {'transaction_tracer.enabled' => true}}
+      @source = ServerSource.new(rsp, {:'ai_monitoring.enabled' => true})
+
+      refute @source.has_key?(:'ai_monitoring.enabled')
+    end
+
     def test_should_strip_non_ssc_keys
       rsp = {
         'agent_config' => {

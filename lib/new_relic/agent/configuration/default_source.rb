@@ -329,14 +329,14 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         :'ai_monitoring.record_content.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => <<~DESCRIPTION
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
@@ -609,6 +609,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Specify a threshold in seconds. The agent includes stack traces in transaction trace nodes when the stack trace duration exceeds this threshold.'
         },
+        :'transaction_tracer.cap_segment_artifacts' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, once [`transaction_tracer.limit_segments`](#transaction_tracer-limit_segments) is reached, the agent will also stop recording exclusive time for any segments created afterward in that transaction. This can reduce memory usage for very long-running transactions with many segments, at the cost of less accurate timing data for segments in the transaction if the segment limit is reached.'
+        },
         :'transaction_tracer.transaction_threshold' => {
           :default => DefaultSource.transaction_tracer_transaction_threshold,
           :public => true,
@@ -711,7 +718,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See `error_collector.backtrace_truncate_location` to customize the truncation location.'
         },
         :'error_collector.backtrace_truncate_location' => {
           :default => 'middle',
