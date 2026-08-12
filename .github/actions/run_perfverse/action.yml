@@ -56,23 +56,3 @@ runs:
         path: test/perfverse/traffic/output/
         name: locust_report-iteration_${{ inputs.iteration_index }}
         retention-days: 1
-
-    - name: Upload locust report
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
-      with:
-        if-no-files-found: error
-        path: test/perfverse/traffic/output/
-        name: locust_report-${{ inputs.run_label }}
-        retention-days: 1
-
-
-
-
-
-
-
-
-
-
-
-
