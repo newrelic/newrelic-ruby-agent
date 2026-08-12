@@ -25,7 +25,7 @@ runs:
       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
     - name: Install Ruby ${{ inputs.ruby-version }}
-      uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
+      uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # tag v1.321.0
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
@@ -65,7 +65,7 @@ runs:
 
     - name: Save coverage results
       if: ${{ inputs.pr-ci }} == 'true'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # tag v7.0.1
       with:
         name: coverage-report-multiverse-${{ inputs.ruby-version }}-${{ inputs.group }}
         path: lib/coverage_*/.resultset.json

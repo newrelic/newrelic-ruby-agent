@@ -10,7 +10,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start(
       :"transaction_tracer.enabled" => true,
-      :encoding_key => 'gringletoes'
+      :encoding_key => 'gringletoes',
+      :disable_harvest_thread => true
     )
 
     @response ||= nil
