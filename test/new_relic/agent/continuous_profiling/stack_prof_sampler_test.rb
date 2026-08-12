@@ -76,6 +76,21 @@ module NewRelic::Agent::ContinuousProfiling
       assert_in_delta(1_699_999_900.0, results[:clock_offset])
     end
 
+    def test_stop_and_collect_includes_the_window_start_and_duration
+      StackProf.stubs(:start)
+      StackProf.stubs(:stop)
+      StackProf.stubs(:results).returns({})
+      realtime_values = [1_700_000_000.0, 1_700_000_010.0]
+
+      Process.stub(:clock_gettime, ->(clock) { clock == Process::CLOCK_REALTIME ? realtime_values.shift : 100.0 }) do
+        @sampler.start
+        results = @sampler.stop_and_collect
+
+        assert_in_delta(1_700_000_000.0, results[:window_start_realtime])
+        assert_equal 10_000_000_000, results[:window_duration_nanos]
+      end
+    end
+
     private
 
     def stub_stackprof_gem

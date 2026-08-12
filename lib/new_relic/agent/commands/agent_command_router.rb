@@ -15,7 +15,6 @@ module NewRelic
   module Agent
     module Commands
       class AgentCommandRouter
-        # Placeholder command names
         START_CONTINUOUS_PROFILING_COMMAND = 'start_continuous_profiling'
         STOP_CONTINUOUS_PROFILING_COMMAND = 'stop_continuous_profiling'
 

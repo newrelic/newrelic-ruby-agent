@@ -106,6 +106,20 @@ module NewRelic::Agent::ContinuousProfiling
       assert @session.instance_variable_get(:@sampler_active)
     end
 
+    def test_harvest_and_send_restarts_the_sampler_before_encoding_and_exporting
+      report = {:samples => 3, :mode => :cpu}
+      sequence = Mocha::Sequence.new('harvest')
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).returns(report).in_sequence(sequence)
+      sampler.expects(:start).in_sequence(sequence)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@sampler_active, true)
+      @session.expects(:encode_and_export).with(report).in_sequence(sequence)
+
+      @session.send(:harvest_and_send)
+    end
+
     def test_harvest_and_send_restarts_the_sampler_even_when_collection_raises
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).raises('boom')

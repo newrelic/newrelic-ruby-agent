@@ -8,24 +8,10 @@ require_relative 'proto/opentelemetry/proto/collector/profiles/v1development/pro
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Converts a StackProf.results report Hash into a serialized
-      # opentelemetry.proto.collector.profiles.v1development.ExportProfilesServiceRequest.
-      #
-      # StackProf's :raw/:raw_lines are flat, root-first-ordered stack encodings; OTel's
-      # Stack wants location_indices leaf-first, so each stack is reversed on the way in.
-      # The ProfilesDictionary tables are deduped per encode call only -- nothing persists
-      # across harvests.
-      #
-      # Sample values are mode-dependent: :cpu reports nanoseconds of CPU time (StackProf's
-      # per-stack tick count times the sample interval), matching the OTel profiles spec's
-      # ["cpu","nanoseconds"] convention; :object reports a raw allocation count under
-      # ["object","count"], since allocations have no time unit to convert to. Timestamps are
-      # approximate (encode time, not the actual sampling window) -- deferred, see
-      # CONTINUOUS_PROFILING_PLAN.md.
-      #
-      # Trace/span correlation matches each tick's wall-clock time against segment ranges,
-      # preferring the narrowest match -- see build_tick_links. Genuinely ambiguous overlaps
-      # are left unlinked, since StackProf gives no per-tick thread affinity to disambiguate.
+      # Converts a StackProf.results report Hash (as produced by StackProfSampler) into a
+      # serialized opentelemetry.proto.collector.profiles.v1development.ExportProfilesServiceRequest.
+      # ProfilesDictionary tables are deduped per encode call only -- nothing persists across
+      # harvests.
       class ProfileEncoder
         OTEL_PROFILES = Opentelemetry::Proto::Profiles::V1development
         OTEL_COLLECTOR = Opentelemetry::Proto::Collector::Profiles::V1development
@@ -114,11 +100,16 @@ module NewRelic
           OTEL_PROFILES::Profile.new(
             sample_type: type,
             samples: samples,
-            time_unix_nano: (Process.clock_gettime(Process::CLOCK_REALTIME) * 1_000_000_000).to_i,
+            time_unix_nano: window_start_nanos,
+            duration_nano: @report[:window_duration_nanos] || 0,
             period_type: type,
             period: period,
             profile_id: SecureRandom.random_bytes(16)
           )
+        end
+
+        def window_start_nanos
+          ((@report[:window_start_realtime] || 0) * 1_000_000_000).to_i
         end
 
         def object_mode?

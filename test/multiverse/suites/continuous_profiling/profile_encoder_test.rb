@@ -76,6 +76,22 @@ class ProfileEncoderTest < Minitest::Test
     assert_equal 1_000_000, @profile.period
   end
 
+  def test_defaults_time_unix_nano_and_duration_nano_to_zero_without_a_window
+    assert_equal 0, @profile.time_unix_nano
+    assert_equal 0, @profile.duration_nano
+  end
+
+  def test_time_unix_nano_and_duration_nano_reflect_the_sampling_window
+    report = REPORT.merge(window_start_realtime: 1_700_000_000.5, window_duration_nanos: 10_000_000_000)
+
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
+    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+
+    assert_equal 1_700_000_000_500_000_000, profile.time_unix_nano
+    assert_equal 10_000_000_000, profile.duration_nano
+  end
+
   OBJECT_REPORT = {
     mode: :object,
     interval: 1,

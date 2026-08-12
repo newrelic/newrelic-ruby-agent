@@ -33,7 +33,6 @@ module NewRelic
       # Tomcat default (as of v8.5.78)
       MIN_BYTE_SIZE_TO_COMPRESS = 2048
 
-      # Continuous profiling's OTLP/HTTP export -- see #profiles_data.
       PROFILES_PATH = '/v1/profiles'
       PROFILES_CONTENT_TYPE = 'application/x-protobuf'
       PROFILES_API_KEY_HEADER = 'api-key'
@@ -202,11 +201,9 @@ module NewRelic
         response
       end
 
-      # OTLP/HTTP to /v1/profiles, not the invoke_raw_method RPC other methods use. Reuses
-      # a connection dedicated to this endpoint (profiles_http_connection) rather than the
-      # shared http_connection -- a Net::HTTP connection isn't safe to share with the main
-      # harvest thread, since the continuous-profiling harvest runs on its own thread,
-      # independent of our normal harvest cycle.
+      # OTLP/HTTP to /v1/profiles, not the invoke_raw_method RPC other methods use. Uses its
+      # own connection (profiles_http_connection) since the continuous-profiling harvest
+      # runs on its own thread and a Net::HTTP connection isn't safe to share across threads.
       def profiles_data(bytes)
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         check_post_size(bytes, :profiles_data)

@@ -10,16 +10,16 @@ module NewRelic
       # without the real `stackprof` gem loaded.
       class StackProfSampler
         MICROSECONDS_PER_SECOND = 1_000_000
+        NANOSECONDS_PER_SECOND = 1_000_000_000
         MODE_METRIC_PREFIX = 'Supportability/Ruby/Profiling/Mode'
 
         def start
           mode = NewRelic::Agent.config[:'profiling.mode'].to_sym
           NewRelic::Agent.increment_metric("#{MODE_METRIC_PREFIX}/#{mode}")
-          # StackProf's raw_sample_timestamps use CLOCK_MONOTONIC, unrelated to wall-clock time.
-          # Capturing both clocks at the same instant lets ProfileEncoder convert a tick's
-          # monotonic timestamp back to wall-clock time to match against Transaction#start_time.
-          @monotonic_to_realtime_offset =
-            Process.clock_gettime(Process::CLOCK_REALTIME) - Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          # StackProf's raw_sample_timestamps use CLOCK_MONOTONIC; capturing both clocks here
+          # lets ProfileEncoder convert a tick's monotonic timestamp back to wall-clock time.
+          @window_start_realtime = Process.clock_gettime(Process::CLOCK_REALTIME)
+          @monotonic_to_realtime_offset = @window_start_realtime - Process.clock_gettime(Process::CLOCK_MONOTONIC)
           StackProf.start(
             mode: mode,
             interval: sample_interval(mode),
@@ -29,7 +29,12 @@ module NewRelic
 
         def stop_and_collect
           StackProf.stop
-          StackProf.results.merge(clock_offset: @monotonic_to_realtime_offset)
+          window_end_realtime = Process.clock_gettime(Process::CLOCK_REALTIME)
+          StackProf.results.merge(
+            clock_offset: @monotonic_to_realtime_offset,
+            window_start_realtime: @window_start_realtime,
+            window_duration_nanos: ((window_end_realtime - @window_start_realtime) * NANOSECONDS_PER_SECOND).to_i
+          )
         end
 
         private
