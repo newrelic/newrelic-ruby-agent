@@ -76,6 +76,43 @@ class ProfileEncoderTest < Minitest::Test
     assert_equal 1_000_000, @profile.period
   end
 
+  OBJECT_REPORT = {
+    mode: :object,
+    interval: 1,
+    frames: {
+      1 => {name: 'Object#main', file: '/app/main.rb', line: 1},
+      2 => {name: 'Object#foo', file: '/app/foo.rb', line: 5}
+    },
+    raw: [2, 1, 2, 3],
+    raw_lines: [2, 1, 5, 3]
+  }.freeze
+
+  def test_object_mode_sample_type_reflects_mode_and_a_count_unit
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(OBJECT_REPORT)
+    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    dict = decoded.dictionary
+    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+
+    assert_equal 'object', dict.string_table[profile.sample_type.type_strindex]
+    assert_equal 'count', dict.string_table[profile.sample_type.unit_strindex]
+  end
+
+  def test_object_mode_period_reflects_the_raw_allocation_interval
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(OBJECT_REPORT)
+    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+
+    assert_equal 1, profile.period
+  end
+
+  def test_object_mode_sample_values_carry_the_raw_allocation_count_uncoverted
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(OBJECT_REPORT)
+    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+
+    assert_equal [3], profile.samples[0].values.to_a
+  end
+
   def test_resource_carries_the_configured_app_name
     with_config(:app_name => %w[MyApp]) do
       bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(REPORT)
@@ -92,13 +129,11 @@ class ProfileEncoderTest < Minitest::Test
     assert_empty decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples
   end
 
-  def test_without_segment_ranges_or_active_trace_ids_only_the_placeholders_exist
-    # REPORT carries no :segment_ranges/:active_trace_ids/:clock_offset keys, as when
-    # Session hasn't populated them yet or nothing was seen during the harvest.
+  def test_without_segment_ranges_only_the_link_placeholder_exists
+    # REPORT carries no :segment_ranges/:clock_offset keys, as when Session hasn't
+    # populated them yet or nothing was seen during the harvest.
     assert_equal 1, @dict.link_table.length
-    assert_equal 1, @dict.attribute_table.length
     assert(@profile.samples.all? { |s| s.link_index.zero? })
-    assert_empty @profile.attribute_indices
   end
 
   def test_links_a_sample_to_the_single_matching_segment_range
@@ -187,19 +222,6 @@ class ProfileEncoderTest < Minitest::Test
     trace_ids = profile.samples.map { |s| dict.link_table[s.link_index].trace_id.unpack1('H*') }
 
     assert_equal ['a' * 32, 'c' * 32], trace_ids.sort
-  end
-
-  def test_active_trace_ids_become_a_profile_level_attribute
-    report = REPORT.merge(active_trace_ids: %w[trace1 trace2])
-
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
-    dict = decoded.dictionary
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
-    attribute = dict.attribute_table[profile.attribute_indices[0]]
-
-    assert_equal 'correlation.active_trace_ids', dict.string_table[attribute.key_strindex]
-    assert_equal %w[trace1 trace2], attribute.value.array_value.values.map(&:string_value)
   end
 
   def sample_leaf_name(sample, dict = @dict)

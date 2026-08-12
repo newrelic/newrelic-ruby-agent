@@ -16,10 +16,18 @@ module NewRelic::Agent
       @runaway_threshold = 100
     end
 
+    # Copy-on-write: replaces @events[event] rather than mutating it, so a #notify already
+    # iterating the old array on another thread isn't disrupted by a concurrent subscribe.
     def subscribe(event, &handler)
-      @events[event] ||= []
-      @events[event] << handler
+      @events[event] = (@events[event] || []) + [handler]
       check_for_runaway_subscriptions(event)
+      handler
+    end
+
+    def unsubscribe(event, handler)
+      return unless @events[event]
+
+      @events[event] -= [handler]
     end
 
     def check_for_runaway_subscriptions(event)

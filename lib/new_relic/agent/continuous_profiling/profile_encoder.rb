@@ -16,10 +16,12 @@ module NewRelic
       # The ProfilesDictionary tables are deduped per encode call only -- nothing persists
       # across harvests.
       #
-      # Sample values are nanoseconds of CPU/wall time (StackProf's per-stack tick count times
-      # the sample interval), matching the OTel profiles spec's ["cpu","nanoseconds"] convention
-      # -- not a raw tick count. Timestamps are approximate (encode time, not the actual
-      # sampling window) -- deferred, see CONTINUOUS_PROFILING_PLAN.md.
+      # Sample values are mode-dependent: :cpu reports nanoseconds of CPU time (StackProf's
+      # per-stack tick count times the sample interval), matching the OTel profiles spec's
+      # ["cpu","nanoseconds"] convention; :object reports a raw allocation count under
+      # ["object","count"], since allocations have no time unit to convert to. Timestamps are
+      # approximate (encode time, not the actual sampling window) -- deferred, see
+      # CONTINUOUS_PROFILING_PLAN.md.
       #
       # Trace/span correlation matches each tick's wall-clock time against segment ranges,
       # preferring the narrowest match -- see build_tick_links. Genuinely ambiguous overlaps
@@ -30,10 +32,12 @@ module NewRelic
         OTEL_COMMON = Opentelemetry::Proto::Common::V1
         OTEL_RESOURCE = Opentelemetry::Proto::Resource::V1
 
-        SAMPLE_VALUE_UNIT = 'nanoseconds'
+        # :cpu samples carry a duration (StackProf tick count * interval), reported in
+        # nanoseconds; :object samples carry a raw allocation count, which has no time unit.
+        TIME_SAMPLE_VALUE_UNIT = 'nanoseconds'
+        OBJECT_SAMPLE_VALUE_UNIT = 'count'
         NANOSECONDS_PER_MICROSECOND = 1_000
         INSTRUMENTATION_SCOPE_NAME = 'newrelic-ruby-agent'
-        ACTIVE_TRACE_IDS_ATTRIBUTE_KEY = 'correlation.active_trace_ids'
 
         def self.encode(report)
           new(report).encode
@@ -51,7 +55,6 @@ module NewRelic
           @stack_indices = {}
           @link_table = [OTEL_PROFILES::Link.new]
           @link_indices = {}
-          @attribute_table = [OTEL_PROFILES::KeyValueAndUnit.new]
         end
 
         def encode
@@ -113,17 +116,26 @@ module NewRelic
             samples: samples,
             time_unix_nano: (Process.clock_gettime(Process::CLOCK_REALTIME) * 1_000_000_000).to_i,
             period_type: type,
-            period: tick_duration_nanos,
-            profile_id: SecureRandom.random_bytes(16),
-            attribute_indices: profile_attribute_indices
+            period: period,
+            profile_id: SecureRandom.random_bytes(16)
           )
+        end
+
+        def object_mode?
+          @report[:mode] == :object
         end
 
         def sample_type
           OTEL_PROFILES::ValueType.new(
             type_strindex: intern(@report[:mode].to_s),
-            unit_strindex: intern(SAMPLE_VALUE_UNIT)
+            unit_strindex: intern(object_mode? ? OBJECT_SAMPLE_VALUE_UNIT : TIME_SAMPLE_VALUE_UNIT)
           )
+        end
+
+        # :object mode's StackProf interval is already an allocation count, with no time
+        # unit to convert; :cpu's is microseconds between ticks, converted to nanoseconds.
+        def period
+          object_mode? ? (@report[:interval] || 0) : tick_duration_nanos
         end
 
         def samples
@@ -131,12 +143,19 @@ module NewRelic
             OTEL_PROFILES::Sample.new(
               stack_index: stack_index(location_ids),
               link_index: link_index(trace_id, span_id),
-              values: [weight * tick_duration_nanos]
+              values: [sample_value(weight)]
             )
           end
         end
 
-        # Each StackProf tick represents one sample_period-length slice of time.
+        # :object mode's sample value is the raw allocation count (the StackProf tick
+        # weight, unconverted); :cpu's is duration -- ticks * the per-tick interval.
+        def sample_value(weight)
+          object_mode? ? weight : weight * tick_duration_nanos
+        end
+
+        # Each StackProf tick represents one sample_period-length slice of time. Only
+        # meaningful for time-based modes (:cpu) -- see sample_value/period for :object.
         def tick_duration_nanos
           (@report[:interval] || 0) * NANOSECONDS_PER_MICROSECOND
         end
@@ -290,25 +309,6 @@ module NewRelic
           [hex_string].pack('H*')
         end
 
-        def profile_attribute_indices
-          trace_ids = @report[:active_trace_ids]
-          return [] if trace_ids.nil? || trace_ids.empty?
-
-          [attribute_index(ACTIVE_TRACE_IDS_ATTRIBUTE_KEY, trace_ids)]
-        end
-
-        def attribute_index(key, string_values)
-          @attribute_table << OTEL_PROFILES::KeyValueAndUnit.new(
-            key_strindex: intern(key),
-            value: OTEL_COMMON::AnyValue.new(
-              array_value: OTEL_COMMON::ArrayValue.new(
-                values: string_values.map { |value| OTEL_COMMON::AnyValue.new(string_value: value) }
-              )
-            )
-          )
-          @attribute_table.length - 1
-        end
-
         def dictionary
           OTEL_PROFILES::ProfilesDictionary.new(
             mapping_table: [OTEL_PROFILES::Mapping.new],
@@ -316,7 +316,6 @@ module NewRelic
             function_table: @function_table,
             link_table: @link_table,
             string_table: @string_table,
-            attribute_table: @attribute_table,
             stack_table: @stack_table
           )
         end

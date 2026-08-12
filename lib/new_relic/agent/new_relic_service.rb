@@ -109,6 +109,7 @@ module NewRelic
 
       def force_restart
         close_shared_connection
+        close_profiles_connection
       end
 
       # The collector wants to receive metric data in a format that's different
@@ -201,20 +202,22 @@ module NewRelic
         response
       end
 
-      # OTLP/HTTP to /v1/profiles, not the invoke_raw_method RPC other methods use. Uses
-      # create_http_connection directly (not the shared http_connection) -- a Net::HTTP
-      # connection isn't safe to share with the main harvest thread because the profiler/profile harvest
-      # because it's running on its own, independent of our normal harvest cycle.
+      # OTLP/HTTP to /v1/profiles, not the invoke_raw_method RPC other methods use. Reuses
+      # a connection dedicated to this endpoint (profiles_http_connection) rather than the
+      # shared http_connection -- a Net::HTTP connection isn't safe to share with the main
+      # harvest thread, since the continuous-profiling harvest runs on its own thread,
+      # independent of our normal harvest cycle.
       def profiles_data(bytes)
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         check_post_size(bytes, :profiles_data)
         request = build_profiles_request(bytes)
-        response = create_http_connection.request(request)
+        response = profiles_http_connection.request(request)
         log_response(response)
         response
       rescue => e
         NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{e.class}: #{e.message}")
         NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)
+        close_profiles_connection # drop a possibly-broken connection; the next call reconnects
         nil
       ensure
         NewRelic::Agent.record_metric(PROFILES_EXPORT_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_ts)
@@ -227,6 +230,21 @@ module NewRelic
         request[PROFILES_API_KEY_HEADER] = license_key
         request.body = bytes
         request
+      end
+
+      # Only the continuous-profiling background thread ever calls profiles_data, so this
+      # has the same single-writer assumption establish_shared_connection relies on for the
+      # main harvest thread -- no additional locking needed.
+      def profiles_http_connection
+        @profiles_connection ||= create_and_start_http_connection
+      end
+
+      def close_profiles_connection
+        return unless @profiles_connection
+
+        NewRelic::Agent.logger.debug("Closing profiles TCP connection to #{@profiles_connection.address}:#{@profiles_connection.port}")
+        @profiles_connection.finish if @profiles_connection.started?
+        @profiles_connection = nil
       end
 
       def compress_request_if_needed(data, endpoint)

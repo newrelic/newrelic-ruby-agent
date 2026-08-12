@@ -98,9 +98,12 @@ module NewRelic::Agent::ContinuousProfiling
       sampler.expects(:start)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@sampler_active, true)
       @session.expects(:encode_and_export).with(report)
 
       @session.send(:harvest_and_send)
+
+      assert @session.instance_variable_get(:@sampler_active)
     end
 
     def test_harvest_and_send_restarts_the_sampler_even_when_collection_raises
@@ -109,6 +112,7 @@ module NewRelic::Agent::ContinuousProfiling
       sampler.expects(:start)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@sampler_active, true)
 
       @session.send(:harvest_and_send)
     end
@@ -120,9 +124,53 @@ module NewRelic::Agent::ContinuousProfiling
       sampler.expects(:start)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@sampler_active, true)
       @session.stubs(:encode_and_export).raises('boom')
 
       @session.send(:harvest_and_send)
+    end
+
+    def test_harvest_and_send_is_a_no_op_when_the_sampler_is_not_active
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).never
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@sampler_active, false)
+
+      @session.send(:harvest_and_send)
+    end
+
+    def test_wait_for_next_tick_or_stop_returns_false_immediately_when_already_stopped
+      @session.instance_variable_set(:@running, false)
+
+      refute @session.send(:wait_for_next_tick_or_stop)
+    end
+
+    def test_run_loop_performs_exactly_one_final_harvest_when_already_stopped
+      # Simulates stop() having already flipped @running to false before the loop's
+      # first check -- e.g. the loop was sleeping when stop() was called. Exactly one
+      # harvest of whatever was pending should still happen (see #harvest_and_send).
+      report = {:samples => 2, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).once.returns(report)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@sampler_active, true)
+      @session.instance_variable_set(:@running, false)
+      @session.expects(:encode_and_export).once
+
+      @session.send(:run_loop)
+    end
+
+    def test_run_loop_does_not_double_harvest_when_already_flushed
+      # Simulates stop() being called just after a harvest already ran and drained the
+      # sampler (@sampler_active already false) -- run_loop's final pass must not attempt
+      # a second collection.
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).never
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@sampler_active, false)
+      @session.instance_variable_set(:@running, false)
+
+      @session.send(:run_loop)
     end
 
     # The rest of encode_and_export needs google-protobuf, not loadable here -- this skip
@@ -196,35 +244,33 @@ module NewRelic::Agent::ContinuousProfiling
       refute_predicate @session, :running?
     end
 
-    def test_start_transaction_records_the_active_trace_id_while_running
-      @session.instance_variable_set(:@running, true)
+    def test_start_subscribes_the_transaction_hooks
+      refute @events.instance_variable_get(:@events).key?(:start_transaction)
 
-      in_transaction('txn') do |txn|
-        @events.notify(:start_transaction)
+      @session.start
 
-        assert_includes @session.instance_variable_get(:@active_trace_ids), txn.trace_id
-      end
+      refute_empty @events.instance_variable_get(:@events)[:start_transaction]
+      refute_empty @events.instance_variable_get(:@events)[:transaction_finished]
     end
 
-    def test_start_transaction_does_not_record_a_trace_id_when_not_running
-      in_transaction('txn') do
-        @events.notify(:start_transaction)
+    def test_stop_unsubscribes_the_transaction_hooks
+      @session.start
 
-        assert_empty @session.instance_variable_get(:@active_trace_ids)
-      end
+      @session.stop
+
+      assert_empty @events.instance_variable_get(:@events)[:start_transaction]
+      assert_empty @events.instance_variable_get(:@events)[:transaction_finished]
     end
 
-    def test_start_transaction_stops_recording_once_the_active_trace_ids_limit_is_reached
-      @session.instance_variable_set(:@running, true)
-      full_set = Set.new(1..Session::MAX_ACTIVE_TRACE_IDS)
-      @session.instance_variable_set(:@active_trace_ids, full_set)
+    def test_fork_restart_does_not_double_subscribe_the_transaction_hooks
+      @session.start
 
-      # Capacity check short-circuits before Tracer.current_trace_id is called, so no
-      # transaction needs to be in flight here.
+      real_pid = Process.pid
+      Process.stubs(:pid).returns(real_pid + 1)
+      NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(stub_everything('post-fork thread'))
       @events.notify(:start_transaction)
 
-      assert_equal Session::MAX_ACTIVE_TRACE_IDS, @session.instance_variable_get(:@active_trace_ids).size
-      assert_metrics_recorded('Supportability/Ruby/Profiling/ActiveTraceIds/LimitExceeded')
+      assert_equal 1, @events.instance_variable_get(:@events)[:start_transaction].size
     end
 
     def stub_segment(guid:, start_time:, duration:, finished: true)
@@ -232,7 +278,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_stops_recording_once_the_segment_ranges_limit_is_reached
-      @session.instance_variable_set(:@running, true)
+      @session.start
       full_ranges = Array.new(Session::MAX_SEGMENT_RANGES) { ['t', 's', 0.0, 1.0] }
       @session.instance_variable_set(:@segment_ranges, full_ranges)
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
@@ -246,7 +292,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_records_a_range_for_the_root_segment_while_running
-      @session.instance_variable_set(:@running, true)
+      @session.start
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
@@ -257,7 +303,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_records_ranges_for_qualifying_child_segments_too
-      @session.instance_variable_set(:@running, true)
+      @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       child = stub_segment(guid: 'child_span', start_time: 10.5, duration: 0.5)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, child])
@@ -274,7 +320,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_excludes_child_segments_shorter_than_one_sample_period
-      @session.instance_variable_set(:@running, true)
+      @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       tiny_child = stub_segment(guid: 'tiny_child_span', start_time: 10.5, duration: 0.001)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
@@ -288,7 +334,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_excludes_unfinished_segments
-      @session.instance_variable_set(:@running, true)
+      @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       unfinished_child = stub_segment(guid: 'unfinished_span', start_time: 10.5, duration: 1.0, finished: false)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
@@ -308,7 +354,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_does_not_record_a_range_without_a_current_transaction
-      @session.instance_variable_set(:@running, true)
+      @session.start
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(nil)
 
       @events.notify(:transaction_finished)
@@ -316,22 +362,21 @@ module NewRelic::Agent::ContinuousProfiling
       assert_empty @session.instance_variable_get(:@segment_ranges)
     end
 
-    def test_harvest_and_send_drains_active_trace_ids_and_segment_ranges_into_the_report
+    def test_harvest_and_send_drains_segment_ranges_into_the_report
       report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
       sampler.expects(:start)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
-      @session.instance_variable_set(:@active_trace_ids, Set.new(['abc123']))
+      @session.instance_variable_set(:@sampler_active, true)
       @session.instance_variable_set(:@segment_ranges, [['abc123', 'def456', 1.0, 2.0]])
       @session.expects(:encode_and_export).with(
-        report.merge(active_trace_ids: ['abc123'], segment_ranges: [['abc123', 'def456', 1.0, 2.0]])
+        report.merge(segment_ranges: [['abc123', 'def456', 1.0, 2.0]])
       )
 
       @session.send(:harvest_and_send)
 
-      assert_empty @session.instance_variable_get(:@active_trace_ids)
       assert_empty @session.instance_variable_get(:@segment_ranges)
     end
 
@@ -354,10 +399,20 @@ module NewRelic::Agent::ContinuousProfiling
       refute_predicate @session, :running?
     end
 
-    def test_handle_start_command_raises_when_disabled_via_config
+    def test_handle_start_command_works_even_when_disabled_via_config
       @session.stubs(:gems_present?).returns(true)
 
       with_config(:'profiling.enabled' => false) do
+        @session.handle_start_command(create_agent_command)
+      end
+
+      assert_predicate @session, :running?
+    end
+
+    def test_handle_start_command_raises_under_high_security_even_with_gems_present
+      @session.stubs(:gems_present?).returns(true)
+
+      with_config(:high_security => true) do
         assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
           @session.handle_start_command(create_agent_command)
         end

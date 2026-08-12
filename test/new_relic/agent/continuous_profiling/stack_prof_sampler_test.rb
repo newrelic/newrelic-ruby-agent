@@ -34,6 +34,23 @@ module NewRelic::Agent::ContinuousProfiling
       end
     end
 
+    def test_start_passes_the_allocation_interval_for_object_mode
+      with_config(:'profiling.mode' => 'object', :'profiling.object_allocation_interval' => 5) do
+        StackProf.expects(:start).with(mode: :object, interval: 5, raw: true)
+
+        @sampler.start
+      end
+    end
+
+    def test_start_does_not_use_the_object_allocation_interval_for_cpu_mode
+      with_config(:'profiling.mode' => 'cpu', :'profiling.sample_period' => 0.05,
+        :'profiling.object_allocation_interval' => 5) do
+        StackProf.expects(:start).with(mode: :cpu, interval: 50_000, raw: true)
+
+        @sampler.start
+      end
+    end
+
     def test_stop_and_collect_stops_and_returns_results
       StackProf.expects(:stop)
       StackProf.expects(:results).returns({:samples => 1})

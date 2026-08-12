@@ -494,6 +494,28 @@ class NewRelicServiceTest < Minitest::Test
     assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
   end
 
+  def test_profiles_data_reuses_the_connection_across_calls
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal [:start, :request, :request], @http_handle.calls
+  end
+
+  def test_profiles_data_reconnects_after_a_failed_request
+    ordering = sequence('profiles_requests')
+    @http_handle.expects(:request).raises(Errno::ECONNRESET).in_sequence(ordering)
+    @http_handle.expects(:request).returns(@http_handle.create_response_mock('', :code => 202)).in_sequence(ordering)
+
+    first_response = @service.profiles_data('raw-profile-bytes')
+    second_response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil first_response
+    refute_nil second_response
+    assert_equal 2, @http_handle.calls.count(:start)
+  end
+
   def test_get_agent_commands
     @service.agent_id = 666
     @http_handle.respond_to(:get_agent_commands, [1, 2, 3])

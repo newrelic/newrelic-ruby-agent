@@ -63,4 +63,29 @@ class EventListenerTest < Minitest::Test
 
     assert_was_not_called
   end
+
+  def test_subscribe_returns_the_handler
+    handler = @events.subscribe(:after_call, &@check_method)
+
+    assert_equal @check_method, handler
+  end
+
+  def test_unsubscribe_removes_only_the_given_handler
+    other_called = false
+    handler = @events.subscribe(:after_call, &@check_method)
+    @events.subscribe(:after_call) { other_called = true }
+
+    @events.unsubscribe(:after_call, handler)
+    @events.notify(:after_call)
+
+    assert_was_not_called
+    assert other_called
+  end
+
+  def test_unsubscribe_is_a_no_op_for_an_unknown_handler
+    @events.unsubscribe(:after_call, @check_method)
+    @events.notify(:after_call)
+
+    assert_was_not_called
+  end
 end

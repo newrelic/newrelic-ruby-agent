@@ -13,7 +13,7 @@ module NewRelic
         MODE_METRIC_PREFIX = 'Supportability/Ruby/Profiling/Mode'
 
         def start
-          mode = NewRelic::Agent.config[:'profiling.mode']
+          mode = NewRelic::Agent.config[:'profiling.mode'].to_sym
           NewRelic::Agent.increment_metric("#{MODE_METRIC_PREFIX}/#{mode}")
           # StackProf's raw_sample_timestamps use CLOCK_MONOTONIC, unrelated to wall-clock time.
           # Capturing both clocks at the same instant lets ProfileEncoder convert a tick's
@@ -21,8 +21,8 @@ module NewRelic
           @monotonic_to_realtime_offset =
             Process.clock_gettime(Process::CLOCK_REALTIME) - Process.clock_gettime(Process::CLOCK_MONOTONIC)
           StackProf.start(
-            mode: mode.to_sym,
-            interval: sample_interval_in_microseconds,
+            mode: mode,
+            interval: sample_interval(mode),
             raw: true
           )
         end
@@ -33,6 +33,15 @@ module NewRelic
         end
 
         private
+
+        # StackProf's `interval` option means different units depending on mode: microseconds
+        # of cpu/wall time for :cpu/:wall, but a count of object allocations for :object -- the
+        # two profiling.* config keys below map onto whichever unit the active mode expects.
+        def sample_interval(mode)
+          return NewRelic::Agent.config[:'profiling.object_allocation_interval'] if mode == :object
+
+          sample_interval_in_microseconds
+        end
 
         def sample_interval_in_microseconds
           (NewRelic::Agent.config[:'profiling.sample_period'] * MICROSECONDS_PER_SECOND).to_i

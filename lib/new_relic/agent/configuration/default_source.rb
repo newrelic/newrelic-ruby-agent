@@ -1092,7 +1092,16 @@ module NewRelic
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'The interval, in seconds, between stack samples taken by the continuous profiler.'
+          :description => 'The interval, in seconds, between stack samples taken by the continuous profiler. ' \
+            'Only used when `profiling.mode` is `cpu`.'
+        },
+        :'profiling.object_allocation_interval' => {
+          :default => 1,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The number of object allocations between stack samples taken by the continuous ' \
+            'profiler. Only used when `profiling.mode` is `object`.'
         },
         :'profiling.harvest_period' => {
           :default => 10,
