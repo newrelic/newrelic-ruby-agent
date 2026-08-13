@@ -1095,7 +1095,7 @@ module NewRelic
           :description => 'The `stackprof` sampling mode to use for continuous profiling: `cpu` or `object`.'
         },
         :'profiling.sample_period' => {
-          :default => 0.0001,
+          :default => 0.00001,
           :public => true,
           :type => Float,
           :allowed_from_server => true,
@@ -1103,7 +1103,7 @@ module NewRelic
             'Only used when `profiling.mode` is `cpu`.'
         },
         :'profiling.object_allocation_interval' => {
-          :default => 1000,
+          :default => 10000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
