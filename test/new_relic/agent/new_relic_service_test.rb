@@ -1042,6 +1042,16 @@ class NewRelicServiceTest < Minitest::Test
     refute_predicate @service, :has_shared_connection?
   end
 
+  def test_force_restart_closes_the_profiles_connection
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    @service.profiles_data('raw-profile-bytes')
+
+    @service.force_restart
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 2, @http_handle.calls.count(:start)
+  end
+
   def test_marshal_with_json_only
     with_config(:marshaller => 'pruby') do
       assert_equal 'json', @service.marshaller.format

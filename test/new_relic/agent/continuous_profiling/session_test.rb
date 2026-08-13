@@ -104,6 +104,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.send(:harvest_and_send)
 
       assert @session.instance_variable_get(:@sampler_active)
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Sampling/Duration')
     end
 
     def test_harvest_and_send_restarts_the_sampler_before_encoding_and_exporting
@@ -427,6 +428,18 @@ module NewRelic::Agent::ContinuousProfiling
       @session.stubs(:gems_present?).returns(true)
 
       with_config(:high_security => true) do
+        assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+          @session.handle_start_command(create_agent_command)
+        end
+      end
+
+      refute_predicate @session, :running?
+    end
+
+    def test_handle_start_command_raises_on_jruby_even_with_gems_present
+      @session.stubs(:gems_present?).returns(true)
+
+      NewRelic::LanguageSupport.stub :jruby?, true do
         assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
           @session.handle_start_command(create_agent_command)
         end

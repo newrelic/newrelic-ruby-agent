@@ -17,17 +17,17 @@ module NewRelic::Agent::Instrumentation
 
     def teardown
       DependencyDetection.instance_variable_set(:@items, @original_items)
-      remove_fake_gems
     end
 
     def test_does_not_execute_without_stackprof
-      define_fake_gems(stackprof: false, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
       with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
-          load(CONTINUOUS_PROFILER_FILE)
-          DependencyDetection.detect!
+          with_fake_gems(stackprof: false, protobuf: true) do
+            load(CONTINUOUS_PROFILER_FILE)
+            DependencyDetection.detect!
+          end
         end
       end
 
@@ -35,13 +35,14 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_does_not_execute_without_google_protobuf
-      define_fake_gems(stackprof: true, protobuf: false)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
       with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
-          load(CONTINUOUS_PROFILER_FILE)
-          DependencyDetection.detect!
+          with_fake_gems(stackprof: true, protobuf: false) do
+            load(CONTINUOUS_PROFILER_FILE)
+            DependencyDetection.detect!
+          end
         end
       end
 
@@ -49,13 +50,14 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_does_not_execute_when_disabled_via_config
-      define_fake_gems(stackprof: true, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
       with_config(:'profiling.enabled' => false) do
         NewRelic::LanguageSupport.stub :jruby?, false do
-          load(CONTINUOUS_PROFILER_FILE)
-          DependencyDetection.detect!
+          with_fake_gems(stackprof: true, protobuf: true) do
+            load(CONTINUOUS_PROFILER_FILE)
+            DependencyDetection.detect!
+          end
         end
       end
 
@@ -63,13 +65,14 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_does_not_execute_on_jruby
-      define_fake_gems(stackprof: true, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start).never
 
       with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, true do
-          load(CONTINUOUS_PROFILER_FILE)
-          DependencyDetection.detect!
+          with_fake_gems(stackprof: true, protobuf: true) do
+            load(CONTINUOUS_PROFILER_FILE)
+            DependencyDetection.detect!
+          end
         end
       end
 
@@ -77,13 +80,14 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_executes_when_all_conditions_are_satisfied
-      define_fake_gems(stackprof: true, protobuf: true)
       NewRelic::Agent.agent.continuous_profiling_session.expects(:maybe_start)
 
       with_config(:'profiling.enabled' => true) do
         NewRelic::LanguageSupport.stub :jruby?, false do
-          load(CONTINUOUS_PROFILER_FILE)
-          DependencyDetection.detect!
+          with_fake_gems(stackprof: true, protobuf: true) do
+            load(CONTINUOUS_PROFILER_FILE)
+            DependencyDetection.detect!
+          end
         end
       end
 
@@ -96,15 +100,11 @@ module NewRelic::Agent::Instrumentation
       DependencyDetection.instance_variable_get(:@items).last
     end
 
-    def define_fake_gems(stackprof:, protobuf:)
-      Object.const_set(:StackProf, Module.new) if stackprof
-      Object.const_set(:Google, Module.new) if protobuf
-      Google.const_set(:Protobuf, Module.new) if protobuf && defined?(Google)
-    end
-
-    def remove_fake_gems
-      Object.send(:remove_const, :StackProf) if defined?(StackProf)
-      Object.send(:remove_const, :Google) if defined?(Google)
+    def with_fake_gems(stackprof:, protobuf:, &block)
+      consts = {}
+      consts[:StackProf] = Module.new if stackprof
+      consts[:Google] = Module.new.tap { |mod| mod.const_set(:Protobuf, Module.new) } if protobuf
+      Object.stub_consts(consts, &block)
     end
   end
 end
