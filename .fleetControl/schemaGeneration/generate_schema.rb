@@ -49,20 +49,22 @@ module GenerateSchema
 
   # Enum values for settings that are effectively enums but carry no :allowlist
   # in DEFAULTS. Values are verified against the code that consumes each setting,
-  # NOT the prose descriptions (which omit log_level's `fatal` and mislabel
-  # `to_app`):
-  #   - log_level:  agent_logger.rb LOG_LEVELS
+  # NOT the prose description (which mislabels `to_app`):
   #   - record_sql: database.rb#record_sql_method
   #
-  # LONG-TERM FIX: these maps are a second source of truth that can drift from
+  # log_level is intentionally NOT here: its description already lists the
+  # valid values, and the description is missing `fatal` (see agent_logger.rb
+  # LOG_LEVELS) — enforcing an enum in the schema would reject a value the
+  # agent itself accepts.
+  #
+  # LONG-TERM FIX: this map is a second source of truth that can drift from
   # the code. The better fix is to add an :allowlist to each of these settings
   # in default_source.rb. The generator already turns :allowlist into an enum
   # automatically (see build_property), and the agent enforces :allowlist at
   # runtime (manager.rb#enforce_allowlist) — so doing that gives real runtime
-  # validation these settings currently lack AND lets these override maps be
+  # validation these settings currently lack AND lets this override map be
   # deleted entirely.
   BASE_ENUM_OVERRIDES = {
-    'log_level' => %w[debug info warn error fatal],
     'transaction_tracer.record_sql' => %w[off none raw obfuscated],
     'slow_sql.record_sql' => %w[off none raw obfuscated]
   }.freeze

@@ -164,8 +164,6 @@ class GenerateSchemaTest < Minitest::Test
   end
 
   def test_enum_override_for_core_settings
-    assert_equal %w[debug info warn error fatal],
-      GenerateSchema.enum_override_for('log_level', {:type => String})
     assert_equal %w[off none raw obfuscated],
       GenerateSchema.enum_override_for('transaction_tracer.record_sql', {:type => String})
     assert_equal %w[off none raw obfuscated],
@@ -205,12 +203,12 @@ class GenerateSchemaTest < Minitest::Test
 
   def test_generate_applies_enum_overrides
     defaults = {
-      :log_level => {:type => String, :default => 'info', :public => true, :description => 'x'},
+      :'transaction_tracer.record_sql' => {:type => String, :default => 'obfuscated', :public => true, :description => 'x'},
       :'instrumentation.net_http' => {:type => String, :default => 'auto', :public => true, :description => 'x'}
     }
     props = GenerateSchema.generate(defaults)['properties']
 
-    assert_equal %w[debug info warn error fatal], props['log_level']['enum']
+    assert_equal %w[off none raw obfuscated], props['transaction_tracer.record_sql']['enum']
     assert_equal GenerateSchema::INSTRUMENTATION_STANDARD_VALUES, props['instrumentation.net_http']['enum']
   end
 

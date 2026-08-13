@@ -1329,14 +1329,7 @@
     "log_level": {
       "type": "string",
       "description": "Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: error, warn, info or debug.",
-      "default": "info",
-      "enum": [
-        "debug",
-        "info",
-        "warn",
-        "error",
-        "fatal"
-      ]
+      "default": "info"
     },
     "marshaller": {
       "type": "string",
