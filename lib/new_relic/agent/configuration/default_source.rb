@@ -1103,7 +1103,7 @@ module NewRelic
             'Only used when `profiling.mode` is `cpu`.'
         },
         :'profiling.object_allocation_interval' => {
-          :default => 1000,
+          :default => 10000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
