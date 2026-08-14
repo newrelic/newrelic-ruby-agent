@@ -42,6 +42,7 @@ module NewRelic
           }
 
           perform_action_with_newrelic_trace(options) do
+            NewRelic::Agent::Tracer.current_segment&.span_kind = NewRelic::Agent::SpanEventPrimitive::CONSUMER
             yield
           end
         end
