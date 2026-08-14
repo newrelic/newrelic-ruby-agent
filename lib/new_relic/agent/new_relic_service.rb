@@ -222,9 +222,18 @@ module NewRelic
       end
 
       def build_profiles_request(bytes)
+        headers = {
+          'Content-Type' => PROFILES_CONTENT_TYPE,
+          PROFILES_API_KEY_HEADER => license_key
+        }
+
+        if @audit_logger.enabled?
+          @audit_logger.log_profiles_request(profiles_audit_uri, profiles_audit_body(bytes))
+          @audit_logger.log_request_headers(profiles_audit_uri, redacted_profiles_headers(headers))
+        end
+
         request = Net::HTTP::Post.new(PROFILES_PATH)
-        request['Content-Type'] = PROFILES_CONTENT_TYPE
-        request[PROFILES_API_KEY_HEADER] = license_key
+        headers.each { |name, value| request[name] = value }
         request.body = bytes
         request
       end
@@ -743,6 +752,24 @@ module NewRelic
         else
           ASTERISK * key.size
         end
+      end
+
+      def profiles_audit_uri
+        "#{@collector}#{PROFILES_PATH}"
+      end
+
+      def redacted_profiles_headers(headers)
+        headers.merge(PROFILES_API_KEY_HEADER => redacted_license_key)
+      end
+
+      # Only decodes if continuous profiling's soft dependency already defined ProfileEncoder --
+      # this file never requires google-protobuf itself. Falls back to bytes.inspect otherwise.
+      def profiles_audit_body(bytes)
+        return bytes.inspect unless defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder)
+
+        NewRelic::Agent::ContinuousProfiling::ProfileEncoder.decode_for_audit(bytes)
+      rescue StandardError
+        bytes.inspect
       end
     end
   end

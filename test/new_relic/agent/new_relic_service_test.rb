@@ -516,6 +516,85 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 2, @http_handle.calls.count(:start)
   end
 
+  def test_build_profiles_request_skips_audit_logging_when_disabled
+    with_config(:'audit_log.enabled' => false) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.expects(:log_request_headers).never
+      audit_logger.expects(:log_profiles_request).never
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_audits_headers_with_the_api_key_redacted
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.expects(:log_request_headers).with do |uri, headers|
+        uri == "#{@server}/v1/profiles" && headers['api-key'] == 'license-ke*'
+      end
+      audit_logger.stubs(:log_profiles_request)
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_audits_the_body
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.stubs(:log_request_headers)
+      audit_logger.expects(:log_profiles_request).with("#{@server}/v1/profiles", 'raw-profile-bytes'.inspect)
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_does_not_leak_the_raw_license_key_to_the_audit_log
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.expects(:log_request_headers).with do |_uri, headers|
+        refute_includes headers.values, 'license-key'
+        true
+      end
+      audit_logger.stubs(:log_profiles_request)
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_does_not_mutate_the_real_request_headers
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+      @service.profiles_data('raw-profile-bytes')
+
+      assert_equal 'license-key', @http_handle.last_request['api-key']
+    end
+  end
+
+  def test_profiles_audit_body_decodes_via_profile_encoder_when_defined
+    refute defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder), 'test assumes ProfileEncoder is not already loaded in the unit suite'
+    fake_encoder = Class.new do
+      def self.decode_for_audit(bytes)
+        "decoded: #{bytes}"
+      end
+    end
+    NewRelic::Agent::ContinuousProfiling.const_set(:ProfileEncoder, fake_encoder)
+
+    assert_equal 'decoded: raw-profile-bytes', @service.send(:profiles_audit_body, 'raw-profile-bytes')
+  ensure
+    NewRelic::Agent::ContinuousProfiling.send(:remove_const, :ProfileEncoder)
+  end
+
+  def test_profiles_audit_body_falls_back_to_inspect_when_profile_encoder_is_undefined
+    refute defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder), 'test assumes ProfileEncoder is not loaded in the unit suite'
+
+    assert_equal 'raw-profile-bytes'.inspect, @service.send(:profiles_audit_body, 'raw-profile-bytes')
+  end
+
   def test_get_agent_commands
     @service.agent_id = 666
     @http_handle.respond_to(:get_agent_commands, [1, 2, 3])

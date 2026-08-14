@@ -29,6 +29,10 @@ module NewRelic
           new(report).encode
         end
 
+        def self.decode_for_audit(bytes)
+          OTEL_COLLECTOR::ExportProfilesServiceRequest.decode(bytes).to_h.inspect
+        end
+
         def initialize(report)
           @report = report
           @string_table = ['']

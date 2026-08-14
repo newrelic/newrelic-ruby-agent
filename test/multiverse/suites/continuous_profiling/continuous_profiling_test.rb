@@ -70,6 +70,49 @@ class ContinuousProfilingTest < Minitest::Test
     refute_empty decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples
   end
 
+  def test_full_pipeline_writes_a_human_readable_body_to_the_audit_log
+    require 'new_relic/agent/continuous_profiling/profile_encoder'
+
+    connection = stub_everything('http connection')
+    response = stub_everything('response', :code => '202', :message => 'Accepted', :body => '')
+    connection.stubs(:request).returns(response)
+    Net::HTTP.stubs(:new).returns(connection)
+
+    output = with_config(:'profiling.mode' => 'cpu',
+      :'profiling.sample_period' => 0.001,
+      :'audit_log.enabled' => true,
+      :'audit_log.path' => 'STDOUT') do
+      capturing_stdout do
+        server = NewRelic::Control::Server.new('somewhere.example.com', 30303)
+        service = NewRelic::Agent::NewRelicService.new('license-key', server)
+        service.agent_id = 666
+
+        sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+        sampler.start
+        busy_wait(0.1)
+        report = sampler.stop_and_collect
+
+        bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
+        service.profiles_data(bytes)
+      end
+    end
+
+    assert_includes output, 'REQUEST BODY:'
+    assert_includes output, 'resource_profiles'
+    assert_includes output, 'license-ke*'
+    refute_includes output, 'license-key'
+  end
+
+  def capturing_stdout
+    orig = $stdout.dup
+    output = +''
+    $stdout = StringIO.new(output)
+    yield
+    output
+  ensure
+    $stdout = orig
+  end
+
   def busy_wait(seconds)
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
     x = 0
