@@ -2,9 +2,9 @@
 
 ## dev
 
-- **Feature: Add span.kind to Sidekiq and ActiveJob spans**
+- **Feature: Add span.kind to background job libraries**
 
-  Now, the `span.kind` attribute will be added to `produce` and `consume` operations from these libraries. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
+  Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
 
 ## v10.7.0
 
