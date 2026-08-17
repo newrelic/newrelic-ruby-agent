@@ -35,8 +35,8 @@ module NewRelic::Agent::ContinuousProfiling
 
     def test_start_passes_the_allocation_interval_for_object_mode
       Object.stub_const(:StackProf, Module.new) do
-        with_config(:'profiling.mode' => 'object', :'profiling.object_allocation_interval' => 5) do
-          StackProf.expects(:start).with(mode: :object, interval: 5, raw: true)
+        with_config(:'profiling.mode' => 'object', :'profiling.object_allocation_interval' => 1234) do
+          StackProf.expects(:start).with(mode: :object, interval: 1234, raw: true)
 
           @sampler.start
         end
