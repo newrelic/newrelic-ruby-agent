@@ -81,6 +81,19 @@ if defined?(Dalli)
           assert_memcache_metrics_recorded expected_metrics
         end
 
+        # In dalli 5.1.0+, get_multi_cas routes through the pipelined getter, which calls
+        # pipelined_get on Dalli::Protocol::Base with an additional options argument.
+        def test_get_multi_cas_in_web_via_pipelined_get
+          keys = Array.new(3) { set_key_for_testcase }
+          expected_metrics = expected_web_metrics(:get_multi_cas)
+
+          in_web_transaction("Controller/#{self.class}/action") do
+            @cache.get_multi_cas(*keys)
+          end
+
+          assert_memcache_metrics_recorded expected_metrics
+        end
+
         def test_get_multi_with_multiple_keys_and_capture_memcache_keys_via_read_multi_req
           with_config(:capture_memcache_keys => true) do
             keys = Array.new(3) { set_key_for_testcase }

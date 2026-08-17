@@ -57,8 +57,9 @@ module NewRelic
 
               alias_method(:read_multi_req_without_newrelic_trace, :read_multi_req)
 
-              def read_multi_req(keys)
-                send_multiget_with_newrelic_tracing(keys) { read_multi_req_without_newrelic_trace(keys) }
+              # Dalli 5.1.0 added an optional options argument
+              def read_multi_req(keys, *args)
+                send_multiget_with_newrelic_tracing(keys) { read_multi_req_without_newrelic_trace(keys, *args) }
               end
             end
           end
@@ -74,10 +75,11 @@ module NewRelic
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
               # Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
+              # Dalli 5.1.0 added an optional options argument to pipelined_get
               if NewRelic::Helper.version_satisfied?(::Dalli::VERSION, '>=', '3.1.0')
                 alias_method(:pipelined_get_without_newrelic_trace, :pipelined_get)
-                def pipelined_get(keys)
-                  send_multiget_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace(keys) }
+                def pipelined_get(keys, *args)
+                  send_multiget_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace(keys, *args) }
                 end
               else
                 alias_method(:send_multiget_without_newrelic_trace, :send_multiget)
