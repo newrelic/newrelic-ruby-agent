@@ -77,7 +77,8 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def read_multi_req(keys)
+          # Dalli 5.1.0 added an optional options argument
+          def read_multi_req(keys, *args)
             send_multiget_with_newrelic_tracing(keys) { super }
           end
         end
@@ -100,8 +101,9 @@ module NewRelic::Agent::Instrumentation
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
           # Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
+          # Dalli 5.1.0 added an optional options argument to pipelined_get
           if NewRelic::Helper.version_satisfied?(::Dalli::VERSION, '>=', '3.1.0')
-            def pipelined_get(keys)
+            def pipelined_get(keys, *args)
               send_multiget_with_newrelic_tracing(keys) { super }
             end
           else

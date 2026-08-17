@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
+
+  This fix updates Dalli instrumentation to accept and forward optional request options arguments in multi and pipelined operations. Our thanks go to [@dbackeus](https://github.com/dbackeus) for contributing a fix! [PR#3642](https://github.com/newrelic/newrelic-ruby-agent/pull/3642)
+
 ## v10.7.0
 
 - **Feature: Add transaction_tracer.cap_segment_artifacts configuration option**
