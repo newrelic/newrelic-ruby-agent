@@ -216,6 +216,18 @@ module NewRelic
           constants.compact!
           constants
         end
+
+        OBJECT_ALLOCATION_INTERVAL_MINIMUM = 1000
+
+        def self.enforce_object_allocation_interval_minimum(value)
+          return value if value.nil? || value >= OBJECT_ALLOCATION_INTERVAL_MINIMUM
+
+          NewRelic::Agent.logger.debug(
+            "profiling.object_allocation_interval is set to #{value.inspect}, which is below the minimum " \
+            "of #{OBJECT_ALLOCATION_INTERVAL_MINIMUM}. Using #{OBJECT_ALLOCATION_INTERVAL_MINIMUM} instead."
+          )
+          OBJECT_ALLOCATION_INTERVAL_MINIMUM
+        end
       end
 
       AUTOSTART_DENYLISTED_RAKE_TASKS = [
@@ -1107,8 +1119,10 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
+          :transform => DefaultSource.method(:enforce_object_allocation_interval_minimum),
           :description => 'The number of object allocations between stack samples taken by the continuous ' \
-            'profiler. Only used when `profiling.mode` is `object`.'
+            'profiler. Only used when `profiling.mode` is `object`. The minimum allowed value is ' \
+            "#{DefaultSource::OBJECT_ALLOCATION_INTERVAL_MINIMUM}."
         },
         :'profiling.harvest_period' => {
           :default => 10,
