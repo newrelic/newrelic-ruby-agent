@@ -175,8 +175,31 @@ module NewRelic
           end
         end
 
+        def stackprof_present?
+          defined?(StackProf) ? true : false
+        end
+
+        def protobuf_present?
+          defined?(Google::Protobuf) ? true : false
+        end
+
         def gems_present?
-          defined?(StackProf) && defined?(Google::Protobuf)
+          stackprof_present? && protobuf_present?
+        end
+
+        # Only the conditions that are actually unmet, so the logged/raised message
+        # says why *this* agent can't run it, not a static list of every requirement.
+        def unsupported_reasons
+          reasons = []
+          reasons << 'the stackprof gem is not installed' unless stackprof_present?
+          reasons << 'the google-protobuf gem is not installed' unless protobuf_present?
+          reasons << 'JRuby is not supported' if NewRelic::LanguageSupport.jruby?
+          reasons << 'high security mode is enabled' if NewRelic::Agent.config[:high_security]
+          reasons
+        end
+
+        def unsupported_message
+          "Continuous profiling is not available: #{unsupported_reasons.join(', ')}."
         end
 
         def raise_command_error(msg)
@@ -184,8 +207,8 @@ module NewRelic
         end
 
         def raise_unsupported_error
-          msg = 'Continuous profiling is not available: requires the stackprof and google-protobuf gems, ' \
-            'is not supported on JRuby, and is disabled while high security mode is enabled.'
+          msg = unsupported_message
+          NewRelic::Agent.logger.warn(msg)
           raise_command_error(msg)
         end
 
@@ -201,6 +224,8 @@ module NewRelic
             start
           elsif !enabled? && running?
             stop
+          elsif NewRelic::Agent.config[:'profiling.enabled'] && !supported?
+            NewRelic::Agent.logger.warn(unsupported_message)
           end
         end
 

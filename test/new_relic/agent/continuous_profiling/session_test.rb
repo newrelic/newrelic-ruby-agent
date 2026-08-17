@@ -475,5 +475,72 @@ module NewRelic::Agent::ContinuousProfiling
       @session.expects(:stop)
       @session.handle_stop_command(create_agent_command)
     end
+
+    def test_handle_start_command_logs_a_warning_naming_the_missing_gem
+      @session.stubs(:stackprof_present?).returns(false)
+      @session.stubs(:protobuf_present?).returns(true)
+
+      with_config(:'profiling.enabled' => true) do
+        NewRelic::Agent.logger.expects(:warn).with('Continuous profiling is not available: the stackprof gem is not installed.')
+
+        assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+          @session.handle_start_command(create_agent_command)
+        end
+      end
+    end
+
+    def test_handle_start_command_logs_a_warning_naming_every_unmet_condition
+      @session.stubs(:stackprof_present?).returns(false)
+      @session.stubs(:protobuf_present?).returns(false)
+
+      with_config(:high_security => true) do
+        NewRelic::LanguageSupport.stub :jruby?, true do
+          NewRelic::Agent.logger.expects(:warn).with(
+            'Continuous profiling is not available: the stackprof gem is not installed, ' \
+            'the google-protobuf gem is not installed, JRuby is not supported, high security mode is enabled.'
+          )
+
+          assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+            @session.handle_start_command(create_agent_command)
+          end
+        end
+      end
+    end
+
+    def test_evaluate_and_apply_logs_a_warning_when_enabled_via_config_but_unsupported
+      @session.stubs(:gems_present?).returns(false)
+      @session.stubs(:stackprof_present?).returns(false)
+      @session.stubs(:protobuf_present?).returns(true)
+
+      with_config(:'profiling.enabled' => true) do
+        NewRelic::Agent.logger.expects(:warn).with('Continuous profiling is not available: the stackprof gem is not installed.')
+        @session.expects(:start).never
+
+        @events.notify(:server_source_configuration_added)
+      end
+    end
+
+    def test_evaluate_and_apply_does_not_log_a_warning_when_disabled_via_config
+      @session.stubs(:gems_present?).returns(false)
+
+      with_config(:'profiling.enabled' => false) do
+        NewRelic::Agent.logger.expects(:warn).never
+
+        @events.notify(:server_source_configuration_added)
+      end
+    end
+
+    def test_evaluate_and_apply_does_not_log_a_warning_when_supported
+      @session.stubs(:gems_present?).returns(true)
+
+      with_config(:'profiling.enabled' => true) do
+        NewRelic::LanguageSupport.stub :jruby?, false do
+          NewRelic::Agent.logger.expects(:warn).never
+          @session.stubs(:start)
+
+          @events.notify(:server_source_configuration_added)
+        end
+      end
+    end
   end
 end
