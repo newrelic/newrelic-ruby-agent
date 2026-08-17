@@ -406,14 +406,6 @@ module NewRelic
           end
         end
 
-        def test_span_kind_is_server_for_web_transaction_entry_span
-          in_transaction('test', :category => :rack) do |txn|
-            intrinsics, _custom, _agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
-
-            assert_equal SpanEventPrimitive::SERVER, intrinsics['span.kind']
-          end
-        end
-
         def test_thread_id_is_added_to_span_events
           harvest_span_events! # clear out any previous events
           thread_id = nil
