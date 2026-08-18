@@ -64,6 +64,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_start_is_idempotent
+      NewRelic::Agent.instance.stats_engine.reset!
       NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).once
       NewRelic::Agent::Threading::AgentThread.expects(:create).once.returns(@fake_thread)
 
@@ -71,6 +72,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
 
       assert_predicate @session, :running?
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Enabled' => {:call_count => 1})
     end
 
     def test_stop_flips_running_and_joins_the_thread
@@ -84,11 +86,13 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_stop_is_a_no_op_when_not_running
+      NewRelic::Agent.instance.stats_engine.reset!
       @fake_thread.expects(:join).never
 
       @session.stop
 
       refute_predicate @session, :running?
+      assert_metrics_not_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
     def test_harvest_and_send_collects_encodes_exports_and_restarts_the_sampler
@@ -231,16 +235,23 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_start_transaction_restarts_after_fork
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).twice
+      post_fork_thread = stub_everything('post-fork thread')
+      NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread, post_fork_thread)
+
       @session.start
       original_thread = @session.instance_variable_get(:@thread)
+      original_pid = @session.instance_variable_get(:@starting_pid)
 
-      real_pid = Process.pid
-      Process.stubs(:pid).returns(real_pid + 1)
-      NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(stub_everything('post-fork thread'))
+      forked_pid = Process.pid + 1
+      Process.stubs(:pid).returns(forked_pid)
       @events.notify(:start_transaction)
 
       assert_predicate @session, :running?
+      assert_equal post_fork_thread, @session.instance_variable_get(:@thread)
       refute_equal original_thread, @session.instance_variable_get(:@thread)
+      assert_equal forked_pid, @session.instance_variable_get(:@starting_pid)
+      refute_equal original_pid, @session.instance_variable_get(:@starting_pid)
     end
 
     def test_start_transaction_does_not_restart_without_a_fork
@@ -251,6 +262,9 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_start_transaction_does_not_restart_when_not_running
+      @session.start
+      @session.instance_variable_set(:@running, false)
+
       @session.expects(:start).never
       real_pid = Process.pid
       Process.stubs(:pid).returns(real_pid + 1)
@@ -348,6 +362,19 @@ module NewRelic::Agent::ContinuousProfiling
       assert_equal [['trace123', 'root_span', 10.0, 12.5]], @session.instance_variable_get(:@segment_ranges)
     end
 
+    def test_transaction_finished_records_the_root_segment_even_when_shorter_than_one_sample_period
+      @session.start
+      root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 0.001)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      with_config(:'profiling.sample_period' => 0.01) do
+        @events.notify(:transaction_finished)
+      end
+
+      assert_equal [['trace123', 'root_span', 10.0, 10.001]], @session.instance_variable_get(:@segment_ranges)
+    end
+
     def test_transaction_finished_excludes_unfinished_segments
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
@@ -361,8 +388,10 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_transaction_finished_does_not_record_a_range_when_not_running
-      NewRelic::Agent::Tracer.expects(:current_transaction).never
+      @session.start
+      @session.instance_variable_set(:@running, false)
 
+      NewRelic::Agent::Tracer.expects(:current_transaction).never
       @events.notify(:transaction_finished)
 
       assert_empty @session.instance_variable_get(:@segment_ranges)
@@ -518,6 +547,14 @@ module NewRelic::Agent::ContinuousProfiling
 
         @events.notify(:server_source_configuration_added)
       end
+    end
+
+    def test_evaluate_and_apply_does_not_raise_when_gems_are_genuinely_absent
+      with_config(:'profiling.enabled' => true) do
+        @events.notify(:server_source_configuration_added)
+      end
+
+      refute_predicate @session, :running?
     end
 
     def test_evaluate_and_apply_does_not_log_a_warning_when_disabled_via_config

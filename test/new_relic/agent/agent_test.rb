@@ -279,6 +279,13 @@ module NewRelic
         @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
       end
 
+      def test_merge_data_for_endpoint_rescues_a_raise_from_profiles_data
+        @agent.service.stubs(:profiles_data).raises('boom')
+        NewRelic::Agent.logger.expects(:error).with(includes('profiles_data'), anything)
+
+        assert_nil @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+      end
+
       def test_merge_data_traces
         transaction_sampler = mock('transaction sampler')
         @agent.instance_eval {

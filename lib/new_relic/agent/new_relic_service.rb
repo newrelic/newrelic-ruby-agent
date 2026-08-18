@@ -210,7 +210,11 @@ module NewRelic
         request = build_profiles_request(bytes)
         response = profiles_http_connection.request(request)
         log_response(response)
-        response
+        return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
+
+        NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{response.code} #{response.message}")
+        NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)
+        nil
       rescue => e
         NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{e.class}: #{e.message}")
         NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)
@@ -218,7 +222,7 @@ module NewRelic
         nil
       ensure
         NewRelic::Agent.record_metric(PROFILES_EXPORT_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_ts)
-        NewRelic::Agent.record_metric(PROFILES_OUTPUT_BYTES_METRIC, bytes.bytesize)
+        NewRelic::Agent.record_metric(PROFILES_OUTPUT_BYTES_METRIC, bytes ? bytes.bytesize : 0)
       end
 
       def build_profiles_request(bytes)

@@ -82,10 +82,42 @@ class EventListenerTest < Minitest::Test
     assert other_called
   end
 
-  def test_unsubscribe_is_a_no_op_for_an_unknown_handler
+  def test_unsubscribe_removes_every_occurrence_of_a_duplicate_handler
+    @events.subscribe(:after_call, &@check_method)
+    @events.subscribe(:after_call, &@check_method)
+
     @events.unsubscribe(:after_call, @check_method)
     @events.notify(:after_call)
 
     assert_was_not_called
+  end
+
+  def test_unsubscribe_is_a_no_op_for_an_unrecognized_event
+    @events.unsubscribe(:after_call, @check_method)
+    @events.notify(:after_call)
+
+    assert_was_not_called
+  end
+
+  def test_unsubscribe_is_a_no_op_for_a_handler_that_was_never_subscribed
+    @events.subscribe(:after_call, &@check_method)
+    unknown_handler = proc {}
+
+    @events.unsubscribe(:after_call, unknown_handler)
+    @events.notify(:after_call)
+
+    assert_was_called
+  end
+
+  def test_unsubscribe_during_notify_does_not_affect_the_in_progress_pass
+    b_called = false
+    b_handler = nil
+    @events.subscribe(:concurrent_event) { @events.unsubscribe(:concurrent_event, b_handler) }
+    b_handler = @events.subscribe(:concurrent_event) { b_called = true }
+
+    @events.notify(:concurrent_event)
+
+    assert b_called, 'expected b_handler to still run in the pass that unsubscribed it'
+    refute_includes @events.instance_variable_get(:@events)[:concurrent_event], b_handler
   end
 end

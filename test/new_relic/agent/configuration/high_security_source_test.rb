@@ -99,7 +99,7 @@ module NewRelic::Agent::Configuration
       assert_empty source[:'attributes.include']
     end
 
-    def test_forces_continuous_profiler_disabled
+    def test_forces_profiling_enabled_disabled
       local_settings = {
         :'profiling.enabled' => true
       }

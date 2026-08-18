@@ -9,7 +9,6 @@
 require 'new_relic/agent/continuous_profiling/profile_encoder'
 
 OTelCollector = Opentelemetry::Proto::Collector::Profiles::V1development
-OTelProfiles = Opentelemetry::Proto::Profiles::V1development
 
 class ProfileEncoderTest < Minitest::Test
   # Two occurrences of stack [main, foo, bar] (leaf=bar), one of [main, foo, baz].
@@ -83,13 +82,18 @@ class ProfileEncoderTest < Minitest::Test
 
   def test_time_unix_nano_and_duration_nano_reflect_the_sampling_window
     report = REPORT.merge(window_start_realtime: 1_700_000_000.5, window_duration_nanos: 10_000_000_000)
-
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    profile = profile_from(encode_and_decode(report))
 
     assert_equal 1_700_000_000_500_000_000, profile.time_unix_nano
     assert_equal 10_000_000_000, profile.duration_nano
+  end
+
+  def test_profile_id_and_instrumentation_scope_are_populated
+    scope = @decoded.resource_profiles[0].scope_profiles[0].scope
+
+    assert_equal 16, @profile.profile_id.bytesize
+    assert_equal 'newrelic-ruby-agent', scope.name
+    assert_equal NewRelic::VERSION::STRING, scope.version
   end
 
   OBJECT_REPORT = {
@@ -104,45 +108,38 @@ class ProfileEncoderTest < Minitest::Test
   }.freeze
 
   def test_object_mode_sample_type_reflects_mode_and_a_count_unit
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(OBJECT_REPORT)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    decoded = encode_and_decode(OBJECT_REPORT)
     dict = decoded.dictionary
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    profile = profile_from(decoded)
 
     assert_equal 'object', dict.string_table[profile.sample_type.type_strindex]
     assert_equal 'count', dict.string_table[profile.sample_type.unit_strindex]
   end
 
   def test_object_mode_period_reflects_the_raw_allocation_interval
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(OBJECT_REPORT)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    profile = profile_from(encode_and_decode(OBJECT_REPORT))
 
     assert_equal 1, profile.period
   end
 
-  def test_object_mode_sample_values_carry_the_raw_allocation_count_uncoverted
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(OBJECT_REPORT)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+  def test_object_mode_sample_values_carry_the_raw_allocation_count_unconverted
+    profile = profile_from(encode_and_decode(OBJECT_REPORT))
 
     assert_equal [3], profile.samples[0].values.to_a
   end
 
   def test_resource_carries_the_configured_app_name
     with_config(:app_name => %w[MyApp]) do
-      bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(REPORT)
-      decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+      decoded = encode_and_decode(REPORT)
 
       assert_equal 'MyApp', decoded.resource_profiles[0].resource.attributes[0].value.string_value
     end
   end
 
   def test_handles_an_empty_report_without_raising
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(mode: :cpu, interval: 1000, raw: [], raw_lines: [])
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    decoded = encode_and_decode(mode: :cpu, interval: 1000, raw: [], raw_lines: [])
 
-    assert_empty decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples
+    assert_empty profile_from(decoded).samples
   end
 
   def test_without_segment_ranges_only_the_link_placeholder_exists
@@ -152,6 +149,18 @@ class ProfileEncoderTest < Minitest::Test
     assert(@profile.samples.all? { |s| s.link_index.zero? })
   end
 
+  def test_placeholder_index_zero_exists_in_every_dictionary_table
+    profiles_module = Opentelemetry::Proto::Profiles::V1development
+
+    assert_equal profiles_module::Mapping.new, @dict.mapping_table[0]
+    assert_equal profiles_module::Location.new, @dict.location_table[0]
+    assert_equal profiles_module::Stack.new, @dict.stack_table[0]
+    assert_operator @dict.location_table.length, :>, 1
+    assert_operator @dict.stack_table.length, :>, 1
+    refute_includes @dict.location_table[1..], profiles_module::Location.new
+    refute_includes @dict.stack_table[1..], profiles_module::Stack.new
+  end
+
   def test_links_a_sample_to_the_single_matching_segment_range
     report = REPORT.merge(
       raw_sample_timestamps: [1_000_000, 1_000_000, 2_000_000],
@@ -159,10 +168,9 @@ class ProfileEncoderTest < Minitest::Test
       segment_ranges: [['a' * 32, 'b' * 16, 0.5, 1.5]]
     )
 
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    decoded = encode_and_decode(report)
     dict = decoded.dictionary
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    profile = profile_from(decoded)
     bar_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#bar' }
     link = dict.link_table[bar_sample.link_index]
 
@@ -177,16 +185,21 @@ class ProfileEncoderTest < Minitest::Test
       clock_offset: 0.0,
       segment_ranges: [
         ['a' * 32, 'b' * 16, 0.5, 1.5],
-        ['c' * 32, 'd' * 16, 0.8, 1.2]
+        ['c' * 32, 'd' * 16, 0.8, 1.2],
+        # Positive control: unambiguous, so correlation isn't just wholly broken.
+        ['e' * 32, 'f' * 16, 1.8, 2.2]
       ]
     )
 
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
-    bar_sample = profile.samples.find { |s| sample_leaf_name(s, decoded.dictionary) == 'Object#bar' }
+    decoded = encode_and_decode(report)
+    dict = decoded.dictionary
+    profile = profile_from(decoded)
+    bar_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#bar' }
+    baz_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#baz' }
 
     assert_equal 0, bar_sample.link_index
+    refute_equal 0, baz_sample.link_index
+    assert_equal 'f' * 16, dict.link_table[baz_sample.link_index].span_id.unpack1('H*')
   end
 
   def test_prefers_the_narrowest_matching_range_within_the_same_transaction
@@ -201,15 +214,16 @@ class ProfileEncoderTest < Minitest::Test
       ]
     )
 
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    decoded = encode_and_decode(report)
     dict = decoded.dictionary
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    profile = profile_from(decoded)
     bar_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#bar' }
     baz_sample = profile.samples.find { |s| sample_leaf_name(s, dict) == 'Object#baz' }
 
     assert_equal 'e' * 16, dict.link_table[bar_sample.link_index].span_id.unpack1('H*')
     assert_equal 'b' * 16, dict.link_table[baz_sample.link_index].span_id.unpack1('H*')
+    refute_equal 0, baz_sample.link_index
+    assert_equal [2_000_000], bar_sample.values.to_a
   end
 
   def test_splits_a_stackprof_collapsed_run_when_ticks_match_different_transactions
@@ -228,16 +242,126 @@ class ProfileEncoderTest < Minitest::Test
       ]
     }
 
-    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+    decoded = encode_and_decode(report)
     dict = decoded.dictionary
-    profile = decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+    profile = profile_from(decoded)
 
     assert_equal 2, profile.samples.length
     assert(profile.samples.all? { |s| s.values.to_a == [1_000_000] })
     trace_ids = profile.samples.map { |s| dict.link_table[s.link_index].trace_id.unpack1('H*') }
 
     assert_equal ['a' * 32, 'c' * 32], trace_ids.sort
+  end
+
+  def test_sorts_out_of_order_segment_ranges_by_start_time_before_matching
+    # Session appends ranges in finish order, not start order -- out of order here on purpose.
+    report = {
+      mode: :cpu, interval: 1000,
+      frames: {1 => {name: 'Object#main', file: '/app/main.rb', line: 1}},
+      raw: [1, 1, 1],
+      raw_lines: [1, 1, 1],
+      raw_sample_timestamps: [1_000_000],
+      clock_offset: 0.0,
+      segment_ranges: [
+        ['f' * 32, 'c' * 16, 2.5, 3.0],
+        ['f' * 32, 'b' * 16, 0.0, 4.0]
+      ]
+    }
+
+    decoded = encode_and_decode(report)
+    dict = decoded.dictionary
+    sample = profile_from(decoded).samples[0]
+
+    refute_equal 0, sample.link_index
+    assert_equal 'b' * 16, dict.link_table[sample.link_index].span_id.unpack1('H*')
+  end
+
+  def test_dedupes_two_distinct_stacks_linked_to_the_same_trace_and_span
+    report = {
+      mode: :cpu, interval: 1000,
+      frames: {
+        1 => {name: 'Object#main', file: '/app/main.rb', line: 1},
+        2 => {name: 'Object#other', file: '/app/other.rb', line: 1}
+      },
+      raw: [1, 1, 1, 1, 2, 1],
+      raw_lines: [1, 1, 1, 1, 1, 1],
+      raw_sample_timestamps: [1_000_000, 2_000_000],
+      clock_offset: 0.0,
+      segment_ranges: [['a' * 32, 'b' * 16, 0.0, 5.0]]
+    }
+
+    decoded = encode_and_decode(report)
+    dict = decoded.dictionary
+    profile = profile_from(decoded)
+
+    assert_equal 2, profile.samples.length
+    link_indices = profile.samples.map(&:link_index).uniq
+
+    assert_equal 1, link_indices.length
+    refute_equal 0, link_indices.first
+    assert_equal 2, dict.link_table.length
+  end
+
+  def test_build_tick_links_handles_timestamps_with_no_segment_ranges
+    report = {
+      mode: :cpu, interval: 1000,
+      frames: {1 => {name: 'Object#main', file: '/app/main.rb', line: 1}},
+      raw: [1, 1, 1],
+      raw_lines: [1, 1, 1],
+      raw_sample_timestamps: [1_000_000],
+      clock_offset: 0.0,
+      segment_ranges: []
+    }
+
+    decoded = encode_and_decode(report)
+
+    assert_equal 0, profile_from(decoded).samples[0].link_index
+  end
+
+  def test_build_tick_links_handles_a_nil_clock_offset
+    report = {
+      mode: :cpu, interval: 1000,
+      frames: {1 => {name: 'Object#main', file: '/app/main.rb', line: 1}},
+      raw: [1, 1, 1],
+      raw_lines: [1, 1, 1],
+      raw_sample_timestamps: [1_000_000],
+      clock_offset: nil,
+      segment_ranges: [['a' * 32, 'b' * 16, 0.0, 5.0]]
+    }
+
+    decoded = encode_and_decode(report)
+
+    assert_equal 0, profile_from(decoded).samples[0].link_index
+  end
+
+  def test_log_correlation_summary_reflects_the_actual_link_table
+    report = REPORT.merge(
+      raw_sample_timestamps: [1_000_000, 1_000_000, 2_000_000],
+      clock_offset: 0.0,
+      segment_ranges: [
+        ['a' * 32, 'b' * 16, 0.5, 1.5],
+        ['c' * 32, 'd' * 16, 1.8, 2.2]
+      ]
+    )
+
+    log = with_array_logger(:debug) do
+      NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
+    end
+
+    assert_log_contains(log, /correlated samples to 2 distinct span\(s\) across 2 distinct trace\(s\)/)
+  end
+
+  def encode_and_decode(report)
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
+    OTelCollector::ExportProfilesServiceRequest.decode(bytes)
+  end
+
+  def profile_from(decoded)
+    decoded.resource_profiles[0].scope_profiles[0].profiles[0]
+  end
+
+  def stack_index_for(sample)
+    sample.stack_index
   end
 
   def sample_leaf_name(sample, dict = @dict)

@@ -170,6 +170,17 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       assert_equal(2, sampler.harvest!.size)
     end
 
+    def test_listener_merges_profiles_data
+      NewRelic::Agent.agent.service.expects(:profiles_data).with('raw-profile-bytes')
+
+      start_listener_with_pipe(672)
+      run_child(672) do
+        NewRelic::Agent.after_fork
+        service = NewRelic::Agent::PipeService.new(672)
+        service.profiles_data('raw-profile-bytes')
+      end
+    end
+
     def test_close_pipe_on_child_explicit_close
       listener = start_listener_with_pipe(669)
       pid = Process.fork do

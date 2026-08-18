@@ -17,6 +17,22 @@ class ContinuousProfilingTest < Minitest::Test
 
       assert_operator report[:samples], :>, 0
       assert_equal :cpu, report[:mode]
+      refute_empty report[:raw_sample_timestamps]
+      assert_in_delta report[:window_start_realtime],
+        report[:clock_offset] + report[:raw_sample_timestamps].first / 1_000_000.0, 0.5
+    end
+  end
+
+  def test_stack_prof_sampler_round_trips_in_object_mode_against_the_real_gem
+    sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+
+    with_config(:'profiling.mode' => 'object', :'profiling.object_allocation_interval' => 1000) do
+      sampler.start
+      allocate_objects(5000)
+      report = sampler.stop_and_collect
+
+      assert_operator report[:samples], :>, 0
+      assert_equal :object, report[:mode]
     end
   end
 
@@ -33,7 +49,10 @@ class ContinuousProfilingTest < Minitest::Test
       end
 
       refute_predicate session, :running?
-      assert_log_contains(log, /Continuous profiling collected \d+ sample/)
+      assert_nil session.instance_variable_get(:@thread)
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
+      assert_log_contains(log, /Continuous profiling collected [1-9]\d* sample/)
+      refute_log_contains(log, /Error harvesting/)
     end
   end
 
@@ -103,6 +122,49 @@ class ContinuousProfilingTest < Minitest::Test
     refute_includes output, 'license-key'
   end
 
+  # Feeds a real Session's segment_ranges into the real ProfileEncoder, unlike every other
+  # correlation test's hand-built array literals -- catches a tuple reorder those would miss.
+  def test_segment_ranges_recorded_by_a_real_session_correlate_correctly_through_the_encoder
+    require 'new_relic/agent/continuous_profiling/profile_encoder'
+
+    session = NewRelic::Agent::ContinuousProfiling::Session.new(NewRelic::Agent.agent.events)
+    session.instance_variable_set(:@running, true)
+    session.send(:subscribe_to_transaction_hooks)
+
+    in_transaction('profiled_txn') do |txn|
+      txn.trace_id # force generation, as real distributed-tracing code paths do
+      sleep(0.02)
+    end
+
+    segment_ranges = session.send(:drain_segment_ranges)
+    session.send(:unsubscribe_from_transaction_hooks)
+
+    refute_empty segment_ranges
+    trace_id, span_id, start_time, end_time = segment_ranges.first
+
+    # clock_offset: 0.0 makes "monotonic" ticks equal to wall-clock seconds, so the real
+    # segment's own wall-clock midpoint can be used directly as the tick's timestamp.
+    tick_timestamp_usec = ((start_time + end_time) / 2 * 1_000_000).to_i
+    report = {
+      mode: :cpu, interval: 1000,
+      frames: {1 => {name: 'Object#work', file: '/app/work.rb', line: 1}},
+      raw: [1, 1, 1],
+      raw_lines: [1, 1, 1],
+      raw_sample_timestamps: [tick_timestamp_usec],
+      clock_offset: 0.0,
+      segment_ranges: segment_ranges
+    }
+
+    bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
+    decoded = Opentelemetry::Proto::Collector::Profiles::V1development::ExportProfilesServiceRequest.decode(bytes)
+    dict = decoded.dictionary
+    sample = decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples[0]
+
+    refute_equal 0, sample.link_index
+    assert_equal trace_id, dict.link_table[sample.link_index].trace_id.unpack1('H*')
+    assert_equal span_id, dict.link_table[sample.link_index].span_id.unpack1('H*')
+  end
+
   def capturing_stdout
     orig = $stdout.dup
     output = +''
@@ -117,5 +179,9 @@ class ContinuousProfilingTest < Minitest::Test
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
     x = 0
     x += 1 while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+  end
+
+  def allocate_objects(count)
+    count.times { Object.new }
   end
 end

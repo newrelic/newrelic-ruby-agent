@@ -33,6 +33,28 @@ module NewRelic::Agent::ContinuousProfiling
       end
     end
 
+    def test_start_records_a_cpu_mode_supportability_metric
+      Object.stub_const(:StackProf, Module.new) do
+        StackProf.stubs(:start)
+
+        with_config(:'profiling.mode' => 'cpu') do
+          @sampler.start
+
+          assert_metrics_recorded('Supportability/Ruby/Profiling/Mode/cpu')
+        end
+      end
+    end
+
+    def test_start_uses_cpu_mode_when_configured_mode_is_invalid_or_removed
+      Object.stub_const(:StackProf, Module.new) do
+        with_config(:'profiling.mode' => 'wall', :'profiling.sample_period' => 0.05) do
+          StackProf.expects(:start).with(mode: :cpu, interval: 50_000, raw: true)
+
+          @sampler.start
+        end
+      end
+    end
+
     def test_start_passes_the_allocation_interval_for_object_mode
       Object.stub_const(:StackProf, Module.new) do
         with_config(:'profiling.mode' => 'object', :'profiling.object_allocation_interval' => 1234) do

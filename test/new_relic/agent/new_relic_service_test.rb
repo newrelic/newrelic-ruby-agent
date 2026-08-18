@@ -451,11 +451,13 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_profiles_data_sends_the_raw_bytes_uncompressed_without_json_marshalling
+    large_payload = 'x' * (NewRelic::Agent::NewRelicService::MIN_BYTE_SIZE_TO_COMPRESS + 1000)
     @http_handle.respond_to('v1/profiles', '', :code => 202)
 
-    @service.profiles_data('raw-profile-bytes')
+    @service.profiles_data(large_payload)
 
-    assert_equal 'raw-profile-bytes', @http_handle.last_request.body
+    assert_equal large_payload, @http_handle.last_request.body
+    assert_nil @http_handle.last_request['Content-Encoding']
   end
 
   def test_profiles_data_sets_the_protobuf_content_type
@@ -471,7 +473,30 @@ class NewRelicServiceTest < Minitest::Test
 
     response = @service.profiles_data('raw-profile-bytes')
 
-    refute_nil response
+    assert_equal 202, response.code
+  end
+
+  def test_profiles_data_records_a_failure_metric_and_returns_nil_on_a_server_error_response
+    @http_handle.respond_to('v1/profiles', '', :code => 500)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
+  def test_profiles_data_records_a_failure_metric_and_returns_nil_on_a_client_error_response
+    @http_handle.respond_to('v1/profiles', '', :code => 400)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
+  def test_profiles_data_with_nil_bytes_does_not_raise
+    assert_nil @service.profiles_data(nil)
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
   end
 
   def test_profiles_data_records_size_and_duration_supportability_metrics
