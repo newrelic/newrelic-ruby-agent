@@ -101,7 +101,7 @@ module NewRelic
               procedure: wrapped_request.method
             )
 
-            segment.add_request_headers(wrapped_request)
+            segment&.add_request_headers(wrapped_request)
 
             # install all callbacks
             unless request._nr_instrumented

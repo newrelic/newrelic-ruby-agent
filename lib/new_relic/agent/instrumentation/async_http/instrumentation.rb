@@ -6,7 +6,11 @@ require 'new_relic/agent/http_clients/async_http_wrappers'
 
 module NewRelic::Agent::Instrumentation
   module AsyncHttp
+    INSTRUMENTATION_NAME = 'AsyncHttp'
+
     def call_with_new_relic(method, url, headers = nil, body = nil)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       headers ||= {} # if it is nil, we need to make it a hash so we can insert headers
       wrapped_request = NewRelic::Agent::HTTPClients::AsyncHTTPRequest.new(self, method, url, headers)
 
