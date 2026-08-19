@@ -52,6 +52,15 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_allowlists_include_their_own_default_value
+      @defaults.each do |key, config_value|
+        next unless config_value[:allowlist]
+
+        assert_includes config_value[:allowlist], fetch_config_value(key),
+          "Expected the default value for #{key} to be on its own allowlist"
+      end
+    end
+
     def test_default_values_maps_keys_to_their_default_values
       default_values = @default_source.default_values
 
@@ -235,12 +244,52 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_allowlist_permits_valid_values_with_unexpected_casing
+      key = :'application_logging.forwarding.log_level'
+
+      with_config(key => 'WARN') do
+        assert_equal 'warn', NewRelic::Agent.config[key]
+      end
+    end
+
     def test_allowlist_blocks_invalid_values_and_uses_a_default
       key = :'application_logging.forwarding.log_level'
       default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       with_config(key => 'bogus') do
         assert_equal default, NewRelic::Agent.config[key]
+      end
+    end
+
+    def test_log_level_allowlist_blocks_invalid_values_and_uses_a_default
+      with_config(:log_level => 'bogus') do
+        assert_equal 'info', NewRelic::Agent.config[:log_level]
+      end
+    end
+
+    def test_record_sql_allowlists_permit_the_values_database_recognizes
+      permitted = ['obfuscated', 'raw', 'none', 'off', 'false', false]
+
+      %i[transaction_tracer.record_sql slow_sql.record_sql].each do |key|
+        permitted.each do |value|
+          with_config(key => value) do
+            assert_equal value, NewRelic::Agent.config[key],
+              "Expected '#{key}' to permit '#{value}'"
+          end
+        end
+      end
+    end
+
+    def test_transaction_tracer_record_sql_allowlist_blocks_invalid_values_and_uses_a_default
+      with_config(:'transaction_tracer.record_sql' => 'bogus') do
+        assert_equal 'obfuscated', NewRelic::Agent.config[:'transaction_tracer.record_sql']
+      end
+    end
+
+    # slow_sql.record_sql defaults to the transaction_tracer.record_sql value
+    def test_slow_sql_record_sql_allowlist_blocks_invalid_values_and_uses_a_default
+      with_config(:'transaction_tracer.record_sql' => 'none', :'slow_sql.record_sql' => 'bogus') do
+        assert_equal 'none', NewRelic::Agent.config[:'slow_sql.record_sql']
       end
     end
 

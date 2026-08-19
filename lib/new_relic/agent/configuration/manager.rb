@@ -274,8 +274,17 @@ module NewRelic
           return value unless allowlist = default_source.allowlist_for(key)
           return value if allowlist.include?(value)
 
+          value = normalized_case_match(allowlist, value)
+          return value if value
+
           default_with_warning(key, value, 'Expected to receive a value found on the following list: ' \
                                ">>#{allowlist}<<, but received '#{value}'.")
+        end
+
+        def normalized_case_match(allowlist, value)
+          return unless STRINGLIKE_TYPES.include?(value.class)
+
+          allowlist.find { |allowlist_value| allowlist_value.to_s.casecmp?(value.to_s) }
         end
 
         def default_source
