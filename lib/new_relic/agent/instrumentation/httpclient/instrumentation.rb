@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
 
         begin
           response = nil
-          segment.add_request_headers(wrapped_request)
+          segment&.add_request_headers(wrapped_request)
 
           NewRelic::Agent::Tracer.capture_segment_error(segment) do
             yield
@@ -29,7 +29,7 @@ module NewRelic::Agent::Instrumentation
           connection.push(response)
 
           wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPClientResponse.new(response)
-          segment.process_response_headers(wrapped_response)
+          segment&.process_response_headers(wrapped_response)
 
           response
         ensure

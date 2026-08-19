@@ -18,16 +18,16 @@ module NewRelic::Agent::Instrumentation
           procedure: wrapped_request.method,
           parent: parent
         )
-        segment.add_request_headers(wrapped_request)
+        segment&.add_request_headers(wrapped_request)
 
         callback = proc do
           wrapped_response = NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(easy)
-          segment.process_response_headers(wrapped_response)
+          segment&.process_response_headers(wrapped_response)
 
           if easy.return_code != :ok
             e = NewRelic::Agent::NoticeableError.new(NOTICEABLE_ERROR_CLASS,
               "return_code: >>#{easy.return_code}<<, response_code: >>#{easy.response_code}<<")
-            segment.notice_error(e)
+            segment&.notice_error(e)
           end
 
           ::NewRelic::Agent::Transaction::Segment.finish(segment)
