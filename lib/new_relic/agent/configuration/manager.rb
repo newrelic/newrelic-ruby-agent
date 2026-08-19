@@ -275,7 +275,7 @@ module NewRelic
           return value if allowlist.include?(value)
 
           value = normalized_case_match(allowlist, value)
-          return value if value
+          return value unless value.nil?
 
           default_with_warning(key, value, 'Expected to receive a value found on the following list: ' \
                                ">>#{allowlist}<<, but received '#{value}'.")
