@@ -82,6 +82,18 @@ class AsyncHttpInstrumentationTest < Minitest::Test
     # so the errors will never end up on the transaction, only ever the async http segment
   end
 
+  def test_segment_might_fail_to_start
+    response = Object.new
+    client = Object.new
+    client.extend(NewRelic::Agent::Instrumentation::AsyncHttp)
+
+    NewRelic::Agent::Tracer.stub :start_external_request_segment, nil do
+      result = client.call_with_new_relic('GET', default_url) { response }
+
+      assert_same response, result
+    end
+  end
+
   def test_raw_synthetics_header_is_passed_along_if_present_array
     in_transaction do
       NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'

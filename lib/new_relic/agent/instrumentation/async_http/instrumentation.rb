@@ -18,7 +18,7 @@ module NewRelic::Agent::Instrumentation
 
       begin
         response = nil
-        segment.add_request_headers(wrapped_request)
+        segment&.add_request_headers(wrapped_request)
 
         NewRelic::Agent.disable_all_tracing do
           response = NewRelic::Agent::Tracer.capture_segment_error(segment) do
@@ -27,7 +27,7 @@ module NewRelic::Agent::Instrumentation
         end
 
         wrapped_response = NewRelic::Agent::HTTPClients::AsyncHTTPResponse.new(response)
-        segment.process_response_headers(wrapped_response)
+        segment&.process_response_headers(wrapped_response)
         response
       ensure
         segment&.finish
