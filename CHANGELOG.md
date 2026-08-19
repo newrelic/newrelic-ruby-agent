@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.7.1
 
 - **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
 
