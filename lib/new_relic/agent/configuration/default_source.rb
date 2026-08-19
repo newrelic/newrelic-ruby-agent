@@ -1095,7 +1095,7 @@ module NewRelic
         },
         :'profiling.harvest_period' => {
           :default => 10,
-          :public => true,
+          :public => false,
           :type => Integer,
           :allowed_from_server => true,
           :description => 'The interval, in seconds, at which the continuous profiler converts and reports its ' \
