@@ -61,15 +61,15 @@ module NewRelic
             parent: parent
           )
 
-          segment.add_request_headers(wrapped_request)
+          segment&.add_request_headers(wrapped_request)
 
           callback = proc do
             wrapped_response = HTTPClients::TyphoeusHTTPResponse.new(request.response)
 
-            segment.process_response_headers(wrapped_response)
+            segment&.process_response_headers(wrapped_response)
 
             if request.response.code == 0
-              segment.notice_error(NoticeableError.new(NOTICEABLE_ERROR_CLASS, response_message(request.response)))
+              segment&.notice_error(NoticeableError.new(NOTICEABLE_ERROR_CLASS, response_message(request.response)))
             end
 
             ::NewRelic::Agent::Transaction::Segment.finish(segment)

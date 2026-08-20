@@ -26,17 +26,14 @@ common: &default_settings
   # All of the following configuration options are optional. Review them, and
   # uncomment or edit them if they appear relevant to your application needs.
 
-  # If true, the agent will use the Active Record model's table name instead of
-  # the class name when naming Active Record metrics, spans, and transaction trace
+  # If true, the agent will use the ActiveRecord model's table name instead of the
+  # class name when naming ActiveRecord metrics, spans, and transaction trace
   # segments. This can reduce cardinality when multiple models share a database
   # table. Defaults to false.
   # active_record_use_table_name: false
 
   # An array of ActiveSupport custom event names to subscribe to and instrument.
-  # For example,
-  # - one.custom.event
-  # - another.event
-  # - a.third.event
+  # For example: [one.custom.event, another.event, a.third.event]
   # active_support_custom_events_names: []
 
   # If false, all LLM instrumentation (OpenAI only for now) will be disabled and
@@ -44,15 +41,10 @@ common: &default_settings
   # disabled if high_security mode is enabled.
   # ai_monitoring.enabled: false
 
-  # If false, LLM instrumentation (OpenAI only for now) will not capture input and
-  # output content on specific LLM events.
-  # 
-  # The excluded attributes include:
-  # - content from LlmChatCompletionMessage events
-  # - input from LlmEmbedding events
-  # 
-  # This is an optional security setting to prevent recording sensitive data sent
-  # to and received from your LLMs.
+  # If false, LLM instrumentation (OpenAI only for now) will not capture the
+  # content attribute on LlmChatCompletionMessage events or the input attribute on
+  # LlmEmbedding events. This is an optional security setting to prevent recording
+  # sensitive data sent to and received from your LLMs.
   # ai_monitoring.record_content.enabled: true
 
   # If true, enables capture of all HTTP request headers for all destinations.
@@ -77,23 +69,15 @@ common: &default_settings
   # application_logging.forwarding.labels.exclude: []
 
   # Sets the minimum level a log event must have to be forwarded to New Relic.
+  # Logs at the configured level and any higher severity are forwarded, for
+  # example, debug forwards all log events, while error forwards only error,
+  # fatal, and unknown events. Valid values, lowest to highest severity: debug,
+  # info, warn, error, fatal, unknown (case-sensitive; uppercase forms are also
+  # accepted).
   # 
-  # This is based on the integer values of Ruby's Logger::Severity constants.
-  # 
-  # The intention is to forward logs with the level given to the configuration, as
-  # well as any logs with a higher level of severity.
-  # 
-  # For example, setting this value to "debug" will forward all log events to New
-  # Relic. Setting this value to "error" will only forward log events with the
-  # levels "error", "fatal", and "unknown".
-  # 
-  # Valid values (ordered lowest to highest):
-  # - "debug"
-  # - "info"
-  # - "warn"
-  # - "error"
-  # - "fatal"
-  # - "unknown"
+  # This ordering is based on the integer values of Ruby's Logger::Severity
+  # constants (see
+  # https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
   # application_logging.forwarding.log_level: debug
 
   # Defines the maximum number of log records to buffer in memory at a time.
@@ -121,7 +105,7 @@ common: &default_settings
   # collector.
   # audit_log.enabled: false
 
-  # List of allowed endpoints to include in audit log.
+  # List of allowed endpoints to include in the audit log.
   # audit_log.endpoints: [".*"]
 
   # Specifies a path to the audit log file (including the filename).
@@ -220,12 +204,11 @@ common: &default_settings
   # the SSL certificate presented by New Relic's data collection service.
   # ca_bundle_path: nil
 
-  # Enable or disable the capture of memcache keys from transaction traces.
+  # If true, the agent captures memcache keys in transaction traces.
   # capture_memcache_keys: false
 
   # When true, the agent captures HTTP request parameters and attaches them to
   # transaction traces, traced errors, and TransactionError events.
-  # 
   # When using the capture_params setting, the Ruby agent will not attempt to
   # filter secret information. Recommendation: To filter secret information from
   # request parameters, use the attributes.include setting instead. For more
@@ -235,7 +218,7 @@ common: &default_settings
   # If true, the agent will clear Tracer::State in Agent.drop_buffered_data.
   # clear_transaction_state_after_fork: false
 
-  # The AWS account ID for the AWS account associated with this app
+  # The AWS account ID associated with this application.
   # cloud.aws.account_id: nil
 
   # If true, the agent will report source code level metrics for traced methods.
@@ -244,11 +227,8 @@ common: &default_settings
   # code_level_metrics.enabled: true
 
   # Path to newrelic.yml. If undefined, the agent checks the following directories
-  # (in order):
-  # - config/newrelic.yml
-  # - newrelic.yml
-  # - $HOME/.newrelic/newrelic.yml
-  # - $HOME/newrelic.yml
+  # (in order): config/newrelic.yml -> newrelic.yml ->
+  # $HOME/.newrelic/newrelic.yml -> $HOME/newrelic.yml`
   # config_path: newrelic.yml
 
   # If false, custom attributes will not be sent on events.
@@ -257,13 +237,13 @@ common: &default_settings
   # If true, the agent captures custom events.
   # custom_insights_events.enabled: true
 
-  # - Specify a maximum number of custom events to buffer in memory at a time.
-  #   - When configuring the agent for AI monitoring, set to max value 100000.
-  # This ensures the agent captures the maximum amount of LLM events.
+  # Specify a maximum number of custom events to buffer in memory at a time. When
+  # configuring the agent for AI monitoring, set to max value 100000. This ensures
+  # the agent captures the maximum amount of LLM events.
   # custom_insights_events.max_samples_stored: 3000
 
   # If false, the agent will not add database_name parameter to transaction or
-  # slow sql traces.
+  # slow SQL traces.
   # datastore_tracer.database_name_reporting.enabled: true
 
   # If false, the agent will not report datastore instance metrics, nor add host
@@ -292,7 +272,7 @@ common: &default_settings
   # If true, disables Active Record instrumentation.
   # disable_active_record_instrumentation: false
 
-  # If true, disables instrumentation for Active Record 4+
+  # If true, disables instrumentation for Active Record 4+.
   # disable_active_record_notifications: false
 
   # If true, disables Active Storage instrumentation.
@@ -311,7 +291,7 @@ common: &default_settings
   # disable_delayed_job_sampler: false
 
   # If true, disables the use of GC::Profiler to measure time spent in garbage
-  # collection
+  # collection.
   # disable_gc_profiler: false
 
   # If true, the agent won't sample the memory usage of the host process.
@@ -319,7 +299,6 @@ common: &default_settings
 
   # If true, the agent won't wrap third-party middlewares in instrumentation
   # (regardless of whether they are installed via Rack::Builder or Rails).
-  # 
   # When middleware instrumentation is disabled, if an application is using
   # middleware that could alter the response code, the HTTP status code reported
   # on the transaction may not reflect the altered value.
@@ -373,8 +352,8 @@ common: &default_settings
   # distributed_tracing.sampler.remote_parent_sampled: adaptive
 
   # This setting controls the behavior of transaction sampling for transactions
-  # without a remote parent, traces that originate within this instance of the New
-  # Relic agent. Available values are adaptive (the default), always_on,
+  # without a remote parent (traces that originate within this instance of the New
+  # Relic agent). Available values are adaptive (the default), always_on,
   # always_off, and trace_id_ratio_based.
   # distributed_tracing.sampler.root: adaptive
 
@@ -421,9 +400,9 @@ common: &default_settings
   # This option can't be set via environment variable.
   # error_collector.expected_messages: {}
 
-  # A comma separated list of status codes, possibly including ranges. Errors
-  # associated with these status codes, where applicable, will be treated as
-  # expected.
+  # A comma-separated list of HTTP status codes and/or status code ranges (for
+  # example, 404, 429, 500-599). Errors associated with a matching status code, if
+  # the error has one, will be treated as expected.
   # error_collector.expected_status_codes: ""
 
   # A list of error classes that the agent should ignore.
@@ -436,8 +415,9 @@ common: &default_settings
   # This option can't be set via environment variable.
   # error_collector.ignore_messages: {ThreadError: ["queue empty"]}
 
-  # A comma separated list of status codes, possibly including ranges. Errors
-  # associated with these status codes, where applicable, will be ignored.
+  # A comma-separated list of HTTP status codes and/or status code ranges (for
+  # example, 404, 429, 500-599). Errors associated with a matching status code, if
+  # the error has one, will be ignored.
   # error_collector.ignore_status_codes: ""
 
   # Defines the maximum number of frames in an error backtrace. Backtraces over
@@ -451,19 +431,17 @@ common: &default_settings
   # cycle.
   # error_collector.max_event_samples_stored: 100
 
-  # Allows newrelic distributed tracing headers to be suppressed on outbound
+  # If true, suppresses the newrelic distributed tracing header on outbound
   # requests.
   # exclude_newrelic_header: false
 
-  # The exit handler that sends all cached data to the collector before shutting
-  # down is forcibly installed. This is true even when it detects scenarios where
-  # it generally should not be. The known use case for this option is when Sinatra
-  # runs as an embedded service within another framework. The agent detects the
-  # Sinatra app and skips the at_exit handler as a result. Sinatra classically
-  # runs the entire application in an at_exit block and would otherwise misbehave
-  # if the agent's at_exit handler was also installed in those circumstances.
-  # Note: send_data_on_exit should also be set to true in tandem with this
-  # setting.
+  # If true, forces the agent to install its exit handler (which sends all cached
+  # data to the collector before shutting down), even in cases where the agent
+  # would normally skip it, such as when it detects Sinatra running as an embedded
+  # service within another framework. Sinatra runs the entire application inside
+  # its own at_exit block, so the agent skips its own at_exit handler by default
+  # to avoid conflicts. This setting overrides that. Note: send_data_on_exit must
+  # also be true for this setting to have any effect.
   # force_install_exit_handler: false
 
   # Ordinarily the agent reports dyno names with a trailing dot and process ID
@@ -507,15 +485,14 @@ common: &default_settings
   # of: auto, prepend, chain, disabled. Used in Rails versions below 7.1.
   # instrumentation.active_support_logger: auto
 
-  # An allowlist array of Active Support notifications events specific to the
-  # Active Support library itself that the agent should subscribe to. The Active
-  # Support library specific events focus primarily on caching. Any event name not
-  # included in this list will be ignored by the agent. Provide complete event
-  # names such as 'cache_fetch_hit.active_support'. Do not provide asterisks or
-  # regex patterns, and do not escape any characters with backslashes.  For a
-  # complete list of all possible Active Support event names, see the list of
-  # caching names and the list of messages names from the official Rails
-  # documentation.
+  # An allowlist of ActiveSupport notification event names (mostly caching events
+  # and message-serializer events) that the agent subscribes to. Any event name
+  # not included here is ignored. Provide complete event names only, such as
+  # cache_fetch_hit.active_support. Do not provide asterisks or regex patterns,
+  # and do not escape any characters with backslashes.
+  # 
+  # For the complete list of possible event names, see the Rails documentation's
+  # list of caching names and messages names.
   # instrumentation.active_support_notifications.active_support_events: ["cache_fetch_hit.active_support", "cache_generate.active_support", "cache_read.active_support", "cache_write.active_support", "cache_delete.active_support", "cache_exist?.active_support", "cache_read_multi.active_support", "cache_write_multi.active_support", "cache_delete_multi.active_support", "cache_delete_matched.active_support", "cache_cleanup.active_support", "cache_increment.active_support", "cache_decrement.active_support", "cache_prune.active_support", "message_serializer_fallback.active_support"]
 
   # Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto,
@@ -563,7 +540,7 @@ common: &default_settings
   # instrumentation.elasticsearch: auto
 
   # Controls auto-instrumentation of ethon at start up. May be one of auto,
-  # prepend, chain, disabled
+  # prepend, chain, disabled.
   # instrumentation.ethon: auto
 
   # Controls auto-instrumentation of Excon at start-up. May be one of: enabled,
@@ -578,13 +555,12 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.grape: auto
 
-  # Specifies a list of hostname patterns separated by commas that will match gRPC
-  # hostnames that traffic is to be ignored by New Relic for. New Relic's gRPC
-  # client instrumentation will ignore traffic streamed to a host matching any of
-  # these patterns, and New Relic's gRPC server instrumentation will ignore
-  # traffic for a server running on a host whose hostname matches any of these
-  # patterns. By default, no traffic is ignored when gRPC instrumentation is
-  # itself enabled. For example, "private.com$,exception.*"
+  # A comma-separated list of regular expression patterns matching gRPC hostnames
+  # whose traffic New Relic should ignore. New Relic's gRPC client instrumentation
+  # skips tracing calls made to a host matching any of these patterns, and its
+  # gRPC server instrumentation skips tracing requests received by a server
+  # running on a matching host. For example, "private.com$,exception.*" Empty by
+  # default, meaning no traffic is ignored..
   # instrumentation.grpc.host_denylist: []
 
   # Controls auto-instrumentation of gRPC clients at start-up. May be one of:
@@ -604,7 +580,7 @@ common: &default_settings
   # instrumentation.httprb: auto
 
   # Controls auto-instrumentation of httpx at start up. May be one of auto,
-  # prepend, chain, disabled
+  # prepend, chain, disabled.
   # instrumentation.httpx: auto
 
   # Controls auto-instrumentation of Ruby standard library Logger at start-up. May
@@ -670,13 +646,10 @@ common: &default_settings
   # instrumentation.rails_event_logger: enabled
 
   # An array of Rails.event names to capture as structured log events. For
-  # example,
-  # - user.signup
-  # - payment.processed
-  # - order.created
-  # Leave empty to capture all Rails.event notifications. Events are logged with
-  # level UNKNOWN (ensuring they're never filtered) unless overridden via :level
-  # key in the event payload.
+  # example: [user.signup, payment.processed, order.created]. Leave empty to
+  # capture all Rails.event notifications. Events are logged with level UNKNOWN
+  # (ensuring they're never filtered) unless overridden via a :level key in the
+  # event payload.
   # instrumentation.rails_event_logger.event_names: []
 
   # Controls auto-instrumentation of rake at start-up. May be one of: auto,
@@ -804,7 +777,7 @@ common: &default_settings
   # instrumentation.
   # prepend_active_record_instrumentation: false
 
-  # Specify a custom host name for display in the New Relic UI.
+  # Specify a custom hostname for display in the New Relic UI.
   # process_host.display_name: default hostname
 
   # Defines a host for communicating with the New Relic collector via a proxy
@@ -827,18 +800,19 @@ common: &default_settings
   # master process.
   # puma.sample_rate: 60
 
-  # Timeout for waiting on connect to complete before a rake task
+  # Defines the number of seconds to wait for a connection to complete before
+  # running a Rake task.
   # rake.connect_timeout: 10
 
   # Specify an Array of Rake tasks to automatically instrument. This configuration
-  # option converts the Array to a RegEx list. If you'd like to allow all tasks by
-  # default, use rake.tasks: [.+]. No rake tasks will be instrumented unless
-  # they're added to this list. For more information, visit the New Relic Rake
+  # option converts the Array to a RegEx list. No rake tasks will be instrumented
+  # unless they're added to this list. If you'd like to allow all tasks by
+  # default, use rake.tasks: [.+]. For more information, visit the New Relic Rake
   # Instrumentation docs.
   # rake.tasks: []
 
-  # Define transactions you want the agent to ignore, by specifying a list of
-  # patterns matching the URI you want to ignore. For more detail, see the docs on
+  # Define transactions you want the agent to ignore by specifying a list of
+  # patterns matching the URIs to exclude. For more detail, see the docs on
   # ignoring specific transactions.
   # rules.ignore_url_regexes: []
 
@@ -854,20 +828,20 @@ common: &default_settings
 
   # An array of strings that will collectively serve as a denylist for filtering
   # which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq
-  # arguments, 'job.sidekiq.args.*' must be added to the separate
-  # :'attributes.include' configuration option. Each string in this array will be
+  # arguments, job.sidekiq.args.* must also be added to the separate
+  # attributes.include configuration option. Each string in this array will be
   # turned into a regular expression via Regexp.new to permit advanced matching.
-  # For job argument hashes, if either a key or value matches the pair will be
+  # For job argument hashes, if either a key or value matches, the pair will be
   # excluded. All matching job argument array elements and job argument scalars
   # will be excluded.
   # sidekiq.args.exclude: []
 
   # An array of strings that will collectively serve as an allowlist for filtering
   # which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq
-  # arguments, 'job.sidekiq.args.*' must be added to the separate
-  # :'attributes.include' configuration option. Each string in this array will be
+  # arguments, job.sidekiq.args.* must also be added to the separate
+  # attributes.include configuration option. Each string in this array will be
   # turned into a regular expression via Regexp.new to permit advanced matching.
-  # For job argument hashes, if either a key or value matches the pair will be
+  # For job argument hashes, if either a key or value matches, the pair will be
   # included. All matching job argument array elements and job argument scalars
   # will be included.
   # sidekiq.args.include: []
@@ -902,8 +876,8 @@ common: &default_settings
   # obfuscated, raw, or none.
   # slow_sql.record_sql: obfuscated
 
-  # Generate a longer sql_id for slow SQL traces. sql_id is used for aggregation
-  # of similar queries.
+  # If true, the agent generates a longer sql_id for slow SQL traces. sql_id is
+  # used for aggregation of similar queries.
   # slow_sql.use_longer_sql_id: false
 
   # If true, the agent captures attributes on span events.
@@ -918,10 +892,10 @@ common: &default_settings
   # If true, enables span event sampling.
   # span_events.enabled: true
 
-  # - Defines the maximum number of span events reported from a single harvest.
-  # Any Integer between 1 and 10000 is valid.'
-  #   - When configuring the agent for AI monitoring, set to max value 10000.This
-  # ensures the agent captures the maximum amount of distributed traces.
+  # Defines the maximum number of span events reported from a single harvest. Any
+  # Integer between 1 and 10000 is valid. When configuring the agent for AI
+  # monitoring, set to max value 10000. This ensures the agent captures the
+  # maximum amount of distributed traces.
   # span_events.max_samples_stored: 2000
 
   # Sets the maximum number of span events to buffer when streaming to the trace
@@ -938,22 +912,17 @@ common: &default_settings
   # strip_exception_messages.enabled: false
 
   # An array of strings to specify which keys and/or values inside a Stripe
-  # event's user_data hash should
-  # not be reported to New Relic. Each string in this array will be turned into a
-  # regular expression via
-  # Regexp.new to permit advanced matching. For each hash pair, if either the key
-  # or value is matched the pair
-  # isn't reported. By default, no user_data is reported. Use this option only if
-  # the
-  # stripe.user_data.include option is also used.
+  # event's user_data hash should not be reported to New Relic. Each string in
+  # this array will be turned into a regular expression via Regexp.new to permit
+  # advanced matching. For each hash pair, if either the key or value is matched
+  # the pair isn't reported. By default, no user_data is reported. Use this option
+  # only if the stripe.user_data.include option is also used.
   # stripe.user_data.exclude: []
 
   # An array of strings to specify which keys inside a Stripe event's user_data
-  # hash should be reported
-  # to New Relic. Each string in this array will be turned into a regular
-  # expression via Regexp.new to
-  # enable advanced matching. Setting the value to ["."] will report all
-  # user_data.
+  # hash should be reported to New Relic. Each string in this array will be turned
+  # into a regular expression via Regexp.new to enable advanced matching. Setting
+  # the value to ["."] will report all user_data.
   # stripe.user_data.include: []
 
   # When set to true, forces a synchronous connection to the New Relic collector
@@ -961,7 +930,7 @@ common: &default_settings
   # the New Relic agent has time to report.
   # sync_startup: false
 
-  # If true, tracer state storage is thread-local, otherwise, fiber-local
+  # If true, tracer state storage is thread-local, otherwise, fiber-local.
   # thread_local_tracer_state: false
 
   # If true, enables use of the thread profiler.
@@ -1037,9 +1006,10 @@ common: &default_settings
   # If true, the agent records Redis command arguments in transaction traces.
   # transaction_tracer.record_redis_arguments: false
 
-  # Obfuscation level for SQL queries reported in transaction trace nodes.
-  # By default, this is set to obfuscated, which strips out the numeric and string
+  # Obfuscation level for SQL queries reported in transaction trace nodes. By
+  # default, this is set to obfuscated, which strips out the numeric and string
   # literals.
+  # 
   # - If you do not want the agent to capture query information, set this to none.
   # - If you want the agent to capture all query information in its original form,
   # set this to raw.
@@ -1066,7 +1036,7 @@ common: &default_settings
   # If true, the agent automatically detects that it is running in Docker.
   # utilization.detect_docker: true
 
-  # If true, the agent automatically detects that it is running in an Google Cloud
+  # If true, the agent automatically detects that it is running in a Google Cloud
   # Platform environment.
   # utilization.detect_gcp: true
 
@@ -1111,14 +1081,14 @@ common: &default_settings
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
   
-  # If true, the security agent is loaded (a Ruby 'require' is performed)
+  # If true, the security agent is loaded (a Ruby 'require' is performed).
   # security.agent.enabled: false
 
   # The port the application is listening on. This setting is mandatory for
   # Passenger servers. The agent detects other servers by default.
   # security.application_info.port: nil
 
-  # If true, the security agent is started (the agent runs in its event loop)
+  # If true, the security agent is started (the agent runs in its event loop).
   # security.enabled: false
 
   # Defines API paths the security agent should ignore in IAST scans. Accepts an
@@ -1145,20 +1115,20 @@ common: &default_settings
   # security.exclude_from_iast_scan.iast_detection_category.command_injection: false
 
   # If true, disables the detection of low-severity insecure settings. For
-  # example, hash, crypto, cookie, random generators, trust boundary).
+  # example, hash, crypto, cookie, random generators, and trust boundary.
   # security.exclude_from_iast_scan.iast_detection_category.insecure_settings: false
 
   # If true, disables file operation-related IAST detections (File Access &
   # Application integrity violation)
   # security.exclude_from_iast_scan.iast_detection_category.invalid_file_access: false
 
-  # If true, disables Javascript injection detection in IAST scans.
+  # If true, disables JavaScript injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.javascript_injection: false
 
   # If true, disables LDAP injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.ldap_injection: false
 
-  # If true, disables NOSQL injection detection in IAST scans.
+  # If true, disables NoSQL injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.nosql_injection: false
 
   # If true, disables Reflected Cross-Site Scripting (RXSS) detection in IAST
@@ -1168,22 +1138,22 @@ common: &default_settings
   # If true, disables SQL injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.sql_injection: false
 
-  # If true, disables Sever-Side Request Forgery (SSRF) detection in IAST scans.
+  # If true, disables Server-Side Request Forgery (SSRF) detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.ssrf: false
 
-  # If true, disables XPATH injection detection in IAST scans.
+  # If true, disables XPath injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.xpath_injection: false
 
-  # A unique test identifier when runnning IAST in a CI/CD environment to
+  # A unique test identifier when running IAST in a CI/CD environment to
   # differentiate between different test runs. For example, a build number.
   # security.iast_test_identifier: nil
 
   # Defines the mode for the security agent to operate in. Currently only IAST is
-  # supported
+  # supported.
   # security.mode: IAST
 
-  # Sets the maximum number of HTTP requests allowed for the IAST scan per minute.
-  # Any Integer between 12 and 3600 is valid. The default value is 3600.
+  # Sets the maximum number of HTTP requests allowed per minute for the IAST scan.
+  # Must be an integer between 12 and 3600 (default).
   # security.scan_controllers.iast_scan_request_rate_limit: 3600
 
   # If true, enables the sending of HTTP responses bodies. Disabling this also
@@ -1203,13 +1173,13 @@ common: &default_settings
   # application starts.
   # security.scan_schedule.delay: 0
 
-  # Indicates the duration (in minutes) for which the IAST scan will be performed.
+  # Specifies the duration (in minutes) for which the IAST scan is performed.
   # security.scan_schedule.duration: 0
 
   # Specifies a cron expression that sets when the IAST scan should run.
   # security.scan_schedule.schedule: ""
 
-  # Defines the endpoint URL for posting security-related data
+  # Defines the endpoint URL for posting security-related data.
   # security.validator_service_url: wss://csec.nr-data.net
 
   # END security agent

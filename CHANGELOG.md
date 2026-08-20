@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.7.1
+
+- **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
+
+  This fix updates Dalli instrumentation to accept and forward optional request options arguments in multi and pipelined operations. Our thanks go to [@dbackeus](https://github.com/dbackeus) for contributing a fix! [PR#3642](https://github.com/newrelic/newrelic-ruby-agent/pull/3642)
+
+- **Bugfix: Async::HTTP requests no longer raise `NoMethodError` when a segment fails to start**
+
+  If the agent encountered an internal error while creating the segment for an `Async::HTTP` request, the instrumentation went on to use that missing segment and could raise a `NoMethodError`. This is now fixed, thanks to [@ydah](https://github.com/ydah). [PR#3640](https://github.com/newrelic/newrelic-ruby-agent/pull/3640)
+
 ## v10.7.0
 
 - **Feature: Add transaction_tracer.cap_segment_artifacts configuration option**
