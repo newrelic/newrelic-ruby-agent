@@ -80,12 +80,25 @@ module NewRelic
         end
 
         def resource
-          OTEL_RESOURCE::Resource.new(attributes: [
+          OTEL_RESOURCE::Resource.new(attributes: resource_attributes)
+        end
+
+        def resource_attributes
+          attributes = [
             OTEL_COMMON::KeyValue.new(
               key: 'service.name',
               value: OTEL_COMMON::AnyValue.new(string_value: Array(NewRelic::Agent.config[:app_name]).first.to_s)
             )
-          ])
+          ]
+
+          if (entity_guid = NewRelic::Agent.config[:entity_guid])
+            attributes << OTEL_COMMON::KeyValue.new(
+              key: 'entity.guid',
+              value: OTEL_COMMON::AnyValue.new(string_value: entity_guid)
+            )
+          end
+
+          attributes
         end
 
         def scope_profiles

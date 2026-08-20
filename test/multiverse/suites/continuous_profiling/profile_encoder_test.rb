@@ -136,6 +136,27 @@ class ProfileEncoderTest < Minitest::Test
     end
   end
 
+  def test_resource_carries_the_entity_guid_when_present
+    with_config(:entity_guid => 'abc123') do
+      decoded = encode_and_decode(REPORT)
+      attributes = decoded.resource_profiles[0].resource.attributes
+
+      entity_guid_attribute = attributes.find { |attr| attr.key == 'entity.guid' }
+
+      refute_nil entity_guid_attribute
+      assert_equal 'abc123', entity_guid_attribute.value.string_value
+    end
+  end
+
+  def test_resource_omits_entity_guid_when_not_present
+    with_config(:entity_guid => nil) do
+      decoded = encode_and_decode(REPORT)
+      attributes = decoded.resource_profiles[0].resource.attributes
+
+      assert_nil attributes.find { |attr| attr.key == 'entity.guid' }
+    end
+  end
+
   def test_handles_an_empty_report_without_raising
     decoded = encode_and_decode(mode: :cpu, interval: 1000, raw: [], raw_lines: [])
 
