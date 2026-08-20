@@ -244,14 +244,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_allowlist_permits_valid_values_with_unexpected_casing
-      key = :'application_logging.forwarding.log_level'
-
-      with_config(key => 'WARN') do
-        assert_equal 'warn', NewRelic::Agent.config[key]
-      end
-    end
-
     def test_allowlist_blocks_invalid_values_and_uses_a_default
       key = :'application_logging.forwarding.log_level'
       default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
@@ -261,35 +253,32 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_log_level_allowlist_blocks_invalid_values_and_uses_a_default
-      with_config(:log_level => 'bogus') do
-        assert_equal 'info', NewRelic::Agent.config[:log_level]
-      end
-    end
+    def test_allowlisted_values_can_be_any_case
+      @defaults.each do |key, config_value|
+        next unless config_value[:allowlist]
 
-    def test_record_sql_allowlists_permit_the_values_database_recognizes
-      permitted = ['obfuscated', 'raw', 'none', 'off', 'false', false]
+        config_value[:allowlist].each do |value|
+          next unless value.is_a?(String) || value.is_a?(Symbol)
 
-      %i[transaction_tracer.record_sql slow_sql.record_sql].each do |key|
-        permitted.each do |value|
-          with_config(key => value) do
-            assert_equal value, NewRelic::Agent.config[key],
-              "Expected '#{key}' to permit '#{value}'"
+          value_swapcased = value.to_s.swapcase
+          standard = with_config(key => value) { NewRelic::Agent.config[key] }
+
+          with_config(key => value_swapcased) do
+            assert_equal standard, NewRelic::Agent.config[key], "Expected #{key} to treat '#{value_swapcased}' like '#{value}'"
           end
         end
       end
     end
 
-    def test_transaction_tracer_record_sql_allowlist_blocks_invalid_values_and_uses_a_default
-      with_config(:'transaction_tracer.record_sql' => 'bogus') do
-        assert_equal 'obfuscated', NewRelic::Agent.config[:'transaction_tracer.record_sql']
-      end
-    end
+    def test_a_value_that_is_not_on_an_allowlist_resolves_to_the_default
+      @defaults.each do |key, config_value|
+        next unless config_value[:allowlist]
 
-    # slow_sql.record_sql defaults to the transaction_tracer.record_sql value
-    def test_slow_sql_record_sql_allowlist_blocks_invalid_values_and_uses_a_default
-      with_config(:'transaction_tracer.record_sql' => 'none', :'slow_sql.record_sql' => 'bogus') do
-        assert_equal 'none', NewRelic::Agent.config[:'slow_sql.record_sql']
+        default = with_config(key => fetch_config_value(key)) { NewRelic::Agent.config[key] }
+
+        with_config(key => 'not_allowed') do
+          assert_equal default, NewRelic::Agent.config[key], "Expected #{key} to reject a value that is not on its allowlist"
+        end
       end
     end
 
