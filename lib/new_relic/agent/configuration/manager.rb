@@ -280,6 +280,7 @@ module NewRelic
           default_with_warning(key, value, 'Expected to receive a value found on the following list: ' \
                                ">>#{allowlist}<<, but received '#{value}'.")
         end
+
         def normalized_case_match(allowlist, value)
           return unless STRINGLIKE_TYPES.include?(value.class)
 
