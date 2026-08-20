@@ -576,7 +576,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :allowlist => %w[obfuscated raw none off false],
+          :allowlist => ['obfuscated', 'raw', 'none', 'off', 'false', false],
           :description => <<~DESCRIPTION
             Obfuscation level for SQL queries reported in transaction trace nodes. By default, this is set to `obfuscated`, which strips out the numeric and string literals.
 
@@ -2197,7 +2197,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :allowlist => %w[obfuscated raw none off false],
+          :allowlist => ['obfuscated', 'raw', 'none', 'off', 'false', false],
           :description => 'Defines an obfuscation level for slow SQL queries. Valid options are `obfuscated`, `raw`, or `none`.'
         },
         :'slow_sql.use_longer_sql_id' => {
