@@ -397,7 +397,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order): config/newrelic.yml` -> `newrelic.yml` -> `$HOME/.newrelic/newrelic.yml` -> `$HOME/newrelic.yml`
+            Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order): `config/newrelic.yml` -> `newrelic.yml` -> `$HOME/.newrelic/newrelic.yml` -> `$HOME/newrelic.yml`
           DESCRIPTION
         },
         :'exclude_newrelic_header' => {
