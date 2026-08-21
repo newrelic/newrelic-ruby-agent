@@ -11,6 +11,21 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     NewRelic::Agent::Database::ConnectionManager.instance.instance_eval { @connections = {} }
   end
 
+  def test_record_sql_method_honors_values_regardless_of_case
+    {'Off' => :off, 'NoNe' => :off, 'fALSE' => :off, 'RAW' => :raw, 'obfuscated' => :obfuscated}.each do |value, expected|
+      with_config(:'transaction_tracer.record_sql' => value) do
+        assert_equal expected, NewRelic::Agent::Database.record_sql_method,
+          "Expected '#{value}' to be recognized as '#{expected}'"
+      end
+    end
+  end
+
+  def test_record_sql_method_falls_back_to_obfuscated_for_an_unrecognized_value
+    with_config(:'transaction_tracer.record_sql' => 'idk') do
+      assert_equal :obfuscated, NewRelic::Agent::Database.record_sql_method
+    end
+  end
+
   def test_adapter_from_config_string
     config = {:adapter => 'mysql'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
