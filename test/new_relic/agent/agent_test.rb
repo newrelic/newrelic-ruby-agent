@@ -282,12 +282,20 @@ module NewRelic
       end
 
       def test_merge_data_for_endpoint_forwards_profiles_data_without_blocking_the_caller
-        @agent.service.stubs(:profiles_data) { sleep(1) }
+        started = Queue.new
+        release = Queue.new
+        @agent.service.define_singleton_method(:profiles_data) do |*_args|
+          started.push(:started)
+          release.pop
+        end
 
         thread = Timeout.timeout(1) { @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes') }
+        Timeout.timeout(1) { started.pop }
 
-        refute_predicate thread, :stop?
-        thread.kill
+        assert_predicate thread, :alive?
+      ensure
+        release.push(:release)
+        thread&.join
       end
 
       def test_merge_data_for_endpoint_logs_but_does_not_raise_when_profiles_data_raises
