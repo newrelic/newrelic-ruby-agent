@@ -126,9 +126,10 @@ DependencyDetection.defer do
   @name = :puma
 
   depends_on do
-    defined?(Puma) && defined?(Puma::Launcher) &&
-      NewRelic::Helper.version_satisfied?(Puma::Const::VERSION, '>=', '6.6.0') &&
-      !NewRelic::Agent.config[:disable_puma_instrumentation]
+  defined?(Puma) && (defined?(Puma::Launcher) || defined?(Puma::RackHandler)) &&
+    (defined?(Puma::Const) || require('puma/const')) &&
+    NewRelic::Helper.version_satisfied?(Puma::Const::VERSION, '>=', '6.6.0') &&
+    !NewRelic::Agent.config[:disable_puma_instrumentation]
   end
 
   executes do
