@@ -2,6 +2,10 @@
 
 ## v10.7.1
 
+- **Feature: Add span.kind to background job libraries**
+
+  Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
+
 - **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
 
   This fix updates Dalli instrumentation to accept and forward optional request options arguments in multi and pipelined operations. Our thanks go to [@dbackeus](https://github.com/dbackeus) for contributing a fix! [PR#3642](https://github.com/newrelic/newrelic-ruby-agent/pull/3642)

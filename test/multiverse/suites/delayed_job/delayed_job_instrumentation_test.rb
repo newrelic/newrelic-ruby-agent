@@ -95,6 +95,18 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       ]
     end
 
+    def test_invoke_job_tags_the_segment_with_consumer_span_kind
+      job = QuackJob.new(rand(100))
+
+      in_transaction do |txn|
+        invoke_job(job)
+        segment = txn.segments.detect { |s| s.name.include?('DelayedJob') }
+
+        assert segment, 'Expected to find a DelayedJob segment'
+        assert_equal NewRelic::Agent::SpanEventPrimitive::CONSUMER, segment.span_kind
+      end
+    end
+
     # Note we use this method instead of Delayed::Job.enqueue because Delayed Job 2.1.4 does
     # not call invoke_job when running jobs inline it instead calls perform directly.  This
     # allows us to test the stand alone job case on all supported versions of Delayed Job.
