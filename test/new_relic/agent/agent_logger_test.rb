@@ -122,6 +122,17 @@ class AgentLoggerTest < Minitest::Test
     assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for(:unknown)
   end
 
+  def test_sets_log_level_when_the_configured_level_is_weirdly_cased
+    with_config(:log_level => 'DeBuG') do
+      override_logger = Logger.new($stderr)
+      override_logger.level = Logger::FATAL
+
+      NewRelic::Agent::AgentLogger.new('', override_logger)
+
+      assert_equal Logger::DEBUG, override_logger.level
+    end
+  end
+
   def test_sets_log_level
     with_config(:log_level => :debug) do
       override_logger = Logger.new($stderr)

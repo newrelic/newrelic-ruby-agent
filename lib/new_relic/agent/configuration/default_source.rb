@@ -315,7 +315,8 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `error`, `warn`, `info` or `debug`.'
+          :allowlist => %w[debug info warn error fatal],
+          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `fatal`, `error`, `warn`, `info` or `debug`.'
         },
         # General
         :active_support_custom_events_names => {
@@ -409,7 +410,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order): config/newrelic.yml` -> `newrelic.yml` -> `$HOME/.newrelic/newrelic.yml` -> `$HOME/newrelic.yml`
+            Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order): `config/newrelic.yml` -> `newrelic.yml` -> `$HOME/.newrelic/newrelic.yml` -> `$HOME/newrelic.yml`
           DESCRIPTION
         },
         :'exclude_newrelic_header' => {
@@ -587,6 +588,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
+          :allowlist => ['obfuscated', 'raw', 'none', 'off', 'false', false],
           :description => <<~DESCRIPTION
             Obfuscation level for SQL queries reported in transaction trace nodes. By default, this is set to `obfuscated`, which strips out the numeric and string literals.
 
@@ -781,9 +783,9 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :allowlist => %w[debug info warn error fatal unknown DEBUG INFO WARN ERROR FATAL UNKNOWN],
+          :allowlist => %w[debug info warn error fatal unknown],
           :description => <<~DESCRIPTION
-            Sets the minimum level a log event must have to be forwarded to New Relic. Logs at the configured level and any higher severity are forwarded, for example, `debug` forwards all log events, while `error` forwards only `error`, `fatal`, and `unknown` events. Valid values, lowest to highest severity: `debug`, `info`, `warn`, `error`, `fatal`, `unknown` (case-sensitive; uppercase forms are also accepted).
+            Sets the minimum level a log event must have to be forwarded to New Relic. Logs at the configured level and any higher severity are forwarded, for example, `debug` forwards all log events, while `error` forwards only `error`, `fatal`, and `unknown` events. Valid values, lowest to highest severity: `debug`, `info`, `warn`, `error`, `fatal`, `unknown` (case-insensitive).
 
             \tThis ordering is based on the integer values of Ruby's `Logger::Severity` constants (see https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
           DESCRIPTION
@@ -2251,6 +2253,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
+          :allowlist => ['obfuscated', 'raw', 'none', 'off', 'false', false],
           :description => 'Defines an obfuscation level for slow SQL queries. Valid options are `obfuscated`, `raw`, or `none`.'
         },
         :'slow_sql.use_longer_sql_id' => {
