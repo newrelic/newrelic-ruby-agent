@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../../test_helper'
+require 'timeout'
 require 'new_relic/agent/continuous_profiling/session'
 
 module NewRelic::Agent::ContinuousProfiling
@@ -76,13 +77,40 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_stop_flips_running_and_joins_the_thread
-      @fake_thread.expects(:join)
+      @fake_thread.expects(:join).returns(@fake_thread)
       @session.start
 
       @session.stop
 
       refute_predicate @session, :running?
+      assert_nil @session.instance_variable_get(:@thread)
       assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
+    end
+
+    def test_stop_logs_a_warning_and_keeps_the_thread_reference_when_join_times_out
+      @fake_thread.stubs(:join).returns(nil)
+      NewRelic::Agent.logger.expects(:warn).with(regexp_matches(/Timed out waiting/))
+      @session.start
+
+      @session.stop
+
+      refute_predicate @session, :running?
+      refute_nil @session.instance_variable_get(:@thread)
+    end
+
+    def test_stop_does_not_clobber_a_thread_replaced_by_a_concurrent_start
+      @session.start
+      original_thread = @session.instance_variable_get(:@thread)
+      new_thread = stub_everything('thread from a concurrent start')
+      session = @session
+      original_thread.define_singleton_method(:join) do |*_args|
+        session.instance_variable_set(:@thread, new_thread)
+        original_thread
+      end
+
+      @session.stop
+
+      assert_equal new_thread, @session.instance_variable_get(:@thread)
     end
 
     def test_stop_is_a_no_op_when_not_running
@@ -254,6 +282,30 @@ module NewRelic::Agent::ContinuousProfiling
       refute_equal original_pid, @session.instance_variable_get(:@starting_pid)
     end
 
+    def test_start_transaction_restart_after_fork_does_not_hang_on_a_lock_held_by_another_thread
+      @session.start
+      held_lock = @session.instance_variable_get(:@lock)
+      held_segment_ranges_lock = @session.instance_variable_get(:@segment_ranges_lock)
+      holder = Thread.new do
+        held_lock.synchronize { held_segment_ranges_lock.synchronize { sleep } }
+      end
+      Thread.pass until held_lock.locked?
+
+      begin
+        forked_pid = Process.pid + 1
+        Process.stubs(:pid).returns(forked_pid)
+
+        Timeout.timeout(2) { @events.notify(:start_transaction) }
+
+        assert_predicate @session, :running?
+        refute_same held_lock, @session.instance_variable_get(:@lock)
+        refute_same held_segment_ranges_lock, @session.instance_variable_get(:@segment_ranges_lock)
+      ensure
+        holder.kill
+        holder.join
+      end
+    end
+
     def test_start_transaction_does_not_restart_without_a_fork
       @session.start
 
@@ -311,7 +363,7 @@ module NewRelic::Agent::ContinuousProfiling
       full_ranges = Array.new(Session::MAX_SEGMENT_RANGES) { ['t', 's', 0.0, 1.0] }
       @session.instance_variable_set(:@segment_ranges, full_ranges)
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -323,7 +375,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_transaction_finished_records_a_range_for_the_root_segment_while_running
       @session.start
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -335,7 +387,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       child = stub_segment(guid: 'child_span', start_time: 10.5, duration: 0.5)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, child])
+      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root, child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
@@ -352,7 +404,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       tiny_child = stub_segment(guid: 'tiny_child_span', start_time: 10.5, duration: 0.001)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
+      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
@@ -365,7 +417,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_transaction_finished_records_the_root_segment_even_when_shorter_than_one_sample_period
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 0.001)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
@@ -379,7 +431,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       unfinished_child = stub_segment(guid: 'unfinished_span', start_time: 10.5, duration: 1.0, finished: false)
-      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
+      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)

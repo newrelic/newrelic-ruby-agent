@@ -541,6 +541,22 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 2, @http_handle.calls.count(:start)
   end
 
+  def test_profiles_data_oversized_payload_does_not_close_the_connection_or_double_count_failure
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    @service.profiles_data('raw-profile-bytes')
+
+    oversized_payload = '.' * (NewRelic::Agent.config[:max_payload_size_in_bytes] + 1)
+    response = @service.profiles_data(oversized_payload)
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Collector/profiles_data/MaxPayloadSizeLimit')
+    assert_metrics_not_recorded('Supportability/Ruby/Profiling/Export/Failure')
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 1, @http_handle.calls.count(:start)
+  end
+
   def test_build_profiles_request_skips_audit_logging_when_disabled
     with_config(:'audit_log.enabled' => false) do
       @http_handle.respond_to('v1/profiles', '', :code => 202)
@@ -1151,6 +1167,18 @@ class NewRelicServiceTest < Minitest::Test
     @service.profiles_data('raw-profile-bytes')
 
     @service.force_restart
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 2, @http_handle.calls.count(:start)
+  end
+
+  def test_shutdown_closes_the_profiles_connection
+    @service.agent_id = 666
+    @http_handle.respond_to(:shutdown, 'shut this bird down')
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    @service.profiles_data('raw-profile-bytes')
+
+    @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))
     @service.profiles_data('raw-profile-bytes')
 
     assert_equal 2, @http_handle.calls.count(:start)

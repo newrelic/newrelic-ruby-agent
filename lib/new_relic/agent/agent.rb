@@ -352,8 +352,11 @@ module NewRelic
         end
 
         def merge_data_for_endpoint(endpoint, data)
-          # No aggregator for profiles_data -- forward it to the collector as-is.
-          return @service.profiles_data(data) if endpoint == :profiles_data && data && !data.empty?
+          if endpoint == :profiles_data && data && !data.empty?
+            # No aggregator for profiles_data -- forward as-is, off-thread so a slow export
+            # doesn't block this pipe-draining loop's delivery of every other child's data.
+            return Threading::AgentThread.create('Continuous Profiling Forwarder') { @service.profiles_data(data) }
+          end
 
           if data && !data.empty?
             container = container_for_endpoint(endpoint)

@@ -74,15 +74,24 @@ module NewRelic
         end
 
         def stop
-          @lock.synchronize do
+          thread_to_join = @lock.synchronize do
             return unless @running
 
             @running = false
             @cv.broadcast
             unsubscribe_from_transaction_hooks
+            @thread
           end
-          @thread&.join(harvest_period + 1)
-          @thread = nil
+
+          # Only cleared below if still current -- guards against a concurrent start()
+          # clobbering @thread, and against losing the reference on a join timeout.
+          if thread_to_join&.join(harvest_period + 1)
+            @lock.synchronize { @thread = nil if @thread.equal?(thread_to_join) }
+          else
+            NewRelic::Agent.logger.warn(
+              'Timed out waiting for continuous profiling thread to stop; it may still be running'
+            )
+          end
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
@@ -128,9 +137,18 @@ module NewRelic
           NewRelic::Agent.logger.debug(
             "Restarting continuous profiling in forked process #{Process.pid} (parent #{Process.ppid})"
           )
-          @lock.synchronize { @running = false }
-          @thread = nil
+          reset_state_after_fork
           start
+        end
+
+        def reset_state_after_fork
+          @lock = Mutex.new
+          @cv = ConditionVariable.new
+          @running = false
+          @sampler_active = false
+          @thread = nil
+          @segment_ranges = []
+          @segment_ranges_lock = Mutex.new
         end
 
         # Segments shorter than one sample_period are skipped (unlikely to ever match a
@@ -143,7 +161,7 @@ module NewRelic
           txn = Tracer.current_transaction
           return unless txn
 
-          trace_id = txn.trace_id_if_generated
+          trace_id = txn.trace_id
           root = txn.initial_segment
           min_duration = NewRelic::Agent.config[:'profiling.sample_period']
 

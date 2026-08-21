@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../test_helper'
+require 'timeout'
 
 module NewRelic
   module Agent
@@ -276,14 +277,25 @@ module NewRelic
       # No aggregator for profiles_data -- it should forward straight to the service.
       def test_merge_data_for_endpoint_forwards_profiles_data_to_the_service
         @agent.service.expects(:profiles_data).with('raw-profile-bytes')
-        @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        thread = @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        thread.join
       end
 
-      def test_merge_data_for_endpoint_rescues_a_raise_from_profiles_data
-        @agent.service.stubs(:profiles_data).raises('boom')
-        NewRelic::Agent.logger.expects(:error).with(includes('profiles_data'), anything)
+      def test_merge_data_for_endpoint_forwards_profiles_data_without_blocking_the_caller
+        @agent.service.stubs(:profiles_data) { sleep(1) }
 
-        assert_nil @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        thread = Timeout.timeout(1) { @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes') }
+
+        refute_predicate thread, :stop?
+        thread.kill
+      end
+
+      def test_merge_data_for_endpoint_logs_but_does_not_raise_when_profiles_data_raises
+        @agent.service.stubs(:profiles_data).raises('boom')
+        NewRelic::Agent.logger.expects(:error).with(includes('Continuous Profiling Forwarder'), anything)
+
+        thread = @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        thread.join
       end
 
       def test_merge_data_traces

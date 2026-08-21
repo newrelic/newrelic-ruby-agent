@@ -52,6 +52,8 @@ module NewRelic
         @in_session = nil
         @agent_id = nil
         @shared_tcp_connection = nil
+        @profiles_connection = nil
+        @profiles_connection_lock = Mutex.new
         @request_headers_map = nil
         reset_remote_method_uris
 
@@ -104,11 +106,13 @@ module NewRelic
 
       def shutdown(time)
         invoke_remote(:shutdown, [@agent_id, time.to_i]) if @agent_id
+      ensure
+        @profiles_connection_lock.synchronize { close_profiles_connection }
       end
 
       def force_restart
         close_shared_connection
-        close_profiles_connection
+        @profiles_connection_lock.synchronize { close_profiles_connection }
       end
 
       # The collector wants to receive metric data in a format that's different
@@ -208,17 +212,20 @@ module NewRelic
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         check_post_size(bytes, :profiles_data)
         request = build_profiles_request(bytes)
-        response = profiles_http_connection.request(request)
+        response = @profiles_connection_lock.synchronize { profiles_http_connection.request(request) }
         log_response(response)
         return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
 
         NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{response.code} #{response.message}")
         NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)
         nil
+      rescue UnrecoverableServerException => e
+        NewRelic::Agent.logger.debug("Dropping continuous profiling payload: #{e.message}")
+        nil
       rescue => e
         NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{e.class}: #{e.message}")
         NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)
-        close_profiles_connection # drop a possibly-broken connection; the next call reconnects
+        @profiles_connection_lock.synchronize { close_profiles_connection } # drop a possibly-broken connection; the next call reconnects
         nil
       ensure
         NewRelic::Agent.record_metric(PROFILES_EXPORT_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_ts)
