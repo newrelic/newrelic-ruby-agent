@@ -8,7 +8,12 @@ require 'new_relic/helper'
 module NewRelic
   module Agent
     module Hostname
-      CLOUD_RUN_REVISION = 'K_REVISION'
+      # Cloud Run sets a different revision variable per resource type: K_REVISION
+      # on a Service, CLOUD_RUN_REVISION on a Worker Pool, and CLOUD_RUN_EXECUTION
+      # on a Job. Only one is ever set, so the first non-empty value both identifies
+      # Cloud Run and names the revision.
+      # https://docs.cloud.google.com/run/docs/container-contract#env-vars
+      CLOUD_RUN_REVISION_VARS = %w[K_REVISION CLOUD_RUN_REVISION CLOUD_RUN_EXECUTION].freeze
       GCP_INSTANCE_ID_URI = 'http://metadata.google.internal/computeMetadata/v1/instance/id'
       GCP_METADATA_HEADERS = {'Metadata-Flavor' => 'Google'}.freeze
 
@@ -26,8 +31,14 @@ module NewRelic
       end
 
       def self.gcp_cloud_run?
-        ENV.key?(CLOUD_RUN_REVISION) &&
+        !cloud_run_revision.nil? &&
           ::NewRelic::Agent.config[:'utilization.gcp_cloud_run.use_instance_as_host']
+      end
+
+      # The revision (Service, Worker Pool) or execution (Job) name for the
+      # Cloud Run resource this process belongs to, or nil when not on Cloud Run.
+      def self.cloud_run_revision
+        CLOUD_RUN_REVISION_VARS.map { |var| ENV[var] }.find { |value| value && !value.empty? }
       end
 
       def self.gcp_cloud_run_host
@@ -35,7 +46,7 @@ module NewRelic
         return Socket.gethostname.force_encoding(Encoding::UTF_8) unless instance_id
 
         if ::NewRelic::Agent.config[:'utilization.gcp_cloud_run.include_revision_in_host']
-          "#{ENV[CLOUD_RUN_REVISION]}-#{instance_id}"
+          "#{cloud_run_revision}-#{instance_id}"
         else
           instance_id
         end

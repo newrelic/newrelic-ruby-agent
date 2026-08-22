@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Report a unique hostname for Google Cloud Run Worker Pools and Jobs**
+
+  The Cloud Run hostname support added in [PR#3609](https://github.com/newrelic/newrelic-ruby-agent/pull/3609/) detected Cloud Run by looking for `K_REVISION`, which only Cloud Run **Services** set. Cloud Run **Worker Pools** and **Jobs** were left reporting `localhost`. The agent now also recognizes [`CLOUD_RUN_REVISION`](https://docs.cloud.google.com/run/docs/container-contract#env-vars) (Worker Pools) and `CLOUD_RUN_EXECUTION` (Jobs), so `utilization.gcp_cloud_run.use_instance_as_host` applies to all three resource types. When `utilization.gcp_cloud_run.include_revision_in_host` is `true`, the hostname uses whichever of those variables is set, for example `{CLOUD_RUN_EXECUTION}-{instance id}` on a Job. [Issue#3651](https://github.com/newrelic/newrelic-ruby-agent/issues/3651) [PR#3652](https://github.com/newrelic/newrelic-ruby-agent/pull/3652)
+
 ## v10.7.1
 
 - **Feature: Add span.kind to background job libraries**

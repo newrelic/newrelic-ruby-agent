@@ -2318,14 +2318,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent reports the GCP instance id as the hostname when running on Google Cloud Run.'
+          :description => 'If `true`, the agent reports the GCP instance id as the hostname when running on Google Cloud Run (Services, Worker Pools, and Jobs).'
         },
         :'utilization.gcp_cloud_run.include_revision_in_host' => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent prepends the `K_REVISION` value to the GCP instance id to form the hostname (`{K_REVISION}-{instance id}`) on Google Cloud Run. Has no effect unless `utilization.gcp_cloud_run.use_instance_as_host` is also `true`.'
+          :description => 'If `true`, the agent prepends the Cloud Run revision name to the GCP instance id to form the hostname (`{revision}-{instance id}`) on Google Cloud Run. The revision name comes from `K_REVISION` on a Cloud Run Service, `CLOUD_RUN_REVISION` on a Cloud Run Worker Pool, and `CLOUD_RUN_EXECUTION` on a Cloud Run Job. Has no effect unless `utilization.gcp_cloud_run.use_instance_as_host` is also `true`.'
         },
         :'utilization.detect_kubernetes' => {
           :default => true,
