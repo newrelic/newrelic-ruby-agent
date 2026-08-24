@@ -222,7 +222,7 @@ class PumaInstrumentationTest < Minitest::Test
     end
   end
 
-  # When `gem "puma", require: false`, Puma::RackHandler is defined 
+  # When `gem "puma", require: false`, Puma::RackHandler is defined
   # before Puma::Launcher loads
   def test_dependency_satisfied_via_rack_handler_without_launcher
     require 'rack/handler/puma'
