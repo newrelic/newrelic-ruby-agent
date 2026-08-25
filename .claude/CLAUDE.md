@@ -36,9 +36,7 @@ Every change needs tests, in the suite that matches it:
 | Rails-version-specific | env — `test/environments/` | `run_tests -e 72,80` (comma-separated, leading `rails` optional) |
 
 `./test/script/run_tests -h` lists every flag. Run the tests covering the code you changed plus its
-callers — `grep` the changed method or class name to find them. Reach for the full unit suite
-(`bundle exec rake`) only when you touched shared machinery: config, tracer, transaction, harvest,
-serialization. Otherwise let CI run the matrix. Details: `test/README.md`,
+callers — `grep` the changed method or class name to find them. Details: `test/README.md`,
 `test/multiverse/README.md`.
 
 ## Before you say you're done
