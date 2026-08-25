@@ -93,7 +93,7 @@ module NewRelic
 
           if (entity_guid = NewRelic::Agent.config[:entity_guid])
             attributes << OTEL_COMMON::KeyValue.new(
-              key: 'entity.guid',
+              key: NewRelic::Agent::ENTITY_GUID_KEY,
               value: OTEL_COMMON::AnyValue.new(string_value: entity_guid)
             )
           end
@@ -147,13 +147,28 @@ module NewRelic
         end
 
         def samples
-          collapse_ticks(expand_ticks).map do |(location_ids, trace_id, span_id), weight|
+          groups = correlation_possible? ? collapse_ticks(expand_ticks) : uncorrelated_groups
+
+          groups.map do |(location_ids, trace_id, span_id), weight|
             OTEL_PROFILES::Sample.new(
               stack_index: stack_index(location_ids),
               link_index: link_index(trace_id, span_id),
               values: [sample_value(weight)]
             )
           end
+        end
+
+        # clock_offset ties a StackProf tick's monotonic timestamp to wall-clock time, and
+        # segment_ranges is the wall-clock data to match it against -- without both, no tick
+        # could ever be linked, so the per-tick expand/collapse round trip in expand_ticks/
+        # collapse_ticks would just rebuild what parse_raw_groups already returned.
+        def correlation_possible?
+          ranges = @report[:segment_ranges]
+          !ranges.nil? && !ranges.empty? && !@report[:clock_offset].nil?
+        end
+
+        def uncorrelated_groups
+          frame_group_location_ids.map { |location_ids, weight| [[location_ids, nil, nil], weight] }
         end
 
         # :object mode's sample value is the raw allocation count (the StackProf tick
@@ -168,24 +183,31 @@ module NewRelic
           (@report[:interval] || 0) * NANOSECONDS_PER_MICROSECOND
         end
 
+        # StackProf stores root-first frame ids; OTel Stacks want leaf-first location ids.
+        def frame_group_location_ids
+          frame_groups = parse_raw_groups(@report[:raw])
+          line_groups = parse_raw_groups(@report[:raw_lines])
+
+          frame_groups.each_with_index.map do |(frame_ids, weight), idx|
+            lines = line_groups[idx]&.first || []
+            location_ids = frame_ids.zip(lines).map { |frame_id, line| location_index(frame_id, line) }
+            location_ids.reverse!
+            [location_ids, weight]
+          end
+        end
+
         # StackProf's :raw/:raw_lines pre-collapse consecutive identical stacks into one
         # [frame_ids, weight] group, but :raw_sample_timestamps has one entry per tick. Expand
         # back to one entry per tick so each can be matched to a transaction individually,
         # then re-collapsed in collapse_ticks.
         def expand_ticks
-          frame_groups = parse_raw_groups(@report[:raw])
-          line_groups = parse_raw_groups(@report[:raw_lines])
           tick_links = build_tick_links
           tick = 0
           ticks = []
 
-          frame_groups.each_with_index do |(frame_ids, weight), idx|
-            lines = line_groups[idx]&.first || []
-            location_ids = frame_ids.zip(lines).map { |frame_id, line| location_index(frame_id, line) }
-            location_ids.reverse! # StackProf stores root-first; OTel Stacks want leaf-first
-
+          frame_group_location_ids.each do |location_ids, weight|
             weight.times do
-              ticks << [location_ids, *tick_links[tick]]
+              ticks << [location_ids, *(tick_links[tick] || [nil, nil])]
               tick += 1
             end
           end
@@ -212,22 +234,18 @@ module NewRelic
 
         # Sweeps ticks (already in chronological order) against ranges sorted by start_time,
         # instead of scanning every range per tick -- active-set size is bounded by real
-        # concurrency, not total range count.
+        # concurrency, not total range count. Only called when correlation_possible?, so
+        # segment_ranges and clock_offset are always present here.
         def build_tick_links
           timestamps = @report[:raw_sample_timestamps]
           return [] if timestamps.nil? || timestamps.empty?
 
-          ranges = @report[:segment_ranges]
-          return Array.new(timestamps.length) { [nil, nil] } if ranges.nil? || ranges.empty?
-
           clock_offset = @report[:clock_offset]
-          sorted = ranges.sort_by { |(_trace_id, _span_id, start_time, _end_time)| start_time }
+          sorted = @report[:segment_ranges].sort_by { |(_trace_id, _span_id, start_time, _end_time)| start_time }
           active = []
           idx = 0
 
           timestamps.map do |monotonic_usec|
-            next [nil, nil] unless clock_offset
-
             timestamp = clock_offset + (monotonic_usec / 1_000_000.0)
 
             while idx < sorted.length && sorted[idx][2] <= timestamp
@@ -245,16 +263,28 @@ module NewRelic
         def link_for(matches)
           return [nil, nil] if matches.empty?
 
-          trace_ids = matches.map { |(trace_id, *)| trace_id }.uniq
-          return [nil, nil] if trace_ids.length > 1
+          trace_id = nil
+          span_id = nil
+          narrowest_duration = nil
 
-          narrowest = matches.min_by { |(_trace_id, _span_id, start_time, end_time)| end_time - start_time }
-          trace_id, span_id, = narrowest
+          matches.each do |(match_trace_id, match_span_id, start_time, end_time)|
+            if trace_id.nil?
+              trace_id = match_trace_id
+            elsif trace_id != match_trace_id
+              return [nil, nil]
+            end
+
+            duration = end_time - start_time
+            if narrowest_duration.nil? || duration < narrowest_duration
+              narrowest_duration = duration
+              span_id = match_span_id
+            end
+          end
+
           [trace_id, span_id]
         end
 
-        # StackProf's :raw/:raw_lines are flat [length, item_1, .., item_length, weight]
-        # groups. Returns an array of [items, weight] pairs.
+        # StackProf's :raw/:raw_lines are flat [length, item_1, .., item_length, weight] groups.
         def parse_raw_groups(flat_array)
           groups = []
           i = 0
@@ -284,8 +314,8 @@ module NewRelic
         end
 
         def location_index(frame_id, line)
-          key = [frame_id, line]
-          @location_indices[key] ||= begin
+          by_line = (@location_indices[frame_id] ||= {})
+          by_line[line] ||= begin
             @location_table << OTEL_PROFILES::Location.new(
               lines: [OTEL_PROFILES::Line.new(function_index: function_index(frame_id), line: line || 0)]
             )

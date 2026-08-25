@@ -219,14 +219,57 @@ module NewRelic
 
         OBJECT_ALLOCATION_INTERVAL_MINIMUM = 1000
 
-        def self.enforce_object_allocation_interval_minimum(value)
-          return value if value.nil? || value >= OBJECT_ALLOCATION_INTERVAL_MINIMUM
+        # StackProf's C extension rejects any interval outside 1..999_999, regardless of
+        # whether the value means microseconds (:cpu/:wall mode, profiling.sample_period) or a
+        # raw allocation count (:object mode, profiling.object_allocation_interval) -- see
+        # stackprof_start in stackprof.c. Both configs' transforms enforce that same
+        # underlying ceiling, each expressed in the config's own unit.
+        STACKPROF_INTERVAL_MAXIMUM = 999_999
+        SAMPLE_PERIOD_MINIMUM_SECONDS = 1 / 1_000_000.0
+        SAMPLE_PERIOD_MAXIMUM_SECONDS = STACKPROF_INTERVAL_MAXIMUM / 1_000_000.0
 
-          NewRelic::Agent.logger.debug(
-            "profiling.object_allocation_interval is set to #{value.inspect}, which is below the minimum " \
-            "of #{OBJECT_ALLOCATION_INTERVAL_MINIMUM}. Using #{OBJECT_ALLOCATION_INTERVAL_MINIMUM} instead."
-          )
-          OBJECT_ALLOCATION_INTERVAL_MINIMUM
+        def self.enforce_object_allocation_interval_minimum(value)
+          return value if value.nil?
+
+          if value < OBJECT_ALLOCATION_INTERVAL_MINIMUM
+            NewRelic::Agent.logger.debug(
+              "profiling.object_allocation_interval is set to #{value.inspect}, which is below the minimum " \
+              "of #{OBJECT_ALLOCATION_INTERVAL_MINIMUM}. Using #{OBJECT_ALLOCATION_INTERVAL_MINIMUM} instead."
+            )
+            return OBJECT_ALLOCATION_INTERVAL_MINIMUM
+          end
+
+          if value > STACKPROF_INTERVAL_MAXIMUM
+            NewRelic::Agent.logger.debug(
+              "profiling.object_allocation_interval is set to #{value.inspect}, which is above the maximum " \
+              "of #{STACKPROF_INTERVAL_MAXIMUM}. Using #{STACKPROF_INTERVAL_MAXIMUM} instead."
+            )
+            return STACKPROF_INTERVAL_MAXIMUM
+          end
+
+          value
+        end
+
+        def self.enforce_sample_period_range(value)
+          return value if value.nil?
+
+          if value < SAMPLE_PERIOD_MINIMUM_SECONDS
+            NewRelic::Agent.logger.debug(
+              "profiling.sample_period is set to #{value.inspect}, which is below the minimum of " \
+              "#{SAMPLE_PERIOD_MINIMUM_SECONDS} seconds. Using #{SAMPLE_PERIOD_MINIMUM_SECONDS} instead."
+            )
+            return SAMPLE_PERIOD_MINIMUM_SECONDS
+          end
+
+          if value > SAMPLE_PERIOD_MAXIMUM_SECONDS
+            NewRelic::Agent.logger.debug(
+              "profiling.sample_period is set to #{value.inspect}, which is above the maximum of " \
+              "#{SAMPLE_PERIOD_MAXIMUM_SECONDS} seconds. Using #{SAMPLE_PERIOD_MAXIMUM_SECONDS} instead."
+            )
+            return SAMPLE_PERIOD_MAXIMUM_SECONDS
+          end
+
+          value
         end
       end
 
@@ -1082,8 +1125,10 @@ module NewRelic
           :public => true,
           :type => Float,
           :allowed_from_server => true,
+          :transform => DefaultSource.method(:enforce_sample_period_range),
           :description => 'The interval, in seconds, between stack samples taken by the continuous profiler. ' \
-            'Only used when `profiling.mode` is `cpu`.'
+            'Only used when `profiling.mode` is `cpu`. Must be between ' \
+            "#{DefaultSource::SAMPLE_PERIOD_MINIMUM_SECONDS} and #{DefaultSource::SAMPLE_PERIOD_MAXIMUM_SECONDS}."
         },
         :'profiling.object_allocation_interval' => {
           :default => 10000,
@@ -1092,8 +1137,8 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:enforce_object_allocation_interval_minimum),
           :description => 'The number of object allocations between stack samples taken by the continuous ' \
-            'profiler. Only used when `profiling.mode` is `object`. The minimum allowed value is ' \
-            "#{DefaultSource::OBJECT_ALLOCATION_INTERVAL_MINIMUM}."
+            'profiler. Only used when `profiling.mode` is `object`. Must be between ' \
+            "#{DefaultSource::OBJECT_ALLOCATION_INTERVAL_MINIMUM} and #{DefaultSource::STACKPROF_INTERVAL_MAXIMUM}."
         },
         :'profiling.harvest_period' => {
           :default => 10,

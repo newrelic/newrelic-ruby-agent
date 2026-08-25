@@ -42,7 +42,8 @@ module NewRelic
         end
 
         def continuous_profiling_session
-          NewRelic::Agent.agent.continuous_profiling_session
+          NewRelic::Agent.agent&.continuous_profiling_session ||
+            raise(AgentCommandError, 'Continuous profiling session unavailable; agent not fully started')
         end
 
         def check_for_and_handle_agent_commands

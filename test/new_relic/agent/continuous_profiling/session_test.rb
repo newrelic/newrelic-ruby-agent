@@ -13,7 +13,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session = Session.new(@events)
       @fake_thread = stub_everything('fake continuous profiling thread')
       NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread)
-      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.stubs(:start)
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.stubs(:start).returns(true)
     end
 
     def test_maybe_start_does_nothing_when_disabled
@@ -55,7 +55,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_start_starts_the_sampler_and_creates_a_thread
-      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start)
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).returns(true)
       NewRelic::Agent::Threading::AgentThread.expects(:create).with('Continuous Profiling').returns(@fake_thread)
 
       @session.start
@@ -66,7 +66,7 @@ module NewRelic::Agent::ContinuousProfiling
 
     def test_start_is_idempotent
       NewRelic::Agent.instance.stats_engine.reset!
-      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).once
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).once.returns(true)
       NewRelic::Agent::Threading::AgentThread.expects(:create).once.returns(@fake_thread)
 
       @session.start
@@ -127,15 +127,13 @@ module NewRelic::Agent::ContinuousProfiling
       report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
-      sampler.expects(:start)
+      sampler.expects(:start).returns(true)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
-      @session.instance_variable_set(:@sampler_active, true)
       @session.expects(:encode_and_export).with(report)
 
       @session.send(:harvest_and_send)
 
-      assert @session.instance_variable_get(:@sampler_active)
       assert_metrics_recorded('Supportability/Ruby/Profiling/Sampling/Duration')
     end
 
@@ -144,10 +142,9 @@ module NewRelic::Agent::ContinuousProfiling
       sequence = Mocha::Sequence.new('harvest')
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report).in_sequence(sequence)
-      sampler.expects(:start).in_sequence(sequence)
+      sampler.expects(:start).returns(true).in_sequence(sequence)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
-      @session.instance_variable_set(:@sampler_active, true)
       @session.expects(:encode_and_export).with(report).in_sequence(sequence)
 
       @session.send(:harvest_and_send)
@@ -156,10 +153,9 @@ module NewRelic::Agent::ContinuousProfiling
     def test_harvest_and_send_restarts_the_sampler_even_when_collection_raises
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).raises('boom')
-      sampler.expects(:start)
+      sampler.expects(:start).returns(true)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
-      @session.instance_variable_set(:@sampler_active, true)
 
       @session.send(:harvest_and_send)
     end
@@ -168,22 +164,23 @@ module NewRelic::Agent::ContinuousProfiling
       report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
-      sampler.expects(:start)
+      sampler.expects(:start).returns(true)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
-      @session.instance_variable_set(:@sampler_active, true)
       @session.stubs(:encode_and_export).raises('boom')
 
       @session.send(:harvest_and_send)
     end
 
-    def test_harvest_and_send_is_a_no_op_when_the_sampler_is_not_active
+    def test_collect_and_restart_sampler_logs_a_warning_when_the_sampler_cannot_restart
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
-      sampler.expects(:stop_and_collect).never
+      sampler.expects(:stop_and_collect).returns({:samples => 0, :mode => :cpu})
+      sampler.expects(:start).returns(false)
       @session.instance_variable_set(:@sampler, sampler)
-      @session.instance_variable_set(:@sampler_active, false)
+      @session.instance_variable_set(:@running, true)
+      NewRelic::Agent.logger.expects(:warn).with(regexp_matches(/could not restart sampling/))
 
-      @session.send(:harvest_and_send)
+      @session.send(:collect_and_restart_sampler)
     end
 
     def test_wait_for_next_tick_or_stop_returns_false_immediately_when_already_stopped
@@ -200,22 +197,8 @@ module NewRelic::Agent::ContinuousProfiling
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).once.returns(report)
       @session.instance_variable_set(:@sampler, sampler)
-      @session.instance_variable_set(:@sampler_active, true)
       @session.instance_variable_set(:@running, false)
       @session.expects(:encode_and_export).once
-
-      @session.send(:run_loop)
-    end
-
-    def test_run_loop_does_not_double_harvest_when_already_flushed
-      # Simulates stop() being called just after a harvest already ran and drained the
-      # sampler (@sampler_active already false) -- run_loop's final pass must not attempt
-      # a second collection.
-      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
-      sampler.expects(:stop_and_collect).never
-      @session.instance_variable_set(:@sampler, sampler)
-      @session.instance_variable_set(:@sampler_active, false)
-      @session.instance_variable_set(:@running, false)
 
       @session.send(:run_loop)
     end
@@ -263,7 +246,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_start_transaction_restarts_after_fork
-      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).twice
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).twice.returns(true)
       post_fork_thread = stub_everything('post-fork thread')
       NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread, post_fork_thread)
 
@@ -363,7 +346,7 @@ module NewRelic::Agent::ContinuousProfiling
       full_ranges = Array.new(Session::MAX_SEGMENT_RANGES) { ['t', 's', 0.0, 1.0] }
       @session.instance_variable_set(:@segment_ranges, full_ranges)
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
-      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root])
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -375,7 +358,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_transaction_finished_records_a_range_for_the_root_segment_while_running
       @session.start
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
-      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root])
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -387,7 +370,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       child = stub_segment(guid: 'child_span', start_time: 10.5, duration: 0.5)
-      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root, child])
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
@@ -404,7 +387,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       tiny_child = stub_segment(guid: 'tiny_child_span', start_time: 10.5, duration: 0.001)
-      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
@@ -417,7 +400,7 @@ module NewRelic::Agent::ContinuousProfiling
     def test_transaction_finished_records_the_root_segment_even_when_shorter_than_one_sample_period
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 0.001)
-      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root])
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
@@ -431,7 +414,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       unfinished_child = stub_segment(guid: 'unfinished_span', start_time: 10.5, duration: 1.0, finished: false)
-      txn = stub(:trace_id => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -458,14 +441,26 @@ module NewRelic::Agent::ContinuousProfiling
       assert_empty @session.instance_variable_get(:@segment_ranges)
     end
 
+    def test_transaction_finished_does_not_record_a_range_or_generate_a_trace_id_when_none_exists
+      @session.start
+      root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
+      txn = stub(:trace_id_if_generated => nil, :initial_segment => root, :segments => [root])
+      txn.expects(:trace_id).never
+      txn.expects(:segments).never
+      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+
+      @events.notify(:transaction_finished)
+
+      assert_empty @session.instance_variable_get(:@segment_ranges)
+    end
+
     def test_harvest_and_send_drains_segment_ranges_into_the_report
       report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
-      sampler.expects(:start)
+      sampler.expects(:start).returns(true)
       @session.instance_variable_set(:@sampler, sampler)
       @session.instance_variable_set(:@running, true)
-      @session.instance_variable_set(:@sampler_active, true)
       @session.instance_variable_set(:@segment_ranges, [['abc123', 'def456', 1.0, 2.0]])
       @session.expects(:encode_and_export).with(
         report.merge(segment_ranges: [['abc123', 'def456', 1.0, 2.0]])

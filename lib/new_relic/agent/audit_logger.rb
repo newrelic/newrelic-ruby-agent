@@ -39,30 +39,29 @@ module NewRelic
       end
 
       def log_request(uri, data, marshaller)
-        return unless enabled? && allowed_endpoint?(uri)
-
-        setup_logger unless setup?
-        request_body = if marshaller.class.human_readable?
-          marshaller.dump(data, :encoder => @encoder)
-        else
-          marshaller.prepare(data, :encoder => @encoder).inspect
+        log_body(uri) do
+          if marshaller.class.human_readable?
+            marshaller.dump(data, :encoder => @encoder)
+          else
+            marshaller.prepare(data, :encoder => @encoder).inspect
+          end
         end
-        @log.info("REQUEST: #{uri}")
-        @log.info("REQUEST BODY: #{request_body}")
-      rescue StandardError, SystemStackError, SystemCallError => e
-        ::NewRelic::Agent.logger.warn('Failed writing to audit log', e)
-      rescue Exception => e
-        ::NewRelic::Agent.logger.warn('Failed writing to audit log with exception. Re-raising in case of interrupt.', e)
-        raise
       end
 
-      # No marshaller for the OTLP profiles
+      # No marshaller for the OTLP profiles -- body arrives already rendered.
       def log_profiles_request(uri, body)
+        log_body(uri) { body }
+      end
+
+      # Body is computed lazily (only once past the guard) so log_request's marshaller
+      # call is skipped, same as before, when audit logging is off or the endpoint isn't
+      # allowed.
+      def log_body(uri)
         return unless enabled? && allowed_endpoint?(uri)
 
         setup_logger unless setup?
         @log.info("REQUEST: #{uri}")
-        @log.info("REQUEST BODY: #{body}")
+        @log.info("REQUEST BODY: #{yield}")
       rescue StandardError, SystemStackError, SystemCallError => e
         ::NewRelic::Agent.logger.warn('Failed writing to audit log', e)
       rescue Exception => e

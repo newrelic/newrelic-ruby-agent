@@ -129,6 +129,10 @@ class ContinuousProfilingTest < Minitest::Test
 
     session = NewRelic::Agent::ContinuousProfiling::Session.new(NewRelic::Agent.agent.events)
     session.instance_variable_set(:@running, true)
+    # Matches what start() would have set -- otherwise restart_if_forked sees @starting_pid
+    # (nil) != Process.pid and treats this as a fork, resetting state and spawning a real
+    # background StackProf session that this test never stops.
+    session.instance_variable_set(:@starting_pid, Process.pid)
     session.send(:subscribe_to_transaction_hooks)
 
     in_transaction('profiled_txn') do |txn|

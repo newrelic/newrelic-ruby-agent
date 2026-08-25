@@ -28,20 +28,16 @@ module NewRelic
         def initialize(events)
           @events = events
           @lock = Mutex.new
+          @fork_lock = Mutex.new
           @cv = ConditionVariable.new
           @running = false
-          @sampler_active = false
           @thread = nil
           @starting_pid = nil
           @sampler = StackProfSampler.new
           @transaction_hooks_subscribed = false
           @start_transaction_handler = nil
           @transaction_finished_handler = nil
-
-          # Wall-clock range of every qualifying segment, matched against sample
-          # timestamps in ProfileEncoder.
-          @segment_ranges = []
-          @segment_ranges_lock = Mutex.new
+          clear_segment_ranges
 
           @events&.subscribe(:server_source_configuration_added) { evaluate_and_apply }
           @events&.subscribe(:before_shutdown) { stop }
@@ -64,8 +60,15 @@ module NewRelic
             return if @running
 
             @starting_pid = Process.pid
-            @sampler.start
-            @sampler_active = true
+
+            unless @sampler.start
+              NewRelic::Agent.logger.warn(
+                'Continuous profiling could not start: StackProf is already running, started by ' \
+                'something other than this agent.'
+              )
+              return
+            end
+
             @running = true
             @thread = Threading::AgentThread.create('Continuous Profiling') { run_loop }
             subscribe_to_transaction_hooks
@@ -108,6 +111,19 @@ module NewRelic
           stop
         end
 
+        # Called from Agent#reset_objects_with_locks on the child's after_fork path, before
+        # any request thread has run restart_if_forked's lazy repair -- including before the
+        # reconnect that after_fork triggers, which can otherwise call back into this session
+        # (via evaluate_and_apply) and synchronize on a lock inherited mid-hold from the
+        # parent's profiling thread, deadlocking forever. Only replaces the locks themselves;
+        # @running/@starting_pid/@thread are left alone so restart_if_forked still detects the
+        # fork and performs the full restart once a request thread runs it.
+        def reset_after_fork_from_parent_thread
+          @lock = Mutex.new
+          @fork_lock = Mutex.new
+          @segment_ranges_lock = Mutex.new
+        end
+
         private
 
         # Guarded so a fork-restart (start called again without going through stop -- see
@@ -131,22 +147,39 @@ module NewRelic
         # Runs on every :start_transaction while subscribed, so must stay cheap when no fork
         # happened. StackProf resets its own C-level running state on fork via pthread_atfork,
         # so only @running/@thread (stale copies from the parent) need recovering here.
+        # @fork_lock (unlike @lock, never replaced) serializes the check-and-repair itself --
+        # without it, two request threads in a freshly forked multi-threaded child could both
+        # see the same stale @running/@starting_pid, each build a fresh @lock, and both start
+        # a session.
         def restart_if_forked
-          return unless @running && @starting_pid != Process.pid
+          return unless NewRelic::Agent.config[:restart_thread_in_children]
 
-          NewRelic::Agent.logger.debug(
-            "Restarting continuous profiling in forked process #{Process.pid} (parent #{Process.ppid})"
-          )
-          reset_state_after_fork
-          start
+          @fork_lock.synchronize do
+            return unless @running && @starting_pid != Process.pid
+
+            NewRelic::Agent.logger.debug(
+              "Restarting continuous profiling in forked process #{Process.pid} (parent #{Process.ppid})"
+            )
+            reset_state_after_fork
+            start
+          end
         end
 
+        # @sampler, @events, @transaction_hooks_subscribed, and the two handler procs survive
+        # a fork untouched: @sampler resets its own C-level state via pthread_atfork, @events
+        # is the shared EventListener, and @transaction_hooks_subscribed must stay true or
+        # subscribe_to_transaction_hooks double-subscribes in the child.
         def reset_state_after_fork
           @lock = Mutex.new
           @cv = ConditionVariable.new
           @running = false
-          @sampler_active = false
           @thread = nil
+          clear_segment_ranges
+        end
+
+        # Wall-clock range of every qualifying segment, matched against sample timestamps in
+        # ProfileEncoder.
+        def clear_segment_ranges
           @segment_ranges = []
           @segment_ranges_lock = Mutex.new
         end
@@ -154,25 +187,32 @@ module NewRelic
         # Segments shorter than one sample_period are skipped (unlikely to ever match a
         # tick, and would otherwise bound how much @segment_ranges can grow); the root is
         # always kept as a fallback. The @running check guards a narrow window in #stop
-        # where this handler hasn't been unsubscribed yet.
+        # where this handler hasn't been unsubscribed yet. Uses trace_id_if_generated (not
+        # trace_id) so profiling never forces a trace_id into existence that nothing else in
+        # the transaction would have generated on its own.
         def on_transaction_finished
           return unless @running
 
           txn = Tracer.current_transaction
           return unless txn
 
-          trace_id = txn.trace_id
+          trace_id = txn.trace_id_if_generated
+          return unless trace_id
+
           root = txn.initial_segment
           min_duration = NewRelic::Agent.config[:'profiling.sample_period']
 
-          candidates = txn.segments.select do |segment|
-            segment.finished? && (segment.equal?(root) || segment.duration >= min_duration)
-          end
-
           @segment_ranges_lock.synchronize do
+            if @segment_ranges.size >= MAX_SEGMENT_RANGES
+              NewRelic::Agent.increment_metric(SEGMENT_RANGES_LIMIT_METRIC)
+              return
+            end
+
             dropped = false
 
-            candidates.each do |segment|
+            txn.segments.each do |segment|
+              next unless segment.finished? && (segment.equal?(root) || segment.duration >= min_duration)
+
               if @segment_ranges.size >= MAX_SEGMENT_RANGES
                 dropped = true
                 break
@@ -261,8 +301,6 @@ module NewRelic
           NewRelic::Agent.config[:'profiling.harvest_period']
         end
 
-        # Loops until stop() broadcasts, doing one harvest_and_send per tick plus exactly
-        # one final one covering whatever's outstanding -- see wait_for_next_tick_or_stop.
         def run_loop
           loop do
             keep_going = wait_for_next_tick_or_stop
@@ -271,7 +309,6 @@ module NewRelic
           end
         end
 
-        # Returns false when woken because stop() was called, signaling run_loop's final iteration.
         def wait_for_next_tick_or_stop
           @lock.synchronize do
             @cv.wait(@lock, harvest_period) if @running
@@ -279,13 +316,8 @@ module NewRelic
           end
         end
 
-        # @sampler_active is only touched here on the run_loop thread, guarding against
-        # double-collecting if a harvest already ran for this tick.
         def harvest_and_send
-          return unless @sampler_active
-
           start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          @sampler_active = false
           report = collect_and_restart_sampler
           report[:segment_ranges] = drain_segment_ranges
           NewRelic::Agent.record_metric(SAMPLING_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)
@@ -304,9 +336,11 @@ module NewRelic
         def collect_and_restart_sampler
           @sampler.stop_and_collect
         ensure
-          if running?
-            @sampler.start
-            @sampler_active = true
+          if running? && !@sampler.start
+            NewRelic::Agent.logger.warn(
+              'Continuous profiling could not restart sampling: StackProf is already running, ' \
+              'started by something other than this agent. Will retry next harvest.'
+            )
           end
         end
 

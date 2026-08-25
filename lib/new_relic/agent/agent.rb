@@ -88,6 +88,8 @@ module NewRelic
         @wait_on_connect_mutex = Mutex.new
         @after_fork_lock = Mutex.new
         @wait_on_connect_condition = ConditionVariable.new
+        @profiles_forwarder_lock = Mutex.new
+        @profiles_forwarder_count = 0
       end
 
       def init_components
@@ -322,6 +324,7 @@ module NewRelic
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
           @stats_engine = StatsEngine.new
+          @continuous_profiling_session.reset_after_fork_from_parent_thread
         end
 
         def flush_pipe_data # used only by resque
@@ -329,6 +332,13 @@ module NewRelic
             transmit_data_types
           end
         end
+
+        # No aggregator for profiles_data -- forward as-is, off-thread so a slow export
+        # doesn't block this pipe-draining loop's delivery of every other child's data.
+        # Bounded because every forwarder serializes on NewRelicService's own connection
+        # lock anyway, so letting them pile up unboundedly under a slow collector only grows
+        # thread count, not throughput.
+        MAX_CONCURRENT_PROFILES_FORWARDERS = 4
 
         private
 
@@ -351,11 +361,29 @@ module NewRelic
           end
         end
 
+        def forward_profiles_data(data)
+          @profiles_forwarder_lock.synchronize do
+            if @profiles_forwarder_count >= MAX_CONCURRENT_PROFILES_FORWARDERS
+              NewRelic::Agent.increment_metric('Supportability/Ruby/Profiling/Forward/Dropped')
+              NewRelic::Agent.logger.debug(
+                'Dropping a forwarded continuous profiling payload: too many exports already in flight'
+              )
+              return nil
+            end
+
+            @profiles_forwarder_count += 1
+          end
+
+          Threading::AgentThread.create('Continuous Profiling Forwarder') do
+            @service.profiles_data(data)
+          ensure
+            @profiles_forwarder_lock.synchronize { @profiles_forwarder_count -= 1 }
+          end
+        end
+
         def merge_data_for_endpoint(endpoint, data)
           if endpoint == :profiles_data && data && !data.empty?
-            # No aggregator for profiles_data -- forward as-is, off-thread so a slow export
-            # doesn't block this pipe-draining loop's delivery of every other child's data.
-            return Threading::AgentThread.create('Continuous Profiling Forwarder') { @service.profiles_data(data) }
+            return forward_profiles_data(data)
           end
 
           if data && !data.empty?

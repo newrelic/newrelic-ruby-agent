@@ -249,19 +249,15 @@ module NewRelic
         request
       end
 
-      # Only the continuous-profiling background thread ever calls profiles_data, so this
-      # has the same single-writer assumption establish_shared_connection relies on for the
-      # main harvest thread -- no additional locking needed.
+      # Callers synchronize on @profiles_connection_lock (profiles_data, prep_collector,
+      # force_restart, shutdown); this method and close_profiles_connection assume that's
+      # already held.
       def profiles_http_connection
-        @profiles_connection ||= create_and_start_http_connection
+        get_or_create_connection(:@profiles_connection)
       end
 
       def close_profiles_connection
-        return unless @profiles_connection
-
-        NewRelic::Agent.logger.debug("Closing profiles TCP connection to #{@profiles_connection.address}:#{@profiles_connection.port}")
-        @profiles_connection.finish if @profiles_connection.started?
-        @profiles_connection = nil
+        close_connection(:@profiles_connection, 'profiles')
       end
 
       def compress_request_if_needed(data, endpoint)
@@ -315,20 +311,28 @@ module NewRelic
       end
 
       def establish_shared_connection
-        @shared_tcp_connection ||= create_and_start_http_connection
-        @shared_tcp_connection
+        get_or_create_connection(:@shared_tcp_connection)
       end
 
       def close_shared_connection
-        if @shared_tcp_connection
-          ::NewRelic::Agent.logger.debug("Closing shared TCP connection to #{@shared_tcp_connection.address}:#{@shared_tcp_connection.port}")
-          @shared_tcp_connection.finish if @shared_tcp_connection.started?
-          @shared_tcp_connection = nil
-        end
+        close_connection(:@shared_tcp_connection, 'shared')
       end
 
       def has_shared_connection?
         !@shared_tcp_connection.nil?
+      end
+
+      def get_or_create_connection(ivar)
+        instance_variable_get(ivar) || instance_variable_set(ivar, create_and_start_http_connection)
+      end
+
+      def close_connection(ivar, label)
+        conn = instance_variable_get(ivar)
+        return unless conn
+
+        NewRelic::Agent.logger.debug("Closing #{label} TCP connection to #{conn.address}:#{conn.port}")
+        conn.finish if conn.started?
+        instance_variable_set(ivar, nil)
       end
 
       def ssl_cert_store
@@ -737,7 +741,12 @@ module NewRelic
         # Preconnect needs to always use the configured collector host, not the redirect host
         # We reset it here so we are always using the configured collector during our creation of the new connection
         # and we also don't want to keep the previous redirect host around anymore
-        @collector = @configured_collector if method == :preconnect
+        return unless method == :preconnect
+
+        @collector = @configured_collector
+        # A profiles export running concurrently on its own thread could otherwise memoize
+        # profiles_http_connection against the host @collector pointed to a moment ago.
+        @profiles_connection_lock.synchronize { close_profiles_connection }
       end
 
       def invoke_remote_send_request(method, payload, data, encoding)
