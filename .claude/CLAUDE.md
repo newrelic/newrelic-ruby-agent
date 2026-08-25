@@ -19,6 +19,16 @@ This gem loads into other people's production apps:
 - **Plain Ruby only** — no `ActiveSupport`/`ActiveRecord` idioms (`blank?`, `present?`, `try`).
   We can't assume any library is loaded.
 
+# Comment discipline
+
+Default to no comments. Only add one when the WHY is genuinely non-obvious from the code
+itself — a hidden constraint, a subtle invariant, a workaround for something specific, or
+behavior that would surprise a reader. Never comment on WHAT the code does; well-named
+identifiers already say that. When a comment is warranted, keep it to one or two lines.
+
+Don't reference PR numbers, issue numbers, task history, or "this was added for X" in
+comments — that belongs in the commit message or PR description, not the code.
+
 ## Cross-agent specs
 
 Behavior shared with the other language agents is specified in the internal `agent-specs` repo
