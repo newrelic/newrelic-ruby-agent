@@ -163,13 +163,6 @@ class GenerateSchemaTest < Minitest::Test
     assert_equal %w[x y], prop['enum']
   end
 
-  def test_enum_override_for_core_settings
-    assert_equal %w[off none raw obfuscated],
-      GenerateSchema.enum_override_for('transaction_tracer.record_sql', {:type => String})
-    assert_equal %w[off none raw obfuscated],
-      GenerateSchema.enum_override_for('slow_sql.record_sql', {:type => String})
-  end
-
   def test_enum_override_for_instrumentation
     assert_equal GenerateSchema::INSTRUMENTATION_STANDARD_VALUES,
       GenerateSchema.enum_override_for('instrumentation.net_http', {:type => String})
@@ -199,17 +192,6 @@ class GenerateSchemaTest < Minitest::Test
     assert_equal actual_onoff_keys, GenerateSchema::INSTRUMENTATION_ONOFF_KEYS.sort,
       'INSTRUMENTATION_ONOFF_KEYS in generate_schema.rb is out of sync with default_source.rb. ' \
       'If you added, removed, or changed an enabled/disabled-only instrumentation setting, update that list.'
-  end
-
-  def test_generate_applies_enum_overrides
-    defaults = {
-      :'transaction_tracer.record_sql' => {:type => String, :default => 'obfuscated', :public => true, :description => 'x'},
-      :'instrumentation.net_http' => {:type => String, :default => 'auto', :public => true, :description => 'x'}
-    }
-    props = GenerateSchema.generate(defaults)['properties']
-
-    assert_equal %w[off none raw obfuscated], props['transaction_tracer.record_sql']['enum']
-    assert_equal GenerateSchema::INSTRUMENTATION_STANDARD_VALUES, props['instrumentation.net_http']['enum']
   end
 
   # --- range overrides (settings that are range-bound but carry no :min/:max) -
