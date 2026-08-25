@@ -73,7 +73,16 @@ module NewRelic
         def self.run_in_trace(job, block, event)
           trace_execution_scoped("ActiveJob/#{adapter.sub(/^ActiveJob::/, '')}/Queue/#{event}/Named/#{job.queue_name}/#{job.class}",
             code_information: code_information_for_job(job)) do
+            ::NewRelic::Agent::Tracer.current_segment&.span_kind = span_kind_for_event(event)
             block.call
+          end
+        end
+
+        def self.span_kind_for_event(event)
+          if event == :Produce
+            ::NewRelic::Agent::SpanEventPrimitive::PRODUCER
+          else
+            ::NewRelic::Agent::SpanEventPrimitive::CONSUMER
           end
         end
 
@@ -81,7 +90,11 @@ module NewRelic
           options = code_information_for_job(job)
           options = {} if options.frozen? # the hash will be added to later
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
-            category: :other, options: options, &block)
+            category: :other, options: options) do
+            # this method is only called on perform actions, so the kind will always be consumer
+            ::NewRelic::Agent::Tracer.current_segment&.span_kind = ::NewRelic::Agent::SpanEventPrimitive::CONSUMER
+            block.call
+          end
         end
 
         def self.code_information_for_job(job)

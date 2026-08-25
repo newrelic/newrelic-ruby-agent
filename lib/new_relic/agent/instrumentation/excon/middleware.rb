@@ -28,7 +28,7 @@ module ::Excon
               procedure: wrapped_request.method
             )
 
-            segment.add_request_headers(wrapped_request)
+            segment&.add_request_headers(wrapped_request)
 
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, segment)
           end
