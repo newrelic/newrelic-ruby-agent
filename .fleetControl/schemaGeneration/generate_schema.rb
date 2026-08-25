@@ -47,28 +47,6 @@ module GenerateSchema
     ]
   }.freeze
 
-  # Enum values for settings that are effectively enums but carry no :allowlist
-  # in DEFAULTS. Values are verified against the code that consumes each setting,
-  # NOT the prose description (which mislabels `to_app`):
-  #   - record_sql: database.rb#record_sql_method
-  #
-  # log_level is intentionally NOT here: its description already lists the
-  # valid values, and the description is missing `fatal` (see agent_logger.rb
-  # LOG_LEVELS) — enforcing an enum in the schema would reject a value the
-  # agent itself accepts.
-  #
-  # LONG-TERM FIX: this map is a second source of truth that can drift from
-  # the code. The better fix is to add an :allowlist to each of these settings
-  # in default_source.rb. The generator already turns :allowlist into an enum
-  # automatically (see build_property), and the agent enforces :allowlist at
-  # runtime (manager.rb#enforce_allowlist) — so doing that gives real runtime
-  # validation these settings currently lack AND lets this override map be
-  # deleted entirely.
-  BASE_ENUM_OVERRIDES = {
-    'transaction_tracer.record_sql' => %w[off none raw obfuscated],
-    'slow_sql.record_sql' => %w[off none raw obfuscated]
-  }.freeze
-
   # minimum/maximum for settings that are effectively range-bound but carry no
   # :min/:max in DEFAULTS — the range only exists in the prose description, and
   # neither setting is clamped by any runtime code in this repo:
@@ -78,9 +56,8 @@ module GenerateSchema
   #     "Any Integer between 12 and 3600 is valid." (not referenced elsewhere in
   #     this repo — presumably enforced by the closed-source security agent gem)
   #
-  # LONG-TERM FIX: same issue as BASE_ENUM_OVERRIDES above — a second source of
-  # truth that can drift from the docs. Add a :min/:max to each spec in
-  # default_source.rb instead, if the agent ever enforces these at runtime.
+  # LONG-TERM FIX: Add a :min/:max to each spec in
+  # default_source.rb, if the agent ever enforces these at runtime.
   RANGE_OVERRIDES = {
     'span_events.max_samples_stored' => {minimum: 1, maximum: 10_000},
     'security.scan_controllers.iast_scan_request_rate_limit' => {minimum: 12, maximum: 3600}
@@ -153,7 +130,6 @@ module GenerateSchema
     return nil unless [String, Symbol].include?(spec[:type])
 
     key = key.to_s
-    return BASE_ENUM_OVERRIDES[key] if BASE_ENUM_OVERRIDES.key?(key)
     return nil unless key.start_with?('instrumentation.')
 
     INSTRUMENTATION_ONOFF_KEYS.include?(key) ? INSTRUMENTATION_ONOFF_VALUES : INSTRUMENTATION_STANDARD_VALUES

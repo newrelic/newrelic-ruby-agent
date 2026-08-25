@@ -86,7 +86,7 @@
     },
     "application_logging.forwarding.log_level": {
       "type": "string",
-      "description": "Sets the minimum level a log event must have to be forwarded to New Relic. Logs at the configured level and any higher severity are forwarded, for example, debug forwards all log events, while error forwards only error, fatal, and unknown events. Valid values, lowest to highest severity: debug, info, warn, error, fatal, unknown (case-sensitive; uppercase forms are also accepted).",
+      "description": "Sets the minimum level a log event must have to be forwarded to New Relic. Logs at the configured level and any higher severity are forwarded, for example, debug forwards all log events, while error forwards only error, fatal, and unknown events. Valid values, lowest to highest severity: debug, info, warn, error, fatal, unknown (case-insensitive).",
       "default": "debug",
       "enum": [
         "debug",
@@ -94,13 +94,7 @@
         "warn",
         "error",
         "fatal",
-        "unknown",
-        "DEBUG",
-        "INFO",
-        "WARN",
-        "ERROR",
-        "FATAL",
-        "UNKNOWN"
+        "unknown"
       ]
     },
     "application_logging.forwarding.max_samples_stored": {
@@ -290,7 +284,7 @@
     },
     "config_path": {
       "type": "string",
-      "description": "Path to newrelic.yml. If undefined, the agent checks the following directories (in order): config/newrelic.yml -> newrelic.yml -> $HOME/.newrelic/newrelic.yml -> $HOME/newrelic.yml`"
+      "description": "Path to newrelic.yml. If undefined, the agent checks the following directories (in order): config/newrelic.yml -> newrelic.yml -> $HOME/.newrelic/newrelic.yml -> $HOME/newrelic.yml"
     },
     "custom_attributes.enabled": {
       "type": "boolean",
@@ -1328,8 +1322,15 @@
     },
     "log_level": {
       "type": "string",
-      "description": "Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: error, warn, info or debug.",
-      "default": "info"
+      "description": "Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: fatal, error, warn, info or debug.",
+      "default": "info",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "fatal"
+      ]
     },
     "marshaller": {
       "type": "string",
@@ -1708,10 +1709,12 @@
       "description": "Defines an obfuscation level for slow SQL queries. Valid options are obfuscated, raw, or none.",
       "default": "obfuscated",
       "enum": [
-        "off",
-        "none",
+        "obfuscated",
         "raw",
-        "obfuscated"
+        "none",
+        "off",
+        "false",
+        "false"
       ]
     },
     "slow_sql.use_longer_sql_id": {
@@ -1991,10 +1994,12 @@
       "description": "Obfuscation level for SQL queries reported in transaction trace nodes. By default, this is set to obfuscated, which strips out the numeric and string literals.",
       "default": "obfuscated",
       "enum": [
-        "off",
-        "none",
+        "obfuscated",
         "raw",
-        "obfuscated"
+        "none",
+        "off",
+        "false",
+        "false"
       ]
     },
     "transaction_tracer.stack_trace_threshold": {
