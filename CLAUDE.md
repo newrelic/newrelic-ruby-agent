@@ -29,12 +29,6 @@ identifiers already say that. When a comment is warranted, keep it to one or two
 Don't reference PR numbers, issue numbers, task history, or "this was added for X" in
 comments — that belongs in the commit message or PR description, not the code.
 
-## Cross-agent specs
-
-Behavior shared with the other language agents is specified in the internal `agent-specs` repo
-(`source.datanerd.us/agents/agent-specs`). Read the governing spec before changing behavior it
-covers; if it and the Ruby implementation disagree, say so rather than picking one.
-
 ## Testing
 
 Every change needs tests, in the suite that matches it:
