@@ -7,7 +7,7 @@ This file contains project-specific development information for Claude Code and 
 - **Main branch**: `dev` (not `main`)
 - **Language**: Ruby
 - **Test Framework**: Minitest
-- **Docker**: Using Rancher Desktop (not Docker Desktop)
+- **Docker**: Using Docker Desktop or Rancher Desktop
 - **Test App Repository**: A separate local repo (e.g. `ruby_agent_playground`) for creating standalone test applications to experiment with agent features
 
 ---
@@ -212,10 +212,6 @@ newrelic-ruby-agent/
 ---
 
 ## Key Files
-
-- **`lib/new_relic/agent/database.rb`** - SQL parsing, obfuscation, query naming
-- **`lib/new_relic/agent/datastores/metric_helper.rb`** - Datastore metric generation
-- **`lib/new_relic/agent/transaction/datastore_segment.rb`** - Datastore segment tracking
 - **`lib/new_relic/agent/configuration/default_source.rb`** - All configuration options
 - **`Rakefile`** - Test task definitions
 - **`lib/tasks/tests.rake`** - Unit test task definitions
