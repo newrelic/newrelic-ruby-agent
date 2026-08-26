@@ -136,6 +136,16 @@ class ProfileEncoderTest < Minitest::Test
     end
   end
 
+  def test_resource_carries_the_host
+    decoded = encode_and_decode(REPORT)
+    attributes = decoded.resource_profiles[0].resource.attributes
+
+    host_attribute = attributes.find { |attr| attr.key == 'host' }
+
+    refute_nil host_attribute
+    assert_equal NewRelic::Agent::Hostname.get.to_s, host_attribute.value.string_value
+  end
+
   def test_resource_carries_the_entity_guid_when_present
     with_config(:entity_guid => 'abc123') do
       decoded = encode_and_decode(REPORT)

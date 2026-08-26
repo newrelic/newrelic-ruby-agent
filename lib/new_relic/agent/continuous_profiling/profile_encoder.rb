@@ -88,6 +88,10 @@ module NewRelic
             OTEL_COMMON::KeyValue.new(
               key: 'service.name',
               value: OTEL_COMMON::AnyValue.new(string_value: Array(NewRelic::Agent.config[:app_name]).first.to_s)
+            ),
+            OTEL_COMMON::KeyValue.new(
+              key: 'host',
+              value: OTEL_COMMON::AnyValue.new(string_value: NewRelic::Agent::Hostname.get.to_s)
             )
           ]
 
