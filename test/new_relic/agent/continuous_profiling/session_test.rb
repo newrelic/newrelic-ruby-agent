@@ -493,8 +493,10 @@ module NewRelic::Agent::ContinuousProfiling
     def test_handle_start_command_works_even_when_disabled_via_config
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'profiling.enabled' => false) do
-        @session.handle_start_command(create_agent_command)
+      NewRelic::LanguageSupport.stub :jruby?, false do
+        with_config(:'profiling.enabled' => false) do
+          @session.handle_start_command(create_agent_command)
+        end
       end
 
       assert_predicate @session, :running?
@@ -539,9 +541,11 @@ module NewRelic::Agent::ContinuousProfiling
     def test_handle_start_command_starts_when_enabled
       @session.stubs(:gems_present?).returns(true)
 
-      with_config(:'profiling.enabled' => true) do
-        @session.expects(:start)
-        @session.handle_start_command(create_agent_command)
+      NewRelic::LanguageSupport.stub :jruby?, false do
+        with_config(:'profiling.enabled' => true) do
+          @session.expects(:start)
+          @session.handle_start_command(create_agent_command)
+        end
       end
     end
 
@@ -556,11 +560,13 @@ module NewRelic::Agent::ContinuousProfiling
       @session.stubs(:stackprof_present?).returns(false)
       @session.stubs(:protobuf_present?).returns(true)
 
-      with_config(:'profiling.enabled' => true) do
-        NewRelic::Agent.logger.expects(:warn).with('Continuous profiling is not available: the stackprof gem is not installed.')
+      NewRelic::LanguageSupport.stub :jruby?, false do
+        with_config(:'profiling.enabled' => true) do
+          NewRelic::Agent.logger.expects(:warn).with('Continuous profiling is not available: the stackprof gem is not installed.')
 
-        assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
-          @session.handle_start_command(create_agent_command)
+          assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+            @session.handle_start_command(create_agent_command)
+          end
         end
       end
     end
@@ -588,11 +594,13 @@ module NewRelic::Agent::ContinuousProfiling
       @session.stubs(:stackprof_present?).returns(false)
       @session.stubs(:protobuf_present?).returns(true)
 
-      with_config(:'profiling.enabled' => true) do
-        NewRelic::Agent.logger.expects(:warn).with('Continuous profiling is not available: the stackprof gem is not installed.')
-        @session.expects(:start).never
+      NewRelic::LanguageSupport.stub :jruby?, false do
+        with_config(:'profiling.enabled' => true) do
+          NewRelic::Agent.logger.expects(:warn).with('Continuous profiling is not available: the stackprof gem is not installed.')
+          @session.expects(:start).never
 
-        @events.notify(:server_source_configuration_added)
+          @events.notify(:server_source_configuration_added)
+        end
       end
     end
 
