@@ -52,6 +52,12 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       Delayed::Worker.delay_jobs = true
     end
 
+    def test_creating_additional_workers_does_not_reinstall_the_tracer
+      Delayed::Worker.any_instance.expects(:install_newrelic_job_tracer).never
+
+      Delayed::Worker.new
+    end
+
     # Delayed Job doesn't expose a version number, so we have to resort to checking Gem.loaded_specs.
     # Additionally, earlier versions of Delayed Job do not call invoke_job when running jobs inline.
     # We can only test methods using delay and handle_asynchronously on versions that run jobs via

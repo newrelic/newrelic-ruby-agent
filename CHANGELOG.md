@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: DelayedJob instrumentation no longer reinstalls itself on every worker under prepend mode**
+
+  When DelayedJob instrumentation is installed via prepend (the default), creating more than one `Delayed::Worker` in the same process caused the agent to log "Installing DelayedJob instrumentation" and reinitialize the plugin again for each additional worker. This was harmless but noisy; it's now only done once per process, matching the existing chain-instrumentation behavior.
+
 ## v10.7.1
 
 - **Feature: Add span.kind to background job libraries**
