@@ -2,15 +2,15 @@
 
 ## dev
 
+- **Feature: Add span.kind to background job libraries**
+
+  Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
+
 - **Bugfix: Allowlisted configuration values are no longer case sensitive**
 
   Configuration options that validate against an allowlist now match values regardless of case. For example, setting `log_level` to `DEBUG` or `DeBuG` is now treated the same as `debug`. Previously, a value with unexpected casing that wasn't an exact match would silently fall back to the default. [PR#3645](https://github.com/newrelic/newrelic-ruby-agent/pull/3645)
 
 ## v10.7.1
-
-- **Feature: Add span.kind to background job libraries**
-
-  Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
 
 - **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
 
