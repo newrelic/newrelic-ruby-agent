@@ -67,6 +67,9 @@ TEST=test/new_relic/agent/database_test.rb:42 bundle exec rake test
 
 ### Environment Tests
 
+**What are they?**
+Environment tests are integration tests that run the unit tests suite in an environment with or without Rails. There are environment tests for multiple versions of Rails.
+
 **How to run:**
 ```bash
 bere                        # Run environment tests
