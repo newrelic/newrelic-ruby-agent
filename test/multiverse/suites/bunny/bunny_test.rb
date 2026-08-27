@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'securerandom'
+
 require_relative '../../../helpers/misc'
 require_relative '../../../helpers/docker'
 
@@ -376,7 +378,7 @@ class BunnyTest < Minitest::Test
   end
 
   def random_string
-    Time.now.to_s
+    SecureRandom.hex(8)
   end
 
   private
