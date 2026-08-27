@@ -8,7 +8,7 @@
 
 - **Bugfix: Allowlisted configuration values are no longer case sensitive**
 
-  Configuration options that validate against an allowlist now match values regardless of case. For example, setting `log_level` to `DEBUG` or `DeBuG` is now treated the same as `debug`. Previously, a value with unexpected casing that wasn't an exact match would silently fall back to the default. [PR#3645](https://github.com/newrelic/newrelic-ruby-agent/pull/3645)
+  Configuration options that validate against an allowlist now match values regardless of case. For example, setting `slow_sql.record_sql` to `OBFUSCATED` or `ObFuScAtEd` is now treated the same as `obfuscated`. Previously, a value with unexpected casing that wasn't an exact match would silently fall back to the default. [PR#3645](https://github.com/newrelic/newrelic-ruby-agent/pull/3645)
 
 ## v10.7.1
 
