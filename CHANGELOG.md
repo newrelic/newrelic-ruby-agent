@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Bugfix: DelayedJob instrumentation no longer reinstalls itself on every worker under prepend mode**
+
+  When DelayedJob instrumentation is installed via prepend (the default), creating more than one `Delayed::Worker` in the same process caused the agent to log "Installing DelayedJob instrumentation" and reinitialize the plugin again for each additional worker. This was harmless but noisy; it's now only done once per process, matching the existing chain-instrumentation behavior. [PR#3654](https://github.com/newrelic/newrelic-ruby-agent/pull/3654)
+
 - **Feature: Add span.kind to background job libraries**
 
   Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
