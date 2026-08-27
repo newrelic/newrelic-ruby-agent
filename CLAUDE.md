@@ -6,7 +6,7 @@ The `newrelic_rpm` gem: instruments customer Ruby apps and reports performance d
 
 Everything stays on this machine, in the working tree. An engineer reviews the changes and takes
 every outward-facing action themselves. Never do these, never offer to, never propose them as a next
-step: git writes (`commit`, `add`/staging, `push`, `amend`, `rebase`, `reset --hard`, `tag`, `stash`)
+step: git writes (`commit`, `add`/staging, `push`, `amend`, `rebase`, `reset --hard`, `tag`)
 or anything that leaves this machine (opening, updating, commenting on, or merging PRs and issues).
 
 ## Constraints
