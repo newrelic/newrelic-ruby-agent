@@ -13,11 +13,16 @@ or anything that leaves this machine (opening, updating, commenting on, or mergi
 
 This gem loads into other people's production apps:
 
-- **Zero runtime dependencies.** The main agent requires no gems.
-- **Ruby >= 2.6** (`newrelic_rpm.gemspec`). No newer syntax — and RuboCop targets 2.7, so a clean
-  `rubocop` run does not prove 2.6 compatibility.
+- **Ruby >= 2.6** (`newrelic_rpm.gemspec`). No newer syntax. RuboCop targets 2.7
+  (`.rubocop.yml` `TargetRubyVersion`), so a clean `rubocop` run does not prove 2.6 compatibility.
+- **Near-zero runtime dependencies.** The gemspec has exactly one runtime dependency, `logger`
+  (`s.add_dependency 'logger'`) — everything else is a dev dependency. Don't add another runtime
+  dependency without calling it out explicitly.
 - **Plain Ruby only** — no `ActiveSupport`/`ActiveRecord` idioms (`blank?`, `present?`, `try`).
   We can't assume any library is loaded.
+- Third-party gem instrumentation lives under `lib/new_relic/agent/instrumentation/<gem>/` and
+  follows a prepend/chain/instrumentation split — use the `instrumentation` skill to scaffold a
+  new one rather than hand-rolling the layout.
 
 # Comment discipline
 
@@ -39,8 +44,11 @@ Every change needs tests, in the suite that matches it:
 | Gem instrumentation | multiverse — `test/multiverse/suites/<name>/` | `run_tests -q <name>` (one env, fast loop), `-m <name>` (full) |
 | Rails-version-specific | env — `test/environments/` | `run_tests -e 72,80` (comma-separated, leading `rails` optional) |
 
-`./test/script/run_tests -h` lists every flag. Run the tests covering the code you changed plus its
-callers — `grep` the changed method or class name to find them. Details: `test/README.md`,
+`./test/script/run_tests -h` lists every flag. Run the tests covering the code you changed plus
+its callers — `grep` the changed method or class name to find them. Multiverse suites needing
+external services (Elasticsearch, memcached, MongoDB, MySQL, PostgreSQL, RabbitMQ, Redis) can be
+brought up locally via the root `Brewfile`, or via Docker per `DOCKER.md`
+(`docker-compose up` / `docker-compose exec app rake`). Details: `test/README.md`,
 `test/multiverse/README.md`.
 
 ## Before you say you're done
