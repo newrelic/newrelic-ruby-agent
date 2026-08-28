@@ -84,14 +84,25 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
     function_error = 'Unhandled'
     message = 'oh no'
     type = 'Function<RuntimeError>'
-    backtrace = ["/var/task/lambda_function.rb:4:in `lambda_handler'",
-      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric/lambda_handler.rb:28:in `call_handler'",
-      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:88:in `run_user_code'",
-      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:66:in `start_runtime_loop'",
-      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:49:in `run'",
-      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:221:in `bootstrap_handler'",
-      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:203:in `start'",
-      "/var/runtime/index.rb:4:in `<main>'"]
+    backtrace = if ruby_3_4_0_or_above?
+      ["/var/task/lambda_function.rb:4:in 'lambda_handler'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric/lambda_handler.rb:28:in 'call_handler'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:88:in 'run_user_code'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:66:in 'start_runtime_loop'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:49:in 'run'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:221:in 'bootstrap_handler'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:203:in 'start'",
+        "/var/runtime/index.rb:4:in '<main>'"]
+    else
+      ["/var/task/lambda_function.rb:4:in `lambda_handler'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric/lambda_handler.rb:28:in `call_handler'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:88:in `run_user_code'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:66:in `start_runtime_loop'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:49:in `run'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:221:in `bootstrap_handler'",
+        "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:203:in `start'",
+        "/var/runtime/index.rb:4:in `<main>'"]
+    end
     payload = StringIO.new(JSON.generate({'errorMessage' => message, 'errorType' => type, 'stackTrace' => backtrace}))
     response = {status_code: 200, function_error: function_error, payload: payload}
 
@@ -143,5 +154,9 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
     assert_equal 1, segments.size, "Expected to find exactly 1 Lambda client segment, found #{segments.size}"
 
     segments.first
+  end
+
+  def ruby_3_4_0_or_above?
+    NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
   end
 end
