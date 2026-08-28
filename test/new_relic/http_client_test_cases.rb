@@ -283,10 +283,6 @@ module HttpClientTestCases
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
   end
 
-  def ruby_3_4_0_or_above?
-    NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
-  end
-
   def test_doesnt_misbehave_when_transaction_tracing_is_disabled
     # The error should have any other consequence other than logging the error, so
     # this will capture logs

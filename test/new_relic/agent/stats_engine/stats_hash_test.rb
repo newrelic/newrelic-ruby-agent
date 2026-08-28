@@ -199,8 +199,4 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     hash = stats_hash.instance_variable_get(:@unscoped)
     hash.default_proc = proc { raise exception }
   end
-
-  def ruby_3_4_0_or_above?
-    NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
-  end
 end
