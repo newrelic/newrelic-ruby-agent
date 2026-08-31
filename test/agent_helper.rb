@@ -57,6 +57,11 @@ def last_traced_error
   harvest_error_traces!.last
 end
 
+# Ruby 3.4 changed backtraces/error messages from `method' to 'method' quoting
+def ruby_3_4_0_or_above?
+  NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
+end
+
 def harvest_transaction_events!
   NewRelic::Agent.instance.transaction_event_aggregator.harvest!
 end
