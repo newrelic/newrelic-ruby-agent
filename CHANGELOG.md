@@ -2,6 +2,12 @@
 
 ## dev
 
+- **Bugfix: Puma instrumentation works when Puma is lazy-loaded**
+
+  With `gem "puma", require: false`, Puma was not yet loaded when the agent's dependency check ran, so Puma instrumentation would fail to install. The agent now recognizes `Puma::RackHandler` as evidence that Puma is present, fixing this issue. Thank you [@jdelStrother](https://github.com/jdelStrother) for finding this issue and providing a solution! [PR#3650](https://github.com/newrelic/newrelic-ruby-agent/pull/3650)
+
+## v10.7.1
+
 - **Bugfix: DelayedJob instrumentation no longer reinstalls itself on every worker under prepend mode**
 
   When DelayedJob instrumentation is installed via prepend (the default), creating more than one `Delayed::Worker` in the same process caused the agent to log "Installing DelayedJob instrumentation" and reinitialize the plugin again for each additional worker. This was harmless but noisy; it's now only done once per process, matching the existing chain-instrumentation behavior. [PR#3654](https://github.com/newrelic/newrelic-ruby-agent/pull/3654)
