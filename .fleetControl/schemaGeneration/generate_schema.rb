@@ -110,7 +110,7 @@ module GenerateSchema
     default = default_for(spec)
     property['default'] = default unless default == OMIT
 
-    enum = spec[:allowlist] ? spec[:allowlist].map(&:to_s) : enum_override
+    enum = spec[:allowlist] ? spec[:allowlist].map(&:to_s).uniq : enum_override
     property['enum'] = enum if enum
     property['writeOnly'] = true if spec[:exclude_from_reported_settings]
 
