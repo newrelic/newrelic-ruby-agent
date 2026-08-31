@@ -248,14 +248,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         count
       end
-
-      # TODO: OLD RUBIES < 3.4
-      # Ruby 3.4 introduced a new format for backtraces
-      # These tests have examples with the old the and new formats
-      # When we drop support for Ruby 3.3, we can remove the condition
-      def ruby_3_4_0_or_above?
-        NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
-      end
     end
   end
 end
