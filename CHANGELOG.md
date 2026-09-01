@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add `browser_monitoring.version` configuration option**
+
+  Customers can now pin the exact browser agent loader version New Relic injects by setting the new `browser_monitoring.version` configuration option. See the [browser agent EOL policy](https://docs.newrelic.com/docs/browser/browser-monitoring/getting-started/browser-agent-eol-policy/) for which versions are currently available and supported. 
+
 - **Bugfix: DelayedJob instrumentation no longer reinstalls itself on every worker under prepend mode**
 
   When DelayedJob instrumentation is installed via prepend (the default), creating more than one `Delayed::Worker` in the same process caused the agent to log "Installing DelayedJob instrumentation" and reinitialize the plugin again for each additional worker. This was harmless but noisy; it's now only done once per process, matching the existing chain-instrumentation behavior. [PR#3654](https://github.com/newrelic/newrelic-ruby-agent/pull/3654)

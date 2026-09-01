@@ -24,6 +24,19 @@ module NewRelic
         if !NewRelic::Agent.config[:'rum.enabled']
           NewRelic::Agent.logger.debug('Real User Monitoring is disabled for this agent. Edit your configuration to change this.')
         end
+
+        warn_if_requested_version_not_used
+      end
+
+      def warn_if_requested_version_not_used
+        binding.irb
+        return if missing_config?(:'browser_monitoring.version')
+        return unless missing_config?(:js_agent_loader)
+
+        requested_version = NewRelic::Agent.config[:'browser_monitoring.version']
+        NewRelic::Agent.logger.warn("Requested browser_monitoring.version '#{requested_version}' did not return a " \
+          "browser agent loader; please ensure '#{requested_version}' is available and supported. No browser " \
+          'monitoring will be injected for this connect.')
       end
 
       def enabled?
