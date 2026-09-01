@@ -6,11 +6,23 @@
 
   The Cloud Run hostname support added in [PR#3609](https://github.com/newrelic/newrelic-ruby-agent/pull/3609/) detected Cloud Run by looking for `K_REVISION`, which only Cloud Run **Services** set. Cloud Run **Worker Pools** and **Jobs** were left reporting `localhost`. The agent now also recognizes [`CLOUD_RUN_REVISION`](https://docs.cloud.google.com/run/docs/container-contract#env-vars) (Worker Pools) and `CLOUD_RUN_EXECUTION` (Jobs), so `utilization.gcp_cloud_run.use_instance_as_host` applies to all three resource types. When `utilization.gcp_cloud_run.include_revision_in_host` is `true`, the hostname uses whichever of those variables is set, for example `{CLOUD_RUN_EXECUTION}-{instance id}` on a Job. [Issue#3651](https://github.com/newrelic/newrelic-ruby-agent/issues/3651) [PR#3652](https://github.com/newrelic/newrelic-ruby-agent/pull/3652)
 
-## v10.7.1
-
 - **Feature: Add span.kind to background job libraries**
 
   Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
+
+- **Bugfix: DelayedJob instrumentation no longer reinstalls itself on every worker under prepend mode**
+
+  When DelayedJob instrumentation is installed via prepend (the default), creating more than one `Delayed::Worker` in the same process caused the agent to log "Installing DelayedJob instrumentation" and reinitialize the plugin again for each additional worker. This was harmless but noisy; it's now only done once per process, matching the existing chain-instrumentation behavior. [PR#3654](https://github.com/newrelic/newrelic-ruby-agent/pull/3654)
+
+- **Bugfix: Allowlisted configuration values are no longer case sensitive**
+
+  Configuration options that validate against an allowlist now match values regardless of case. For example, setting `slow_sql.record_sql` to `OBFUSCATED` or `ObFuScAtEd` is now treated the same as `obfuscated`. Previously, a value with unexpected casing that wasn't an exact match would silently fall back to the default. [PR#3645](https://github.com/newrelic/newrelic-ruby-agent/pull/3645)
+
+- **Bugfix: Puma instrumentation works when Puma is lazy-loaded**
+
+  With `gem "puma", require: false`, Puma was not yet loaded when the agent's dependency check ran, so Puma instrumentation would fail to install. The agent now recognizes `Puma::RackHandler` as evidence that Puma is present, fixing this issue. Thank you [@jdelStrother](https://github.com/jdelStrother) for finding this issue and providing a solution! [PR#3650](https://github.com/newrelic/newrelic-ruby-agent/pull/3650)
+
+## v10.7.1
 
 - **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
 
