@@ -9,6 +9,7 @@ require 'new_relic/agent/configuration/default_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 require 'new_relic/agent/configuration/high_security_source'
+require 'new_relic/agent/configuration/open_telemetry_source'
 
 module NewRelic
   module Agent
@@ -72,6 +73,7 @@ module NewRelic
           source = case sym
           when :high_security then @high_security_source
           when :environment then @environment_source
+          when :open_telemetry then @otel_source
           when :server then @server_source
           when :manual then @manual_source
           when :yaml then @yaml_source
@@ -85,6 +87,7 @@ module NewRelic
           case source
           when HighSecuritySource then @high_security_source = nil
           when EnvironmentSource then @environment_source = nil
+          when OpenTelemetrySource then @otel_source = nil
           when ServerSource then @server_source = nil
           when ManualSource then @manual_source = nil
           when YamlSource then @yaml_source = nil
@@ -107,6 +110,7 @@ module NewRelic
           case source
           when HighSecuritySource then @high_security_source = source
           when EnvironmentSource then @environment_source = source
+          when OpenTelemetrySource then @otel_source = source
           when ServerSource then @server_source = source
           when ManualSource then @manual_source = source
           when YamlSource then @yaml_source = source
@@ -488,6 +492,7 @@ module NewRelic
           @high_security_source = nil
           @environment_source = EnvironmentSource.new
           log_config(:add, @environment_source) # this is the only place the EnvironmentSource is ever created, so we should log it
+          @otel_source = OpenTelemetrySource.new
           @server_source = nil
           @manual_source = nil
           @yaml_source = nil
@@ -540,6 +545,7 @@ module NewRelic
         def delete_all_configs_for_testing
           @high_security_source = nil
           @environment_source = nil
+          @otel_source = nil
           @server_source = nil
           @manual_source = nil
           @yaml_source = nil
@@ -560,6 +566,7 @@ module NewRelic
         def config_stack
           stack = [@high_security_source,
             @environment_source,
+            @otel_source,
             @server_source,
             @manual_source,
             @yaml_source,
