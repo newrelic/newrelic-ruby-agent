@@ -29,7 +29,6 @@ module NewRelic
       end
 
       def warn_if_requested_version_not_used
-        binding.irb
         return if missing_config?(:'browser_monitoring.version')
         return unless missing_config?(:js_agent_loader)
 
