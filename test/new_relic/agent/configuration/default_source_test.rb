@@ -373,6 +373,24 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_enforce_object_allocation_interval_minimum_leaves_valid_values_untouched
+      assert_equal 10_000, DefaultSource.enforce_object_allocation_interval_minimum(10_000)
+    end
+
+    def test_object_allocation_interval_config_enforces_minimum
+      expects_logging(:debug, includes('profiling.object_allocation_interval'))
+
+      with_config(:'profiling.object_allocation_interval' => 1) do
+        assert_equal 1000, NewRelic::Agent.config[:'profiling.object_allocation_interval']
+      end
+    end
+
+    def test_profiling_mode_falls_back_to_cpu_for_a_removed_or_invalid_value
+      with_config(:'profiling.mode' => 'wall') do
+        assert_equal 'cpu', NewRelic::Agent.config[:'profiling.mode']
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 

@@ -20,6 +20,7 @@ module NewRelic
             :'transaction_tracer.record_redis_arguments' => false,
 
             :'ai_monitoring.enabled' => false,
+            :'profiling.enabled' => false,
             :'custom_insights_events.enabled' => false,
             :'strip_exception_messages.enabled' => true
           })

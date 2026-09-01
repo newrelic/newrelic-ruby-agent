@@ -170,6 +170,22 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       assert_equal(2, sampler.harvest!.size)
     end
 
+    def test_listener_merges_profiles_data
+      NewRelic::Agent.agent.service.expects(:profiles_data).with('raw-profile-bytes')
+
+      start_listener_with_pipe(672)
+      run_child(672) do
+        NewRelic::Agent.after_fork
+        service = NewRelic::Agent::PipeService.new(672)
+        service.profiles_data('raw-profile-bytes')
+      end
+
+      # The listener forwards profiles_data off-thread (Agent#forward_profiles_data), so
+      # run_child returning only means the pipe was drained, not that the forwarder ran --
+      # join it before mocha's expectation is verified at teardown.
+      join_profiling_forwarder_threads
+    end
+
     def test_close_pipe_on_child_explicit_close
       listener = start_listener_with_pipe(669)
       pid = Process.fork do
@@ -310,6 +326,12 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     until pipe_finished?(channel_id)
       sleep(0.01)
     end
+  end
+
+  def join_profiling_forwarder_threads
+    NewRelic::Agent::Threading::AgentThread.list
+      .select { |t| t[:newrelic_label] == 'Continuous Profiling Forwarder' }
+      .each { |t| t.join(1) }
   end
 
   def test_blocking_error_rescued

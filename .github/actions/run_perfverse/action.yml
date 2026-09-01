@@ -56,15 +56,3 @@ runs:
         path: test/perfverse/traffic/output/
         name: locust_report-iteration_${{ inputs.iteration_index }}
         retention-days: 1
-
-
-
-
-
-
-
-
-
-
-
-

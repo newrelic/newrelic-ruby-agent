@@ -432,6 +432,210 @@ class NewRelicServiceTest < Minitest::Test
     @service.profile_data([])
   end
 
+  # profiles_data doesn't use invoke_raw_method like every other method here -- OTLP/HTTP
+  # directly to /v1/profiles, api-key header, no gzip.
+  def test_profiles_data_posts_to_the_v1_profiles_path
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal '/v1/profiles', @http_handle.last_request.path
+  end
+
+  def test_profiles_data_sends_the_license_key_as_the_api_key_header
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 'license-key', @http_handle.last_request['api-key']
+  end
+
+  def test_profiles_data_sends_the_raw_bytes_uncompressed_without_json_marshalling
+    large_payload = 'x' * (NewRelic::Agent::NewRelicService::MIN_BYTE_SIZE_TO_COMPRESS + 1000)
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data(large_payload)
+
+    assert_equal large_payload, @http_handle.last_request.body
+    assert_nil @http_handle.last_request['Content-Encoding']
+  end
+
+  def test_profiles_data_sets_the_protobuf_content_type
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 'application/x-protobuf', @http_handle.last_request.content_type
+  end
+
+  def test_profiles_data_handles_a_202_accepted_response_without_raising
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 202, response.code
+  end
+
+  def test_profiles_data_records_a_failure_metric_and_returns_nil_on_a_server_error_response
+    @http_handle.respond_to('v1/profiles', '', :code => 500)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
+  def test_profiles_data_records_a_failure_metric_and_returns_nil_on_a_client_error_response
+    @http_handle.respond_to('v1/profiles', '', :code => 400)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
+  def test_profiles_data_with_nil_bytes_does_not_raise
+    assert_nil @service.profiles_data(nil)
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
+  def test_profiles_data_records_size_and_duration_supportability_metrics
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_metrics_recorded([
+      'Supportability/Ruby/OTLP/Profiles/Output/Bytes',
+      'Supportability/Ruby/Profiling/Export/Duration'
+    ])
+  end
+
+  def test_profiles_data_rescues_connection_failures_and_records_a_failure_metric
+    @service.stubs(:create_http_connection).raises(Errno::ECONNREFUSED)
+
+    response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Profiling/Export/Failure')
+  end
+
+  def test_profiles_data_reuses_the_connection_across_calls
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+    @service.profiles_data('raw-profile-bytes')
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal [:start, :request, :request], @http_handle.calls
+  end
+
+  def test_profiles_data_reconnects_after_a_failed_request
+    ordering = sequence('profiles_requests')
+    @http_handle.expects(:request).raises(Errno::ECONNRESET).in_sequence(ordering)
+    @http_handle.expects(:request).returns(@http_handle.create_response_mock('', :code => 202)).in_sequence(ordering)
+
+    first_response = @service.profiles_data('raw-profile-bytes')
+    second_response = @service.profiles_data('raw-profile-bytes')
+
+    assert_nil first_response
+    refute_nil second_response
+    assert_equal 2, @http_handle.calls.count(:start)
+  end
+
+  def test_profiles_data_oversized_payload_does_not_close_the_connection_or_double_count_failure
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    @service.profiles_data('raw-profile-bytes')
+
+    oversized_payload = '.' * (NewRelic::Agent.config[:max_payload_size_in_bytes] + 1)
+    response = @service.profiles_data(oversized_payload)
+
+    assert_nil response
+    assert_metrics_recorded('Supportability/Ruby/Collector/profiles_data/MaxPayloadSizeLimit')
+    assert_metrics_not_recorded('Supportability/Ruby/Profiling/Export/Failure')
+
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 1, @http_handle.calls.count(:start)
+  end
+
+  def test_build_profiles_request_skips_audit_logging_when_disabled
+    with_config(:'audit_log.enabled' => false) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.expects(:log_request_headers).never
+      audit_logger.expects(:log_profiles_request).never
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_audits_headers_with_the_api_key_redacted
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.expects(:log_request_headers).with do |uri, headers|
+        uri == "#{@server}/v1/profiles" && headers['api-key'] == 'license-ke*'
+      end
+      audit_logger.stubs(:log_profiles_request)
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_audits_the_body
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.stubs(:log_request_headers)
+      audit_logger.expects(:log_profiles_request).with("#{@server}/v1/profiles", 'raw-profile-bytes'.inspect)
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_does_not_leak_the_raw_license_key_to_the_audit_log
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      audit_logger = @service.instance_variable_get(:@audit_logger)
+      audit_logger.expects(:log_request_headers).with do |_uri, headers|
+        refute_includes headers.values, 'license-key'
+        true
+      end
+      audit_logger.stubs(:log_profiles_request)
+
+      @service.profiles_data('raw-profile-bytes')
+    end
+  end
+
+  def test_build_profiles_request_does_not_mutate_the_real_request_headers
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+
+      @service.profiles_data('raw-profile-bytes')
+
+      assert_equal 'license-key', @http_handle.last_request['api-key']
+    end
+  end
+
+  def test_profiles_audit_body_decodes_via_profile_encoder_when_defined
+    refute defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder), 'test assumes ProfileEncoder is not already loaded in the unit suite'
+    fake_encoder = Class.new do
+      def self.decode_for_audit(bytes)
+        "decoded: #{bytes}"
+      end
+    end
+    NewRelic::Agent::ContinuousProfiling.const_set(:ProfileEncoder, fake_encoder)
+
+    assert_equal 'decoded: raw-profile-bytes', @service.send(:profiles_audit_body, 'raw-profile-bytes')
+  ensure
+    NewRelic::Agent::ContinuousProfiling.send(:remove_const, :ProfileEncoder)
+  end
+
+  def test_profiles_audit_body_falls_back_to_inspect_when_profile_encoder_is_undefined
+    refute defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder), 'test assumes ProfileEncoder is not loaded in the unit suite'
+
+    assert_equal 'raw-profile-bytes'.inspect, @service.send(:profiles_audit_body, 'raw-profile-bytes')
+  end
+
   def test_get_agent_commands
     @service.agent_id = 666
     @http_handle.respond_to(:get_agent_commands, [1, 2, 3])
@@ -956,6 +1160,28 @@ class NewRelicServiceTest < Minitest::Test
     @service.force_restart
 
     refute_predicate @service, :has_shared_connection?
+  end
+
+  def test_force_restart_closes_the_profiles_connection
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    @service.profiles_data('raw-profile-bytes')
+
+    @service.force_restart
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 2, @http_handle.calls.count(:start)
+  end
+
+  def test_shutdown_closes_the_profiles_connection
+    @service.agent_id = 666
+    @http_handle.respond_to(:shutdown, 'shut this bird down')
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    @service.profiles_data('raw-profile-bytes')
+
+    @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))
+    @service.profiles_data('raw-profile-bytes')
+
+    assert_equal 2, @http_handle.calls.count(:start)
   end
 
   def test_marshal_with_json_only

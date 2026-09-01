@@ -28,6 +28,7 @@ require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
 require 'new_relic/agent/log_event_aggregator'
+require 'new_relic/agent/continuous_profiling/session'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -87,6 +88,8 @@ module NewRelic
         @wait_on_connect_mutex = Mutex.new
         @after_fork_lock = Mutex.new
         @wait_on_connect_condition = ConditionVariable.new
+        @profiles_forwarder_lock = Mutex.new
+        @profiles_forwarder_count = 0
       end
 
       def init_components
@@ -121,6 +124,7 @@ module NewRelic
         @custom_event_aggregator = CustomEventAggregator.new(@events)
         @span_event_aggregator = SpanEventAggregator.new(@events)
         @log_event_aggregator = LogEventAggregator.new(@events)
+        @continuous_profiling_session = ContinuousProfiling::Session.new(@events)
       end
 
       def setup_attribute_filter
@@ -181,6 +185,7 @@ module NewRelic
         attr_reader :custom_event_aggregator
         attr_reader :span_event_aggregator
         attr_reader :log_event_aggregator
+        attr_reader :continuous_profiling_session
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
@@ -319,6 +324,7 @@ module NewRelic
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
           @stats_engine = StatsEngine.new
+          @continuous_profiling_session.reset_after_fork_from_parent_thread
         end
 
         def flush_pipe_data # used only by resque
@@ -326,6 +332,13 @@ module NewRelic
             transmit_data_types
           end
         end
+
+        # No aggregator for profiles_data -- forward as-is, off-thread so a slow export
+        # doesn't block this pipe-draining loop's delivery of every other child's data.
+        # Bounded because every forwarder serializes on NewRelicService's own connection
+        # lock anyway, so letting them pile up unboundedly under a slow collector only grows
+        # thread count, not throughput.
+        MAX_CONCURRENT_PROFILES_FORWARDERS = 4
 
         private
 
@@ -348,7 +361,31 @@ module NewRelic
           end
         end
 
+        def forward_profiles_data(data)
+          @profiles_forwarder_lock.synchronize do
+            if @profiles_forwarder_count >= MAX_CONCURRENT_PROFILES_FORWARDERS
+              NewRelic::Agent.increment_metric('Supportability/Ruby/Profiling/Forward/Dropped')
+              NewRelic::Agent.logger.debug(
+                'Dropping a forwarded continuous profiling payload: too many exports already in flight'
+              )
+              return nil
+            end
+
+            @profiles_forwarder_count += 1
+          end
+
+          Threading::AgentThread.create('Continuous Profiling Forwarder') do
+            @service.profiles_data(data)
+          ensure
+            @profiles_forwarder_lock.synchronize { @profiles_forwarder_count -= 1 }
+          end
+        end
+
         def merge_data_for_endpoint(endpoint, data)
+          if endpoint == :profiles_data && data && !data.empty?
+            return forward_profiles_data(data)
+          end
+
           if data && !data.empty?
             container = container_for_endpoint(endpoint)
             if container.respond_to?(:has_metadata?) && container.has_metadata?

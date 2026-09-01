@@ -98,5 +98,15 @@ module NewRelic::Agent::Configuration
 
       assert_empty source[:'attributes.include']
     end
+
+    def test_forces_profiling_enabled_disabled
+      local_settings = {
+        :'profiling.enabled' => true
+      }
+
+      source = HighSecuritySource.new(local_settings)
+
+      refute source[:'profiling.enabled']
+    end
   end
 end

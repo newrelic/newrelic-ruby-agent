@@ -216,6 +216,61 @@ module NewRelic
           constants.compact!
           constants
         end
+
+        OBJECT_ALLOCATION_INTERVAL_MINIMUM = 1000
+
+        # StackProf's C extension rejects any interval outside 1..999_999, regardless of
+        # whether the value means microseconds (:cpu/:wall mode, profiling.sample_period) or a
+        # raw allocation count (:object mode, profiling.object_allocation_interval) -- see
+        # stackprof_start in stackprof.c. Both configs' transforms enforce that same
+        # underlying ceiling, each expressed in the config's own unit.
+        STACKPROF_INTERVAL_MAXIMUM = 999_999
+        SAMPLE_PERIOD_MINIMUM_SECONDS = 1 / 1_000_000.0
+        SAMPLE_PERIOD_MAXIMUM_SECONDS = STACKPROF_INTERVAL_MAXIMUM / 1_000_000.0
+
+        def self.enforce_object_allocation_interval_minimum(value)
+          return value if value.nil?
+
+          if value < OBJECT_ALLOCATION_INTERVAL_MINIMUM
+            NewRelic::Agent.logger.debug(
+              "profiling.object_allocation_interval is set to #{value.inspect}, which is below the minimum " \
+              "of #{OBJECT_ALLOCATION_INTERVAL_MINIMUM}. Using #{OBJECT_ALLOCATION_INTERVAL_MINIMUM} instead."
+            )
+            return OBJECT_ALLOCATION_INTERVAL_MINIMUM
+          end
+
+          if value > STACKPROF_INTERVAL_MAXIMUM
+            NewRelic::Agent.logger.debug(
+              "profiling.object_allocation_interval is set to #{value.inspect}, which is above the maximum " \
+              "of #{STACKPROF_INTERVAL_MAXIMUM}. Using #{STACKPROF_INTERVAL_MAXIMUM} instead."
+            )
+            return STACKPROF_INTERVAL_MAXIMUM
+          end
+
+          value
+        end
+
+        def self.enforce_sample_period_range(value)
+          return value if value.nil?
+
+          if value < SAMPLE_PERIOD_MINIMUM_SECONDS
+            NewRelic::Agent.logger.debug(
+              "profiling.sample_period is set to #{value.inspect}, which is below the minimum of " \
+              "#{SAMPLE_PERIOD_MINIMUM_SECONDS} seconds. Using #{SAMPLE_PERIOD_MINIMUM_SECONDS} instead."
+            )
+            return SAMPLE_PERIOD_MINIMUM_SECONDS
+          end
+
+          if value > SAMPLE_PERIOD_MAXIMUM_SECONDS
+            NewRelic::Agent.logger.debug(
+              "profiling.sample_period is set to #{value.inspect}, which is above the maximum of " \
+              "#{SAMPLE_PERIOD_MAXIMUM_SECONDS} seconds. Using #{SAMPLE_PERIOD_MAXIMUM_SECONDS} instead."
+            )
+            return SAMPLE_PERIOD_MAXIMUM_SECONDS
+          end
+
+          value
+        end
       end
 
       AUTOSTART_DENYLISTED_RAKE_TASKS = [
@@ -1046,6 +1101,52 @@ module NewRelic
           :allowed_from_server => true,
           :description => "If `true`, the agent will report source code level metrics for traced methods.\n\tSee: " \
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
+        },
+        # Continuous profiler
+        :'profiling.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, enables continuous profiling. Requires the `stackprof` and `google-protobuf` ' \
+            'gems to be present in the application. Not supported on JRuby. Automatically disabled when high ' \
+            'security mode is enabled.'
+        },
+        :'profiling.mode' => {
+          :default => 'cpu',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :allowlist => %w[cpu object],
+          :description => 'The `stackprof` sampling mode to use for continuous profiling: `cpu` or `object`.'
+        },
+        :'profiling.sample_period' => {
+          :default => 0.01,
+          :public => true,
+          :type => Float,
+          :allowed_from_server => true,
+          :transform => DefaultSource.method(:enforce_sample_period_range),
+          :description => 'The interval, in seconds, between stack samples taken by the continuous profiler. ' \
+            'Only used when `profiling.mode` is `cpu`. Must be between ' \
+            "#{DefaultSource::SAMPLE_PERIOD_MINIMUM_SECONDS} and #{DefaultSource::SAMPLE_PERIOD_MAXIMUM_SECONDS}."
+        },
+        :'profiling.object_allocation_interval' => {
+          :default => 10000,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :transform => DefaultSource.method(:enforce_object_allocation_interval_minimum),
+          :description => 'The number of object allocations between stack samples taken by the continuous ' \
+            'profiler. Only used when `profiling.mode` is `object`. Must be between ' \
+            "#{DefaultSource::OBJECT_ALLOCATION_INTERVAL_MINIMUM} and #{DefaultSource::STACKPROF_INTERVAL_MAXIMUM}."
+        },
+        :'profiling.harvest_period' => {
+          :default => 10,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The interval, in seconds, at which the continuous profiler converts and reports its ' \
+            'collected samples.'
         },
         # Custom attributes
         :'custom_attributes.enabled' => {
