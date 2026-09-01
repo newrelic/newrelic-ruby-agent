@@ -2314,7 +2314,7 @@ module NewRelic
           :description => 'If `true`, the agent automatically detects that it is running in a Google Cloud Platform environment.'
         },
         :'utilization.gcp_cloud_run.use_instance_as_host' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
