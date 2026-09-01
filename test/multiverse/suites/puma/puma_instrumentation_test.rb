@@ -222,6 +222,23 @@ class PumaInstrumentationTest < Minitest::Test
     end
   end
 
+  # When `gem "puma", require: false`, Puma::RackHandler is defined
+  # before Puma::Launcher loads
+  def test_dependency_satisfied_via_rack_handler_without_launcher
+    require 'rack/handler/puma'
+
+    item = DependencyDetection.dependency_by_name(:puma)
+    saved_launcher = Puma.send(:remove_const, :Launcher)
+
+    with_config(:disable_puma_instrumentation => false) do
+      assert_predicate item, :check_dependencies,
+        'expected :puma to be satisfied once Puma::RackHandler is defined, even without Puma::Launcher'
+    end
+  ensure
+    # Other tests in this file rely on  Puma::Launcher, so restore it
+    Puma.const_set(:Launcher, saved_launcher) if saved_launcher
+  end
+
   # --- install_or_arm decision -----------------------------------------------
 
   def test_install_or_arm_installs_in_master_when_runner_present
