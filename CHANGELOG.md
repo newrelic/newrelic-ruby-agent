@@ -18,6 +18,10 @@
 
   With `gem "puma", require: false`, Puma was not yet loaded when the agent's dependency check ran, so Puma instrumentation would fail to install. The agent now recognizes `Puma::RackHandler` as evidence that Puma is present, fixing this issue. Thank you [@jdelStrother](https://github.com/jdelStrother) for finding this issue and providing a solution! [PR#3650](https://github.com/newrelic/newrelic-ruby-agent/pull/3650)
 
+- **Bugfix: `utilization.gcp_cloud_run.use_instance_as_host` now defaults to `false`**
+
+  This configuration option now defaults to `false` instead of `true`. Previously, the agent reported the GCP instance id as the hostname for all Cloud Run services by default, now this behavior is opt-in. [Issue#3659](https://github.com/newrelic/newrelic-ruby-agent/issues/3659) [PR#3662](https://github.com/newrelic/newrelic-ruby-agent/pull/3662)
+
 ## v10.7.1
 
 - **Bugfix: Resolve ArgumentError on multi-key operations with Dalli 5.1.0**
