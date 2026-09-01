@@ -1,0 +1,98 @@
+# Maps gem names to their New Relic Ruby Agent instrumentation code.
+# Consumed by GemInstrumentationMapper.
+#
+# Entry shapes:
+#   <string>    Directory name under lib/new_relic/agent/instrumentation/.
+#               instrumentation.rb and prepend.rb are looked up inside
+#               that directory.
+#   <list>      Explicit list of file paths, relative to
+#               lib/new_relic/agent/instrumentation/.
+#
+# When adding a new gem, also add a matching entry in gem_changelogs.yml so
+# the AI analysis has a changelog to compare against.
+
+# Directory mappings
+async-http:       async_http
+aws-sdk-firehose: aws_sdk_firehose
+aws-sdk-kinesis:  aws_sdk_kinesis
+aws-sdk-lambda:   aws_sdk_lambda
+bunny:            bunny
+concurrent-ruby:  concurrent_ruby
+curb:             curb
+delayed_job:      delayed_job
+elasticsearch:    elasticsearch
+ethon:            ethon
+grape:            grape
+httpclient:       httpclient
+httpx:            httpx
+logger:           logger
+logging:          logging
+logstasher:       logstasher
+opensearch:       opensearch
+padrino:          padrino
+parallel:         parallel
+rack:             rack
+rake:             rake
+rdkafka:          rdkafka
+redis:            redis
+resque:           resque
+roda:             roda
+ruby-kafka:       ruby_kafka
+ruby-openai:      ruby_openai
+semantic_logger:  semantic_logger
+sinatra:          sinatra
+tilt:             tilt
+typhoeus:         typhoeus
+view_component:   view_component
+
+# Non-obvious directory mappings
+aws-sdk-dynamodb: dynamodb
+aws-sdk-sqs:      aws_sqs
+http:             httprb
+httprb:           httprb
+
+# Explicit file lists
+activemerchant:
+  - active_merchant.rb
+activerecord:
+  - active_record.rb
+  - active_record_prepend.rb
+  - active_record_helper.rb
+dalli:
+  - memcache/instrumentation.rb
+  - memcache/prepend.rb
+  - memcache/dalli.rb
+excon:
+  - excon.rb
+  - excon/middleware.rb
+mongo:
+  - mongo.rb
+  - mongodb_command_subscriber.rb
+rails:
+  - action_cable_subscriber.rb
+  - action_controller_subscriber.rb
+  - action_mailer_subscriber.rb
+  - action_view_subscriber.rb
+  - active_job.rb
+  - active_record_subscriber.rb
+  - active_storage_subscriber.rb
+sequel:
+  - sequel.rb
+  - sequel_helper.rb
+stripe:
+  - stripe.rb
+  - stripe_subscriber.rb
+
+# Nested directory file lists
+grpc:
+  - grpc/helper.rb
+  - grpc/client/instrumentation.rb
+  - grpc/client/prepend.rb
+  - grpc/server/instrumentation.rb
+  - grpc/server/rpc_server_prepend.rb
+sidekiq:
+  - sidekiq/client.rb
+  - sidekiq/server.rb
+sidekiq-delay_extensions:
+  - sidekiq/extensions/delayed_class.rb
+  - sidekiq/extensions/delay_extensions.rb

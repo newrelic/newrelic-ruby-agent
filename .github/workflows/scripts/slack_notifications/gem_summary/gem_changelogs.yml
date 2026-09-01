@@ -1,0 +1,72 @@
+# Changelog locations for gems the New Relic Ruby Agent tracks for updates.
+# Consumed by ChangelogAnalyzer.
+#
+# Entry shapes:
+#   type: releases   GitHub Releases API — returns the latest release notes
+#   type: blob       Raw file on GitHub — extracts the latest version section
+#   ~                No changelog available (non-GitHub, or repo has no changelog)
+#
+# When adding a gem here, also add a mapping in gem_instrumentation.yml
+# so the AI analysis has code to compare the changelog against.
+
+# --- GitHub Releases API ---------------------------------------------------
+# `activerecord` intentionally points at rails/rails — ActiveRecord ships from
+# the Rails monorepo. Both gem names appear in supported_gems.txt.
+grpc:         {type: releases, repo: grpc/grpc}
+logger:       {type: releases, repo: ruby/logger}
+mongo:        {type: releases, repo: mongodb/mongo-ruby-driver}
+rails:        {type: releases, repo: rails/rails}
+activerecord: {type: releases, repo: rails/rails}
+rake:         {type: releases, repo: ruby/rake}
+
+# --- AWS SDK family (same repo + branch, path differs) ---------------------
+aws-sdk-dynamodb: {type: blob, repo: aws/aws-sdk-ruby, branch: version-3, path: gems/aws-sdk-dynamodb/CHANGELOG.md}
+aws-sdk-firehose: {type: blob, repo: aws/aws-sdk-ruby, branch: version-3, path: gems/aws-sdk-firehose/CHANGELOG.md}
+aws-sdk-kinesis:  {type: blob, repo: aws/aws-sdk-ruby, branch: version-3, path: gems/aws-sdk-kinesis/CHANGELOG.md}
+aws-sdk-lambda:   {type: blob, repo: aws/aws-sdk-ruby, branch: version-3, path: gems/aws-sdk-lambda/CHANGELOG.md}
+aws-sdk-sqs:      {type: blob, repo: aws/aws-sdk-ruby, branch: version-3, path: gems/aws-sdk-sqs/CHANGELOG.md}
+
+# --- Standard CHANGELOG.md in repo root ------------------------------------
+concurrent-ruby: {type: blob, repo: ruby-concurrency/concurrent-ruby,   path: CHANGELOG.md}
+dalli:           {type: blob, repo: petergoldstein/dalli,               path: CHANGELOG.md}
+delayed_job:     {type: blob, repo: collectiveidea/delayed_job,         path: CHANGELOG.md}
+elasticsearch:   {type: blob, repo: elastic/elasticsearch-ruby,         path: CHANGELOG.md}
+ethon:           {type: blob, repo: typhoeus/ethon,                     path: CHANGELOG.md}
+grape:           {type: blob, repo: ruby-grape/grape,                   path: CHANGELOG.md}
+http:            {type: blob, repo: httprb/http,                        path: CHANGELOG.md}
+httpclient:      {type: blob, repo: nahi/httpclient,                    path: CHANGELOG.md}
+logstasher:      {type: blob, repo: shadabahmed/logstasher,             path: CHANGELOG.md}
+opensearch:      {type: blob, repo: opensearch-project/opensearch-ruby, path: CHANGELOG.md}
+parallel:        {type: blob, repo: grosser/parallel,                   path: CHANGELOG.md}
+rack:            {type: blob, repo: rack/rack,                          path: CHANGELOG.md}
+rdkafka:         {type: blob, repo: karafka/rdkafka-ruby,               path: CHANGELOG.md}
+redis:           {type: blob, repo: redis/redis-rb,                     path: CHANGELOG.md}
+ruby-kafka:      {type: blob, repo: zendesk/ruby-kafka,                 path: CHANGELOG.md}
+ruby-openai:     {type: blob, repo: alexrudall/ruby-openai,             path: CHANGELOG.md}
+semantic_logger: {type: blob, repo: reidmorrison/semantic_logger,       path: CHANGELOG.md}
+sinatra:         {type: blob, repo: sinatra/sinatra,                    path: CHANGELOG.md}
+stripe:          {type: blob, repo: stripe/stripe-ruby,                 path: CHANGELOG.md}
+tilt:            {type: blob, repo: rtomayko/tilt,                      path: CHANGELOG.md}
+typhoeus:        {type: blob, repo: typhoeus/typhoeus,                  path: CHANGELOG.md}
+yajl-ruby:       {type: blob, repo: brianmario/yajl-ruby,               path: CHANGELOG.md}
+
+# --- Non-standard paths or filenames ---------------------------------------
+activemerchant:           {type: blob, repo: activemerchant/active_merchant, path: CHANGELOG}
+async-http:               {type: blob, repo: socketry/async-http,            path: releases.md}
+bunny:                    {type: blob, repo: ruby-amqp/bunny,                path: ChangeLog.md}
+curb:                     {type: blob, repo: taf2/curb,                      path: ChangeLog.md}
+excon:                    {type: blob, repo: excon/excon,                    path: changelog.txt}
+httprb:                   {type: blob, repo: tommetge/httprb,                path: CHANGES}
+logging:                  {type: blob, repo: TwP/logging,                    path: History.txt}
+padrino:                  {type: blob, repo: padrino/padrino-framework,      path: CHANGES.rdoc}
+puma:                     {type: blob, repo: puma/puma,                      path: History.md}
+resque:                   {type: blob, repo: resque/resque,                  path: HISTORY.md}
+roda:                     {type: blob, repo: jeremyevans/roda,               path: CHANGELOG}
+sequel:                   {type: blob, repo: jeremyevans/sequel,             path: CHANGELOG}
+sidekiq:                  {type: blob, repo: sidekiq/sidekiq,                path: Changes.md}
+sidekiq-delay_extensions: {type: blob, repo: sidekiq/sidekiq,                path: Changes.md}
+view_component:           {type: blob, repo: ViewComponent/view_component,   path: docs/CHANGELOG.md}
+
+# --- No changelog available ------------------------------------------------
+httpx: ~       # Hosted on GitLab; changelog is an HTML page (honeyryderchuck.gitlab.io/httpx). No GitLab fetcher support yet.
+unicorn: ~     # Self-hosted at yhbt.net; no stable HTTPS URL for the NEWS file.
