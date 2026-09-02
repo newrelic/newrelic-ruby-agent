@@ -2,6 +2,6 @@ configurationDefinitions:
   - platform: KUBERNETESCLUSTER
     description: Ruby agent configuration
     type: agent-config
-    version: 1.0.0
+    version: 1.0.1
     schema: ./schemas/config.json
     format: yml
