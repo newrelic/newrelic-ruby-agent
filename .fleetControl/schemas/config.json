@@ -1,0 +1,2058 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "New Relic Ruby Agent Configuration",
+  "description": "Configuration settings for the New Relic Ruby agent. Generated from DEFAULTS in lib/new_relic/agent/configuration/default_source.rb.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "active_record_use_table_name": {
+      "type": "boolean",
+      "description": "If true, the agent will use the ActiveRecord model's table name instead of the class name when naming ActiveRecord metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to false.",
+      "default": false
+    },
+    "active_support_custom_events_names": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of ActiveSupport custom event names to subscribe to and instrument. For example: [one.custom.event, another.event, a.third.event]",
+      "default": []
+    },
+    "agent_enabled": {
+      "type": "boolean",
+      "description": "If true, allows the Ruby agent to run.",
+      "default": true
+    },
+    "ai_monitoring.enabled": {
+      "type": "boolean",
+      "description": "If false, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if high_security mode is enabled.",
+      "default": false
+    },
+    "ai_monitoring.record_content.enabled": {
+      "type": "boolean",
+      "description": "If false, LLM instrumentation (OpenAI only for now) will not capture the content attribute on LlmChatCompletionMessage events or the input attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.",
+      "default": true
+    },
+    "allow_all_headers": {
+      "type": "boolean",
+      "description": "If true, enables capture of all HTTP request headers for all destinations.",
+      "default": false
+    },
+    "app_name": {
+      "type": "string",
+      "description": "Specify the application name used to aggregate data in the New Relic UI. To report data to multiple apps at the same time, specify a list of names separated by a semicolon ;. For example, MyApp or MyStagingApp;Instance1."
+    },
+    "application_logging.enabled": {
+      "type": "boolean",
+      "description": "If true, enables log decoration and the collection of log events and metrics.",
+      "default": true
+    },
+    "application_logging.forwarding.custom_attributes": {
+      "type": "object",
+      "description": "A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: \"key1=value1,key2=value2\"",
+      "default": {}
+    },
+    "application_logging.forwarding.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures log records emitted by your application.",
+      "default": true
+    },
+    "application_logging.forwarding.labels.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent attaches labels to log records.",
+      "default": false
+    },
+    "application_logging.forwarding.labels.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "A case-insensitive array or comma-delimited string containing the labels to exclude from log records.",
+      "default": []
+    },
+    "application_logging.forwarding.log_level": {
+      "type": "string",
+      "description": "Sets the minimum level a log event must have to be forwarded to New Relic. Logs at the configured level and any higher severity are forwarded, for example, debug forwards all log events, while error forwards only error, fatal, and unknown events. Valid values, lowest to highest severity: debug, info, warn, error, fatal, unknown (case-insensitive).",
+      "default": "debug",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "fatal",
+        "unknown"
+      ]
+    },
+    "application_logging.forwarding.max_samples_stored": {
+      "type": "integer",
+      "description": "Defines the maximum number of log records to buffer in memory at a time.",
+      "default": 10000
+    },
+    "application_logging.local_decorating.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.",
+      "default": false
+    },
+    "application_logging.metrics.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures metrics related to logging for your application.",
+      "default": true
+    },
+    "attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, enables capture of attributes for all destinations.",
+      "default": true
+    },
+    "attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from all destinations. Allows * as wildcard at end.",
+      "default": []
+    },
+    "attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include in all destinations. Allows * as wildcard at end.",
+      "default": []
+    },
+    "audit_log.enabled": {
+      "type": "boolean",
+      "description": "If true, enables an audit log which logs communications with the New Relic collector.",
+      "default": false
+    },
+    "audit_log.endpoints": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "List of allowed endpoints to include in the audit log.",
+      "default": [
+        ".*"
+      ]
+    },
+    "audit_log.path": {
+      "type": "string",
+      "description": "Specifies a path to the audit log file (including the filename).",
+      "default": "log/newrelic_audit.log"
+    },
+    "automatic_custom_instrumentation_method_list": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of CLASS#METHOD (for instance methods) and/or CLASS.METHOD (for class methods) strings representing Ruby methods that the agent can automatically add custom instrumentation to. This doesn't require any modifications of the source code that defines the methods.",
+      "default": []
+    },
+    "autostart.denylisted_constants": {
+      "type": "string",
+      "description": "Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma ,. For example, \"Rails::Console,UninstrumentedBackgroundJob\".",
+      "default": "Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Command::TestCommand,Rails::Console,Rails::DBConsole"
+    },
+    "autostart.denylisted_executables": {
+      "type": "string",
+      "description": "Defines a comma-delimited list of executables that the agent should not instrument. For example, \"rake,my_ruby_script.rb\".",
+      "default": "irb,rspec"
+    },
+    "autostart.denylisted_rake_tasks": {
+      "type": "string",
+      "description": "Defines a comma-delimited list of Rake tasks that the agent should not instrument. For example, \"assets:precompile,db:migrate\".",
+      "default": "about,assets:clean,assets:clobber,assets:environment,assets:precompile,assets:precompile:all,db:create,db:drop,db:fixtures:load,db:migrate,db:migrate:status,db:rollback,db:schema:cache:clear,db:schema:cache:dump,db:schema:dump,db:schema:load,db:seed,db:setup,db:structure:dump,db:version,doc:app,log:clear,middleware,notes,notes:custom,rails:template,rails:update,routes,secret,spec,spec:features,spec:requests,spec:controllers,spec:helpers,spec:models,spec:views,spec:routing,spec:rcov,stats,test,test:all,test:all:db,test:recent,test:single,test:uncommitted,time:zones:all,tmp:clear,tmp:create,webpacker:compile"
+    },
+    "backport_fast_active_record_connection_lookup": {
+      "type": "boolean",
+      "description": "Backports the faster ActiveRecord connection lookup introduced in Rails 6, which improves agent performance when instrumenting ActiveRecord. Note that this setting may not be compatible with other gems that patch ActiveRecord.",
+      "default": false
+    },
+    "browser_monitoring.attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures attributes from browser monitoring.",
+      "default": false
+    },
+    "browser_monitoring.attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from browser monitoring. Allows * as wildcard at end.",
+      "default": []
+    },
+    "browser_monitoring.attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include in browser monitoring. Allows * as wildcard at end.",
+      "default": []
+    },
+    "browser_monitoring.auto_instrument": {
+      "type": "boolean",
+      "description": "If true, enables auto-injection of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).",
+      "default": true
+    },
+    "browser_monitoring.content_security_policy_nonce": {
+      "type": "boolean",
+      "description": "If true, enables auto-injection of Content Security Policy Nonce in browser monitoring scripts. For now, auto-injection only works with Rails 5.2+.",
+      "default": true
+    },
+    "ca_bundle_path": {
+      "type": "string",
+      "description": "Manual override for the path to your local CA bundle. This CA bundle validates the SSL certificate presented by New Relic's data collection service."
+    },
+    "capture_memcache_keys": {
+      "type": "boolean",
+      "description": "If true, the agent captures memcache keys in transaction traces.",
+      "default": false
+    },
+    "capture_params": {
+      "type": "boolean",
+      "description": "When true, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and TransactionError events. When using the capture_params setting, the Ruby agent will not attempt to filter secret information. Recommendation: To filter secret information from request parameters, use the attributes.include setting instead. For more information, see the Ruby attribute examples.",
+      "default": false
+    },
+    "clear_transaction_state_after_fork": {
+      "type": "boolean",
+      "description": "If true, the agent will clear Tracer::State in Agent.drop_buffered_data.",
+      "default": false
+    },
+    "cloud.aws.account_id": {
+      "type": "string",
+      "description": "The AWS account ID associated with this application."
+    },
+    "code_level_metrics.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent will report source code level metrics for traced methods. See: https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/",
+      "default": true
+    },
+    "config_path": {
+      "type": "string",
+      "description": "Path to newrelic.yml. If undefined, the agent checks the following directories (in order): config/newrelic.yml -> newrelic.yml -> $HOME/.newrelic/newrelic.yml -> $HOME/newrelic.yml"
+    },
+    "custom_attributes.enabled": {
+      "type": "boolean",
+      "description": "If false, custom attributes will not be sent on events.",
+      "default": true
+    },
+    "custom_insights_events.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures custom events.",
+      "default": true
+    },
+    "custom_insights_events.max_samples_stored": {
+      "type": "integer",
+      "description": "Specify a maximum number of custom events to buffer in memory at a time. When configuring the agent for AI monitoring, set to max value 100000. This ensures the agent captures the maximum amount of LLM events.",
+      "default": 3000
+    },
+    "datastore_tracer.database_name_reporting.enabled": {
+      "type": "boolean",
+      "description": "If false, the agent will not add database_name parameter to transaction or slow SQL traces.",
+      "default": true
+    },
+    "datastore_tracer.instance_reporting.enabled": {
+      "type": "boolean",
+      "description": "If false, the agent will not report datastore instance metrics, nor add host or port_path_or_id parameters to transaction or slow SQL traces.",
+      "default": true
+    },
+    "disable_action_cable_instrumentation": {
+      "type": "boolean",
+      "description": "If true, disables Action Cable instrumentation.",
+      "default": false
+    },
+    "disable_action_controller": {
+      "type": "boolean",
+      "description": "If true, disables Action Controller instrumentation.",
+      "default": false
+    },
+    "disable_action_mailbox": {
+      "type": "boolean",
+      "description": "If true, disables Action Mailbox instrumentation.",
+      "default": false
+    },
+    "disable_action_mailer": {
+      "type": "boolean",
+      "description": "If true, disables Action Mailer instrumentation.",
+      "default": false
+    },
+    "disable_active_job_step_names": {
+      "type": "boolean",
+      "description": "If true, step names from Rails Active Job Continuations will not be included in metric names. This reduces metric cardinality but also reduces visibility into individual step performance. Only set this to true if you are experiencing metric cardinality issues due to jobs with many steps or dynamically-named steps.",
+      "default": false
+    },
+    "disable_active_record_instrumentation": {
+      "type": "boolean",
+      "description": "If true, disables Active Record instrumentation.",
+      "default": false
+    },
+    "disable_active_record_notifications": {
+      "type": "boolean",
+      "description": "If true, disables instrumentation for Active Record 4+.",
+      "default": false
+    },
+    "disable_active_storage": {
+      "type": "boolean",
+      "description": "If true, disables Active Storage instrumentation.",
+      "default": false
+    },
+    "disable_active_support": {
+      "type": "boolean",
+      "description": "If true, disables Active Support instrumentation.",
+      "default": false
+    },
+    "disable_activejob": {
+      "type": "boolean",
+      "description": "If true, disables Active Job instrumentation.",
+      "default": false
+    },
+    "disable_cpu_sampler": {
+      "type": "boolean",
+      "description": "If true, the agent won't sample the CPU usage of the host process.",
+      "default": false
+    },
+    "disable_delayed_job_sampler": {
+      "type": "boolean",
+      "description": "If true, the agent won't measure the depth of Delayed Job queues.",
+      "default": false
+    },
+    "disable_gc_profiler": {
+      "type": "boolean",
+      "description": "If true, disables the use of GC::Profiler to measure time spent in garbage collection.",
+      "default": false
+    },
+    "disable_memory_sampler": {
+      "type": "boolean",
+      "description": "If true, the agent won't sample the memory usage of the host process.",
+      "default": false
+    },
+    "disable_middleware_instrumentation": {
+      "type": "boolean",
+      "description": "If true, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails). When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.",
+      "default": false
+    },
+    "disable_puma_instrumentation": {
+      "type": "boolean",
+      "description": "If true, disables the Puma server-statistics instrumentation that samples Ruby/Puma/* metrics from the Puma master process. This instrumentation is disabled by default. When enabled, the agent starts a reporting thread in the Puma master process to deliver these metrics.",
+      "default": true
+    },
+    "disable_roda_auto_middleware": {
+      "type": "boolean",
+      "description": "If true, disables agent middleware for Roda. This middleware is responsible for advanced feature support such as page load timing and error collection.",
+      "default": false
+    },
+    "disable_samplers": {
+      "type": "boolean",
+      "description": "If true, disables the collection of sampler metrics. Sampler metrics are metrics that are not event-based (such as CPU time or memory usage).",
+      "default": false
+    },
+    "disable_sequel_instrumentation": {
+      "type": "boolean",
+      "description": "If true, disables Sequel instrumentation.",
+      "default": false
+    },
+    "disable_sidekiq": {
+      "type": "boolean",
+      "description": "If true, disables Sidekiq instrumentation.",
+      "default": false
+    },
+    "disable_sinatra_auto_middleware": {
+      "type": "boolean",
+      "description": "If true, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as distributed tracing, page load timing, and error collection.",
+      "default": false
+    },
+    "disable_view_instrumentation": {
+      "type": "boolean",
+      "description": "If true, disables view instrumentation.",
+      "default": false
+    },
+    "disable_vm_sampler": {
+      "type": "boolean",
+      "description": "If true, the agent won't sample performance measurements from the Ruby VM.",
+      "default": false
+    },
+    "distributed_tracing.enabled": {
+      "type": "boolean",
+      "description": "Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the transition guide before you enable this feature.",
+      "default": true
+    },
+    "distributed_tracing.sampler.remote_parent_not_sampled": {
+      "type": "string",
+      "description": "This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are adaptive (the default), always_on, always_off, and trace_id_ratio_based.",
+      "default": "adaptive",
+      "enum": [
+        "adaptive",
+        "always_on",
+        "always_off",
+        "trace_id_ratio_based"
+      ]
+    },
+    "distributed_tracing.sampler.remote_parent_sampled": {
+      "type": "string",
+      "description": "This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are adaptive (the default), always_on, always_off, and trace_id_ratio_based.",
+      "default": "adaptive",
+      "enum": [
+        "adaptive",
+        "always_on",
+        "always_off",
+        "trace_id_ratio_based"
+      ]
+    },
+    "distributed_tracing.sampler.root": {
+      "type": "string",
+      "description": "This setting controls the behavior of transaction sampling for transactions without a remote parent (traces that originate within this instance of the New Relic agent). Available values are adaptive (the default), always_on, always_off, and trace_id_ratio_based.",
+      "default": "adaptive",
+      "enum": [
+        "adaptive",
+        "always_on",
+        "always_off",
+        "trace_id_ratio_based"
+      ]
+    },
+    "elasticsearch.capture_cluster_name": {
+      "type": "boolean",
+      "description": "If true, the agent captures the Elasticsearch cluster name in transaction traces.",
+      "default": true
+    },
+    "elasticsearch.capture_queries": {
+      "type": "boolean",
+      "description": "If true, the agent captures Elasticsearch queries in transaction traces.",
+      "default": true
+    },
+    "elasticsearch.obfuscate_queries": {
+      "type": "boolean",
+      "description": "If true, the agent obfuscates Elasticsearch queries in transaction traces.",
+      "default": true
+    },
+    "error_collector.attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures attributes from error collection.",
+      "default": true
+    },
+    "error_collector.attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from error collection. Allows * as wildcard at end.",
+      "default": []
+    },
+    "error_collector.attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include in error collection. Allows * as wildcard at end.",
+      "default": []
+    },
+    "error_collector.backtrace_truncate_location": {
+      "type": "string",
+      "description": "Specifies where in the backtrace to truncate when the number of frames exceeds error_collector.max_backtrace_frames. Options are top (remove frames from the beginning), middle (remove frames from the middle, preserving the beginning and end), or end (remove frames from the end).",
+      "default": "middle",
+      "enum": [
+        "top",
+        "middle",
+        "end"
+      ]
+    },
+    "error_collector.capture_events": {
+      "type": "boolean",
+      "description": "If true, the agent collects TransactionError events.",
+      "default": true
+    },
+    "error_collector.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures traced errors and error count metrics.",
+      "default": true
+    },
+    "error_collector.expected_classes": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "A list of error classes that the agent should treat as expected. This option can't be set via environment variable.",
+      "default": []
+    },
+    "error_collector.expected_messages": {
+      "type": "object",
+      "description": "A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected. This option can't be set via environment variable.",
+      "default": {}
+    },
+    "error_collector.expected_status_codes": {
+      "type": "string",
+      "description": "A comma-separated list of HTTP status codes and/or status code ranges (for example, 404, 429, 500-599). Errors associated with a matching status code, if the error has one, will be treated as expected.",
+      "default": ""
+    },
+    "error_collector.ignore_classes": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "A list of error classes that the agent should ignore. This option can't be set via environment variable.",
+      "default": [
+        "ActionController::RoutingError",
+        "Sinatra::NotFound"
+      ]
+    },
+    "error_collector.ignore_messages": {
+      "type": "object",
+      "description": "A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored. This option can't be set via environment variable.",
+      "default": {
+        "ThreadError": [
+          "queue empty"
+        ]
+      }
+    },
+    "error_collector.ignore_status_codes": {
+      "type": "string",
+      "description": "A comma-separated list of HTTP status codes and/or status code ranges (for example, 404, 429, 500-599). Errors associated with a matching status code, if the error has one, will be ignored.",
+      "default": ""
+    },
+    "error_collector.max_backtrace_frames": {
+      "type": "integer",
+      "description": "Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle by default, preserving the beginning and the end of the stack trace. See error_collector.backtrace_truncate_location to customize the truncation location.",
+      "default": 50
+    },
+    "error_collector.max_event_samples_stored": {
+      "type": "integer",
+      "description": "Defines the maximum number of TransactionError events reported per harvest cycle.",
+      "default": 100
+    },
+    "exclude_newrelic_header": {
+      "type": "boolean",
+      "description": "If true, suppresses the newrelic distributed tracing header on outbound requests.",
+      "default": false
+    },
+    "force_install_exit_handler": {
+      "type": "boolean",
+      "description": "If true, forces the agent to install its exit handler (which sends all cached data to the collector before shutting down), even in cases where the agent would normally skip it, such as when it detects Sinatra running as an embedded service within another framework. Sinatra runs the entire application inside its own at_exit block, so the agent skips its own at_exit handler by default to avoid conflicts. This setting overrides that. Note: send_data_on_exit must also be true for this setting to have any effect.",
+      "default": false
+    },
+    "heroku.dyno_name_prefixes_to_shorten": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, worker.3). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, worker).",
+      "default": [
+        "scheduler",
+        "run"
+      ]
+    },
+    "heroku.use_dyno_names": {
+      "type": "boolean",
+      "description": "If true, the agent uses Heroku dyno names as the hostname.",
+      "default": true
+    },
+    "high_security": {
+      "type": "boolean",
+      "description": "If true, enables high security mode. Ensure you understand the implications of high security mode before enabling this setting.",
+      "default": false
+    },
+    "ignored_middleware_classes": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "A list of middleware class or module names the agent should ignore. Example: [\"Rack::Cors\", \"ActionDispatch::Reloader\"]",
+      "default": []
+    },
+    "infinite_tracing.batching": {
+      "type": "boolean",
+      "description": "If true (the default), data sent to the trace observer is batched instead of sending each span individually.",
+      "default": true
+    },
+    "infinite_tracing.compression_level": {
+      "type": "string",
+      "description": "Configure the compression level for data sent to the trace observer. May be one of: :none, :low, :medium, :high. Set the level to :none to disable compression.",
+      "default": "high",
+      "enum": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "infinite_tracing.trace_observer.host": {
+      "type": "string",
+      "description": "Configures the hostname for the trace observer Host. When configured, enables tail-based sampling by sending all recorded spans to a trace observer for further sampling decisions, irrespective of any usual agent sampling decision.",
+      "default": ""
+    },
+    "infinite_tracing.trace_observer.port": {
+      "type": "integer",
+      "description": "Configures the TCP/IP port for the trace observer Host",
+      "default": 443
+    },
+    "instrumentation.active_support_broadcast_logger": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of ActiveSupport::BroadcastLogger at start up. May be one of: auto, prepend, chain, disabled. Used in Rails versions >= 7.1.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.active_support_logger": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of ActiveSupport::Logger at start up. May be one of: auto, prepend, chain, disabled. Used in Rails versions below 7.1.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.active_support_notifications.active_support_events": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An allowlist of ActiveSupport notification event names (mostly caching events and message-serializer events) that the agent subscribes to. Any event name not included here is ignored. Provide complete event names only, such as cache_fetch_hit.active_support. Do not provide asterisks or regex patterns, and do not escape any characters with backslashes.",
+      "default": [
+        "cache_fetch_hit.active_support",
+        "cache_generate.active_support",
+        "cache_read.active_support",
+        "cache_write.active_support",
+        "cache_delete.active_support",
+        "cache_exist?.active_support",
+        "cache_read_multi.active_support",
+        "cache_write_multi.active_support",
+        "cache_delete_multi.active_support",
+        "cache_delete_matched.active_support",
+        "cache_cleanup.active_support",
+        "cache_increment.active_support",
+        "cache_decrement.active_support",
+        "cache_prune.active_support",
+        "message_serializer_fallback.active_support"
+      ]
+    },
+    "instrumentation.async_http": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.aws_sdk_firehose": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the aws-sdk-firehose library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.aws_sdk_kinesis": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the aws-sdk-kinesis library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.aws_sdk_lambda": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.aws_sqs": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the aws-sdk-sqs library at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.bunny": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of bunny at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.concurrent_ruby": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the concurrent-ruby library at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.curb": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Curb at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.delayed_job": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Delayed Job at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.dynamodb": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.elasticsearch": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the elasticsearch library at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.ethon": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of ethon at start up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.excon": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Excon at start-up. May be one of: enabled, disabled.",
+      "default": "enabled",
+      "enum": [
+        "enabled",
+        "disabled"
+      ]
+    },
+    "instrumentation.fiber": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the Fiber class at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.grape": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Grape at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.grpc.host_denylist": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "A comma-separated list of regular expression patterns matching gRPC hostnames whose traffic New Relic should ignore. New Relic's gRPC client instrumentation skips tracing calls made to a host matching any of these patterns, and its gRPC server instrumentation skips tracing requests received by a server running on a matching host. For example, \"private.com$,exception.*\" Empty by default, meaning no traffic is ignored..",
+      "default": []
+    },
+    "instrumentation.grpc_client": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of gRPC clients at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.grpc_server": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of gRPC servers at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.httpclient": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of HTTPClient at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.httprb": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of http.rb gem at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.httpx": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of httpx at start up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.logger": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.logging": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the logging library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.logstasher": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the LogStasher library at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.memcache": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of dalli gem for Memcache at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.memcache_client": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of memcache-client gem for Memcache at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.memcached": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of memcached gem for Memcache at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.mongo": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Mongo at start-up. May be one of: enabled, disabled.",
+      "default": "enabled",
+      "enum": [
+        "enabled",
+        "disabled"
+      ]
+    },
+    "instrumentation.net_http": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Net::HTTP at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.opensearch": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the opensearch-ruby library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.parallel": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the parallel library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.puma_rack": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the to_app method in Puma::Rack::Builder to find gems to instrument during application startup. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.puma_rack_urlmap": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Puma::Rack::URLMap at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.rack": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the to_app method in Rack::Builder to find gems to instrument during application startup. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.rack_urlmap": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Rack::URLMap at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.rails_event_logger": {
+      "type": "string",
+      "description": "Controls instrumentation of Rails.event as structured logs. May be one of: enabled, disabled.",
+      "default": "enabled",
+      "enum": [
+        "enabled",
+        "disabled"
+      ]
+    },
+    "instrumentation.rails_event_logger.event_names": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of Rails.event names to capture as structured log events. For example: [user.signup, payment.processed, order.created]. Leave empty to capture all Rails.event notifications. Events are logged with level UNKNOWN (ensuring they're never filtered) unless overridden via a :level key in the event payload.",
+      "default": []
+    },
+    "instrumentation.rake": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of rake at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.rdkafka": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the rdkafka library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.redis": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Redis at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.resque": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of resque at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.roda": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Roda at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.ruby_kafka": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the ruby-kafka library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.ruby_openai": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: auto, prepend, chain, disabled. Defaults to disabled in high security mode.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.semantic_logger": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the semantic_logger library at start-up. May be one of auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.sinatra": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Sinatra at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.stripe": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Stripe at startup. May be one of: enabled, disabled.",
+      "default": "enabled",
+      "enum": [
+        "enabled",
+        "disabled"
+      ]
+    },
+    "instrumentation.thread": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the Thread class at start-up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see instrumentation.thread.tracing). May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.thread.tracing": {
+      "type": "boolean",
+      "description": "Controls auto-instrumentation of the Thread class at start-up to automatically add tracing to all Threads created in the application.",
+      "default": true
+    },
+    "instrumentation.tilt": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of the Tilt template rendering library at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.typhoeus": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of Typhoeus at start-up. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "instrumentation.view_component": {
+      "type": "string",
+      "description": "Controls auto-instrumentation of ViewComponent at startup. May be one of: auto, prepend, chain, disabled.",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "disabled",
+        "prepend",
+        "chain"
+      ]
+    },
+    "labels": {
+      "type": "string",
+      "description": "A dictionary of label names and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited ; string of colon-separated : pairs. For example, Server:One;Data Center:Primary.",
+      "default": ""
+    },
+    "license_key": {
+      "type": "string",
+      "description": "Your New Relic licenseKey.",
+      "default": "",
+      "writeOnly": true
+    },
+    "log_file_name": {
+      "type": "string",
+      "description": "Defines a name for the log file.",
+      "default": "newrelic_agent.log"
+    },
+    "log_file_path": {
+      "type": "string",
+      "description": "Defines a path to the agent log file, excluding the filename. If you want to send your agent logs to standard out, set this to STDOUT.",
+      "default": "log/"
+    },
+    "log_level": {
+      "type": "string",
+      "description": "Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: fatal, error, warn, info or debug.",
+      "default": "info",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "fatal"
+      ]
+    },
+    "marshaller": {
+      "type": "string",
+      "description": "Specifies a marshaller for transmitting data to the New Relic collector. Currently json is the only valid value for this setting.",
+      "default": "json"
+    },
+    "message_tracer.segment_parameters.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent will collect metadata about messages and attach them as segment parameters.",
+      "default": true
+    },
+    "mongo.capture_queries": {
+      "type": "boolean",
+      "description": "If true, the agent captures Mongo queries in transaction traces.",
+      "default": true
+    },
+    "mongo.obfuscate_queries": {
+      "type": "boolean",
+      "description": "If true, the agent obfuscates Mongo queries in transaction traces.",
+      "default": true
+    },
+    "monitor_mode": {
+      "type": "boolean",
+      "description": "When true, the agent transmits data about your app to the New Relic collector.",
+      "default": true
+    },
+    "opensearch.capture_queries": {
+      "type": "boolean",
+      "description": "If true, the agent captures OpenSearch queries in transaction traces.",
+      "default": true
+    },
+    "opensearch.obfuscate_queries": {
+      "type": "boolean",
+      "description": "If true, the agent obfuscates OpenSearch queries in transaction traces.",
+      "default": true
+    },
+    "opentelemetry.enabled": {
+      "type": "boolean",
+      "description": "A global configuration option for disabling all OpenTelemetry signals sent through New Relic. If false, no OpenTelemetry signals will be sent to New Relic. If true, the signal-specific enabled config option (e.g. opentelemetry.traces.enabled) determines whether telemetry of that signal type will be reported to New Relic.",
+      "default": false
+    },
+    "opentelemetry.traces.enabled": {
+      "type": "boolean",
+      "description": "Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for OpenTelemetry spans.",
+      "default": true
+    },
+    "opentelemetry.traces.exclude": {
+      "type": "string",
+      "description": "A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. \"AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation\"), that will **not** have their traces sent to New Relic.",
+      "default": "elasticsearch-api,dalli,OpenTelemetry::Instrumentation::ActionMailer::Instrumentation,OpenTelemetry::Instrumentation::ActionPack::Instrumentation,OpenTelemetry::Instrumentation::ActionView::Instrumentation,OpenTelemetry::Instrumentation::ActiveJob::Instrumentation,OpenTelemetry::Instrumentation::ActiveRecord::Instrumentation,OpenTelemetry::Instrumentation::ActiveStorage::Instrumentation,OpenTelemetry::Instrumentation::ActiveSupport::Instrumentation,OpenTelemetry::Instrumentation::AwsLambda::Instrumentation,OpenTelemetry::Instrumentation::AwsSdk::Instrumentation,OpenTelemetry::Instrumentation::Bunny::Instrumentation,OpenTelemetry::Instrumentation::ConcurrentRuby::Instrumentation,OpenTelemetry::Instrumentation::Dalli::Instrumentation,OpenTelemetry::Instrumentation::Ethon::Instrumentation,OpenTelemetry::Instrumentation::Excon::Instrumentation,OpenTelemetry::Instrumentation::Grape::Instrumentation,OpenTelemetry::Instrumentation::GraphQL::Instrumentation,OpenTelemetry::Instrumentation::Grpc::Instrumentation,OpenTelemetry::Instrumentation::HTTP::Instrumentation,OpenTelemetry::Instrumentation::HttpClient::Instrumentation,OpenTelemetry::Instrumentation::HTTPX::Instrumentation,OpenTelemetry::Instrumentation::Logger::Instrumentation,OpenTelemetry::Instrumentation::Mongo::Instrumentation,OpenTelemetry::Instrumentation::Net::HTTP::Instrumentation,OpenTelemetry::Instrumentation::Rack::Instrumentation,OpenTelemetry::Instrumentation::Rails::Instrumentation,OpenTelemetry::Instrumentation::Rake::Instrumentation,OpenTelemetry::Instrumentation::Rdkafka::Instrumentation,OpenTelemetry::Instrumentation::Redis::Instrumentation,OpenTelemetry::Instrumentation::Resque::Instrumentation,OpenTelemetry::Instrumentation::RubyKafka::Instrumentation,OpenTelemetry::Instrumentation::Sidekiq::Instrumentation,OpenTelemetry::Instrumentation::Sinatra::Instrumentation"
+    },
+    "opentelemetry.traces.include": {
+      "type": "string",
+      "description": "A comma-delimited list of OpenTelemetry Tracers, represented as a string (e.g. \"AppTracer1,OpenTelemetry::Instrumentation::Bunny::Instrumentation\"), that **will** have their traces sent to New Relic.",
+      "default": ""
+    },
+    "prepend_active_record_instrumentation": {
+      "type": "boolean",
+      "description": "If true, uses Module#prepend rather than alias_method for ActiveRecord instrumentation.",
+      "default": false
+    },
+    "process_host.display_name": {
+      "type": "string",
+      "description": "Specify a custom hostname for display in the New Relic UI."
+    },
+    "proxy_host": {
+      "type": "string",
+      "description": "Defines a host for communicating with the New Relic collector via a proxy server."
+    },
+    "proxy_pass": {
+      "type": "string",
+      "description": "Defines a password for communicating with the New Relic collector via a proxy server.",
+      "writeOnly": true
+    },
+    "proxy_port": {
+      "type": "integer",
+      "description": "Defines a port for communicating with the New Relic collector via a proxy server.",
+      "default": 8080
+    },
+    "proxy_user": {
+      "type": "string",
+      "description": "Defines a user for communicating with the New Relic collector via a proxy server.",
+      "writeOnly": true
+    },
+    "puma.sample_rate": {
+      "type": "integer",
+      "description": "Number of seconds between samples of Puma server statistics taken in the Puma master process.",
+      "default": 60
+    },
+    "rake.connect_timeout": {
+      "type": "integer",
+      "description": "Defines the number of seconds to wait for a connection to complete before running a Rake task.",
+      "default": 10
+    },
+    "rake.tasks": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Specify an Array of Rake tasks to automatically instrument. This configuration option converts the Array to a RegEx list. No rake tasks will be instrumented unless they're added to this list. If you'd like to allow all tasks by default, use rake.tasks: [.+]. For more information, visit the New Relic Rake Instrumentation docs.",
+      "default": []
+    },
+    "rules.ignore_url_regexes": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Define transactions you want the agent to ignore by specifying a list of patterns matching the URIs to exclude. For more detail, see the docs on ignoring specific transactions.",
+      "default": []
+    },
+    "security.agent.enabled": {
+      "type": "boolean",
+      "description": "If true, the security agent is loaded (a Ruby 'require' is performed).",
+      "default": false
+    },
+    "security.application_info.port": {
+      "type": "integer",
+      "description": "The port the application is listening on. This setting is mandatory for Passenger servers. The agent detects other servers by default."
+    },
+    "security.enabled": {
+      "type": "boolean",
+      "description": "If true, the security agent is started (the agent runs in its event loop).",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.api": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should find a complete match for the URL without the endpoint. For example, [\".*account.*\"], [\".*/\\api\\/v1\\/.*?\\/login\"]",
+      "default": []
+    },
+    "security.exclude_from_iast_scan.http_request_parameters.body": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of HTTP request body keys the security agent should ignore in IAST scans.",
+      "default": []
+    },
+    "security.exclude_from_iast_scan.http_request_parameters.header": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of HTTP request headers the security agent should ignore in IAST scans. The array should specify a list of patterns matching the headers to ignore.",
+      "default": []
+    },
+    "security.exclude_from_iast_scan.http_request_parameters.query": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of HTTP request query parameters the security agent should ignore in IAST scans. The array should specify a list of patterns matching the HTTP request query parameters to ignore.",
+      "default": []
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.command_injection": {
+      "type": "boolean",
+      "description": "If true, disables system command injection detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.insecure_settings": {
+      "type": "boolean",
+      "description": "If true, disables the detection of low-severity insecure settings. For example, hash, crypto, cookie, random generators, and trust boundary.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.invalid_file_access": {
+      "type": "boolean",
+      "description": "If true, disables file operation-related IAST detections (File Access & Application integrity violation)",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.javascript_injection": {
+      "type": "boolean",
+      "description": "If true, disables JavaScript injection detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.ldap_injection": {
+      "type": "boolean",
+      "description": "If true, disables LDAP injection detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.nosql_injection": {
+      "type": "boolean",
+      "description": "If true, disables NoSQL injection detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.rxss": {
+      "type": "boolean",
+      "description": "If true, disables Reflected Cross-Site Scripting (RXSS) detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.sql_injection": {
+      "type": "boolean",
+      "description": "If true, disables SQL injection detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.ssrf": {
+      "type": "boolean",
+      "description": "If true, disables Server-Side Request Forgery (SSRF) detection in IAST scans.",
+      "default": false
+    },
+    "security.exclude_from_iast_scan.iast_detection_category.xpath_injection": {
+      "type": "boolean",
+      "description": "If true, disables XPath injection detection in IAST scans.",
+      "default": false
+    },
+    "security.iast_test_identifier": {
+      "type": "string",
+      "description": "A unique test identifier when running IAST in a CI/CD environment to differentiate between different test runs. For example, a build number."
+    },
+    "security.mode": {
+      "type": "string",
+      "description": "Defines the mode for the security agent to operate in. Currently only IAST is supported.",
+      "default": "IAST",
+      "enum": [
+        "IAST",
+        "RASP"
+      ]
+    },
+    "security.scan_controllers.iast_scan_request_rate_limit": {
+      "type": "integer",
+      "description": "Sets the maximum number of HTTP requests allowed per minute for the IAST scan. Must be an integer between 12 and 3600 (default).",
+      "default": 3600,
+      "minimum": 12,
+      "maximum": 3600
+    },
+    "security.scan_controllers.report_http_response_body": {
+      "type": "boolean",
+      "description": "If true, enables the sending of HTTP responses bodies. Disabling this also disables Reflected Cross-Site Scripting (RXSS) vulnerability detection.",
+      "default": true
+    },
+    "security.scan_controllers.scan_instance_count": {
+      "type": "integer",
+      "description": "The number of application instances for a specific entity to perform IAST analysis on.",
+      "default": 0
+    },
+    "security.scan_schedule.always_sample_traces": {
+      "type": "boolean",
+      "description": "If true, allows IAST to continuously gather trace data in the background. The security agent uses collected data to perform an IAST scan at the scheduled time.",
+      "default": false
+    },
+    "security.scan_schedule.delay": {
+      "type": "integer",
+      "description": "Specifies the delay time (in minutes) before the IAST scan begins after the application starts.",
+      "default": 0
+    },
+    "security.scan_schedule.duration": {
+      "type": "integer",
+      "description": "Specifies the duration (in minutes) for which the IAST scan is performed.",
+      "default": 0
+    },
+    "security.scan_schedule.schedule": {
+      "type": "string",
+      "description": "Specifies a cron expression that sets when the IAST scan should run.",
+      "default": ""
+    },
+    "security.validator_service_url": {
+      "type": "string",
+      "description": "Defines the endpoint URL for posting security-related data.",
+      "default": "wss://csec.nr-data.net"
+    },
+    "send_data_on_exit": {
+      "type": "boolean",
+      "description": "If true, enables the exit handler that sends data to the New Relic collector before shutting down.",
+      "default": true
+    },
+    "serverless_mode.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent will operate in a streamlined mode suitable for use with short-lived serverless functions. NOTE: Only AWS Lambda functions are supported currently and this option isn't intended for use without New Relic's Ruby Lambda layer offering.",
+      "default": false
+    },
+    "sidekiq.args.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of strings that will collectively serve as a denylist for filtering which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq arguments, job.sidekiq.args.* must also be added to the separate attributes.include configuration option. Each string in this array will be turned into a regular expression via Regexp.new to permit advanced matching. For job argument hashes, if either a key or value matches, the pair will be excluded. All matching job argument array elements and job argument scalars will be excluded.",
+      "default": []
+    },
+    "sidekiq.args.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of strings that will collectively serve as an allowlist for filtering which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq arguments, job.sidekiq.args.* must also be added to the separate attributes.include configuration option. Each string in this array will be turned into a regular expression via Regexp.new to permit advanced matching. For job argument hashes, if either a key or value matches, the pair will be included. All matching job argument array elements and job argument scalars will be included.",
+      "default": []
+    },
+    "sidekiq.ignore_retry_errors": {
+      "type": "boolean",
+      "description": "If true, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.",
+      "default": false
+    },
+    "sidekiq.separate_transactions": {
+      "type": "boolean",
+      "description": "If true, the agent starts a new transaction when a Sidekiq job is executed during a web transaction. This prevents Sidekiq job execution time from being included in web transaction metrics.",
+      "default": false
+    },
+    "simplify_action_cable_broadcast_metrics": {
+      "type": "boolean",
+      "description": "If true, metrics for Action Cable broadcast calls will not include the broadcasting value for a given broadcast. Defaults to false. The default may change in a future major version release.",
+      "default": false
+    },
+    "slow_sql.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent collects slow SQL queries.",
+      "default": true
+    },
+    "slow_sql.explain_enabled": {
+      "type": "boolean",
+      "description": "If true, the agent collects explain plans in slow SQL queries. If this setting is omitted, the transaction_tracer.explain_enabled setting will be applied as the default setting for explain plans in slow SQL as well.",
+      "default": true
+    },
+    "slow_sql.explain_threshold": {
+      "type": "number",
+      "description": "Specify a threshold in seconds. The agent collects slow SQL queries and explain plans that exceed this threshold.",
+      "default": 0.5
+    },
+    "slow_sql.record_sql": {
+      "type": "string",
+      "description": "Defines an obfuscation level for slow SQL queries. Valid options are obfuscated, raw, or none.",
+      "default": "obfuscated",
+      "enum": [
+        "obfuscated",
+        "raw",
+        "none",
+        "off",
+        "false"
+      ]
+    },
+    "slow_sql.use_longer_sql_id": {
+      "type": "boolean",
+      "description": "If true, the agent generates a longer sql_id for slow SQL traces. sql_id is used for aggregation of similar queries.",
+      "default": false
+    },
+    "span_events.attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures attributes on span events.",
+      "default": true
+    },
+    "span_events.attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from span events. Allows * as wildcard at end.",
+      "default": []
+    },
+    "span_events.attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include on span events. Allows * as wildcard at end.",
+      "default": []
+    },
+    "span_events.enabled": {
+      "type": "boolean",
+      "description": "If true, enables span event sampling.",
+      "default": true
+    },
+    "span_events.max_samples_stored": {
+      "type": "integer",
+      "description": "Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid. When configuring the agent for AI monitoring, set to max value 10000. This ensures the agent captures the maximum amount of distributed traces.",
+      "default": 2000,
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "span_events.queue_size": {
+      "type": "integer",
+      "description": "Sets the maximum number of span events to buffer when streaming to the trace observer.",
+      "default": 10000
+    },
+    "strip_exception_messages.allowed_classes": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Specify a list of exceptions you do not want the agent to strip when strip_exception_messages is true. Separate exceptions with a comma. For example, \"ImportantException,PreserveMessageException\".",
+      "default": []
+    },
+    "strip_exception_messages.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent strips messages from all exceptions except those in the allowed classes list. Enabled automatically in high security mode.",
+      "default": false
+    },
+    "stripe.user_data.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of strings to specify which keys and/or values inside a Stripe event's user_data hash should not be reported to New Relic. Each string in this array will be turned into a regular expression via Regexp.new to permit advanced matching. For each hash pair, if either the key or value is matched the pair isn't reported. By default, no user_data is reported. Use this option only if the stripe.user_data.include option is also used.",
+      "default": []
+    },
+    "stripe.user_data.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "An array of strings to specify which keys inside a Stripe event's user_data hash should be reported to New Relic. Each string in this array will be turned into a regular expression via Regexp.new to enable advanced matching. Setting the value to [\".\"] will report all user_data.",
+      "default": []
+    },
+    "sync_startup": {
+      "type": "boolean",
+      "description": "When set to true, forces a synchronous connection to the New Relic collector during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.",
+      "default": false
+    },
+    "thread_local_tracer_state": {
+      "type": "boolean",
+      "description": "If true, tracer state storage is thread-local, otherwise, fiber-local.",
+      "default": false
+    },
+    "thread_profiler.enabled": {
+      "type": "boolean",
+      "description": "If true, enables use of the thread profiler.",
+      "default": false
+    },
+    "timeout": {
+      "type": "integer",
+      "description": "Defines the maximum number of seconds the agent should spend attempting to connect to the collector.",
+      "default": 120
+    },
+    "transaction_events.attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures attributes from transaction events.",
+      "default": true
+    },
+    "transaction_events.attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from transaction events. Allows * as wildcard at end.",
+      "default": []
+    },
+    "transaction_events.attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include in transaction events. Allows * as wildcard at end.",
+      "default": []
+    },
+    "transaction_events.enabled": {
+      "type": "boolean",
+      "description": "If true, enables transaction event sampling.",
+      "default": true
+    },
+    "transaction_events.max_samples_stored": {
+      "type": "integer",
+      "description": "Defines the maximum number of transaction events reported from a single harvest.",
+      "default": 1200
+    },
+    "transaction_segments.attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures attributes on transaction segments.",
+      "default": true
+    },
+    "transaction_segments.attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from transaction segments. Allows * as wildcard at end.",
+      "default": []
+    },
+    "transaction_segments.attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include on transaction segments. Allows * as wildcard at end.",
+      "default": []
+    },
+    "transaction_tracer.attributes.enabled": {
+      "type": "boolean",
+      "description": "If true, the agent captures attributes from transaction traces.",
+      "default": true
+    },
+    "transaction_tracer.attributes.exclude": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to exclude from transaction traces. Allows * as wildcard at end.",
+      "default": []
+    },
+    "transaction_tracer.attributes.include": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Prefix of attributes to include in transaction traces. Allows * as wildcard at end.",
+      "default": []
+    },
+    "transaction_tracer.cap_segment_artifacts": {
+      "type": "boolean",
+      "description": "If true, once transaction_tracer.limit_segments is reached, the agent will also stop recording exclusive time for any segments created afterward in that transaction. This can reduce memory usage for very long-running transactions with many segments, at the cost of less accurate timing data for segments in the transaction if the segment limit is reached.",
+      "default": false
+    },
+    "transaction_tracer.enabled": {
+      "type": "boolean",
+      "description": "If true, enables collection of transaction traces.",
+      "default": true
+    },
+    "transaction_tracer.explain_enabled": {
+      "type": "boolean",
+      "description": "If true, enables the collection of explain plans in transaction traces. This setting will also apply to explain plans in slow SQL traces if slow_sql.explain_enabled isn't set separately.",
+      "default": true
+    },
+    "transaction_tracer.explain_threshold": {
+      "type": "number",
+      "description": "Threshold (in seconds) above which the agent will collect explain plans. Relevant only when explain_enabled is true.",
+      "default": 0.5
+    },
+    "transaction_tracer.limit_segments": {
+      "type": "integer",
+      "description": "Maximum number of transaction trace nodes to record in a single transaction trace.",
+      "default": 4000
+    },
+    "transaction_tracer.record_redis_arguments": {
+      "type": "boolean",
+      "description": "If true, the agent records Redis command arguments in transaction traces.",
+      "default": false
+    },
+    "transaction_tracer.record_sql": {
+      "type": "string",
+      "description": "Obfuscation level for SQL queries reported in transaction trace nodes. By default, this is set to obfuscated, which strips out the numeric and string literals.",
+      "default": "obfuscated",
+      "enum": [
+        "obfuscated",
+        "raw",
+        "none",
+        "off",
+        "false"
+      ]
+    },
+    "transaction_tracer.stack_trace_threshold": {
+      "type": "number",
+      "description": "Specify a threshold in seconds. The agent includes stack traces in transaction trace nodes when the stack trace duration exceeds this threshold.",
+      "default": 0.5
+    },
+    "transaction_tracer.transaction_threshold": {
+      "type": "number",
+      "description": "Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string apdex_f."
+    },
+    "utilization.detect_aws": {
+      "type": "boolean",
+      "description": "If true, the agent automatically detects that it is running in an AWS environment.",
+      "default": true
+    },
+    "utilization.detect_azure": {
+      "type": "boolean",
+      "description": "If true, the agent automatically detects that it is running in an Azure environment.",
+      "default": true
+    },
+    "utilization.detect_docker": {
+      "type": "boolean",
+      "description": "If true, the agent automatically detects that it is running in Docker.",
+      "default": true
+    },
+    "utilization.detect_gcp": {
+      "type": "boolean",
+      "description": "If true, the agent automatically detects that it is running in a Google Cloud Platform environment.",
+      "default": true
+    },
+    "utilization.detect_in_parallel": {
+      "type": "boolean",
+      "description": "If true, the agent will perform environment detection in parallel to speed up agent startup time.",
+      "default": true
+    },
+    "utilization.detect_kubernetes": {
+      "type": "boolean",
+      "description": "If true, the agent automatically detects that it is running in Kubernetes.",
+      "default": true
+    },
+    "utilization.detect_pcf": {
+      "type": "boolean",
+      "description": "If true, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.",
+      "default": true
+    },
+    "utilization.gcp_cloud_run.include_revision_in_host": {
+      "type": "boolean",
+      "description": "If true, the agent prepends the K_REVISION value to the GCP instance id to form the hostname ({K_REVISION}-{instance id}) on Google Cloud Run. Has no effect unless utilization.gcp_cloud_run.use_instance_as_host is also true.",
+      "default": false
+    },
+    "utilization.gcp_cloud_run.use_instance_as_host": {
+      "type": "boolean",
+      "description": "If true, the agent reports the GCP instance id as the hostname when running on Google Cloud Run.",
+      "default": true
+    }
+  }
+}
