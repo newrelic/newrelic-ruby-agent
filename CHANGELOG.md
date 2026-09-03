@@ -4,7 +4,7 @@
 
 - **Feature: Add `browser_monitoring.version` configuration option**
 
-  Customers can now pin the exact browser agent loader version New Relic injects by setting the new `browser_monitoring.version` configuration option. See the [browser agent EOL policy](https://docs.newrelic.com/docs/browser/browser-monitoring/getting-started/browser-agent-eol-policy/) for which versions are currently available and supported. 
+  Customers can now pin the exact browser agent loader version New Relic injects by setting the new `browser_monitoring.version` configuration option. See the [browser agent EOL policy](https://docs.newrelic.com/docs/browser/browser-monitoring/getting-started/browser-agent-eol-policy/) for which versions are currently available and supported.
 
 - **Bugfix: DelayedJob instrumentation no longer reinstalls itself on every worker under prepend mode**
 
