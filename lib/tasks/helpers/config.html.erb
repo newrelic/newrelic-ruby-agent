@@ -115,3 +115,13 @@ To update `newrelic.yml` file after a new release, use the template in the base 
   <% end %>
 </CollapserGroup>
 <% end %>
+
+## Errors inbox configuration [#errors-inbox-configuration]
+
+Setting one of the following environment variables will help you identify which versions of your software are producing the errors.
+
+* `NEW_RELIC_METADATA_SERVICE_VERSION` will create `tags.service.version` on event data containing the version of your code that is deployed, in many cases a semantic version such as `1.2.3`, but not always.
+* `NEW_RELIC_METADATA_RELEASE_TAG` will create `tags.releaseTag` on event data containing the release tag (such as `v0.1.209` or `release-209`).
+* `NEW_RELIC_METADATA_COMMIT` will create `tags.commit` on event data containing the commit SHA. The entire SHA can be used or just the first seven characters (e.g., `734713b`).
+
+[Errors inbox](https://docs.newrelic.com/docs/errors-inbox/version-tracking/) will automatically track which versions of your software are producing errors. Any version data will also be displayed in [CodeStream](/docs/codestream/how-use-codestream/performance-monitoring/#buildsha).
