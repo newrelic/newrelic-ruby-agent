@@ -73,6 +73,14 @@ function install_ruby_version_specific_gems {
     gem install --default strscan:3.1.5
     gem install --default strscan:3.1.8
 
+    gem install --default json:3.0.1
+    gem install --default stringio:3.1.9
+    gem install --default psych:5.2.6
+    gem install --default psych:5.1.2
+    gem install --default psych:5.0.2
+    gem install --default psych:4.0.6
+    gem install --default psych:3.3.4
+
     if [[ $RUBY_VERSION =~ ^(2\.|3\.[0-4]) ]]; then
     gem install --default logger:1.7.0
     fi
