@@ -7,7 +7,7 @@ omit_collector!
 # Testing multiple pinned psych/stringio versions in the same job used to cause
 # Bundler "already activated" errors, since they're default gems and only one
 # version can be active per process. Rather than fight that, just test whatever
-# psych/stringio veresions ship by default
+# psych/stringio versions ship by default
 gemfile <<~RB
   gem 'stringio'
   # stub file system so we can test that newrelic.yml can be loaded from
