@@ -4,36 +4,19 @@
 
 omit_collector!
 
-PSYCH_VERSIONS = [
-  [nil, 2.7, 3.4],
-  ['5.2.0', 2.7, 3.3],
-  ['5.1.0', 2.6, 3.3],
-  ['5.0.0', 2.6, 3.3],
-  ['4.0.0', 2.6, 3.3],
-  ['3.3.0', 2.6, 3.3]
-]
+# Testing multiple pinned psych/stringio versions in the same job used to cause
+# Bundler "already activated" errors, since they're default gems and only one
+# version can be active per process. Rather than fight that, just test whatever
+# psych/stringio veresions ship by default
+gemfile <<~RB
+  gem 'stringio'
+  # stub file system so we can test that newrelic.yml can be loaded from
+  # various places.
+  gem 'fakefs', :require => false
 
-def stringio_version
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
-    "gem 'stringio', '~> 3.1.2'"
-  else
-    "gem 'stringio'"
-  end
-end
+  gem 'psych'
+  gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java'
 
-def gem_list(psych_version = nil)
-  <<~RB
-    #{stringio_version}
-    # stub file system so we can test that newrelic.yml can be loaded from
-    # various places.
-    gem 'fakefs', :require => false
-
-    gem 'psych'#{psych_version}
-    gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java'
-
-    # don't start the agent
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-end
-
-create_gemfiles(PSYCH_VERSIONS)
+  # don't start the agent
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+RB
