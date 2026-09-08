@@ -77,7 +77,6 @@ function install_ruby_version_specific_gems {
     if [[ "$MULTIVERSE_GROUP" != "services_elasticsearch" ]]; then
       gem install --default json:3.0.1
     fi
-    gem install --default stringio:3.1.9
 
     if [[ $RUBY_VERSION =~ ^(2\.|3\.[0-4]) ]]; then
     gem install --default logger:1.7.0
