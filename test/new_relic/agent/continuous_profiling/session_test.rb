@@ -123,6 +123,72 @@ module NewRelic::Agent::ContinuousProfiling
       assert_metrics_not_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
+    def test_delayed_start_calls_start_immediately_when_delay_is_zero
+      with_config(:'profiling.delay' => 0) do
+        @session.expects(:start)
+
+        @session.send(:delayed_start)
+      end
+    end
+
+    def test_delayed_start_creates_a_delay_thread_instead_of_starting_immediately
+      with_config(:'profiling.delay' => 5000) do
+        NewRelic::Agent::Threading::AgentThread.expects(:create).with('Continuous Profiling Delay').returns(@fake_thread)
+        @session.expects(:start).never
+
+        @session.send(:delayed_start)
+
+        assert_equal @fake_thread, @session.instance_variable_get(:@delay_thread)
+      end
+    end
+
+    def test_delayed_start_does_not_create_a_second_delay_thread_when_one_is_already_pending
+      with_config(:'profiling.delay' => 5000) do
+        NewRelic::Agent::Threading::AgentThread.expects(:create).once.with('Continuous Profiling Delay').returns(@fake_thread)
+
+        @session.send(:delayed_start)
+        @session.send(:delayed_start)
+      end
+    end
+
+    def test_delayed_start_starts_once_the_delay_elapses
+      NewRelic::Agent::Threading::AgentThread.unstub(:create)
+
+      with_config(:'profiling.delay' => 5000) do
+        @session.stubs(:sleep)
+        @session.stubs(:enabled?).returns(true)
+        @session.expects(:start)
+
+        thread = @session.send(:delayed_start)
+        thread.join
+      end
+    end
+
+    def test_delayed_start_does_not_start_when_no_longer_enabled_once_the_delay_elapses
+      NewRelic::Agent::Threading::AgentThread.unstub(:create)
+
+      with_config(:'profiling.delay' => 5000) do
+        @session.stubs(:sleep)
+        @session.stubs(:enabled?).returns(false)
+        @session.expects(:start).never
+
+        thread = @session.send(:delayed_start)
+        thread.join
+      end
+    end
+
+    def test_stop_kills_a_pending_delay_thread
+      with_config(:'profiling.delay' => 5000) do
+        NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread)
+        @session.send(:delayed_start)
+        @fake_thread.expects(:kill)
+
+        @session.stop
+
+        assert_nil @session.instance_variable_get(:@delay_thread)
+      end
+    end
+
     def test_harvest_and_send_collects_encodes_exports_and_restarts_the_sampler
       report = {:samples => 3, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
@@ -201,6 +267,69 @@ module NewRelic::Agent::ContinuousProfiling
       @session.expects(:encode_and_export).once
 
       @session.send(:run_loop)
+    end
+
+    def test_duration_elapsed_is_false_when_duration_is_unset
+      @session.instance_variable_set(:@started_at, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1000)
+
+      refute @session.send(:duration_elapsed?)
+    end
+
+    def test_duration_elapsed_is_true_once_duration_has_passed
+      with_config(:'profiling.duration' => 100) do
+        @session.instance_variable_set(:@started_at, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1)
+
+        assert @session.send(:duration_elapsed?)
+      end
+    end
+
+    def test_next_wait_seconds_returns_the_shorter_of_remaining_duration_and_harvest_period
+      with_config(:'profiling.duration' => 2000, :'profiling.harvest_period' => 10) do
+        @session.instance_variable_set(:@started_at, Process.clock_gettime(Process::CLOCK_MONOTONIC))
+
+        assert_in_delta 2.0, @session.send(:next_wait_seconds), 0.1
+      end
+    end
+
+    def test_next_wait_seconds_falls_back_to_harvest_period_when_duration_is_unset
+      with_config(:'profiling.duration' => 0, :'profiling.harvest_period' => 10) do
+        assert_equal 10, @session.send(:next_wait_seconds)
+      end
+    end
+
+    def test_run_loop_stops_itself_once_duration_has_elapsed
+      with_config(:'profiling.duration' => 1000) do
+        report = {:samples => 1, :mode => :cpu}
+        sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+        sampler.expects(:stop_and_collect).once.returns(report)
+        sampler.expects(:start).returns(true)
+        @session.instance_variable_set(:@sampler, sampler)
+        @session.instance_variable_set(:@running, true)
+        @session.instance_variable_set(:@started_at, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 10)
+        @session.expects(:encode_and_export).once
+
+        @session.send(:run_loop)
+
+        refute_predicate @session, :running?
+        assert_nil @session.instance_variable_get(:@thread)
+        assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
+      end
+    end
+
+    def test_run_loop_does_not_report_the_disabled_metric_when_duration_is_unset
+      # Same scenario as test_run_loop_performs_exactly_one_final_harvest_when_already_stopped,
+      # but confirming the duration check contributes no side effect when unset.
+      NewRelic::Agent.instance.stats_engine.reset!
+      report = {:samples => 2, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).once.returns(report)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, false)
+      @session.expects(:encode_and_export).once
+
+      @session.send(:run_loop)
+
+      assert_metrics_not_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
     # The rest of encode_and_export needs google-protobuf, not loadable here -- this skip

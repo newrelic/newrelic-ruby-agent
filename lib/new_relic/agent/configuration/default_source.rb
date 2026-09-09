@@ -1112,6 +1112,22 @@ module NewRelic
             'gems to be present in the application. Not supported on JRuby. Automatically disabled when high ' \
             'security mode is enabled.'
         },
+        :'profiling.delay' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The delay, in milliseconds, before continuous profiling starts after being enabled. ' \
+            'Defaults to `0`, meaning profiling starts immediately.'
+        },
+        :'profiling.duration' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The duration, in milliseconds, that continuous profiling runs before automatically ' \
+            'stopping. Defaults to `0`, meaning profiling runs indefinitely until explicitly stopped.'
+        },
         :'profiling.mode' => {
           :default => 'cpu',
           :public => true,

@@ -32,6 +32,8 @@ module NewRelic
           @cv = ConditionVariable.new
           @running = false
           @thread = nil
+          @delay_thread = nil
+          @started_at = nil
           @starting_pid = nil
           @sampler = StackProfSampler.new
           @transaction_hooks_subscribed = false
@@ -48,7 +50,7 @@ module NewRelic
         def maybe_start
           return unless enabled?
 
-          start
+          delayed_start
         end
 
         def running?
@@ -70,6 +72,7 @@ module NewRelic
             end
 
             @running = true
+            @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             @thread = Threading::AgentThread.create('Continuous Profiling') { run_loop }
             subscribe_to_transaction_hooks
           end
@@ -78,6 +81,13 @@ module NewRelic
 
         def stop
           thread_to_join = @lock.synchronize do
+            # Killed here, before the @running guard below, so a pending delayed start
+            # (profiling.delay not yet elapsed -- @running still false) is cancelled too.
+            if @delay_thread
+              @delay_thread.kill
+              @delay_thread = nil
+            end
+
             return unless @running
 
             @running = false
@@ -174,6 +184,8 @@ module NewRelic
           @cv = ConditionVariable.new
           @running = false
           @thread = nil
+          @delay_thread = nil
+          @started_at = nil
           clear_segment_ranges
         end
 
@@ -279,11 +291,30 @@ module NewRelic
         # whether profiling should run whenever server-side config is (re-)applied.
         def evaluate_and_apply
           if enabled? && !running?
-            start
+            delayed_start
           elsif !enabled? && running?
             stop
           elsif NewRelic::Agent.config[:'profiling.enabled'] && !supported?
             NewRelic::Agent.logger.warn(unsupported_message)
+          end
+        end
+
+        # Used by the automatic activation paths (agent boot, server-side config) only --
+        # handle_start_command and restart_if_forked call #start directly, since a delay
+        # would be wrong for an explicit on-demand start or a fork repair. Re-checks
+        # enabled? once the delay elapses so a disable during the delay window is honored.
+        def delayed_start
+          delay_ms = NewRelic::Agent.config[:'profiling.delay'].to_i
+          return start if delay_ms <= 0
+
+          @lock.synchronize do
+            return if @running || @delay_thread
+
+            @delay_thread = Threading::AgentThread.create('Continuous Profiling Delay') do
+              sleep(delay_ms / 1000.0)
+              @lock.synchronize { @delay_thread = nil }
+              start if enabled?
+            end
           end
         end
 
@@ -301,17 +332,59 @@ module NewRelic
           NewRelic::Agent.config[:'profiling.harvest_period']
         end
 
+        # nil means profiling.duration is unset (0 or below) -- run indefinitely.
+        def duration_seconds
+          ms = NewRelic::Agent.config[:'profiling.duration'].to_i
+          ms > 0 ? ms / 1000.0 : nil
+        end
+
+        def duration_elapsed?
+          ds = duration_seconds
+          ds && @started_at && (Process.clock_gettime(Process::CLOCK_MONOTONIC) - @started_at) >= ds
+        end
+
         def run_loop
           loop do
             keep_going = wait_for_next_tick_or_stop
             harvest_and_send
+
+            if keep_going && duration_elapsed?
+              finish_due_to_duration
+              keep_going = false
+            end
+
             break unless keep_going
           end
         end
 
+        # Performs the same shutdown #stop does (flip @running, unsubscribe hooks, record the
+        # Disabled metric), minus the thread join -- this runs on @thread itself, which can't
+        # join itself. An external #stop() called afterward is a no-op, since it early-returns
+        # once @running is false, so the Disabled metric is never double-counted.
+        def finish_due_to_duration
+          @lock.synchronize do
+            @running = false
+            @thread = nil
+            unsubscribe_from_transaction_hooks
+          end
+          NewRelic::Agent.logger.debug('Continuous profiling duration elapsed; stopping.')
+          NewRelic::Agent.increment_metric(DISABLED_METRIC)
+        end
+
+        # Wakes up at the next harvest tick, or sooner if profiling.duration is set and would
+        # otherwise elapse mid-tick -- without this, a duration shorter than harvest_period
+        # would only be noticed up to one full harvest_period late.
+        def next_wait_seconds
+          ds = duration_seconds
+          return harvest_period unless ds
+
+          remaining = ds - (Process.clock_gettime(Process::CLOCK_MONOTONIC) - @started_at)
+          [remaining.clamp(0, Float::INFINITY), harvest_period].min
+        end
+
         def wait_for_next_tick_or_stop
           @lock.synchronize do
-            @cv.wait(@lock, harvest_period) if @running
+            @cv.wait(@lock, next_wait_seconds) if @running
             @running
           end
         end
