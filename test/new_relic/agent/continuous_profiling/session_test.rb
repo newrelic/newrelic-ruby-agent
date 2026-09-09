@@ -77,6 +77,7 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_stop_flips_running_and_joins_the_thread
+      NewRelic::Agent.instance.stats_engine.reset!
       @fake_thread.expects(:join).returns(@fake_thread)
       @session.start
 
@@ -85,6 +86,7 @@ module NewRelic::Agent::ContinuousProfiling
       refute_predicate @session, :running?
       assert_nil @session.instance_variable_get(:@thread)
       assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
+      assert_metrics_not_recorded('Supportability/Ruby/Profiling/Duration')
     end
 
     def test_stop_logs_a_warning_and_keeps_the_thread_reference_when_join_times_out
@@ -313,6 +315,7 @@ module NewRelic::Agent::ContinuousProfiling
         refute_predicate @session, :running?
         assert_nil @session.instance_variable_get(:@thread)
         assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
+        assert_metrics_recorded('Supportability/Ruby/Profiling/Duration')
       end
     end
 
@@ -762,6 +765,17 @@ module NewRelic::Agent::ContinuousProfiling
           @events.notify(:server_source_configuration_added)
         end
       end
+    end
+
+    def test_evaluate_and_apply_records_the_duration_metric_when_disabled_via_server_side_config
+      @session.start
+
+      with_config(:'profiling.enabled' => false) do
+        @events.notify(:server_source_configuration_added)
+      end
+
+      refute_predicate @session, :running?
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Duration')
     end
   end
 end

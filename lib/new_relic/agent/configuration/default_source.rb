@@ -1128,7 +1128,7 @@ module NewRelic
           :description => 'The duration, in milliseconds, that continuous profiling runs before automatically ' \
             'stopping. Defaults to `0`, meaning profiling runs indefinitely until explicitly stopped.'
         },
-        :'profiling.mode' => {
+        :'profiling.include' => {
           :default => 'cpu',
           :public => true,
           :type => String,

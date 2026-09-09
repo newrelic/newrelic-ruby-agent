@@ -385,9 +385,9 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_profiling_mode_falls_back_to_cpu_for_a_removed_or_invalid_value
-      with_config(:'profiling.mode' => 'wall') do
-        assert_equal 'cpu', NewRelic::Agent.config[:'profiling.mode']
+    def test_profiling_include_falls_back_to_cpu_for_a_removed_or_invalid_value
+      with_config(:'profiling.include' => 'wall') do
+        assert_equal 'cpu', NewRelic::Agent.config[:'profiling.include']
       end
     end
 

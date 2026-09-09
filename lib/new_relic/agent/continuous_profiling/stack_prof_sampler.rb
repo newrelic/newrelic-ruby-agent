@@ -11,11 +11,11 @@ module NewRelic
       class StackProfSampler
         MICROSECONDS_PER_SECOND = 1_000_000
         NANOSECONDS_PER_SECOND = 1_000_000_000
-        MODE_METRIC_PREFIX = 'Supportability/Ruby/Profiling/Mode'
+        PROFILE_TYPE_METRIC_PREFIX = 'Supportability/Ruby/Profiling'
 
         def start
-          mode = NewRelic::Agent.config[:'profiling.mode'].to_sym
-          NewRelic::Agent.increment_metric("#{MODE_METRIC_PREFIX}/#{mode}")
+          mode = NewRelic::Agent.config[:'profiling.include'].to_sym
+          NewRelic::Agent.increment_metric("#{PROFILE_TYPE_METRIC_PREFIX}/#{mode}")
           # StackProf's raw_sample_timestamps use CLOCK_MONOTONIC; capturing both clocks here
           # lets ProfileEncoder convert a tick's monotonic timestamp back to wall-clock time.
           @window_start_realtime = Process.clock_gettime(Process::CLOCK_REALTIME)

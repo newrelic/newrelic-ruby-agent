@@ -13,7 +13,7 @@ module NewRelic::Agent::ContinuousProfiling
 
     def test_start_passes_mode_interval_and_raw_to_stackprof
       Object.stub_const(:StackProf, Module.new) do
-        with_config(:'profiling.mode' => 'cpu', :'profiling.sample_period' => 0.05) do
+        with_config(:'profiling.include' => 'cpu', :'profiling.sample_period' => 0.05) do
           StackProf.expects(:start).with(mode: :cpu, interval: 50_000, raw: true)
 
           @sampler.start
@@ -25,10 +25,10 @@ module NewRelic::Agent::ContinuousProfiling
       Object.stub_const(:StackProf, Module.new) do
         StackProf.stubs(:start)
 
-        with_config(:'profiling.mode' => 'object') do
+        with_config(:'profiling.include' => 'object') do
           @sampler.start
 
-          assert_metrics_recorded('Supportability/Ruby/Profiling/Mode/object')
+          assert_metrics_recorded('Supportability/Ruby/Profiling/object')
         end
       end
     end
@@ -37,17 +37,17 @@ module NewRelic::Agent::ContinuousProfiling
       Object.stub_const(:StackProf, Module.new) do
         StackProf.stubs(:start)
 
-        with_config(:'profiling.mode' => 'cpu') do
+        with_config(:'profiling.include' => 'cpu') do
           @sampler.start
 
-          assert_metrics_recorded('Supportability/Ruby/Profiling/Mode/cpu')
+          assert_metrics_recorded('Supportability/Ruby/Profiling/cpu')
         end
       end
     end
 
     def test_start_uses_cpu_mode_when_configured_mode_is_invalid_or_removed
       Object.stub_const(:StackProf, Module.new) do
-        with_config(:'profiling.mode' => 'wall', :'profiling.sample_period' => 0.05) do
+        with_config(:'profiling.include' => 'wall', :'profiling.sample_period' => 0.05) do
           StackProf.expects(:start).with(mode: :cpu, interval: 50_000, raw: true)
 
           @sampler.start
@@ -57,7 +57,7 @@ module NewRelic::Agent::ContinuousProfiling
 
     def test_start_passes_the_allocation_interval_for_object_mode
       Object.stub_const(:StackProf, Module.new) do
-        with_config(:'profiling.mode' => 'object', :'profiling.object_allocation_interval' => 1234) do
+        with_config(:'profiling.include' => 'object', :'profiling.object_allocation_interval' => 1234) do
           StackProf.expects(:start).with(mode: :object, interval: 1234, raw: true)
 
           @sampler.start
@@ -67,7 +67,7 @@ module NewRelic::Agent::ContinuousProfiling
 
     def test_start_does_not_use_the_object_allocation_interval_for_cpu_mode
       Object.stub_const(:StackProf, Module.new) do
-        with_config(:'profiling.mode' => 'cpu', :'profiling.sample_period' => 0.05,
+        with_config(:'profiling.include' => 'cpu', :'profiling.sample_period' => 0.05,
           :'profiling.object_allocation_interval' => 5) do
           StackProf.expects(:start).with(mode: :cpu, interval: 50_000, raw: true)
 

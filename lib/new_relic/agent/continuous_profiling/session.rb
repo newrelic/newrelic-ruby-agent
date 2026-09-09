@@ -16,6 +16,7 @@ module NewRelic
       class Session
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
+        DURATION_METRIC = 'Supportability/Ruby/Profiling/Duration'
         SAMPLING_DURATION_METRIC = 'Supportability/Ruby/Profiling/Sampling/Duration'
         SEGMENT_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/SegmentRanges/LimitExceeded'
         SKIPPED_NOT_CONNECTED_METRIC = 'Supportability/Ruby/Profiling/Export/SkippedNotConnected'
@@ -79,7 +80,7 @@ module NewRelic
           NewRelic::Agent.increment_metric(ENABLED_METRIC)
         end
 
-        def stop
+        def stop(record_duration: false)
           thread_to_join = @lock.synchronize do
             # Killed here, before the @running guard below, so a pending delayed start
             # (profiling.delay not yet elapsed -- @running still false) is cancelled too.
@@ -90,6 +91,7 @@ module NewRelic
 
             return unless @running
 
+            record_duration_metric if record_duration
             @running = false
             @cv.broadcast
             unsubscribe_from_transaction_hooks
@@ -293,7 +295,7 @@ module NewRelic
           if enabled? && !running?
             delayed_start
           elsif !enabled? && running?
-            stop
+            stop(record_duration: true)
           elsif NewRelic::Agent.config[:'profiling.enabled'] && !supported?
             NewRelic::Agent.logger.warn(unsupported_message)
           end
@@ -363,12 +365,22 @@ module NewRelic
         # once @running is false, so the Disabled metric is never double-counted.
         def finish_due_to_duration
           @lock.synchronize do
+            record_duration_metric
             @running = false
             @thread = nil
             unsubscribe_from_transaction_hooks
           end
           NewRelic::Agent.logger.debug('Continuous profiling duration elapsed; stopping.')
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
+        end
+
+        # Only profiling.duration elapsing or a server-side-config disable count as a measured
+        # end for this metric -- ordinary shutdown never calls this, so a normal exit reports nothing.
+        def record_duration_metric
+          return unless @started_at
+
+          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - @started_at) * 1000).to_i
+          NewRelic::Agent.record_metric(DURATION_METRIC, elapsed_ms)
         end
 
         # Wakes up at the next harvest tick, or sooner if profiling.duration is set and would
