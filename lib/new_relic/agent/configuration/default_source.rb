@@ -736,6 +736,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, enables auto-injection of [Content Security Policy Nonce](https://content-security-policy.com/nonce/) in browser monitoring scripts. For now, auto-injection only works with Rails 5.2+.'
         },
+        :'browser_monitoring.version' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Pin the version of the browser agent loader that New Relic injects, such as `1.317.0`. When unset, New Relic injects the latest available version. See the [browser agent EOL policy](/docs/browser/browser-monitoring/getting-started/browser-agent-eol-policy/) for which versions are currently available and supported.'
+        },
         # Transaction events
         :'transaction_events.enabled' => {
           :default => true,

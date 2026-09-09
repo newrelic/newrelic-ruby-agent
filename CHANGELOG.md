@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add `browser_monitoring.version` configuration option**
+
+  Customers can now pin the exact browser agent loader version New Relic injects by setting the new `browser_monitoring.version` configuration option. See the [browser agent EOL policy](https://docs.newrelic.com/docs/browser/browser-monitoring/getting-started/browser-agent-eol-policy/) for which versions are currently available and supported.
+
 - **Feature: Add span.kind to background job libraries**
 
   Now, the `span.kind` attribute will be added to `produce` and `consume` operations from background job libraries. This includes ActiveJob, Sidekiq, Resque and DelayedJob. [PR#3636](https://github.com/newrelic/newrelic-ruby-agent/pull/3636)
