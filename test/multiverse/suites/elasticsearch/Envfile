@@ -14,6 +14,10 @@ def gem_list(elasticsearch_version = nil)
   <<~RB
     gem 'elasticsearch'#{elasticsearch_version}
 
+    # multi_json (pulled in by elasticsearch-transport) calls JSON.parse(source, options),
+    # which json 3.0 no longer accepts (ArgumentError: wrong number of arguments).
+    # TODO: remove this pin once multi_json/elasticsearch-transport support json 3.x.
+    gem 'json', '< 3'
   RB
 end
 
