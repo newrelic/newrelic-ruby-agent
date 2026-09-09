@@ -80,37 +80,74 @@ module NewRelic
         end
       end
 
+      # Service => K_REVISION, Worker Pool => CLOUD_RUN_REVISION, Job => CLOUD_RUN_EXECUTION
+      CLOUD_RUN_RESOURCE_TYPES = {
+        'K_REVISION' => 'hello-world.1',
+        'CLOUD_RUN_REVISION' => 'hello-world.1',
+        'CLOUD_RUN_EXECUTION' => 'hello-world-abc'
+      }.freeze
+
       def test_gcp_cloud_run_reports_instance_id_as_host
         NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
 
-        with_cloud_run_env('gcr-test.1', :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
-          assert_equal '1234567890', NewRelic::Agent::Hostname.get
+        CLOUD_RUN_RESOURCE_TYPES.each do |var, revision|
+          with_cloud_run_env(var, revision, :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
+            assert_equal '1234567890', NewRelic::Agent::Hostname.get, "expected #{var} to be detected as Cloud Run"
+          end
         end
       end
 
       def test_gcp_cloud_run_prepends_revision_when_configured
         NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
 
-        with_cloud_run_env('gcr-test.1',
+        CLOUD_RUN_RESOURCE_TYPES.each do |var, revision|
+          with_cloud_run_env(var, revision,
+            :'utilization.gcp_cloud_run.use_instance_as_host' => true,
+            :'utilization.gcp_cloud_run.include_revision_in_host' => true) do
+            assert_equal "#{revision}-1234567890", NewRelic::Agent::Hostname.get, "expected #{var} to name the revision"
+          end
+        end
+      end
+
+      def test_gcp_cloud_run_prefers_the_first_revision_variable_that_is_set
+        NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
+
+        with_cloud_run_env('CLOUD_RUN_EXECUTION', 'hello-world-abc',
           :'utilization.gcp_cloud_run.use_instance_as_host' => true,
           :'utilization.gcp_cloud_run.include_revision_in_host' => true) do
-          assert_equal 'gcr-test.1-1234567890', NewRelic::Agent::Hostname.get
+          ENV['K_REVISION'] = 'hello-world.1'
+
+          assert_equal 'hello-world.1-1234567890', NewRelic::Agent::Hostname.get
+        end
+      end
+
+      def test_gcp_cloud_run_ignores_an_empty_revision_variable
+        NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
+
+        CLOUD_RUN_RESOURCE_TYPES.each_key do |var|
+          with_cloud_run_env(var, '', :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
+            assert_equal 'Rivendell', NewRelic::Agent::Hostname.get, "expected an empty #{var} to be ignored"
+          end
         end
       end
 
       def test_gcp_cloud_run_uses_socket_hostname_when_use_instance_as_host_disabled
         NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns('1234567890')
 
-        with_cloud_run_env('gcr-test.1', :'utilization.gcp_cloud_run.use_instance_as_host' => false) do
-          assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+        CLOUD_RUN_RESOURCE_TYPES.each do |var, revision|
+          with_cloud_run_env(var, revision, :'utilization.gcp_cloud_run.use_instance_as_host' => false) do
+            assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+          end
         end
       end
 
       def test_gcp_cloud_run_falls_back_to_socket_hostname_when_instance_id_unavailable
         NewRelic::Agent::Hostname.stubs(:gcp_instance_id).returns(nil)
 
-        with_cloud_run_env('gcr-test.1', :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
-          assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+        CLOUD_RUN_RESOURCE_TYPES.each do |var, revision|
+          with_cloud_run_env(var, revision, :'utilization.gcp_cloud_run.use_instance_as_host' => true) do
+            assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
+          end
         end
       end
 
@@ -132,13 +169,15 @@ module NewRelic
         assert_nil NewRelic::Agent::Hostname.gcp_instance_id
       end
 
-      def with_cloud_run_env(revision, config_options)
+      def with_cloud_run_env(var, revision, config_options)
+        NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
         with_config(config_options) do
-          ENV[NewRelic::Agent::Hostname::CLOUD_RUN_REVISION] = revision
+          ENV[var] = revision
           yield
         end
       ensure
-        ENV.delete(NewRelic::Agent::Hostname::CLOUD_RUN_REVISION)
+        NewRelic::Agent::Hostname::CLOUD_RUN_REVISION_VARS.each { |name| ENV.delete(name) }
+        NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       end
 
       def test_local_predicate_true_when_host_local
