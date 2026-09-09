@@ -75,7 +75,7 @@ function install_ruby_version_specific_gems {
 
     # TODO: remove if once elasticsearch works with json 3.0+
     if [[ "$MULTIVERSE_GROUP" != "services_elasticsearch" ]]; then
-      gem install --default json:3.0.1
+      gem install --default json:3.0.2
     fi
 
     if [[ $RUBY_VERSION =~ ^(2\.|3\.[0-4]) ]]; then
