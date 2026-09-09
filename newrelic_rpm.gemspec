@@ -54,6 +54,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI']
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
+  s.add_development_dependency 'json_schemer' unless ENV['CI'] && RUBY_VERSION < '3.0.0' # validates the generated agent config schema in tests
   # TODO: MAJOR VERSION - Remove support for Minitest 4.7.5 and all calls to
   # skip_unless_minitest5_or_above when we drop support for Ruby 2.7
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
