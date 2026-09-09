@@ -10,8 +10,7 @@ module NewRelic
     module Hostname
       # Cloud Run sets a different revision variable per resource type: K_REVISION
       # on a Service, CLOUD_RUN_REVISION on a Worker Pool, and CLOUD_RUN_EXECUTION
-      # on a Job. Only one is ever set, so the first non-empty value both identifies
-      # Cloud Run and names the revision.
+      # on a Job. The first non-empty value identifies Cloud Run and names the revision.
       # https://docs.cloud.google.com/run/docs/container-contract#env-vars
       CLOUD_RUN_REVISION_VARS = %w[K_REVISION CLOUD_RUN_REVISION CLOUD_RUN_EXECUTION].freeze
       GCP_INSTANCE_ID_URI = 'http://metadata.google.internal/computeMetadata/v1/instance/id'
