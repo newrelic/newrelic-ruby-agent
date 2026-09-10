@@ -211,7 +211,7 @@ module NewRelic::Agent::Configuration
       @manager.replace_or_add_config(new_config)
 
       assert_equal 'right', @manager[:test]
-      assert_equal 3, @manager.num_configs_for_testing
+      assert_equal 4, @manager.num_configs_for_testing
     end
 
     def test_registering_a_callback
