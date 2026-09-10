@@ -118,7 +118,7 @@ To update `newrelic.yml` file after a new release, use the template in the base 
 
 ## Errors inbox configuration [#errors-inbox-configuration]
 
-Setting one of the following environment variables will help you identify which versions of your software are producing the errors.
+Setting one of the following environment variables will help you identify which versions of your software produced the errors.
 
 * `NEW_RELIC_METADATA_SERVICE_VERSION` will create `tags.service.version` on event data containing the version of your code that is deployed, in many cases a semantic version such as `1.2.3`, but not always.
 * `NEW_RELIC_METADATA_RELEASE_TAG` will create `tags.releaseTag` on event data containing the release tag (such as `v0.1.209` or `release-209`).
