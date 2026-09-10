@@ -111,16 +111,30 @@ if defined?(HTTParty)
 
     def test_gem_message_with_action_url
       GemNotifier.stub(:action_url, 'changelog.com') do
-        assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2' \
-        "\n\n<changelog.com|See more.>",
-          GemNotifier.gem_message('fake_gem', gem_versions_array)
+        GemNotifier.stub(:analyze_gem_update, nil) do
+          assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2' \
+          "\n\n<changelog.com|See more.>",
+            GemNotifier.gem_message('fake_gem', gem_versions_array)
+        end
       end
     end
 
     def test_gem_message_with_nil_action_url
       GemNotifier.stub(:action_url, nil) do
-        assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2',
-          GemNotifier.gem_message('fake_gem', gem_versions_array)
+        GemNotifier.stub(:analyze_gem_update, nil) do
+          assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2',
+            GemNotifier.gem_message('fake_gem', gem_versions_array)
+        end
+      end
+    end
+
+    def test_gem_message_appends_ai_summary_when_present
+      GemNotifier.stub(:action_url, 'changelog.com') do
+        GemNotifier.stub(:analyze_gem_update, '- *Enhancement:* New `Foo#bar` worth wrapping.') do
+          message = GemNotifier.gem_message('fake_gem', gem_versions_array)
+
+          assert_includes message, "*AI Summary:*\n- *Enhancement:* New `Foo#bar` worth wrapping."
+        end
       end
     end
   end

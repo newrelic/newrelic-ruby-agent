@@ -7,25 +7,18 @@
 require 'time'
 require 'httparty'
 require_relative 'slack_notifier'
+require_relative 'gem_summary/instrumentation_agent'
 
 class GemNotifier < SlackNotifier
   SUPPORTED_GEMS_FILE = '.github/workflows/scripts/slack_notifications/supported_gems.txt'
 
   def self.check_for_updates(watched_gems)
-    return if verify_gem_list(watched_gems)
-
     watched_gems.each do |gem_name|
       gem_info = verify_gem(gem_name)
       versions = gem_versions(gem_info)
       send_slack_message(gem_message(gem_name, versions)) if gem_updated?(versions)
     end
     report_errors
-  end
-
-  private
-
-  def self.verify_gem_list(watched_gems)
-    abort("Nothing to see here! The 'watched_gems' array cannot be empty") if watched_gems.empty?
   end
 
   def self.verify_gem(gem_name)
@@ -70,11 +63,17 @@ class GemNotifier < SlackNotifier
     abort("Expected exactly 2 version numbers in the 'versions' array") unless versions.size == 2
     newest, previous = versions[0]['number'], versions[1]['number']
     alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
-    action_url = action_url(gem_name)
-    action_message = "<#{action_url}|See more.>"
-    return alert_message if action_url.nil?
+    changelog_url = action_url(gem_name)
+    message = changelog_url.nil? ? alert_message : "#{alert_message}\n\n<#{changelog_url}|See more.>"
 
-    alert_message + "\n\n" + action_message
+    analysis = analyze_gem_update(gem_name, newest)
+    message += "\n\n*AI Summary:*\n#{analysis}" if analysis && !analysis.empty?
+
+    message
+  end
+
+  def self.analyze_gem_update(gem_name, version)
+    GemSummary::InstrumentationAgent.analyze(gem_name, version)
   end
 end
 
