@@ -26,11 +26,13 @@ jobs:
   regenerate_config_schema:
     runs-on: ubuntu-22.04
     steps:
+      # Uses the default GITHUB_TOKEN (job has contents: write above) rather than
+      # the bot PAT — the bot's token isn't scoped for a direct push to this repo,
+      # only for cross-repo pushes and gh pr create/edit (see prerelease.yml).
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
         with:
           ref: ${{ github.ref_name }}
-          token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
 
       - name: Install Ruby 3.4
         uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
@@ -55,6 +57,10 @@ jobs:
       # The commit touches only schemas/config.json, which is NOT in the paths
       # filter above, so this push does not re-trigger the workflow (no loop).
       # Keep that path filter if you edit this.
+      #
+      # Pushed with GITHUB_TOKEN, so it won't fire a pull_request "synchronize"
+      # on this branch's PR (GitHub suppresses events from GITHUB_TOKEN pushes) —
+      # ci.yml needs a manual re-run or another real push to pick up this commit.
       - name: Commit regenerated schema
         if: steps.generate.outputs.changed == 'true'
         run: |
