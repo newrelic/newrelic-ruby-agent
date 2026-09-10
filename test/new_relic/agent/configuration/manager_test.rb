@@ -848,6 +848,19 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_enforce_allowlist_matches_a_value_without_regard_for_case
+      key = :guarded
+      allowlist = %w[debug info warn]
+
+      default_source = Object.new
+      default_source.stubs(:allowlist_for).returns(allowlist)
+      @manager.stubs(:default_source).returns(default_source)
+
+      value = @manager.enforce_allowlist(key, 'DeBuG')
+
+      assert_equal 'debug', value
+    end
+
     private
 
     def assert_parsed_labels(expected)

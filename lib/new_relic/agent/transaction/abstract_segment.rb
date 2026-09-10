@@ -20,7 +20,7 @@ module NewRelic
         # calculation in all other cases.
         #
         attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_segment_key, :thread_id
-        attr_accessor :name, :parent, :children_time, :transaction, :transaction_name, :llm_event
+        attr_accessor :name, :parent, :children_time, :transaction, :transaction_name, :llm_event, :span_kind
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
@@ -53,6 +53,7 @@ module NewRelic
           @code_function = nil
           @code_lineno = nil
           @code_namespace = nil
+          @span_kind = nil
           invoke_callback
         end
 

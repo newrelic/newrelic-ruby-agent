@@ -52,6 +52,15 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_allowlists_include_their_own_default_value
+      @defaults.each do |key, config_value|
+        next unless config_value[:allowlist]
+
+        assert_includes config_value[:allowlist], fetch_config_value(key),
+          "Expected the default value for #{key} to be on its own allowlist"
+      end
+    end
+
     def test_default_values_maps_keys_to_their_default_values
       default_values = @default_source.default_values
 
@@ -241,6 +250,35 @@ module NewRelic::Agent::Configuration
 
       with_config(key => 'bogus') do
         assert_equal default, NewRelic::Agent.config[key]
+      end
+    end
+
+    def test_allowlisted_values_can_be_any_case
+      @defaults.each do |key, config_value|
+        next unless config_value[:allowlist]
+
+        config_value[:allowlist].each do |value|
+          next unless value.is_a?(String) || value.is_a?(Symbol)
+
+          value_swapcased = value.to_s.swapcase
+          standard = with_config(key => value) { NewRelic::Agent.config[key] }
+
+          with_config(key => value_swapcased) do
+            assert_equal standard, NewRelic::Agent.config[key], "Expected #{key} to treat '#{value_swapcased}' like '#{value}'"
+          end
+        end
+      end
+    end
+
+    def test_a_value_that_is_not_on_an_allowlist_resolves_to_the_default
+      @defaults.each do |key, config_value|
+        next unless config_value[:allowlist]
+
+        default = with_config(key => fetch_config_value(key)) { NewRelic::Agent.config[key] }
+
+        with_config(key => 'not_allowed') do
+          assert_equal default, NewRelic::Agent.config[key], "Expected #{key} to reject a value that is not on its allowlist"
+        end
       end
     end
 

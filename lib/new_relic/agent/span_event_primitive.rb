@@ -54,6 +54,8 @@ module NewRelic
       HTTP_CATEGORY = 'http'
       DATASTORE_CATEGORY = 'datastore'
       CLIENT = 'client'
+      PRODUCER = 'producer'
+      CONSUMER = 'consumer'
 
       DB_STATEMENT_MAX_BYTES = 4096
 
@@ -69,6 +71,7 @@ module NewRelic
       def for_segment(segment)
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
+        intrinsics[SPAN_KIND_KEY] = segment.span_kind if segment.span_kind
 
         [intrinsics, custom_attributes(segment), agent_attributes(segment)]
       end
