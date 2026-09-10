@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.8.0
 
 - **Feature: Report a unique hostname for Google Cloud Run Worker Pools and Jobs**
 
