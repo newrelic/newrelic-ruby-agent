@@ -1427,12 +1427,12 @@
     },
     "profiling.object_allocation_interval": {
       "type": "integer",
-      "description": "The number of object allocations between stack samples taken by the continuous profiler. Only used when profiling.mode is object. Must be between 1000 and 999999.",
+      "description": "The number of object allocations between stack samples taken by the continuous profiler. Only used when profiling.include is object. Must be between 1000 and 999999.",
       "default": 10000
     },
     "profiling.sample_period": {
       "type": "number",
-      "description": "The interval, in seconds, between stack samples taken by the continuous profiler. Only used when profiling.mode is cpu. Must be between 1.0e-06 and 0.999999.",
+      "description": "The interval, in seconds, between stack samples taken by the continuous profiler. Only used when profiling.include is cpu. Must be between 1.0e-06 and 0.999999.",
       "default": 0.01
     },
     "proxy_host": {

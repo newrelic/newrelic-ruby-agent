@@ -1150,7 +1150,7 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:enforce_sample_period_range),
           :description => 'The interval, in seconds, between stack samples taken by the continuous profiler. ' \
-            'Only used when `profiling.mode` is `cpu`. Must be between ' \
+            'Only used when `profiling.include` is `cpu`. Must be between ' \
             "#{DefaultSource::SAMPLE_PERIOD_MINIMUM_SECONDS} and #{DefaultSource::SAMPLE_PERIOD_MAXIMUM_SECONDS}."
         },
         :'profiling.object_allocation_interval' => {
@@ -1160,7 +1160,7 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:enforce_object_allocation_interval_minimum),
           :description => 'The number of object allocations between stack samples taken by the continuous ' \
-            'profiler. Only used when `profiling.mode` is `object`. Must be between ' \
+            'profiler. Only used when `profiling.include` is `object`. Must be between ' \
             "#{DefaultSource::OBJECT_ALLOCATION_INTERVAL_MINIMUM} and #{DefaultSource::STACKPROF_INTERVAL_MAXIMUM}."
         },
         :'profiling.harvest_period' => {
