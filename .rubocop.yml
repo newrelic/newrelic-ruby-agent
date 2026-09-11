@@ -15,6 +15,7 @@ AllCops:
     - 'test/multiverse/suites/active_record/db/schema.rb'
     - 'test/multiverse/suites/active_record_pg/db/schema.rb'
     - 'test/perfverse/rails7/**/*'
+    - 'lib/new_relic/agent/continuous_profiling/proto/**/*_pb.rb'
   NewCops: enable
 
 Bundler/DuplicatedGem:

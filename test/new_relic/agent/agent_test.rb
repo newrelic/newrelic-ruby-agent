@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../test_helper'
+require 'timeout'
 
 module NewRelic
   module Agent
@@ -263,12 +264,46 @@ module NewRelic
         @agent.transaction_event_aggregator.expects(:merge!).never
         @agent.sql_sampler.expects(:merge!).never
         @agent.log_event_aggregator.expects(:merge!).never
+        @agent.service.expects(:profiles_data).never
         @agent.merge_data_for_endpoint(:metric_data, [])
         @agent.merge_data_for_endpoint(:transaction_sample_data, [])
         @agent.merge_data_for_endpoint(:error_data, [])
         @agent.merge_data_for_endpoint(:sql_trace_data, [])
         @agent.merge_data_for_endpoint(:analytic_event_data, [])
         @agent.merge_data_for_endpoint(:log_event_data, [])
+        @agent.merge_data_for_endpoint(:profiles_data, '')
+      end
+
+      # No aggregator for profiles_data -- it should forward straight to the service.
+      def test_merge_data_for_endpoint_forwards_profiles_data_to_the_service
+        @agent.service.expects(:profiles_data).with('raw-profile-bytes')
+        thread = @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        thread.join
+      end
+
+      def test_merge_data_for_endpoint_forwards_profiles_data_without_blocking_the_caller
+        started = Queue.new
+        release = Queue.new
+        @agent.service.define_singleton_method(:profiles_data) do |*_args|
+          started.push(:started)
+          release.pop
+        end
+
+        thread = Timeout.timeout(1) { @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes') }
+        Timeout.timeout(1) { started.pop }
+
+        assert_predicate thread, :alive?
+      ensure
+        release.push(:release)
+        thread&.join
+      end
+
+      def test_merge_data_for_endpoint_logs_but_does_not_raise_when_profiles_data_raises
+        @agent.service.stubs(:profiles_data).raises('boom')
+        NewRelic::Agent.logger.expects(:error).with(includes('Continuous Profiling Forwarder'), anything)
+
+        thread = @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        thread.join
       end
 
       def test_merge_data_traces

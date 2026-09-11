@@ -254,6 +254,11 @@
       "description": "If true, enables auto-injection of Content Security Policy Nonce in browser monitoring scripts. For now, auto-injection only works with Rails 5.2+.",
       "default": true
     },
+    "browser_monitoring.version": {
+      "type": "string",
+      "description": "Pin the version of the browser agent loader that New Relic injects, such as 1.317.0. When unset, New Relic injects the latest available version. See the browser agent EOL policy for which versions are currently available and supported.",
+      "default": ""
+    },
     "ca_bundle_path": {
       "type": "string",
       "description": "Manual override for the path to your local CA bundle. This CA bundle validates the SSL certificate presented by New Relic's data collection service."
@@ -1396,6 +1401,40 @@
       "type": "string",
       "description": "Specify a custom hostname for display in the New Relic UI."
     },
+    "profiling.delay": {
+      "type": "integer",
+      "description": "The delay, in milliseconds, before continuous profiling starts after being enabled. Defaults to 0, meaning profiling starts immediately.",
+      "default": 0
+    },
+    "profiling.duration": {
+      "type": "integer",
+      "description": "The duration, in milliseconds, that continuous profiling runs before automatically stopping. Defaults to 0, meaning profiling runs indefinitely until explicitly stopped.",
+      "default": 0
+    },
+    "profiling.enabled": {
+      "type": "boolean",
+      "description": "If true, enables continuous profiling. Requires the stackprof and google-protobuf gems to be present in the application. Not supported on JRuby. Automatically disabled when high security mode is enabled.",
+      "default": false
+    },
+    "profiling.include": {
+      "type": "string",
+      "description": "The stackprof sampling mode to use for continuous profiling: cpu or object.",
+      "default": "cpu",
+      "enum": [
+        "cpu",
+        "object"
+      ]
+    },
+    "profiling.object_allocation_interval": {
+      "type": "integer",
+      "description": "The number of object allocations between stack samples taken by the continuous profiler. Only used when profiling.include is object. Must be between 1000 and 999999.",
+      "default": 10000
+    },
+    "profiling.sample_period": {
+      "type": "number",
+      "description": "The interval, in seconds, between stack samples taken by the continuous profiler. Only used when profiling.include is cpu. Must be between 1.0e-06 and 0.999999.",
+      "default": 0.01
+    },
     "proxy_host": {
       "type": "string",
       "description": "Defines a host for communicating with the New Relic collector via a proxy server."
@@ -2046,12 +2085,12 @@
     },
     "utilization.gcp_cloud_run.include_revision_in_host": {
       "type": "boolean",
-      "description": "If true, the agent prepends the K_REVISION value to the GCP instance id to form the hostname ({K_REVISION}-{instance id}) on Google Cloud Run. Has no effect unless utilization.gcp_cloud_run.use_instance_as_host is also true.",
+      "description": "If true, the agent prepends the Cloud Run revision name to the GCP instance id to form the hostname ({revision}-{instance id}) on Google Cloud Run. The revision name comes from K_REVISION on a Cloud Run Service, CLOUD_RUN_REVISION on a Cloud Run Worker Pool, and CLOUD_RUN_EXECUTION on a Cloud Run Job. Has no effect unless utilization.gcp_cloud_run.use_instance_as_host is also true.",
       "default": false
     },
     "utilization.gcp_cloud_run.use_instance_as_host": {
       "type": "boolean",
-      "description": "If true, the agent reports the GCP instance id as the hostname when running on Google Cloud Run.",
+      "description": "If true, the agent reports the GCP instance id as the hostname when running on Google Cloud Run (Services, Worker Pools, and Jobs).",
       "default": true
     }
   }

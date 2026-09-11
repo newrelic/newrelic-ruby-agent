@@ -15,6 +15,9 @@ module NewRelic
   module Agent
     module Commands
       class AgentCommandRouter
+        START_CONTINUOUS_PROFILING_COMMAND = 'start_continuous_profiling'
+        STOP_CONTINUOUS_PROFILING_COMMAND = 'stop_continuous_profiling'
+
         attr_reader :handlers
 
         attr_accessor :thread_profiler_session, :backtrace_service
@@ -28,12 +31,19 @@ module NewRelic
 
           @handlers['start_profiler'] = proc { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler'] = proc { |cmd| thread_profiler_session.handle_stop_command(cmd) }
+          @handlers[START_CONTINUOUS_PROFILING_COMMAND] = proc { |cmd| continuous_profiling_session.handle_start_command(cmd) }
+          @handlers[STOP_CONTINUOUS_PROFILING_COMMAND] = proc { |cmd| continuous_profiling_session.handle_stop_command(cmd) }
 
           event_listener&.subscribe(:before_shutdown, &method(:on_before_shutdown))
         end
 
         def new_relic_service
           NewRelic::Agent.instance.service
+        end
+
+        def continuous_profiling_session
+          NewRelic::Agent.agent&.continuous_profiling_session ||
+            raise(AgentCommandError, 'Continuous profiling session unavailable; agent not fully started')
         end
 
         def check_for_and_handle_agent_commands

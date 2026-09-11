@@ -1,0 +1,12 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+suite_condition('continuous profiling requires stackprof and google-protobuf, which need native C extensions') do
+  RUBY_PLATFORM != 'java'
+end
+
+gemfile <<~RB
+  gem 'stackprof'
+  gem 'google-protobuf'
+RB

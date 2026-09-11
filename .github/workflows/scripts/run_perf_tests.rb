@@ -37,7 +37,16 @@ def pull_locust
   run_command('docker pull locustio/locust')
 end
 
+# The app container runs with --rm, so its logs vanish the moment `docker stop` returns --
+# this must run on the still-running container, before it's stopped.
+def print_container_logs(container_id, grep_pattern)
+  output_line("#{container_id} logs (filtered: #{grep_pattern}):")
+  matched = run_command("docker logs #{container_id} 2>&1 | grep -iE \"#{grep_pattern}\"")
+  puts matched.empty? ? '(no matching log lines found)' : matched
+end
+
 def shutdown_rails_app(container_id)
+  print_container_logs(container_id, 'continuous profil|stackprof|export')
   output_line('Shutting down rails app')
   run_command("docker stop #{container_id}")
 end
