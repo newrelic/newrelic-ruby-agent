@@ -17,6 +17,8 @@ module NewRelic
         nr_freeze_process_time
         events = NewRelic::Agent.instance.events
         @event_aggregator = SpanEventAggregator.new(events)
+
+        clear_metrics!
       end
 
       def teardown
