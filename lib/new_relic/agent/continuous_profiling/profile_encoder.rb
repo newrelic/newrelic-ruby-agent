@@ -162,10 +162,8 @@ module NewRelic
           end
         end
 
-        # clock_offset ties a StackProf tick's monotonic timestamp to wall-clock time, and
-        # segment_ranges is the wall-clock data to match it against -- without both, no tick
-        # could ever be linked, so the per-tick expand/collapse round trip in expand_ticks/
-        # collapse_ticks would just rebuild what parse_raw_groups already returned.
+        # Without both clock_offset (ties a tick's monotonic timestamp to wall-clock time) and
+        # segment_ranges (the wall-clock data to match against), no tick could ever be linked.
         def correlation_possible?
           ranges = @report[:segment_ranges]
           !ranges.nil? && !ranges.empty? && !@report[:clock_offset].nil?
@@ -201,9 +199,8 @@ module NewRelic
         end
 
         # StackProf's :raw/:raw_lines pre-collapse consecutive identical stacks into one
-        # [frame_ids, weight] group, but :raw_sample_timestamps has one entry per tick. Expand
-        # back to one entry per tick so each can be matched to a transaction individually,
-        # then re-collapsed in collapse_ticks.
+        # [frame_ids, weight] group; expand back to one entry per tick so each can be matched
+        # to a transaction individually (then re-collapsed in collapse_ticks).
         def expand_ticks
           tick_links = build_tick_links
           tick = 0
@@ -236,10 +233,8 @@ module NewRelic
           groups
         end
 
-        # Sweeps ticks (already in chronological order) against ranges sorted by start_time,
-        # instead of scanning every range per tick -- active-set size is bounded by real
-        # concurrency, not total range count. Only called when correlation_possible?, so
-        # segment_ranges and clock_offset are always present here.
+        # Sweeps ticks (chronological) against ranges sorted by start_time, instead of scanning
+        # every range per tick -- active-set size is bounded by real concurrency, not range count.
         def build_tick_links
           timestamps = @report[:raw_sample_timestamps]
           return [] if timestamps.nil? || timestamps.empty?

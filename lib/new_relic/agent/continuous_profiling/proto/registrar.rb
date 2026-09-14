@@ -8,11 +8,8 @@ module NewRelic
   module Agent
     module ContinuousProfiling
       module Proto
-        # Other gems (e.g. opentelemetry-exporter-otlp) vendor these same proto files at
-        # the same paths. Google::Protobuf::DescriptorPool is a single process-wide
-        # global that raises `duplicate file name` if a file is registered twice, so
-        # guard every registration through here instead of calling add_serialized_file
-        # directly.
+        # Other gems (e.g. opentelemetry-exporter-otlp) vendor these same proto files, and the
+        # process-wide DescriptorPool raises on a duplicate registration -- route through here.
         module Registrar
           def self.register_once(pool, descriptor_data, anchor_message_name)
             return if pool.lookup(anchor_message_name)

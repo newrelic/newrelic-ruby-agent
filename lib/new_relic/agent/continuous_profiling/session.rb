@@ -10,9 +10,8 @@ module NewRelic
     module ContinuousProfiling
       # Owns the lifecycle of continuous profiling: starting/stopping StackProf on a
       # dedicated background thread, and reacting to agent shutdown. Server-side config
-      # (evaluate_and_apply) and agent commands (handle_start_command/handle_stop_command)
-      # are independent activation paths, kept that way since it's not yet settled which
-      # one the collector will standardize on.
+      # and agent commands are kept as independent activation paths since it's not yet
+      # settled which one the collector will standardize on.
       class Session
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
@@ -46,8 +45,6 @@ module NewRelic
           @events&.subscribe(:before_shutdown) { stop }
         end
 
-        # Called once at start-up, after DependencyDetection has confirmed the required
-        # gems are present and the platform is supported.
         def maybe_start
           return unless enabled?
 
@@ -110,8 +107,6 @@ module NewRelic
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
-        # Agent-command activation. Registered as handlers in
-        # Commands::AgentCommandRouter the same way the legacy thread profiler is.
         def handle_start_command(agent_command)
           raise_unsupported_error unless supported?
           raise_already_started_error if running?
@@ -123,13 +118,8 @@ module NewRelic
           stop
         end
 
-        # Called from Agent#reset_objects_with_locks on the child's after_fork path, before
-        # any request thread has run restart_if_forked's lazy repair -- including before the
-        # reconnect that after_fork triggers, which can otherwise call back into this session
-        # (via evaluate_and_apply) and synchronize on a lock inherited mid-hold from the
-        # parent's profiling thread, deadlocking forever. Only replaces the locks themselves;
-        # @running/@starting_pid/@thread are left alone so restart_if_forked still detects the
-        # fork and performs the full restart once a request thread runs it.
+        # Replaces only the locks, which may be inherited mid-hold from the parent's profiling
+        # thread; @running/@starting_pid/@thread are left for restart_if_forked to detect and repair.
         def reset_after_fork_from_parent_thread
           @lock = Mutex.new
           @fork_lock = Mutex.new
@@ -156,13 +146,8 @@ module NewRelic
           @transaction_hooks_subscribed = false
         end
 
-        # Runs on every :start_transaction while subscribed, so must stay cheap when no fork
-        # happened. StackProf resets its own C-level running state on fork via pthread_atfork,
-        # so only @running/@thread (stale copies from the parent) need recovering here.
-        # @fork_lock (unlike @lock, never replaced) serializes the check-and-repair itself --
-        # without it, two request threads in a freshly forked multi-threaded child could both
-        # see the same stale @running/@starting_pid, each build a fresh @lock, and both start
-        # a session.
+        # @fork_lock (never replaced, unlike @lock) serializes this check-and-repair so two
+        # request threads in a freshly forked child can't both see stale state and each start a session.
         def restart_if_forked
           return unless NewRelic::Agent.config[:restart_thread_in_children]
 
@@ -198,12 +183,8 @@ module NewRelic
           @segment_ranges_lock = Mutex.new
         end
 
-        # Segments shorter than one sample_period are skipped (unlikely to ever match a
-        # tick, and would otherwise bound how much @segment_ranges can grow); the root is
-        # always kept as a fallback. The @running check guards a narrow window in #stop
-        # where this handler hasn't been unsubscribed yet. Uses trace_id_if_generated (not
-        # trace_id) so profiling never forces a trace_id into existence that nothing else in
-        # the transaction would have generated on its own.
+        # Uses trace_id_if_generated, not trace_id, so profiling never forces a trace_id into
+        # existence. Segments shorter than one sample_period are skipped; the root is kept regardless.
         def on_transaction_finished
           return unless @running
 
@@ -259,8 +240,7 @@ module NewRelic
           stackprof_present? && protobuf_present?
         end
 
-        # Only the conditions that are actually unmet, so the logged/raised message
-        # says why *this* agent can't run it, not a static list of every requirement.
+        # Lists only the unmet conditions, so the message says why *this* run can't proceed.
         def unsupported_reasons
           reasons = []
           reasons << 'the stackprof gem is not installed' unless stackprof_present?

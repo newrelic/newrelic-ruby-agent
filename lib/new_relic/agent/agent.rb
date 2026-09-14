@@ -333,11 +333,6 @@ module NewRelic
           end
         end
 
-        # No aggregator for profiles_data -- forward as-is, off-thread so a slow export
-        # doesn't block this pipe-draining loop's delivery of every other child's data.
-        # Bounded because every forwarder serializes on NewRelicService's own connection
-        # lock anyway, so letting them pile up unboundedly under a slow collector only grows
-        # thread count, not throughput.
         MAX_CONCURRENT_PROFILES_FORWARDERS = 4
 
         private
@@ -361,6 +356,8 @@ module NewRelic
           end
         end
 
+        # Forwarded off-thread so a slow export doesn't block other children's data; capped
+        # since forwarders serialize on NewRelicService's connection lock anyway.
         def forward_profiles_data(data)
           @profiles_forwarder_lock.synchronize do
             if @profiles_forwarder_count >= MAX_CONCURRENT_PROFILES_FORWARDERS

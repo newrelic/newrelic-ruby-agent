@@ -19,9 +19,8 @@ module NewRelic::Agent
 
     # Copy-on-write: replaces @events[event] rather than mutating it, so a #notify already
     # iterating the old array on another thread isn't disrupted by a concurrent subscribe.
-    # @write_lock serializes subscribe/unsubscribe against each other -- without it, two
-    # concurrent writers racing this read-modify-write can each build a copy from the same
-    # stale array, and the second assignment silently discards the other's change.
+    # @write_lock serializes subscribe/unsubscribe so two concurrent writers can't each build
+    # a copy from the same stale array and silently discard one another's change.
     def subscribe(event, &handler)
       @write_lock.synchronize { @events[event] = (@events[event] || []) + [handler] }
       check_for_runaway_subscriptions(event)

@@ -2,9 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# Exercises Session/StackProfSampler against the real `stackprof` gem. Unit tests for these
-# classes stub StackProf entirely, so this suite is what actually proves the
-# StackProf.start/stop/results round-trip works as expected.
+# Exercises Session/StackProfSampler against the real `stackprof` gem, which the unit tests
+# stub entirely -- this suite is what proves the StackProf round-trip actually works.
 
 class ContinuousProfilingTest < Minitest::Test
   def test_stack_prof_sampler_round_trips_against_the_real_gem

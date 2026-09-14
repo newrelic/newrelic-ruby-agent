@@ -219,11 +219,8 @@ module NewRelic
 
         OBJECT_ALLOCATION_INTERVAL_MINIMUM = 1000
 
-        # StackProf's C extension rejects any interval outside 1..999_999, regardless of
-        # whether the value means microseconds (:cpu/:wall mode, profiling.sample_period) or a
-        # raw allocation count (:object mode, profiling.object_allocation_interval) -- see
-        # stackprof_start in stackprof.c. Both configs' transforms enforce that same
-        # underlying ceiling, each expressed in the config's own unit.
+        # StackProf's C extension rejects any interval outside 1..999_999 (stackprof_start in
+        # stackprof.c), whether it's microseconds or a raw allocation count.
         STACKPROF_INTERVAL_MAXIMUM = 999_999
         SAMPLE_PERIOD_MINIMUM_SECONDS = 1 / 1_000_000.0
         SAMPLE_PERIOD_MAXIMUM_SECONDS = STACKPROF_INTERVAL_MAXIMUM / 1_000_000.0
