@@ -389,10 +389,6 @@ class ProfileEncoderTest < Minitest::Test
     decoded.resource_profiles[0].scope_profiles[0].profiles[0]
   end
 
-  def stack_index_for(sample)
-    sample.stack_index
-  end
-
   def sample_leaf_name(sample, dict = @dict)
     stack_names(sample, dict).first
   end

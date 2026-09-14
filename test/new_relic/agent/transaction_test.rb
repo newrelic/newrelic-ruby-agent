@@ -1499,43 +1499,26 @@ module NewRelic::Agent
       assert_equal 32, txn.trace_id.size
     end
 
-    def test_trace_id_if_generated_returns_nil_before_trace_id_is_read
-      with_config(:'distributed_tracing.sampler.root' => 'adaptive') do
-        txn = NewRelic::Agent::Transaction.new(:web, {})
-
-        assert_nil txn.trace_id_if_generated
-      end
-    end
-
-    def test_trace_id_if_generated_does_not_itself_generate_a_trace_id
+    def test_trace_id_if_generated_does_not_generate_but_reflects_later_generation
       txn = NewRelic::Agent::Transaction.new(:web, {})
 
-      NewRelic::Agent::GuidGenerator.expects(:generate_guid).never
-      result = txn.trace_id_if_generated
-
-      assert_nil result
-    end
-
-    def test_trace_id_if_generated_does_not_prevent_later_lazy_generation
-      txn = NewRelic::Agent::Transaction.new(:web, {})
+      NewRelic::Agent::GuidGenerator.expects(:generate_guid).once.returns('a' * 32)
 
       assert_nil txn.trace_id_if_generated
-      refute_nil txn.trace_id
-      assert_equal 32, txn.trace_id.size
-    end
 
-    def test_trace_id_if_generated_reflects_an_externally_assigned_trace_id
-      txn = NewRelic::Agent::Transaction.new(:web, {})
-      txn.trace_id = 'a' * 32
-
+      assert_equal 'a' * 32, txn.trace_id
       assert_equal 'a' * 32, txn.trace_id_if_generated
     end
 
-    def test_trace_id_if_generated_returns_the_same_value_as_trace_id_once_generated
-      txn = NewRelic::Agent::Transaction.new(:web, {})
-      generated = txn.trace_id
+    def test_trace_id_if_generated_reflects_an_assigned_or_generated_trace_id
+      assigned = NewRelic::Agent::Transaction.new(:web, {})
+      assigned.trace_id = 'a' * 32
 
-      assert_equal generated, txn.trace_id_if_generated
+      assert_equal 'a' * 32, assigned.trace_id_if_generated
+
+      generated = NewRelic::Agent::Transaction.new(:web, {})
+
+      assert_equal generated.trace_id, generated.trace_id_if_generated
     end
 
     def test_trace_ratio_sampled_with_ratio_one_always_samples

@@ -180,9 +180,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service.profiles_data('raw-profile-bytes')
       end
 
-      # The listener forwards profiles_data off-thread (Agent#forward_profiles_data), so
-      # run_child returning only means the pipe was drained, not that the forwarder ran --
-      # join it before mocha's expectation is verified at teardown.
+      # forward_profiles_data spawns its thread before pipe.close runs, so it's guaranteed
+      # to exist once run_child returns; join it before mocha verifies at teardown.
       join_profiling_forwarder_threads
     end
 
