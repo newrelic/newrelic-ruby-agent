@@ -263,8 +263,9 @@ module HttpClientTestCases
 
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
     res = nil
+    message = ruby_3_4_0_or_above? ? "undefined method 'push_scope'" : "undefined method `push_scope'"
     NewRelic::Agent.instance.stats_engine.stubs(:push_scope)
-      .raises(NoMethodError, "undefined method `push_scope'")
+      .raises(NoMethodError, message)
 
     in_transaction { res = get_response }
 
@@ -273,8 +274,9 @@ module HttpClientTestCases
 
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_finishing_tracing
     res = nil
+    message = ruby_3_4_0_or_above? ? "undefined method 'pop_scope'" : "undefined method `pop_scope'"
     NewRelic::Agent.instance.stats_engine.stubs(:pop_scope)
-      .raises(NoMethodError, "undefined method `pop_scope'")
+      .raises(NoMethodError, message)
 
     in_transaction { res = get_response }
 

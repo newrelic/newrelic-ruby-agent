@@ -47,7 +47,7 @@ jobs:
         echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
 
     - name: Create github release
-      uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # tag v3.0.2
+      uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # tag v3.0.3
       if: $(git tag -l ${{ env.VERSION }}) == false
       with:
         tag_name: ${{ env.VERSION }}

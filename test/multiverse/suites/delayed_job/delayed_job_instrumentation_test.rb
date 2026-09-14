@@ -52,6 +52,12 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       Delayed::Worker.delay_jobs = true
     end
 
+    def test_creating_additional_workers_does_not_reinstall_the_tracer
+      Delayed::Worker.any_instance.expects(:install_newrelic_job_tracer).never
+
+      Delayed::Worker.new
+    end
+
     # Delayed Job doesn't expose a version number, so we have to resort to checking Gem.loaded_specs.
     # Additionally, earlier versions of Delayed Job do not call invoke_job when running jobs inline.
     # We can only test methods using delay and handle_asynchronously on versions that run jobs via
@@ -93,6 +99,18 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
         'OtherTransaction/DelayedJob/all',
         'OtherTransaction/DelayedJob/DelayedJobInstrumentationTest::QuackJob'
       ]
+    end
+
+    def test_invoke_job_tags_the_segment_with_consumer_span_kind
+      job = QuackJob.new(rand(100))
+
+      in_transaction do |txn|
+        invoke_job(job)
+        segment = txn.segments.detect { |s| s.name.include?('DelayedJob') }
+
+        assert segment, 'Expected to find a DelayedJob segment'
+        assert_equal NewRelic::Agent::SpanEventPrimitive::CONSUMER, segment.span_kind
+      end
     end
 
     # Note we use this method instead of Delayed::Job.enqueue because Delayed Job 2.1.4 does

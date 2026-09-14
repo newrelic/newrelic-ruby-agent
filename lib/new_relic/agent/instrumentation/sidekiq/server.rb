@@ -37,6 +37,8 @@ module NewRelic::Agent::Instrumentation::Sidekiq
       end
 
       execution_block = proc do
+        NewRelic::Agent::Tracer.current_segment&.span_kind = NewRelic::Agent::SpanEventPrimitive::CONSUMER
+
         NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
           NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
           ATTRIBUTE_JOB_NAMESPACE,

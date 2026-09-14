@@ -19,6 +19,12 @@ class SidekiqInstrumentationTest < Minitest::Test
     assert_kind_of Range, segment.time_range
   end
 
+  def test_running_a_job_tags_the_segment_with_consumer_span_kind
+    segment = run_job
+
+    assert_equal NewRelic::Agent::SpanEventPrimitive::CONSUMER, segment.span_kind
+  end
+
   def test_disributed_tracing_for_sidekiq
     with_config('distributed_tracing.enabled': true,
       account_id: '190',

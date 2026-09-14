@@ -69,6 +69,13 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     end
   end
 
+  def test_warns_when_requested_version_did_not_return_a_loader
+    with_config(:'browser_monitoring.version' => '1.317.0', :js_agent_loader => '') do
+      expects_logging(:warn, includes('1.317.0'))
+      instrumentor.warn_if_requested_version_not_used
+    end
+  end
+
   def test_browser_timing_header_without_beacon
     with_config(:beacon => '') do
       in_transaction do

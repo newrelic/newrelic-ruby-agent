@@ -59,6 +59,17 @@ module NewRelic
           assert_equal basic_segment_name, basic_segment.name
         end
 
+        def test_span_kind_defaults_to_nil
+          assert_nil basic_segment.span_kind
+        end
+
+        def test_span_kind_is_settable
+          segment = basic_segment
+          segment.span_kind = 'consumer'
+
+          assert_equal 'consumer', segment.span_kind
+        end
+
         def test_segment_tracks_timing_information
           segment = nil
 

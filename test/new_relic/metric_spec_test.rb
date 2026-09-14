@@ -48,28 +48,24 @@ class NewRelic::MetricSpecTest < Minitest::Test
   end
 
   # test to make sure the MetricSpec class can serialize to json
-  if defined?(::ActiveSupport)
-    def test_json
-      spec = NewRelic::MetricSpec.new('controller', 'metric#find')
+  def test_json
+    spec = NewRelic::MetricSpec.new('controller', 'metric#find')
 
-      import = ::ActiveSupport::JSON.decode(spec.to_json)
+    import = ::JSON.parse(spec.to_json)
 
-      compare_spec(spec, import)
+    compare_spec(spec, import)
 
-      stats = NewRelic::Agent::Stats.new
+    stats = NewRelic::Agent::Stats.new
 
-      import = ::ActiveSupport::JSON.decode(stats.to_json)
+    import = ::JSON.parse(stats.to_json)
 
-      compare_stat(stats, import)
+    compare_stat(stats, import)
 
-      metric_data = NewRelic::MetricData.new(spec, stats)
+    metric_data = NewRelic::MetricData.new(spec, stats)
 
-      import = ::ActiveSupport::JSON.decode(metric_data.to_json)
+    import = ::JSON.parse(metric_data.to_json)
 
-      compare_metric_data(metric_data, import)
-    end
-  else
-    puts "Skipping `test_json` in #{File.basename(__FILE__)} because ActiveSupport is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
+    compare_metric_data(metric_data, import)
   end
 
   def test_initialize_truncates_name_and_scope

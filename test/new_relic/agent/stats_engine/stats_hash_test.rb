@@ -194,7 +194,8 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
   DEFAULT_SPEC = NewRelic::MetricSpec.new('foo')
 
   def fake_borked_default_proc(stats_hash)
-    exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
+    message = ruby_3_4_0_or_above? ? "borked default proc gives a NoMethodError on 'yield'" : "borked default proc gives a NoMethodError on `yield'"
+    exception = NoMethodError.new(message)
     hash = stats_hash.instance_variable_get(:@unscoped)
     hash.default_proc = proc { raise exception }
   end

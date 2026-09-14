@@ -75,6 +75,19 @@ class ResqueTest < Minitest::Test
     assert_predicate NewRelic::Agent.instance, :started?
   end
 
+  def test_running_a_job_tags_the_segment_with_consumer_span_kind
+    JobForTesting.reset_counter
+    Resque.inline = true
+
+    in_transaction do |txn|
+      Resque.enqueue(JobForTesting, 'testing')
+      segment = txn.segments.detect { |s| s.name.include?('ResqueJob') }
+
+      assert segment, 'Expected to find a Resque job segment'
+      assert_equal NewRelic::Agent::SpanEventPrimitive::CONSUMER, segment.span_kind
+    end
+  end
+
   def test_doesnt_capture_args_by_default
     stub_for_span_collection
 

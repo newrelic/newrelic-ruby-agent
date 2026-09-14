@@ -50,6 +50,26 @@ module NewRelic::Agent::Instrumentation
         SUBSCRIBER.send(:metric_name, 'indecipherable', {jobs: [TestJob.new, TestJob.new]})
     end
 
+    def test_span_kind_for_enqueue_events_is_producer
+      %w[enqueue.active_job enqueue_at.active_job enqueue_retry.active_job].each do |name|
+        assert_equal NewRelic::Agent::SpanEventPrimitive::PRODUCER, SUBSCRIBER.send(:span_kind_for, name),
+          "expected #{name} to map to producer"
+      end
+    end
+
+    def test_span_kind_for_perform_events_is_consumer
+      %w[perform.active_job perform_start.active_job].each do |name|
+        assert_equal NewRelic::Agent::SpanEventPrimitive::CONSUMER, SUBSCRIBER.send(:span_kind_for, name),
+          "expected #{name} to map to consumer"
+      end
+    end
+
+    def test_span_kind_for_other_events_is_nil
+      %w[discard.active_job retry_stopped.active_job].each do |name|
+        assert_nil SUBSCRIBER.send(:span_kind_for, name), "expected #{name} to map to no span kind"
+      end
+    end
+
     # perform.active_job
     def test_perform_active_job
       job = TestJob.new
@@ -133,6 +153,14 @@ module NewRelic::Agent::Instrumentation
         segment = segments.detect { |s| s.name == "Ruby/ActiveJob/default/TestJob/#{method}" }
 
         assert segment
+
+        expected_span_kind = if method.start_with?('enqueue')
+          NewRelic::Agent::SpanEventPrimitive::PRODUCER
+        elsif method.start_with?('perform')
+          NewRelic::Agent::SpanEventPrimitive::CONSUMER
+        end
+
+        assert_equal expected_span_kind, segment.span_kind
 
         if defined?(Rails) && Rails.respond_to?(:version) && NewRelic::Helper.version_satisfied?(Rails.version, '>=', '7.1')
           assert_match(/ActiveJob::QueueAdapters::(?:Test|Async)Adapter/, segment.params[:adapter].class.name)

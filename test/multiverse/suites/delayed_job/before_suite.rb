@@ -19,10 +19,6 @@ rescue LoadError
   # Let it fail, might be working with another library
 end
 
-# TODO: Core Technology - guess_backend is deprecated on some versions,
-# required on others.
-Delayed::Worker.guess_backend
-
 if Delayed::Worker.backend.to_s == 'Delayed::Backend::ActiveRecord::Job'
   $db_connection = ActiveRecord::Base.establish_connection(:adapter => 'sqlite3',
     :database => ':memory:')

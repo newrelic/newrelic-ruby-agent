@@ -10,6 +10,20 @@ module NewRelic
       class ActiveJobSubscriber < NotificationsSubscriber
         PAYLOAD_KEYS = %i[adapter db_runtime error job wait jobs step interrupted]
 
+        def start_segment(name, id, payload)
+          segment = Tracer.start_segment(name: metric_name(name, payload))
+          segment.span_kind = span_kind_for(name)
+          add_segment_params(segment, payload)
+          push_segment(id, segment)
+        end
+
+        def span_kind_for(name)
+          case method_from_name(name)
+          when /\Aenqueue/ then ::NewRelic::Agent::SpanEventPrimitive::PRODUCER
+          when /\Aperform/ then ::NewRelic::Agent::SpanEventPrimitive::CONSUMER
+          end
+        end
+
         def add_segment_params(segment, payload)
           PAYLOAD_KEYS.each do |key|
             segment.params[key] = payload[key] if payload.key?(key)
