@@ -11,7 +11,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   include TransactionSampleTestHelper
 
   def setup
-    @test_config = {:monitor_mode => true}
+    @test_config = {:monitor_mode => true, :disable_harvest_thread => true}
     NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.add_config_for_testing(@test_config)
     NewRelic::Agent.config.notify_server_source_added
