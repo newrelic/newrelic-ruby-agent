@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Continuous Profiling Public Preview**
+
+  [PR#3617](https://github.com/newrelic/newrelic-ruby-agent/pull/3617)
+
 ## v10.8.0
 
 - **Feature: Report a unique hostname for Google Cloud Run Worker Pools and Jobs**
