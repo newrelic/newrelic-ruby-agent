@@ -37,7 +37,16 @@ def pull_locust
   run_command('docker pull locustio/locust')
 end
 
+# The app container runs with --rm, so its logs vanish the moment `docker stop` returns --
+# this must run on the still-running container, before it's stopped.
+def print_container_logs(container_id, grep_pattern)
+  output_line("#{container_id} logs (filtered: #{grep_pattern}):")
+  matched = run_command("docker logs #{container_id} 2>&1 | grep -iE \"#{grep_pattern}\"")
+  puts matched.empty? ? '(no matching log lines found)' : matched
+end
+
 def shutdown_rails_app(container_id)
+  print_container_logs(container_id, 'continuous profil|stackprof|export')
   output_line('Shutting down rails app')
   run_command("docker stop #{container_id}")
 end
@@ -101,13 +110,8 @@ end
 ###############################################################################
 
 iteration_index = ENV['ITERATION_INDEX'].to_i
-# A plain rotate(iteration_index) only redistributes which tag lands in absolute position 1 --
-# it preserves the cyclic adjacency between tags (whichever tag is coded immediately after
-# another always stays immediately after it, every iteration). That's enough to average out a
-# "which VM/how far into the job" effect, but not a "runs right after tag X" carryover effect --
-# confirmed via an identical-code control (every tag pointing at the same commit still showed a
-# sustained ~10-20% response-time gap between tags under plain rotation). Shuffling per iteration
-# (seeded by iteration_index for reproducibility) breaks adjacency too, not just starting offset.
+# Shuffled, not just rotated: a control run (identical commit per tag) showed rotation's fixed
+# adjacency still causes a ~10-20% carryover effect between whichever tags run back-to-back.
 tags = JSON.parse(ENV['AGENT_TAGS']).map { |t| transform_agent_tags(t) }.shuffle(random: Random.new(iteration_index))
 output_line("Running perf test for iteration #{iteration_index} with #{ENV['RUN_TIME']} run time, tags (shuffled): #{tags.map(&:first)}")
 
