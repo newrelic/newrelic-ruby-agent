@@ -11,10 +11,22 @@ module NewRelic
         # Other gems (e.g. opentelemetry-exporter-otlp) vendor these same proto files, and the
         # process-wide DescriptorPool raises on a duplicate registration -- route through here.
         module Registrar
-          def self.register_once(pool, descriptor_data, anchor_message_name)
-            return if pool.lookup(anchor_message_name)
+          # Without serializing the lookup and the add, two threads requiring these files at
+          # once both get past the lookup and the second add raises on the duplicate.
+          LOCK = Mutex.new
 
-            pool.add_serialized_file(descriptor_data)
+          def self.register_once(pool, descriptor_data, anchor_message_name)
+            LOCK.synchronize do
+              if pool.lookup(anchor_message_name)
+                NewRelic::Agent.logger.debug(
+                  "Not registering #{anchor_message_name}: already present in the protobuf " \
+                  'descriptor pool, registered by another gem'
+                )
+                return
+              end
+
+              pool.add_serialized_file(descriptor_data)
+            end
           end
         end
       end

@@ -55,6 +55,32 @@ class ContinuousProfilingTest < Minitest::Test
     end
   end
 
+  # Only the real gem shows the consequence: unattended raw-mode sampling grows for the life of
+  # the process, and StackProf's refusal to start twice would leave the session unrevivable.
+  def test_session_stops_stackprof_and_stays_restartable_once_the_duration_elapses
+    with_config(:'profiling.include' => 'cpu',
+      :'profiling.sample_period' => 0.001,
+      :'profiling.harvest_period' => 1,
+      :'profiling.duration' => 200) do
+      session = NewRelic::Agent::ContinuousProfiling::Session.new(nil)
+
+      session.start
+      session.instance_variable_get(:@thread).join(5)
+
+      refute_predicate session, :running?
+      refute_predicate StackProf, :running?, 'Expected StackProf to be stopped once the duration elapsed'
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Duration')
+
+      session.start
+
+      assert_predicate session, :running?
+      assert_predicate StackProf, :running?, 'Expected a duration-ended session to be restartable'
+      session.stop
+    end
+  ensure
+    StackProf.stop if StackProf.running?
+  end
+
   # Runs real sampling and real protobuf encoding end to end, stubbing only the final
   # socket hop -- what's at risk is whether a real StackProf report survives real
   # protobuf encoding intact, not Net::HTTP itself.

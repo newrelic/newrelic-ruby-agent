@@ -239,7 +239,7 @@ module NewRelic
         }
 
         if @audit_logger.enabled?
-          @audit_logger.log_profiles_request(profiles_audit_uri, profiles_audit_body(bytes))
+          @audit_logger.log_profiles_request(profiles_audit_uri) { profiles_audit_body(bytes) }
           @audit_logger.log_request_headers(profiles_audit_uri, redacted_profiles_headers(headers))
         end
 
@@ -788,7 +788,8 @@ module NewRelic
         return bytes.inspect unless defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder)
 
         NewRelic::Agent::ContinuousProfiling::ProfileEncoder.decode_for_audit(bytes)
-      rescue StandardError
+      rescue StandardError => e
+        ::NewRelic::Agent.logger.debug("Could not decode continuous profiling payload for the audit log: #{e.class}: #{e.message}")
         bytes.inspect
       end
     end

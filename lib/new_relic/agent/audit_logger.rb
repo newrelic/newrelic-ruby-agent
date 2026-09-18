@@ -48,9 +48,10 @@ module NewRelic
         end
       end
 
-      # No marshaller for the OTLP profiles -- body arrives already rendered.
-      def log_profiles_request(uri, body)
-        log_body(uri) { body }
+      # No marshaller for the OTLP profiles -- the caller renders the body itself, in a block so
+      # a payload decode is skipped for an endpoint audit_log.endpoints filters out.
+      def log_profiles_request(uri, &body)
+        log_body(uri, &body)
       end
 
       # Body is computed lazily (only once past the guard) so log_request's marshaller

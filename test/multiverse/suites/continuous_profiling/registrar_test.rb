@@ -36,6 +36,29 @@ class RegistrarTest < Minitest::Test
     refute_nil pool.lookup('registrar_test.MessageTwo')
   end
 
+  # Two gems registering the same file at once: the slow lookup forces the overlap that an
+  # unserialized lookup-then-add loses, where the second add raises "duplicate file name".
+  def test_register_once_serializes_the_lookup_and_the_add
+    added = []
+    slow_pool = Object.new
+    slow_pool.define_singleton_method(:lookup) do |_name|
+      sleep(0.05)
+      added.first
+    end
+    slow_pool.define_singleton_method(:add_serialized_file) { |data| added << data }
+
+    threads = Array.new(2) do
+      Thread.new do
+        NewRelic::Agent::ContinuousProfiling::Proto::Registrar.register_once(
+          slow_pool, 'descriptor-data', 'registrar_test.MessageThree'
+        )
+      end
+    end
+    threads.each { |thread| thread.join(5) }
+
+    assert_equal ['descriptor-data'], added
+  end
+
   def build_descriptor_data(filename, message_name)
     file = Google::Protobuf::FileDescriptorProto.new(
       name: filename,

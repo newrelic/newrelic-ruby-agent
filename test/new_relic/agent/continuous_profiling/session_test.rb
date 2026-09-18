@@ -159,7 +159,7 @@ module NewRelic::Agent::ContinuousProfiling
       with_config(:'profiling.delay' => 5000) do
         @session.stubs(:sleep)
         @session.stubs(:enabled?).returns(true)
-        @session.expects(:start)
+        @session.expects(:start).with(from_delayed_start: true)
 
         thread = @session.send(:delayed_start)
         thread.join
@@ -172,10 +172,30 @@ module NewRelic::Agent::ContinuousProfiling
       with_config(:'profiling.delay' => 5000) do
         @session.stubs(:sleep)
         @session.stubs(:enabled?).returns(false)
-        @session.expects(:start).never
+        NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).never
 
         thread = @session.send(:delayed_start)
         thread.join
+
+        refute_predicate @session, :running?
+        assert_nil @session.instance_variable_get(:@delay_thread)
+      end
+    end
+
+    # The delay elapsed and the thread is already past the point where stop()'s kill could
+    # reach it, so only the cancellation flag keeps it from undoing the stop.
+    def test_a_delayed_start_cancelled_by_a_stop_that_arrived_too_late_to_kill_it_does_not_start
+      @session.stubs(:gems_present?).returns(true)
+
+      NewRelic::LanguageSupport.stub :jruby?, false do
+        with_config(:'profiling.enabled' => true) do
+          @session.stop
+          NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).never
+
+          @session.start(from_delayed_start: true)
+
+          refute_predicate @session, :running?
+        end
       end
     end
 
@@ -304,7 +324,9 @@ module NewRelic::Agent::ContinuousProfiling
         report = {:samples => 1, :mode => :cpu}
         sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
         sampler.expects(:stop_and_collect).once.returns(report)
-        sampler.expects(:start).returns(true)
+        # The final harvest must leave StackProf stopped rather than restarting a sampler
+        # nothing will ever drain again.
+        sampler.expects(:start).never
         @session.instance_variable_set(:@sampler, sampler)
         @session.instance_variable_set(:@running, true)
         @session.instance_variable_set(:@started_at, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 10)
@@ -317,6 +339,43 @@ module NewRelic::Agent::ContinuousProfiling
         assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
         assert_metrics_recorded('Supportability/Ruby/Profiling/Duration')
       end
+    end
+
+    def test_run_loop_does_not_harvest_again_when_a_stop_lands_during_a_harvest
+      # The stop leaves the sampler drained and not restarted, so a second harvest would find
+      # StackProf.results nil.
+      report = {:samples => 1, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      session = @session
+      sampler.define_singleton_method(:stop_and_collect) do
+        session.instance_variable_set(:@running, false)
+        report
+      end
+      sampler.expects(:start).never
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, true)
+      # Stubbed so the loop doesn't sit on the condition variable for a whole harvest_period.
+      @session.stubs(:wait_for_next_tick_or_stop).returns(true)
+      @session.expects(:encode_and_export).once
+
+      @session.send(:run_loop)
+    end
+
+    def test_run_loop_stops_sampling_when_it_exits_on_an_error_the_harvest_cannot_rescue
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop).once
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.start
+      @session.stubs(:wait_for_next_tick_or_stop).returns(true)
+      # LoadError isn't a StandardError, so harvest_and_send's rescue never sees it.
+      @session.stubs(:harvest_and_send).raises(LoadError.new('boom'))
+
+      assert_raises(LoadError) { @session.send(:run_loop) }
+
+      refute_predicate @session, :running?
+      assert_nil @session.instance_variable_get(:@thread)
+      assert_empty @events.instance_variable_get(:@events)[:transaction_finished]
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
     def test_run_loop_does_not_report_the_disabled_metric_when_duration_is_unset
@@ -419,6 +478,21 @@ module NewRelic::Agent::ContinuousProfiling
         holder.kill
         holder.join
       end
+    end
+
+    def test_start_transaction_tears_down_the_session_in_a_fork_when_child_restarts_are_disabled
+      @session.start
+      real_pid = Process.pid
+
+      with_config(:restart_thread_in_children => false) do
+        Process.stubs(:pid).returns(real_pid + 1)
+        @session.expects(:start).never
+
+        @events.notify(:start_transaction)
+      end
+
+      refute_predicate @session, :running?
+      assert_empty @events.instance_variable_get(:@events)[:transaction_finished]
     end
 
     def test_start_transaction_does_not_restart_without_a_fork

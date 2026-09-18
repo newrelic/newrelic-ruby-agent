@@ -346,12 +346,15 @@ module NewRelic
           [hex_string].pack('H*')
         end
 
+        # Every table's index 0 is the spec-mandated zero value, attribute_table included even
+        # though nothing here references attributes yet.
         def dictionary
           OTEL_PROFILES::ProfilesDictionary.new(
             mapping_table: [OTEL_PROFILES::Mapping.new],
             location_table: @location_table,
             function_table: @function_table,
             link_table: @link_table,
+            attribute_table: [OTEL_PROFILES::KeyValueAndUnit.new],
             string_table: @string_table,
             stack_table: @stack_table
           )

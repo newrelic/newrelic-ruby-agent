@@ -184,6 +184,9 @@ class ProfileEncoderTest < Minitest::Test
     assert_equal profiles_module::Mapping.new, @dict.mapping_table[0]
     assert_equal profiles_module::Location.new, @dict.location_table[0]
     assert_equal profiles_module::Stack.new, @dict.stack_table[0]
+    assert_equal profiles_module::KeyValueAndUnit.new, @dict.attribute_table[0]
+    assert_equal 1, @dict.attribute_table.length
+    assert_equal '', @dict.string_table[0]
     assert_operator @dict.location_table.length, :>, 1
     assert_operator @dict.stack_table.length, :>, 1
     refute_includes @dict.location_table[1..], profiles_module::Location.new

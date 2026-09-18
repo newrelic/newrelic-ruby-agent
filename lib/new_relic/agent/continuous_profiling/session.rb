@@ -35,6 +35,7 @@ module NewRelic
           @delay_thread = nil
           @started_at = nil
           @starting_pid = nil
+          @cancel_delayed_start = false
           @sampler = StackProfSampler.new
           @transaction_hooks_subscribed = false
           @start_transaction_handler = nil
@@ -55,9 +56,14 @@ module NewRelic
           @lock.synchronize { @running }
         end
 
-        def start
+        def start(from_delayed_start: false)
           @lock.synchronize do
+            @delay_thread = nil if from_delayed_start && @delay_thread.equal?(Thread.current)
+
             return if @running
+            # A stop() can land after this delayed start's sleep has elapsed, too late for the
+            # kill in #stop to reach it -- without the flag the stop would be silently undone.
+            return if from_delayed_start && (@cancel_delayed_start || !enabled?)
 
             @starting_pid = Process.pid
 
@@ -79,8 +85,9 @@ module NewRelic
 
         def stop(record_duration: false)
           thread_to_join = @lock.synchronize do
-            # Killed here, before the @running guard below, so a pending delayed start
+            # Cancelled here, before the @running guard below, so a pending delayed start
             # (profiling.delay not yet elapsed -- @running still false) is cancelled too.
+            @cancel_delayed_start = true
             if @delay_thread
               @delay_thread.kill
               @delay_thread = nil
@@ -149,10 +156,22 @@ module NewRelic
         # @fork_lock (never replaced, unlike @lock) serializes this check-and-repair so two
         # request threads in a freshly forked child can't both see stale state and each start a session.
         def restart_if_forked
-          return unless NewRelic::Agent.config[:restart_thread_in_children]
+          return unless forked?
 
           @fork_lock.synchronize do
-            return unless @running && @starting_pid != Process.pid
+            return unless forked?
+
+            unless NewRelic::Agent.config[:restart_thread_in_children]
+              # No profiling thread survives a fork, so inherited @running == true would leave
+              # transaction hooks subscribed with nothing draining buffered segment ranges.
+              NewRelic::Agent.logger.debug(
+                "Not restarting continuous profiling in forked process #{Process.pid}: " \
+                'restart_thread_in_children is disabled'
+              )
+              reset_state_after_fork
+              @lock.synchronize { unsubscribe_from_transaction_hooks }
+              return
+            end
 
             NewRelic::Agent.logger.debug(
               "Restarting continuous profiling in forked process #{Process.pid} (parent #{Process.ppid})"
@@ -160,6 +179,12 @@ module NewRelic
             reset_state_after_fork
             start
           end
+        end
+
+        # Read outside @fork_lock first so the steady state (no fork) costs no lock acquisition
+        # per transaction; the value is re-checked under the lock before anything acts on it.
+        def forked?
+          @running && @starting_pid != Process.pid
         end
 
         # @sampler, @events, @transaction_hooks_subscribed, and the two handler procs survive
@@ -292,10 +317,10 @@ module NewRelic
           @lock.synchronize do
             return if @running || @delay_thread
 
+            @cancel_delayed_start = false
             @delay_thread = Threading::AgentThread.create('Continuous Profiling Delay') do
               sleep(delay_ms / 1000.0)
-              @lock.synchronize { @delay_thread = nil }
-              start if enabled?
+              start(from_delayed_start: true)
             end
           end
         end
@@ -328,15 +353,35 @@ module NewRelic
         def run_loop
           loop do
             keep_going = wait_for_next_tick_or_stop
-            harvest_and_send
 
+            # Checked before the harvest so @running is already false, otherwise
+            # collect_and_restart_sampler's ensure restarts the sampler nothing will drain.
             if keep_going && duration_elapsed?
               finish_due_to_duration
               keep_going = false
             end
 
-            break unless keep_going
+            harvest_and_send
+
+            # A stop() landing mid-harvest has already left the sampler drained and not
+            # restarted, so another pass would collect nothing (StackProf.results is nil).
+            break unless keep_going && running?
           end
+        ensure
+          abandon_sampling if running?
+        end
+
+        # For an abnormal exit (a non-StandardError escaping harvest_and_send, a Thread#kill):
+        # unattended raw-mode sampling grows forever, and #start can't take over until it stops.
+        def abandon_sampling
+          @sampler.stop
+          @lock.synchronize do
+            @running = false
+            @thread = nil
+            unsubscribe_from_transaction_hooks
+          end
+          NewRelic::Agent.logger.error('The continuous profiling thread exited unexpectedly; sampling stopped.')
+          NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
         # Performs the same shutdown #stop does (flip @running, unsubscribe hooks, record the

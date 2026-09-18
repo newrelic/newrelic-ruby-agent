@@ -27,6 +27,10 @@ module NewRelic
           )
         end
 
+        def stop
+          StackProf.stop
+        end
+
         def stop_and_collect
           StackProf.stop
           window_end_realtime = Process.clock_gettime(Process::CLOCK_REALTIME)

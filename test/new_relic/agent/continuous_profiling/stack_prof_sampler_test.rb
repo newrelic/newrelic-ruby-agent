@@ -66,6 +66,17 @@ module NewRelic::Agent::ContinuousProfiling
       end
     end
 
+    def test_stop_stops_stackprof_without_collecting_results
+      Object.stub_const(:StackProf, Module.new) do
+        StackProf.stubs(:start)
+        StackProf.expects(:stop)
+        StackProf.expects(:results).never
+        @sampler.start
+
+        @sampler.stop
+      end
+    end
+
     def test_stop_and_collect_stops_and_returns_results
       Object.stub_const(:StackProf, Module.new) do
         StackProf.expects(:stop)

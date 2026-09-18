@@ -586,7 +586,22 @@ class NewRelicServiceTest < Minitest::Test
       @http_handle.respond_to('v1/profiles', '', :code => 202)
       audit_logger = @service.instance_variable_get(:@audit_logger)
       audit_logger.stubs(:log_request_headers)
-      audit_logger.expects(:log_profiles_request).with("#{@server}/v1/profiles", 'raw-profile-bytes'.inspect)
+      audited = nil
+      audit_logger.define_singleton_method(:log_profiles_request) { |uri, &body| audited = [uri, body.call] }
+
+      @service.profiles_data('raw-profile-bytes')
+
+      assert_equal ["#{@server}/v1/profiles", 'raw-profile-bytes'.inspect], audited
+    end
+  end
+
+  # The body is only rendered if the audit logger actually intends to write it -- decoding a
+  # whole profile payload for an endpoint audit_log.endpoints filters out is pure waste.
+  def test_build_profiles_request_does_not_render_the_audit_body_eagerly
+    with_config(:'audit_log.enabled' => true) do
+      @http_handle.respond_to('v1/profiles', '', :code => 202)
+      @service.instance_variable_get(:@audit_logger).stubs(:allowed_endpoint?).returns(false)
+      @service.expects(:profiles_audit_body).never
 
       @service.profiles_data('raw-profile-bytes')
     end
@@ -634,6 +649,20 @@ class NewRelicServiceTest < Minitest::Test
     refute defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder), 'test assumes ProfileEncoder is not loaded in the unit suite'
 
     assert_equal 'raw-profile-bytes'.inspect, @service.send(:profiles_audit_body, 'raw-profile-bytes')
+  end
+
+  def test_profiles_audit_body_logs_why_a_decode_failed_before_falling_back_to_inspect
+    fake_encoder = Class.new do
+      def self.decode_for_audit(_bytes)
+        raise 'malformed payload'
+      end
+    end
+    NewRelic::Agent::ContinuousProfiling.const_set(:ProfileEncoder, fake_encoder)
+    expects_logging(:debug, includes('malformed payload'))
+
+    assert_equal 'raw-profile-bytes'.inspect, @service.send(:profiles_audit_body, 'raw-profile-bytes')
+  ensure
+    NewRelic::Agent::ContinuousProfiling.send(:remove_const, :ProfileEncoder)
   end
 
   def test_get_agent_commands
