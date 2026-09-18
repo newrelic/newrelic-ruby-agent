@@ -48,15 +48,12 @@ module NewRelic
         end
       end
 
-      # No marshaller for the OTLP profiles -- the caller renders the body itself, in a block so
-      # a payload decode is skipped for an endpoint audit_log.endpoints filters out.
       def log_profiles_request(uri, &body)
         log_body(uri, &body)
       end
 
-      # Body is computed lazily (only once past the guard) so log_request's marshaller
-      # call is skipped, same as before, when audit logging is off or the endpoint isn't
-      # allowed.
+      # Yielded, not passed: rendering a body eagerly would cost a marshal or protobuf decode on
+      # every request even when audit logging is off or the endpoint is filtered out.
       def log_body(uri)
         return unless enabled? && allowed_endpoint?(uri)
 

@@ -8,10 +8,8 @@ require 'new_relic/agent/continuous_profiling/stack_prof_sampler'
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Owns the lifecycle of continuous profiling: starting/stopping StackProf on a
-      # dedicated background thread, and reacting to agent shutdown. Server-side config
-      # and agent commands are kept as independent activation paths since it's not yet
-      # settled which one the collector will standardize on.
+      # Server-side config and agent commands are independent activation paths; which one the
+      # collector will standardize on isn't settled, so neither is folded into the other.
       class Session
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
@@ -21,9 +19,6 @@ module NewRelic
         SEGMENT_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/SegmentRanges/LimitExceeded'
         SKIPPED_NOT_CONNECTED_METRIC = 'Supportability/Ruby/Profiling/Export/SkippedNotConnected'
 
-        # Accumulates across all transactions within one harvest_period. Capped like other
-        # per-harvest buffers -- this is best-effort correlation data, so a hard cap is
-        # enough; no need for reservoir sampling.
         MAX_SEGMENT_RANGES = 10_000
 
         def initialize(events)
@@ -159,8 +154,6 @@ module NewRelic
 
         private
 
-        # Guarded so a fork-restart (start called again without going through stop -- see
-        # restart_if_forked) doesn't double-subscribe.
         def subscribe_to_transaction_hooks
           return unless @events && !@transaction_hooks_subscribed
 
@@ -177,8 +170,6 @@ module NewRelic
           @transaction_hooks_subscribed = false
         end
 
-        # @fork_lock (never replaced, unlike @lock) serializes this check-and-repair so two
-        # request threads in a freshly forked child can't both see stale state and each start a session.
         def restart_if_forked
           return unless forked?
 
@@ -186,8 +177,8 @@ module NewRelic
             return unless forked?
 
             unless NewRelic::Agent.config[:restart_thread_in_children]
-              # No profiling thread survives a fork, so inherited @running == true would leave
-              # transaction hooks subscribed with nothing draining buffered segment ranges.
+              # Without the teardown below, inherited hooks would keep buffering segment ranges
+              # that no profiling thread is left to drain.
               NewRelic::Agent.logger.debug(
                 "Not restarting continuous profiling in forked process #{Process.pid}: " \
                 'restart_thread_in_children is disabled'
@@ -205,16 +196,10 @@ module NewRelic
           end
         end
 
-        # Read outside @fork_lock first so the steady state (no fork) costs no lock acquisition
-        # per transaction; the value is re-checked under the lock before anything acts on it.
         def forked?
           @running && @starting_pid != Process.pid
         end
 
-        # @sampler, @events, @transaction_hooks_subscribed, and the two handler procs survive
-        # a fork untouched: @sampler resets its own C-level state via pthread_atfork, @events
-        # is the shared EventListener, and @transaction_hooks_subscribed must stay true or
-        # subscribe_to_transaction_hooks double-subscribes in the child.
         def reset_state_after_fork
           @lock = Mutex.new
           @cv = ConditionVariable.new
@@ -225,15 +210,12 @@ module NewRelic
           clear_segment_ranges
         end
 
-        # Wall-clock range of every qualifying segment, matched against sample timestamps in
-        # ProfileEncoder.
         def clear_segment_ranges
           @segment_ranges = []
           @segment_ranges_lock = Mutex.new
         end
 
-        # Uses trace_id_if_generated, not trace_id, so profiling never forces a trace_id into
-        # existence. Segments shorter than one sample_period are skipped; the root is kept regardless.
+        # trace_id_if_generated, not trace_id, so profiling never forces a trace_id into existence.
         def on_transaction_finished
           return unless @running
 
@@ -289,7 +271,6 @@ module NewRelic
           stackprof_present? && protobuf_present?
         end
 
-        # Lists only the unmet conditions, so the message says why *this* run can't proceed.
         def unsupported_reasons
           reasons = []
           reasons << 'the stackprof gem is not installed' unless stackprof_present?
@@ -318,8 +299,6 @@ module NewRelic
           raise_command_error(msg)
         end
 
-        # Placeholder for the real collector-driven activation mechanism: re-evaluates
-        # whether profiling should run whenever server-side config is (re-)applied.
         def evaluate_and_apply
           if enabled? && !running?
             delayed_start
@@ -330,10 +309,8 @@ module NewRelic
           end
         end
 
-        # Used by the automatic activation paths (agent boot, server-side config) only --
-        # handle_start_command and restart_if_forked call #start directly, since a delay
-        # would be wrong for an explicit on-demand start or a fork repair. Re-checks
-        # enabled? once the delay elapses so a disable during the delay window is honored.
+        # handle_start_command, restart_if_forked and after_fork call #start directly: a delay is
+        # wrong for an explicit on-demand start or a fork repair.
         def delayed_start
           delay_ms = NewRelic::Agent.config[:'profiling.delay'].to_i
           return start if delay_ms <= 0
@@ -349,8 +326,6 @@ module NewRelic
           end
         end
 
-        # Required by every activation path, including handle_start_command -- deliberately
-        # not gated on profiling.enabled, so the agent command works independently of config/SSC.
         def supported?
           !NewRelic::Agent.config[:high_security] && !NewRelic::LanguageSupport.jruby? && gems_present?
         end
@@ -367,7 +342,6 @@ module NewRelic
           NewRelic::Agent.config[:'profiling.harvest_period']
         end
 
-        # nil means profiling.duration is unset (0 or below) -- run indefinitely.
         def duration_seconds
           ms = NewRelic::Agent.config[:'profiling.duration'].to_i
           ms > 0 ? ms / 1000.0 : nil
@@ -412,10 +386,8 @@ module NewRelic
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
-        # Performs the same shutdown #stop does (flip @running, unsubscribe hooks, record the
-        # Disabled metric), minus the thread join -- this runs on @thread itself, which can't
-        # join itself. An external #stop() called afterward is a no-op, since it early-returns
-        # once @running is false, so the Disabled metric is never double-counted.
+        # Duplicates #stop rather than calling it because this runs on @thread, which cannot join
+        # itself. A later #stop() early-returns on @running, so Disabled is not double-counted.
         def finish_due_to_duration
           @lock.synchronize do
             record_duration_metric
@@ -427,8 +399,8 @@ module NewRelic
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
-        # Only profiling.duration elapsing or a server-side-config disable count as a measured
-        # end for this metric -- ordinary shutdown never calls this, so a normal exit reports nothing.
+        # Deliberately not called on ordinary shutdown: only a duration elapsing or a server-side
+        # disable counts as a measured end for this metric.
         def record_duration_metric
           return unless @started_at
 
@@ -436,9 +408,6 @@ module NewRelic
           NewRelic::Agent.record_metric(DURATION_METRIC, elapsed_ms)
         end
 
-        # Wakes up at the next harvest tick, or sooner if profiling.duration is set and would
-        # otherwise elapse mid-tick -- without this, a duration shorter than harvest_period
-        # would only be noticed up to one full harvest_period late.
         def next_wait_seconds
           ds = duration_seconds
           return harvest_period unless ds
@@ -467,10 +436,8 @@ module NewRelic
           NewRelic::Agent.logger.error('Error harvesting continuous profiling data', e)
         end
 
-        # Restarts sampling immediately after collection, before the (network-bound)
-        # encode_and_export -- otherwise every harvest would leave a sampling gap for as
-        # long as the export takes. The tradeoff: an encode/export that's slow enough will
-        # leave a few of its own frames in the *next* report.
+        # Sampling restarts in the ensure, ahead of the network-bound export, so a harvest leaves
+        # no sampling gap for as long as the export takes.
         def collect_and_restart_sampler
           @sampler.stop_and_collect
         ensure
@@ -482,8 +449,6 @@ module NewRelic
           end
         end
 
-        # Split out so tests can stub this one seam instead of requiring google-protobuf.
-        # Drops the harvest's data if not connected yet -- the next tick tries again.
         def encode_and_export(report)
           unless NewRelic::Agent.agent.connected?
             NewRelic::Agent.increment_metric(SKIPPED_NOT_CONNECTED_METRIC)

@@ -205,9 +205,8 @@ module NewRelic
         response
       end
 
-      # OTLP/HTTP to /v1/profiles, not the invoke_raw_method RPC other methods use. Uses its
-      # own connection (profiles_http_connection) since the continuous-profiling harvest
-      # runs on its own thread and a Net::HTTP connection isn't safe to share across threads.
+      # Its own connection, not the shared one: the profiling harvest runs on its own thread and
+      # a Net::HTTP connection is not safe to share across threads.
       def profiles_data(bytes)
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         check_post_size(bytes, :profiles_data)
@@ -249,9 +248,7 @@ module NewRelic
         request
       end
 
-      # Callers synchronize on @profiles_connection_lock (profiles_data, prep_collector,
-      # force_restart, shutdown); this method and close_profiles_connection assume that's
-      # already held.
+      # This and close_profiles_connection expect @profiles_connection_lock to be held already.
       def profiles_http_connection
         get_or_create_connection(:@profiles_connection)
       end
@@ -782,8 +779,8 @@ module NewRelic
         headers.merge(PROFILES_API_KEY_HEADER => redacted_license_key)
       end
 
-      # Only decodes if continuous profiling's soft dependency already defined ProfileEncoder --
-      # this file never requires google-protobuf itself. Falls back to bytes.inspect otherwise.
+      # Guarded because this file never requires google-protobuf; only continuous profiling's
+      # soft dependency defines ProfileEncoder.
       def profiles_audit_body(bytes)
         return bytes.inspect unless defined?(NewRelic::Agent::ContinuousProfiling::ProfileEncoder)
 

@@ -2,8 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# Exercises Session/StackProfSampler against the real `stackprof` gem, which the unit tests
-# stub entirely -- this suite is what proves the StackProf round-trip actually works.
+# The unit suite stubs StackProf entirely; this suite is what proves the round-trip works.
 
 class ContinuousProfilingTest < Minitest::Test
   def test_stack_prof_sampler_round_trips_against_the_real_gem
@@ -55,8 +54,6 @@ class ContinuousProfilingTest < Minitest::Test
     end
   end
 
-  # Only the real gem shows the consequence: unattended raw-mode sampling grows for the life of
-  # the process, and StackProf's refusal to start twice would leave the session unrevivable.
   def test_session_stops_stackprof_and_stays_restartable_once_the_duration_elapses
     with_config(:'profiling.include' => 'cpu',
       :'profiling.sample_period' => 0.001,
@@ -81,9 +78,6 @@ class ContinuousProfilingTest < Minitest::Test
     StackProf.stop if StackProf.running?
   end
 
-  # Runs real sampling and real protobuf encoding end to end, stubbing only the final
-  # socket hop -- what's at risk is whether a real StackProf report survives real
-  # protobuf encoding intact, not Net::HTTP itself.
   def test_full_pipeline_produces_a_decodable_export_profiles_service_request
     require 'new_relic/agent/continuous_profiling/profile_encoder'
 
@@ -147,16 +141,14 @@ class ContinuousProfilingTest < Minitest::Test
     refute_includes output, 'license-key'
   end
 
-  # Feeds a real Session's segment_ranges into the real ProfileEncoder, unlike every other
-  # correlation test's hand-built array literals -- catches a tuple reorder those would miss.
+  # The only correlation test not built on hand-written tuples, so a tuple reorder can't slip by.
   def test_segment_ranges_recorded_by_a_real_session_correlate_correctly_through_the_encoder
     require 'new_relic/agent/continuous_profiling/profile_encoder'
 
     session = NewRelic::Agent::ContinuousProfiling::Session.new(NewRelic::Agent.agent.events)
     session.instance_variable_set(:@running, true)
-    # Matches what start() would have set -- otherwise restart_if_forked sees @starting_pid
-    # (nil) != Process.pid and treats this as a fork, resetting state and spawning a real
-    # background StackProf session that this test never stops.
+    # Without this, restart_if_forked reads @starting_pid as nil, treats the test as a fork, and
+    # spawns a real background StackProf session that nothing ever stops.
     session.instance_variable_set(:@starting_pid, Process.pid)
     session.send(:subscribe_to_transaction_hooks)
 

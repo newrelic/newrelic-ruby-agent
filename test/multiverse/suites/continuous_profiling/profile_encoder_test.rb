@@ -2,8 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# Exercises ProfileEncoder against the real `google-protobuf` gem (not in the unit suite),
-# which never requires this file unconditionally, so it's required explicitly here.
+# google-protobuf isn't available to the unit suite, so ProfileEncoder is only exercised here.
 require 'new_relic/agent/continuous_profiling/profile_encoder'
 
 OTelCollector = Opentelemetry::Proto::Collector::Profiles::V1development
@@ -172,8 +171,6 @@ class ProfileEncoderTest < Minitest::Test
   end
 
   def test_without_segment_ranges_only_the_link_placeholder_exists
-    # REPORT carries no :segment_ranges/:clock_offset keys, as when Session hasn't
-    # populated them yet or nothing was seen during the harvest.
     assert_equal 1, @dict.link_table.length
     assert(@profile.samples.all? { |s| s.link_index.zero? })
   end
@@ -235,8 +232,7 @@ class ProfileEncoderTest < Minitest::Test
   end
 
   def test_prefers_the_narrowest_matching_range_within_the_same_transaction
-    # Root spans the whole window; child only covers the bar-leaf ticks. Same trace_id, so
-    # the child should win where it applies; the baz-leaf tick falls back to the root.
+    # The child covers only the bar-leaf ticks, so the baz-leaf tick falls back to the root.
     report = REPORT.merge(
       raw_sample_timestamps: [1_000_000, 1_000_000, 2_000_000],
       clock_offset: 0.0,

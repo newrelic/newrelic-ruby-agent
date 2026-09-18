@@ -8,18 +8,14 @@ require_relative 'proto/opentelemetry/proto/collector/profiles/v1development/pro
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Converts a StackProf.results report Hash (as produced by StackProfSampler) into a
-      # serialized opentelemetry.proto.collector.profiles.v1development.ExportProfilesServiceRequest.
-      # ProfilesDictionary tables are deduped per encode call only -- nothing persists across
-      # harvests.
+      # ProfilesDictionary tables are deduped per encode call only; nothing persists across
+      # harvests, since every index is relative to the dictionary shipped alongside it.
       class ProfileEncoder
         OTEL_PROFILES = Opentelemetry::Proto::Profiles::V1development
         OTEL_COLLECTOR = Opentelemetry::Proto::Collector::Profiles::V1development
         OTEL_COMMON = Opentelemetry::Proto::Common::V1
         OTEL_RESOURCE = Opentelemetry::Proto::Resource::V1
 
-        # :cpu samples carry a duration (StackProf tick count * interval), reported in
-        # nanoseconds; :object samples carry a raw allocation count, which has no time unit.
         TIME_SAMPLE_VALUE_UNIT = 'nanoseconds'
         OBJECT_SAMPLE_VALUE_UNIT = 'count'
         NANOSECONDS_PER_MICROSECOND = 1_000
@@ -144,8 +140,6 @@ module NewRelic
           )
         end
 
-        # :object mode's StackProf interval is already an allocation count, with no time
-        # unit to convert; :cpu's is microseconds between ticks, converted to nanoseconds.
         def period
           object_mode? ? (@report[:interval] || 0) : tick_duration_nanos
         end
@@ -162,8 +156,6 @@ module NewRelic
           end
         end
 
-        # Without both clock_offset (ties a tick's monotonic timestamp to wall-clock time) and
-        # segment_ranges (the wall-clock data to match against), no tick could ever be linked.
         def correlation_possible?
           ranges = @report[:segment_ranges]
           !ranges.nil? && !ranges.empty? && !@report[:clock_offset].nil?
@@ -173,14 +165,12 @@ module NewRelic
           frame_group_location_ids.map { |location_ids, weight| [[location_ids, nil, nil], weight] }
         end
 
-        # :object mode's sample value is the raw allocation count (the StackProf tick
-        # weight, unconverted); :cpu's is duration -- ticks * the per-tick interval.
         def sample_value(weight)
           object_mode? ? weight : weight * tick_duration_nanos
         end
 
-        # Each StackProf tick represents one sample_period-length slice of time. Only
-        # meaningful for time-based modes (:cpu) -- see sample_value/period for :object.
+        # StackProf's interval is microseconds per tick for :cpu but an allocation count for
+        # :object, so this is meaningless in object mode.
         def tick_duration_nanos
           (@report[:interval] || 0) * NANOSECONDS_PER_MICROSECOND
         end
@@ -198,9 +188,8 @@ module NewRelic
           end
         end
 
-        # StackProf's :raw/:raw_lines pre-collapse consecutive identical stacks into one
-        # [frame_ids, weight] group; expand back to one entry per tick so each can be matched
-        # to a transaction individually (then re-collapsed in collapse_ticks).
+        # StackProf pre-collapses consecutive identical stacks into one weighted group; expand to
+        # one entry per tick so each can be matched to a transaction individually.
         def expand_ticks
           tick_links = build_tick_links
           tick = 0
@@ -216,9 +205,6 @@ module NewRelic
           ticks
         end
 
-        # Re-collapses consecutive ticks with an identical [location_ids, trace_id, span_id],
-        # mirroring StackProf's own consecutive-only collapsing -- splits stacks matched to
-        # different transactions even if adjacent.
         def collapse_ticks(ticks)
           groups = []
 
@@ -233,8 +219,6 @@ module NewRelic
           groups
         end
 
-        # Sweeps ticks (chronological) against ranges sorted by start_time, instead of scanning
-        # every range per tick -- active-set size is bounded by real concurrency, not range count.
         def build_tick_links
           timestamps = @report[:raw_sample_timestamps]
           return [] if timestamps.nil? || timestamps.empty?
@@ -257,8 +241,8 @@ module NewRelic
           end
         end
 
-        # More than one trace_id among matches means concurrent transactions -- unknowable
-        # from timestamp alone, so left unlinked. One trace_id picks the narrowest match.
+        # Two trace_ids means concurrent transactions, which a timestamp alone cannot separate, so
+        # the tick is left unlinked rather than attributed to a guess.
         def link_for(matches)
           return [nil, nil] if matches.empty?
 
@@ -330,8 +314,7 @@ module NewRelic
           end
         end
 
-        # Index 0 is the required all-zero placeholder Link, returned when build_tick_links
-        # couldn't attribute a tick to exactly one transaction.
+        # Index 0 is the spec's required all-zero placeholder Link, not a missing value.
         def link_index(trace_id, span_id)
           return 0 unless trace_id && span_id
 

@@ -213,8 +213,6 @@ module NewRelic::Agent::ContinuousProfiling
       end
     end
 
-    # The delay elapsed and the thread is already past the point where stop()'s kill could
-    # reach it, so only the cancellation flag keeps it from undoing the stop.
     def test_a_delayed_start_cancelled_by_a_stop_that_arrived_too_late_to_kill_it_does_not_start
       @session.stubs(:gems_present?).returns(true)
 
@@ -309,9 +307,6 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_run_loop_performs_exactly_one_final_harvest_when_already_stopped
-      # Simulates stop() having already flipped @running to false before the loop's
-      # first check -- e.g. the loop was sleeping when stop() was called. Exactly one
-      # harvest of whatever was pending should still happen (see #harvest_and_send).
       report = {:samples => 2, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).once.returns(report)
@@ -355,8 +350,6 @@ module NewRelic::Agent::ContinuousProfiling
         report = {:samples => 1, :mode => :cpu}
         sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
         sampler.expects(:stop_and_collect).once.returns(report)
-        # The final harvest must leave StackProf stopped rather than restarting a sampler
-        # nothing will ever drain again.
         sampler.expects(:start).never
         @session.instance_variable_set(:@sampler, sampler)
         @session.instance_variable_set(:@running, true)
@@ -373,8 +366,6 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_run_loop_does_not_harvest_again_when_a_stop_lands_during_a_harvest
-      # The stop leaves the sampler drained and not restarted, so a second harvest would find
-      # StackProf.results nil.
       report = {:samples => 1, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       session = @session
@@ -410,8 +401,6 @@ module NewRelic::Agent::ContinuousProfiling
     end
 
     def test_run_loop_does_not_report_the_disabled_metric_when_duration_is_unset
-      # Same scenario as test_run_loop_performs_exactly_one_final_harvest_when_already_stopped,
-      # but confirming the duration check contributes no side effect when unset.
       NewRelic::Agent.instance.stats_engine.reset!
       report = {:samples => 2, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
@@ -425,8 +414,7 @@ module NewRelic::Agent::ContinuousProfiling
       assert_metrics_not_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
-    # The rest of encode_and_export needs google-protobuf, not loadable here -- this skip
-    # happens before that require, so it's the one part testable without the real gem.
+    # The skip happens before the google-protobuf require, so it is the one part testable here.
     def test_encode_and_export_skips_when_not_connected
       NewRelic::Agent.agent.stubs(:connected?).returns(false)
       NewRelic::Agent.agent.service.expects(:profiles_data).never
@@ -532,8 +520,7 @@ module NewRelic::Agent::ContinuousProfiling
       refute_predicate @session, :running?
     end
 
-    # gems_present? is false throughout this file, so enabling profiling here is the missing-gems
-    # case: after_fork must not reach the sampler, whose StackProf reference would not resolve.
+    # gems_present? is false throughout this file, so enabling profiling here is the missing-gems case.
     def test_after_fork_does_not_start_when_the_gems_are_missing
       with_config(:'profiling.enabled' => true, :'profiling.delay' => 5000) do
         NewRelic::Agent::Threading::AgentThread.expects(:create).never

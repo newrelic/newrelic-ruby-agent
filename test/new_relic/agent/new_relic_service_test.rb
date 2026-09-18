@@ -432,8 +432,6 @@ class NewRelicServiceTest < Minitest::Test
     @service.profile_data([])
   end
 
-  # profiles_data doesn't use invoke_raw_method like every other method here -- OTLP/HTTP
-  # directly to /v1/profiles, api-key header, no gzip.
   def test_profiles_data_posts_to_the_v1_profiles_path
     @http_handle.respond_to('v1/profiles', '', :code => 202)
 
@@ -595,8 +593,6 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  # The body is only rendered if the audit logger actually intends to write it -- decoding a
-  # whole profile payload for an endpoint audit_log.endpoints filters out is pure waste.
   def test_build_profiles_request_does_not_render_the_audit_body_eagerly
     with_config(:'audit_log.enabled' => true) do
       @http_handle.respond_to('v1/profiles', '', :code => 202)

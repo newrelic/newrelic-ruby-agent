@@ -283,7 +283,6 @@ module NewRelic
         @agent.merge_data_for_endpoint(:profiles_data, '')
       end
 
-      # No aggregator for profiles_data -- it should forward straight to the service.
       def test_merge_data_for_endpoint_forwards_profiles_data_to_the_service
         @agent.service.expects(:profiles_data).with('raw-profile-bytes')
         thread = @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')

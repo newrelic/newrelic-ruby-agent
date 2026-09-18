@@ -5,9 +5,6 @@
 module NewRelic
   module Agent
     module ContinuousProfiling
-      # Thin wrapper around the three StackProf calls the continuous profiler needs.
-      # Kept separate from Session so Session's lifecycle logic can be unit tested
-      # without the real `stackprof` gem loaded.
       class StackProfSampler
         MICROSECONDS_PER_SECOND = 1_000_000
         NANOSECONDS_PER_SECOND = 1_000_000_000
@@ -41,9 +38,8 @@ module NewRelic
 
         private
 
-        # StackProf's `interval` option means different units depending on mode: microseconds
-        # of cpu/wall time for :cpu/:wall, but a count of object allocations for :object -- the
-        # two profiling.* config keys below map onto whichever unit the active mode expects.
+        # StackProf's `interval` means microseconds of cpu/wall time for :cpu/:wall, but a count
+        # of object allocations for :object.
         def sample_interval(mode)
           return NewRelic::Agent.config[:'profiling.object_allocation_interval'] if mode == :object
 
