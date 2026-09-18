@@ -236,6 +236,10 @@ module NewRelic
           reset_objects_with_locks
           drop_buffered_data
 
+          # Ahead of setup_and_start_agent: a connect on the worker thread it spawns applies
+          # server-side config, which can start a session this call would then tear down.
+          @continuous_profiling_session.after_fork
+
           setup_and_start_agent(options)
         end
 

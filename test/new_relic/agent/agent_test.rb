@@ -86,6 +86,15 @@ module NewRelic
         end
       end
 
+      def test_after_fork_restarts_the_continuous_profiling_session
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          @agent.continuous_profiling_session.expects(:after_fork)
+
+          @agent.after_fork(:report_to_channel => 123)
+        end
+      end
+
       def test_after_fork_should_reset_errors_collected
         with_config(:monitor_mode => true) do
           @agent.stubs(:connected?).returns(true)

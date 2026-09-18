@@ -21,30 +21,6 @@ module NewRelic::Agent::ContinuousProfiling
       end
     end
 
-    def test_start_records_a_mode_supportability_metric
-      Object.stub_const(:StackProf, Module.new) do
-        StackProf.stubs(:start)
-
-        with_config(:'profiling.include' => 'object') do
-          @sampler.start
-
-          assert_metrics_recorded('Supportability/Ruby/Profiling/object')
-        end
-      end
-    end
-
-    def test_start_records_a_cpu_mode_supportability_metric
-      Object.stub_const(:StackProf, Module.new) do
-        StackProf.stubs(:start)
-
-        with_config(:'profiling.include' => 'cpu') do
-          @sampler.start
-
-          assert_metrics_recorded('Supportability/Ruby/Profiling/cpu')
-        end
-      end
-    end
-
     def test_start_passes_the_allocation_interval_for_object_mode
       Object.stub_const(:StackProf, Module.new) do
         with_config(:'profiling.include' => 'object', :'profiling.object_allocation_interval' => 1234) do

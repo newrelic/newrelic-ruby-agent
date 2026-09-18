@@ -18,7 +18,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Starting continuous profiling session')
     NewRelic::Agent.agent.continuous_profiling_session.maybe_start
   end
 end

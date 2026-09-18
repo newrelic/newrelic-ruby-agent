@@ -15,6 +15,7 @@ module NewRelic
       class Session
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
+        PROFILE_TYPE_METRIC_PREFIX = 'Supportability/Ruby/Profiling'
         DURATION_METRIC = 'Supportability/Ruby/Profiling/Duration'
         SAMPLING_DURATION_METRIC = 'Supportability/Ruby/Profiling/Sampling/Duration'
         SEGMENT_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/SegmentRanges/LimitExceeded'
@@ -81,6 +82,7 @@ module NewRelic
             subscribe_to_transaction_hooks
           end
           NewRelic::Agent.increment_metric(ENABLED_METRIC)
+          NewRelic::Agent.increment_metric(profile_type_metric)
         end
 
         def stop(record_duration: false)
@@ -131,6 +133,28 @@ module NewRelic
           @lock = Mutex.new
           @fork_lock = Mutex.new
           @segment_ranges_lock = Mutex.new
+        end
+
+        # restart_if_forked can't cover a fork mid-profiling.delay: the delay thread doesn't survive
+        # it, and the transaction hooks it rides on are only subscribed once a session is running.
+        def after_fork
+          was_running = @running
+
+          @fork_lock.synchronize do
+            reset_state_after_fork
+
+            unless NewRelic::Agent.config[:restart_thread_in_children]
+              NewRelic::Agent.logger.debug(
+                "Not restarting continuous profiling in forked process #{Process.pid}: " \
+                'restart_thread_in_children is disabled'
+              )
+              @lock.synchronize { unsubscribe_from_transaction_hooks }
+              return
+            end
+
+            @cancel_delayed_start = false
+            was_running && supported? ? start : maybe_start
+          end
         end
 
         private
@@ -333,6 +357,10 @@ module NewRelic
 
         def enabled?
           NewRelic::Agent.config[:'profiling.enabled'] && supported?
+        end
+
+        def profile_type_metric
+          "#{PROFILE_TYPE_METRIC_PREFIX}/#{NewRelic::Agent.config[:'profiling.include'].capitalize}"
         end
 
         def harvest_period

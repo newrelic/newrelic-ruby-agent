@@ -214,7 +214,7 @@ module NewRelic
         request = build_profiles_request(bytes)
         response = @profiles_connection_lock.synchronize { profiles_http_connection.request(request) }
         log_response(response)
-        return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
+        return response if response.is_a?(Net::HTTPSuccess)
 
         NewRelic::Agent.logger.debug("Failed to export continuous profiling data: #{response.code} #{response.message}")
         NewRelic::Agent.increment_metric(PROFILES_EXPORT_FAILURE_METRIC)

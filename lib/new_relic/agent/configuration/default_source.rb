@@ -1148,7 +1148,8 @@ module NewRelic
           :transform => DefaultSource.method(:enforce_sample_period_range),
           :description => 'The interval, in seconds, between stack samples taken by the continuous profiler. ' \
             'Only used when `profiling.include` is `cpu`. Must be between ' \
-            "#{DefaultSource::SAMPLE_PERIOD_MINIMUM_SECONDS} and #{DefaultSource::SAMPLE_PERIOD_MAXIMUM_SECONDS}."
+            "#{format('%.6f', DefaultSource::SAMPLE_PERIOD_MINIMUM_SECONDS)} and " \
+            "#{format('%.6f', DefaultSource::SAMPLE_PERIOD_MAXIMUM_SECONDS)}."
         },
         :'profiling.object_allocation_interval' => {
           :default => 10000,

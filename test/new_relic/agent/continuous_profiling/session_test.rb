@@ -64,6 +64,37 @@ module NewRelic::Agent::ContinuousProfiling
       assert_metrics_recorded('Supportability/Ruby/Profiling/Enabled')
     end
 
+    def test_start_records_a_capitalized_profile_type_metric
+      with_config(:'profiling.include' => 'cpu') do
+        @session.start
+
+        assert_metrics_recorded('Supportability/Ruby/Profiling/Cpu')
+      end
+    end
+
+    def test_start_records_the_profile_type_metric_for_object_mode
+      with_config(:'profiling.include' => 'object') do
+        @session.start
+
+        assert_metrics_recorded('Supportability/Ruby/Profiling/Object')
+      end
+    end
+
+    def test_the_profile_type_metric_is_not_recorded_again_when_the_sampler_restarts
+      NewRelic::Agent.instance.stats_engine.reset!
+
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.stubs(:stop_and_collect).returns({:samples => 1, :mode => :cpu})
+      @session.instance_variable_set(:@sampler, sampler)
+
+      with_config(:'profiling.include' => 'cpu') do
+        @session.start
+        @session.send(:collect_and_restart_sampler)
+
+        assert_metrics_recorded('Supportability/Ruby/Profiling/Cpu' => {:call_count => 1})
+      end
+    end
+
     def test_start_is_idempotent
       NewRelic::Agent.instance.stats_engine.reset!
       NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).once.returns(true)
@@ -456,6 +487,100 @@ module NewRelic::Agent::ContinuousProfiling
       refute_equal original_pid, @session.instance_variable_get(:@starting_pid)
     end
 
+    def test_after_fork_restarts_a_session_the_child_inherited_mid_run
+      post_fork_thread = stub_everything('post-fork thread')
+      NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread, post_fork_thread)
+      @session.stubs(:gems_present?).returns(true)
+
+      @session.start
+      original_thread = @session.instance_variable_get(:@thread)
+      forked_pid = Process.pid + 1
+      Process.stubs(:pid).returns(forked_pid)
+
+      @session.after_fork
+
+      assert_predicate @session, :running?
+      refute_equal original_thread, @session.instance_variable_get(:@thread)
+      assert_equal forked_pid, @session.instance_variable_get(:@starting_pid)
+    end
+
+    def test_after_fork_starts_a_session_whose_delay_had_not_elapsed_by_fork_time
+      @session.stubs(:gems_present?).returns(true)
+
+      with_config(:'profiling.enabled' => true, :'profiling.delay' => 60_000) do
+        NewRelic::LanguageSupport.stub :jruby?, false do
+          @session.maybe_start
+
+          refute_predicate @session, :running?
+
+          real_pid = Process.pid
+          Process.stubs(:pid).returns(real_pid + 1)
+          @session.expects(:delayed_start)
+
+          @session.after_fork
+        end
+      end
+    end
+
+    def test_after_fork_does_not_start_when_profiling_is_disabled
+      with_config(:'profiling.enabled' => false) do
+        @session.expects(:start).never
+
+        @session.after_fork
+      end
+
+      refute_predicate @session, :running?
+    end
+
+    # gems_present? is false throughout this file, so enabling profiling here is the missing-gems
+    # case: after_fork must not reach the sampler, whose StackProf reference would not resolve.
+    def test_after_fork_does_not_start_when_the_gems_are_missing
+      with_config(:'profiling.enabled' => true, :'profiling.delay' => 5000) do
+        NewRelic::Agent::Threading::AgentThread.expects(:create).never
+        StackProfSampler.any_instance.expects(:start).never
+
+        @session.after_fork
+
+        refute_predicate @session, :running?
+        assert_nil @session.instance_variable_get(:@delay_thread)
+      end
+    end
+
+    def test_after_fork_does_not_restart_an_inherited_session_when_the_gems_are_missing
+      @session.instance_variable_set(:@running, true)
+      StackProfSampler.any_instance.expects(:start).never
+
+      with_config(:'profiling.enabled' => true) do
+        @session.after_fork
+      end
+
+      refute_predicate @session, :running?
+    end
+
+    def test_after_fork_tears_down_the_session_when_child_restarts_are_disabled
+      @session.start
+
+      with_config(:restart_thread_in_children => false) do
+        @session.expects(:start).never
+
+        @session.after_fork
+      end
+
+      refute_predicate @session, :running?
+      assert_empty @events.instance_variable_get(:@events)[:transaction_finished]
+    end
+
+    def test_after_fork_leaves_restart_if_forked_with_nothing_to_repair
+      NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread, stub_everything('post-fork thread'))
+      @session.start
+      real_pid = Process.pid
+      Process.stubs(:pid).returns(real_pid + 1)
+      @session.after_fork
+
+      @session.expects(:start).never
+      @events.notify(:start_transaction)
+    end
+
     def test_start_transaction_restart_after_fork_does_not_hang_on_a_lock_held_by_another_thread
       @session.start
       held_lock = @session.instance_variable_get(:@lock)
@@ -553,6 +678,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.instance_variable_set(:@segment_ranges, full_ranges)
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -565,6 +691,7 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'span123', start_time: 10.0, duration: 2.5)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
+
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -577,9 +704,9 @@ module NewRelic::Agent::ContinuousProfiling
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       child = stub_segment(guid: 'child_span', start_time: 10.5, duration: 0.5)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, child])
-      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
+        NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
         @events.notify(:transaction_finished)
       end
 
@@ -594,9 +721,9 @@ module NewRelic::Agent::ContinuousProfiling
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       tiny_child = stub_segment(guid: 'tiny_child_span', start_time: 10.5, duration: 0.001)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
-      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
+        NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
         @events.notify(:transaction_finished)
       end
 
@@ -607,9 +734,9 @@ module NewRelic::Agent::ContinuousProfiling
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 0.001)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root])
-      NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       with_config(:'profiling.sample_period' => 0.01) do
+        NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
         @events.notify(:transaction_finished)
       end
 
@@ -621,6 +748,7 @@ module NewRelic::Agent::ContinuousProfiling
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
       unfinished_child = stub_segment(guid: 'unfinished_span', start_time: 10.5, duration: 1.0, finished: false)
       txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, unfinished_child])
+
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
@@ -653,6 +781,7 @@ module NewRelic::Agent::ContinuousProfiling
       txn = stub(:trace_id_if_generated => nil, :initial_segment => root, :segments => [root])
       txn.expects(:trace_id).never
       txn.expects(:segments).never
+
       NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
 
       @events.notify(:transaction_finished)
