@@ -329,6 +329,8 @@ module NewRelic
         def reset_objects_with_locks
           @stats_engine = StatsEngine.new
           @continuous_profiling_session.reset_after_fork_from_parent_thread
+          @profiles_forwarder_lock = Mutex.new
+          @profiles_forwarder_count = 0
         end
 
         def flush_pipe_data # used only by resque

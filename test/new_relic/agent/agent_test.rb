@@ -95,6 +95,21 @@ module NewRelic
         end
       end
 
+      def test_after_fork_should_replace_profiles_forwarder_lock
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          old_lock = @agent.instance_variable_get(:@profiles_forwarder_lock)
+          old_lock.lock
+          @agent.instance_variable_set(:@profiles_forwarder_count, 3)
+
+          @agent.after_fork(:report_to_channel => 123)
+
+          refute_equal old_lock, @agent.instance_variable_get(:@profiles_forwarder_lock),
+            'Still got our old (possibly fork-locked) lock around!'
+          assert_equal 0, @agent.instance_variable_get(:@profiles_forwarder_count)
+        end
+      end
+
       def test_after_fork_should_reset_errors_collected
         with_config(:monitor_mode => true) do
           @agent.stubs(:connected?).returns(true)
