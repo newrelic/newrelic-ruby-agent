@@ -4,6 +4,8 @@
 
 # The unit suite stubs StackProf entirely; this suite is what proves the round-trip works.
 
+require 'timeout'
+
 class ContinuousProfilingTest < Minitest::Test
   def test_stack_prof_sampler_round_trips_against_the_real_gem
     sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
@@ -73,6 +75,35 @@ class ContinuousProfilingTest < Minitest::Test
       assert_predicate session, :running?
       assert_predicate StackProf, :running?, 'Expected a duration-ended session to be restartable'
       session.stop
+    end
+  ensure
+    StackProf.stop if StackProf.running?
+  end
+
+  def test_session_stops_stackprof_when_a_stop_lands_during_an_export
+    with_config(:'profiling.include' => 'cpu',
+      :'profiling.sample_period' => 0.001,
+      :'profiling.harvest_period' => 1) do
+      session = NewRelic::Agent::ContinuousProfiling::Session.new(nil)
+      exporting = Queue.new
+      release = Queue.new
+      session.define_singleton_method(:encode_and_export) do |_report|
+        exporting.push(:exporting)
+        release.pop
+      end
+
+      session.start
+      Timeout.timeout(10) { exporting.pop }
+
+      assert_predicate StackProf, :running?, 'Expected sampling to be restarted ahead of the export'
+
+      stopper = Thread.new { session.stop }
+      Timeout.timeout(10) { Thread.pass while session.running? }
+      release.push(:release)
+      stopper.join(10)
+
+      refute_predicate StackProf, :running?, 'Expected StackProf to be stopped after a stop mid-export'
+      assert_nil session.instance_variable_get(:@thread)
     end
   ensure
     StackProf.stop if StackProf.running?

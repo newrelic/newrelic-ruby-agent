@@ -14,6 +14,8 @@ module NewRelic::Agent::ContinuousProfiling
       @fake_thread = stub_everything('fake continuous profiling thread')
       NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread)
       NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.stubs(:start).returns(true)
+      # run_loop's ensure always stops the sampler, and StackProf isn't loaded in the unit suite.
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.stubs(:stop)
     end
 
     def test_maybe_start_does_nothing_when_disabled
@@ -129,6 +131,28 @@ module NewRelic::Agent::ContinuousProfiling
 
       refute_predicate @session, :running?
       refute_nil @session.instance_variable_get(:@thread)
+    end
+
+    def test_start_refuses_while_a_previous_profiling_thread_is_still_alive
+      @fake_thread.stubs(:join).returns(nil)
+      @fake_thread.stubs(:alive?).returns(true)
+      @session.start
+      @session.stop
+      NewRelic::Agent::ContinuousProfiling::StackProfSampler.any_instance.expects(:start).never
+      NewRelic::Agent::Threading::AgentThread.expects(:create).never
+      NewRelic::Agent.logger.expects(:warn).with(regexp_matches(/previous profiling thread has not exited/))
+
+      @session.start
+
+      refute_predicate @session, :running?
+    end
+
+    def test_start_proceeds_once_the_previous_profiling_thread_has_exited
+      @session.instance_variable_set(:@thread, stub('exited thread', :alive? => false))
+
+      @session.start
+
+      assert_predicate @session, :running?
     end
 
     def test_stop_does_not_clobber_a_thread_replaced_by_a_concurrent_start
@@ -383,6 +407,25 @@ module NewRelic::Agent::ContinuousProfiling
       @session.send(:run_loop)
     end
 
+    def test_run_loop_stops_sampling_when_a_stop_lands_after_the_sampler_was_restarted
+      report = {:samples => 1, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).once.returns(report)
+      sampler.expects(:start).once.returns(true)
+      sampler.expects(:stop).once
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, true)
+      @session.stubs(:wait_for_next_tick_or_stop).returns(true)
+      session = @session
+      @session.define_singleton_method(:encode_and_export) do |_report|
+        session.instance_variable_set(:@running, false)
+      end
+
+      @session.send(:run_loop)
+
+      refute_predicate @session, :running?
+    end
+
     def test_run_loop_stops_sampling_when_it_exits_on_an_error_the_harvest_cannot_rescue
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop).once
@@ -557,6 +600,24 @@ module NewRelic::Agent::ContinuousProfiling
       assert_empty @events.instance_variable_get(:@events)[:transaction_finished]
     end
 
+    def test_after_fork_does_nothing_when_a_transaction_already_repaired_the_child
+      repaired_thread = stub_everything('thread from restart_if_forked')
+      repaired_thread.stubs(:alive?).returns(true)
+      NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread, repaired_thread)
+      @session.start
+      real_pid = Process.pid
+      Process.stubs(:pid).returns(real_pid + 1)
+      @events.notify(:start_transaction)
+      repaired_lock = @session.instance_variable_get(:@lock)
+
+      @session.expects(:reset_state_after_fork).never
+      @session.after_fork
+
+      assert_predicate @session, :running?
+      assert_same repaired_thread, @session.instance_variable_get(:@thread)
+      assert_same repaired_lock, @session.instance_variable_get(:@lock)
+    end
+
     def test_after_fork_leaves_restart_if_forked_with_nothing_to_repair
       NewRelic::Agent::Threading::AgentThread.stubs(:create).returns(@fake_thread, stub_everything('post-fork thread'))
       @session.start
@@ -717,6 +778,23 @@ module NewRelic::Agent::ContinuousProfiling
       assert_equal [['trace123', 'root_span', 10.0, 12.5]], @session.instance_variable_get(:@segment_ranges)
     end
 
+    def test_transaction_finished_does_not_filter_short_segments_in_object_mode
+      @session.start
+      root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 2.5)
+      tiny_child = stub_segment(guid: 'tiny_child_span', start_time: 10.5, duration: 0.001)
+      txn = stub(:trace_id_if_generated => 'trace123', :initial_segment => root, :segments => [root, tiny_child])
+
+      with_config(:'profiling.include' => 'object', :'profiling.sample_period' => 0.01) do
+        NewRelic::Agent::Tracer.stubs(:current_transaction).returns(txn)
+        @events.notify(:transaction_finished)
+      end
+
+      assert_equal(
+        [['trace123', 'root_span', 10.0, 12.5], ['trace123', 'tiny_child_span', 10.5, 10.501]],
+        @session.instance_variable_get(:@segment_ranges)
+      )
+    end
+
     def test_transaction_finished_records_the_root_segment_even_when_shorter_than_one_sample_period
       @session.start
       root = stub_segment(guid: 'root_span', start_time: 10.0, duration: 0.001)
@@ -791,6 +869,77 @@ module NewRelic::Agent::ContinuousProfiling
       @session.send(:harvest_and_send)
 
       assert_empty @session.instance_variable_get(:@segment_ranges)
+    end
+
+    def test_harvest_and_send_skips_the_export_and_drains_ranges_when_there_are_no_results
+      NewRelic::Agent.instance.stats_engine.reset!
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).returns(nil)
+      sampler.expects(:start).returns(true)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@segment_ranges, [['abc123', 'def456', 1.0, 2.0]])
+      @session.expects(:encode_and_export).never
+
+      @session.send(:harvest_and_send)
+
+      assert_empty @session.instance_variable_get(:@segment_ranges)
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Export/SkippedNoResults')
+      assert_metrics_not_recorded('Supportability/Ruby/Profiling/Sampling/Failure')
+    end
+
+    def test_harvest_and_send_drains_segment_ranges_even_when_collection_raises
+      NewRelic::Agent.instance.stats_engine.reset!
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).raises('boom')
+      sampler.expects(:start).returns(true)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.instance_variable_set(:@running, true)
+      @session.instance_variable_set(:@segment_ranges, [['abc123', 'def456', 1.0, 2.0]])
+      @session.expects(:encode_and_export).never
+
+      @session.send(:harvest_and_send)
+
+      assert_empty @session.instance_variable_get(:@segment_ranges)
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Sampling/Failure')
+      assert_metrics_not_recorded('Supportability/Ruby/Profiling/Export/SkippedNoResults')
+    end
+
+    # The require is how an incompatible schema registered by another gem actually surfaces: the
+    # generated files resolve their message classes out of the pool as they load.
+    def test_harvest_and_send_stops_profiling_when_the_encoder_cannot_be_loaded
+      report = {:samples => 1, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).returns(report)
+      sampler.stubs(:start).returns(true)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.start
+      NewRelic::Agent.agent.stubs(:connected?).returns(true)
+      @session.stubs(:require).raises(NoMethodError.new("undefined method 'msgclass' for nil"))
+      NewRelic::Agent.agent.service.expects(:profiles_data).never
+      NewRelic::Agent.logger.expects(:error).with(regexp_matches(/incompatible OpenTelemetry profiles schema/))
+
+      @session.send(:harvest_and_send)
+
+      refute_predicate @session, :running?
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
+    end
+
+    def test_harvest_and_send_stops_profiling_when_the_protobuf_schema_does_not_match
+      report = {:samples => 1, :mode => :cpu}
+      sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
+      sampler.expects(:stop_and_collect).returns(report)
+      sampler.stubs(:start).returns(true)
+      @session.instance_variable_set(:@sampler, sampler)
+      @session.start
+      @session.stubs(:encode_and_export).raises(Session::SchemaMismatchError.new('mismatched schema'))
+      NewRelic::Agent.logger.expects(:error).with('mismatched schema')
+
+      @session.send(:harvest_and_send)
+
+      refute_predicate @session, :running?
+      assert_empty @events.instance_variable_get(:@events)[:transaction_finished]
+      assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
     def test_before_shutdown_stops_the_session

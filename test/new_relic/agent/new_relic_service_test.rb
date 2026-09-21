@@ -555,6 +555,66 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 1, @http_handle.calls.count(:start)
   end
 
+  def test_closing_the_profiles_connection_does_not_wait_on_an_export_in_flight
+    entered = Queue.new
+    release = Queue.new
+    response = @http_handle.create_response_mock('', :code => 202)
+    @http_handle.define_singleton_method(:request) do |_request|
+      entered.push(:entered)
+      release.pop
+      response
+    end
+
+    exporter = Thread.new { @service.profiles_data('raw-profile-bytes') }
+    Timeout.timeout(5) { entered.pop }
+
+    Timeout.timeout(5) { @service.force_restart }
+
+    assert_nil @service.instance_variable_get(:@profiles_connection)
+  ensure
+    release.push(:release)
+    exporter&.join
+  end
+
+  def test_an_export_closes_its_own_connection_when_it_was_invalidated_mid_request
+    entered = Queue.new
+    release = Queue.new
+    response = @http_handle.create_response_mock('', :code => 202)
+    @http_handle.define_singleton_method(:request) do |_request|
+      entered.push(:entered)
+      release.pop
+      response
+    end
+
+    exporter = Thread.new { @service.profiles_data('raw-profile-bytes') }
+    Timeout.timeout(5) { entered.pop }
+    @service.force_restart
+    release.push(:release)
+    exporter.join
+
+    assert_includes @http_handle.calls, :finish
+  end
+
+  def test_connect_drops_a_profiles_connection_opened_before_the_redirect_host_was_known
+    @http_handle.respond_to('v1/profiles', '', :code => 202)
+    service = @service
+    opened = nil
+    # Stands in for an export landing after preconnect reset @collector to the configured host
+    # but before connect learns the redirect host. Stubbing preconnect rather than letting
+    # invoke_remote run it keeps prep_collector's own close out of the way.
+    @service.define_singleton_method(:preconnect) do
+      service.profiles_data('raw-profile-bytes')
+      opened = service.instance_variable_get(:@profiles_connection)
+      {'redirect_host' => 'localhost'}
+    end
+
+    @service.connect
+
+    assert_equal 'localhost', @service.collector.name
+    refute_nil opened, 'Expected the export to memoize a profiles connection during preconnect'
+    assert_nil @service.instance_variable_get(:@profiles_connection)
+  end
+
   def test_build_profiles_request_skips_audit_logging_when_disabled
     with_config(:'audit_log.enabled' => false) do
       @http_handle.respond_to('v1/profiles', '', :code => 202)

@@ -361,7 +361,7 @@ module NewRelic
         end
 
         # Forwarded off-thread so a slow export doesn't block other children's data; capped
-        # since forwarders serialize on NewRelicService's connection lock anyway.
+        # since forwarders serialize on NewRelicService's profiles request lock anyway.
         def forward_profiles_data(data)
           @profiles_forwarder_lock.synchronize do
             if @profiles_forwarder_count >= MAX_CONCURRENT_PROFILES_FORWARDERS
@@ -375,10 +375,18 @@ module NewRelic
             @profiles_forwarder_count += 1
           end
 
-          Threading::AgentThread.create('Continuous Profiling Forwarder') do
-            @service.profiles_data(data)
-          ensure
+          begin
+            Threading::AgentThread.create('Continuous Profiling Forwarder') do
+              @service.profiles_data(data)
+            ensure
+              @profiles_forwarder_lock.synchronize { @profiles_forwarder_count -= 1 }
+            end
+          rescue => e
+            # The block's ensure never runs if the thread was never created, and a count that
+            # can't come back down drops every later payload for the life of the process.
             @profiles_forwarder_lock.synchronize { @profiles_forwarder_count -= 1 }
+            NewRelic::Agent.logger.error('Failed to start a continuous profiling forwarder thread', e)
+            nil
           end
         end
 

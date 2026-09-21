@@ -54,6 +54,9 @@ module NewRelic
         @shared_tcp_connection = nil
         @profiles_connection = nil
         @profiles_connection_lock = Mutex.new
+        @profiles_request_lock = Mutex.new
+        @profiles_connection_generation = 0
+        @profiles_connection_in_use = false
         @request_headers_map = nil
         reset_remote_method_uris
 
@@ -91,6 +94,9 @@ module NewRelic
         @request_headers_map = nil
         if (response = preconnect) && (host = response['redirect_host'])
           @collector = NewRelic::Control.instance.server_from_host(host)
+          # An export running between preconnect and here memoized a connection to the configured
+          # collector; without this it would keep using that host instead of the redirect host.
+          @profiles_connection_lock.synchronize { close_profiles_connection }
         end
         response = invoke_remote(:connect, [settings])
         @request_headers_map = response['request_headers_map']
@@ -211,7 +217,16 @@ module NewRelic
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         check_post_size(bytes, :profiles_data)
         request = build_profiles_request(bytes)
-        response = @profiles_connection_lock.synchronize { profiles_http_connection.request(request) }
+
+        response = @profiles_request_lock.synchronize do
+          connection = checkout_profiles_connection
+          begin
+            connection.request(request)
+          ensure
+            release_profiles_connection(connection)
+          end
+        end
+
         log_response(response)
         return response if response.is_a?(Net::HTTPSuccess)
 
@@ -229,32 +244,6 @@ module NewRelic
       ensure
         NewRelic::Agent.record_metric(PROFILES_EXPORT_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_ts)
         NewRelic::Agent.record_metric(PROFILES_OUTPUT_BYTES_METRIC, bytes ? bytes.bytesize : 0)
-      end
-
-      def build_profiles_request(bytes)
-        headers = {
-          'Content-Type' => PROFILES_CONTENT_TYPE,
-          PROFILES_API_KEY_HEADER => license_key
-        }
-
-        if @audit_logger.enabled?
-          @audit_logger.log_profiles_request(profiles_audit_uri) { profiles_audit_body(bytes) }
-          @audit_logger.log_request_headers(profiles_audit_uri, redacted_profiles_headers(headers))
-        end
-
-        request = Net::HTTP::Post.new(PROFILES_PATH)
-        headers.each { |name, value| request[name] = value }
-        request.body = bytes
-        request
-      end
-
-      # This and close_profiles_connection expect @profiles_connection_lock to be held already.
-      def profiles_http_connection
-        get_or_create_connection(:@profiles_connection)
-      end
-
-      def close_profiles_connection
-        close_connection(:@profiles_connection, 'profiles')
       end
 
       def compress_request_if_needed(data, endpoint)
@@ -446,6 +435,72 @@ module NewRelic
       # A shorthand for NewRelic::Control.instance
       def control
         NewRelic::Control.instance
+      end
+
+      def build_profiles_request(bytes)
+        headers = {
+          'Content-Type' => PROFILES_CONTENT_TYPE,
+          PROFILES_API_KEY_HEADER => license_key
+        }
+
+        if @audit_logger.enabled?
+          @audit_logger.log_profiles_request(profiles_audit_uri) { profiles_audit_body(bytes) }
+          @audit_logger.log_request_headers(profiles_audit_uri, redacted_profiles_headers(headers))
+        end
+
+        request = Net::HTTP::Post.new(PROFILES_PATH)
+        headers.each { |name, value| request[name] = value }
+        request.body = bytes
+        request
+      end
+
+      # Established outside @profiles_connection_lock, which blocks for up to open_timeout and
+      # would stall the worker thread's close_profiles_connection.
+      def checkout_profiles_connection
+        generation, existing = @profiles_connection_lock.synchronize do
+          @profiles_connection_in_use = true if @profiles_connection
+          [@profiles_connection_generation, @profiles_connection]
+        end
+        return existing if existing
+
+        publish_profiles_connection(create_and_start_http_connection, generation)
+      end
+
+      # Marks in-use only once the connection exists, so a raise while establishing one doesn't
+      # strand the flag. An invalidation that landed in the meantime means the connection points at
+      # a collector host we've been told to stop using, so it's used for this one export and dropped.
+      def publish_profiles_connection(connection, generation)
+        @profiles_connection_lock.synchronize do
+          @profiles_connection_in_use = true
+          @profiles_connection = connection if generation == @profiles_connection_generation
+        end
+        connection
+      end
+
+      def release_profiles_connection(connection)
+        superseded = @profiles_connection_lock.synchronize do
+          @profiles_connection_in_use = false
+          !@profiles_connection.equal?(connection)
+        end
+        finish_profiles_connection(connection) if superseded
+      end
+
+      # Expects @profiles_connection_lock held. Closes the socket only when no export holds it;
+      # otherwise release_profiles_connection does, so this never waits on a request.
+      def close_profiles_connection
+        connection = @profiles_connection
+        @profiles_connection = nil
+        @profiles_connection_generation += 1
+        return if connection.nil? || @profiles_connection_in_use
+
+        finish_profiles_connection(connection)
+      end
+
+      def finish_profiles_connection(connection)
+        NewRelic::Agent.logger.debug("Closing profiles TCP connection to #{connection.address}:#{connection.port}")
+        connection.finish if connection.started?
+      rescue StandardError => e
+        NewRelic::Agent.logger.debug("Error closing the profiles TCP connection: #{e.class}: #{e.message}")
       end
 
       def prep_headers(opts)
@@ -741,8 +796,8 @@ module NewRelic
         return unless method == :preconnect
 
         @collector = @configured_collector
-        # A profiles export running concurrently on its own thread could otherwise memoize
-        # profiles_http_connection against the host @collector pointed to a moment ago.
+        # A profiles export running concurrently on its own thread could otherwise memoize a
+        # connection to the host @collector pointed at a moment ago.
         @profiles_connection_lock.synchronize { close_profiles_connection }
       end
 

@@ -306,6 +306,25 @@ module NewRelic
         thread&.join
       end
 
+      def test_merge_data_for_endpoint_releases_the_forwarder_slot_when_the_thread_cannot_be_created
+        NewRelic::Agent::Threading::AgentThread.stubs(:create).raises(ThreadError.new('cannot create'))
+        NewRelic::Agent.logger.stubs(:error)
+
+        NewRelic::Agent::Agent::MAX_CONCURRENT_PROFILES_FORWARDERS.times do
+          assert_nil @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+        end
+
+        assert_equal 0, @agent.instance_variable_get(:@profiles_forwarder_count)
+
+        NewRelic::Agent::Threading::AgentThread.unstub(:create)
+        @agent.service.expects(:profiles_data).with('raw-profile-bytes')
+
+        thread = @agent.merge_data_for_endpoint(:profiles_data, 'raw-profile-bytes')
+
+        refute_nil thread
+        thread.join
+      end
+
       def test_merge_data_for_endpoint_logs_but_does_not_raise_when_profiles_data_raises
         @agent.service.stubs(:profiles_data).raises('boom')
         NewRelic::Agent.logger.expects(:error).with(includes('Continuous Profiling Forwarder'), anything)

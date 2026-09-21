@@ -11,13 +11,19 @@ module NewRelic
       # Server-side config and agent commands are independent activation paths; which one the
       # collector will standardize on isn't settled, so neither is folded into the other.
       class Session
+        # Not retryable: the DescriptorPool is process-wide and never unregisters, so a mismatch
+        # found on one harvest will be there on every later one.
+        class SchemaMismatchError < StandardError; end
+
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
         PROFILE_TYPE_METRIC_PREFIX = 'Supportability/Ruby/Profiling'
         DURATION_METRIC = 'Supportability/Ruby/Profiling/Duration'
         SAMPLING_DURATION_METRIC = 'Supportability/Ruby/Profiling/Sampling/Duration'
+        SAMPLING_FAILURE_METRIC = 'Supportability/Ruby/Profiling/Sampling/Failure'
         SEGMENT_RANGES_LIMIT_METRIC = 'Supportability/Ruby/Profiling/SegmentRanges/LimitExceeded'
         SKIPPED_NOT_CONNECTED_METRIC = 'Supportability/Ruby/Profiling/Export/SkippedNotConnected'
+        SKIPPED_NO_RESULTS_METRIC = 'Supportability/Ruby/Profiling/Export/SkippedNoResults'
 
         MAX_SEGMENT_RANGES = 10_000
 
@@ -60,6 +66,15 @@ module NewRelic
             # A stop() can land after this delayed start's sleep has elapsed, too late for the
             # kill in #stop to reach it -- without the flag the stop would be silently undone.
             return if from_delayed_start && (@cancel_delayed_start || !enabled?)
+
+            # A previous thread still winding down stops sampling on its way out, so only one
+            # thread may own the sampler at a time.
+            if @thread&.alive?
+              NewRelic::Agent.logger.warn(
+                'Continuous profiling could not start: the previous profiling thread has not exited yet.'
+              )
+              return
+            end
 
             @starting_pid = Process.pid
 
@@ -133,9 +148,13 @@ module NewRelic
         # restart_if_forked can't cover a fork mid-profiling.delay: the delay thread doesn't survive
         # it, and the transaction hooks it rides on are only subscribed once a session is running.
         def after_fork
-          was_running = @running
-
           @fork_lock.synchronize do
+            # A transaction in this child may have beaten us here and already repaired the session
+            # via restart_if_forked; resetting again would orphan the thread it just started.
+            return if @starting_pid == Process.pid && @thread&.alive?
+
+            was_running = @running
+
             reset_state_after_fork
 
             unless NewRelic::Agent.config[:restart_thread_in_children]
@@ -226,7 +245,9 @@ module NewRelic
           return unless trace_id
 
           root = txn.initial_segment
-          min_duration = NewRelic::Agent.config[:'profiling.sample_period']
+          # Segments shorter than one sampling tick can't contain a sample. Object mode counts
+          # allocations rather than time, so no segment is too short to be worth correlating.
+          min_duration = object_mode? ? 0 : NewRelic::Agent.config[:'profiling.sample_period']
 
           @segment_ranges_lock.synchronize do
             if @segment_ranges.size >= MAX_SEGMENT_RANGES
@@ -330,6 +351,10 @@ module NewRelic
           !NewRelic::Agent.config[:high_security] && !NewRelic::LanguageSupport.jruby? && gems_present?
         end
 
+        def object_mode?
+          NewRelic::Agent.config[:'profiling.include'].to_s == 'object'
+        end
+
         def enabled?
           NewRelic::Agent.config[:'profiling.enabled'] && supported?
         end
@@ -365,37 +390,52 @@ module NewRelic
 
             harvest_and_send
 
-            # A stop() landing mid-harvest has already left the sampler drained and not
-            # restarted, so another pass would collect nothing (StackProf.results is nil).
             break unless keep_going && running?
           end
         ensure
-          abandon_sampling if running?
+          finish_sampling
         end
 
-        # For an abnormal exit (a non-StandardError escaping harvest_and_send, a Thread#kill):
-        # unattended raw-mode sampling grows forever, and #start can't take over until it stops.
-        def abandon_sampling
+        # Stops sampling here and not in #stop: the sampler is restarted on this thread ahead of
+        # the export, so a #stop landing in that window would leave it running with no owner.
+        def finish_sampling
           @sampler.stop
-          @lock.synchronize do
-            @running = false
+
+          abandoned = @lock.synchronize do
             @thread = nil
+            next false unless @running
+
+            @running = false
             unsubscribe_from_transaction_hooks
+            true
           end
+          return unless abandoned
+
           NewRelic::Agent.logger.error('The continuous profiling thread exited unexpectedly; sampling stopped.')
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
         # Duplicates #stop rather than calling it because this runs on @thread, which cannot join
         # itself. A later #stop() early-returns on @running, so Disabled is not double-counted.
+        # @thread is deliberately left set: it still owns the sampler until finish_sampling runs.
         def finish_due_to_duration
           @lock.synchronize do
             record_duration_metric
             @running = false
-            @thread = nil
             unsubscribe_from_transaction_hooks
           end
           NewRelic::Agent.logger.debug('Continuous profiling duration elapsed; stopping.')
+          NewRelic::Agent.increment_metric(DISABLED_METRIC)
+        end
+
+        # Stops rather than retrying: sampling would otherwise burn CPU for the life of the process
+        # while every export failed the same way, visible only as a log line.
+        def finish_due_to_schema_mismatch(message)
+          @lock.synchronize do
+            @running = false
+            unsubscribe_from_transaction_hooks
+          end
+          NewRelic::Agent.logger.error(message)
           NewRelic::Agent.increment_metric(DISABLED_METRIC)
         end
 
@@ -423,17 +463,37 @@ module NewRelic
           end
         end
 
+        # The drain happens whether or not the collection worked: ranges left buffered belong to a
+        # window that is already gone, and would otherwise pile up against MAX_SEGMENT_RANGES.
         def harvest_and_send
           start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          report = collect_and_restart_sampler
-          report[:segment_ranges] = drain_segment_ranges
+          report = collect_report
+          segment_ranges = drain_segment_ranges
           NewRelic::Agent.record_metric(SAMPLING_DURATION_METRIC, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)
+          return unless report
+
+          report[:segment_ranges] = segment_ranges
           NewRelic::Agent.logger.debug(
             "Continuous profiling collected #{report[:samples]} sample(s) in #{report[:mode]} mode"
           )
           encode_and_export(report)
+        rescue SchemaMismatchError => e
+          finish_due_to_schema_mismatch(e.message)
         rescue => e
           NewRelic::Agent.logger.error('Error harvesting continuous profiling data', e)
+        end
+
+        def collect_report
+          report = collect_and_restart_sampler
+          return report if report
+
+          NewRelic::Agent.increment_metric(SKIPPED_NO_RESULTS_METRIC)
+          NewRelic::Agent.logger.debug('Skipping continuous profiling export: no results for this window')
+          nil
+        rescue => e
+          NewRelic::Agent.increment_metric(SAMPLING_FAILURE_METRIC)
+          NewRelic::Agent.logger.error('Error collecting continuous profiling data', e)
+          nil
         end
 
         # Sampling restarts in the ensure, ahead of the network-bound export, so a harvest leaves
@@ -456,9 +516,32 @@ module NewRelic
             return
           end
 
-          require 'new_relic/agent/continuous_profiling/profile_encoder'
+          load_encoder!
+          verify_schema!
           bytes = ProfileEncoder.encode(report)
           NewRelic::Agent.agent.service.profiles_data(bytes)
+        end
+
+        # The generated protobuf files resolve their message classes out of the process-wide pool,
+        # so a foreign revision registered first makes this require fail before verify_schema! runs.
+        def load_encoder!
+          require 'new_relic/agent/continuous_profiling/profile_encoder'
+        rescue StandardError, LoadError => e
+          raise SchemaMismatchError.new(
+            'Could not load the continuous profiling protobuf encoder, which usually means another ' \
+            "gem registered an incompatible OpenTelemetry profiles schema (#{e.class}: #{e.message}). " \
+            'Stopping continuous profiling.'
+          )
+        end
+
+        def verify_schema!
+          incompatible = Proto::Registrar.incompatible_messages
+          return if incompatible.empty?
+
+          raise SchemaMismatchError.new(
+            'The OpenTelemetry profiles protobuf schema registered in this process is not the ' \
+            "revision this agent expects (#{incompatible.join('; ')}). Stopping continuous profiling."
+          )
         end
       end
     end
