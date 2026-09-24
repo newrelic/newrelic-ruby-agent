@@ -32,7 +32,11 @@ gem 'newrelic_rpm', path: '../../..'
 
 gem 'pry' if ENV['ENABLE_PRY']
 
-gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
+if ENV['VERBOSE_TEST_OUTPUT']
+  gem 'simplecov'
+  # simplecov >= 1.0 requires prism, which doesn't come with JRuby
+  gem 'prism', platforms: :jruby
+end
 gem 'warning'
 
 # i18n 1.15.0+ is broken on Ruby 3.1 and will not be fixed, so pin below it
