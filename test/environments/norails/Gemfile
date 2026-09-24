@@ -16,7 +16,7 @@ gem 'pry' if ENV['ENABLE_PRY']
 
 if ENV['VERBOSE_TEST_OUTPUT']
   gem 'simplecov'
-  # simplecov >= 1.0 requires prism, which doesn't come with JRuby
+  # simplecov >= 1.0 requires prism, which doesn't come with JRuby 10+
   gem 'prism' if RUBY_ENGINE == 'jruby' && Gem::Version.new(JRUBY_VERSION) >= Gem::Version.new('10.0.0')
 end
 
