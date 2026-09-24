@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
+      matrix:
+        jruby_version: [9.4.14.0, 10.1.2.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -21,7 +23,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # tag v1.321.0
         with:
-          ruby-version: jruby-9.4.14.0
+          ruby-version: jruby-${{ matrix.jruby_version }}
 
       - name: Bundle
         run: bundle install
@@ -42,6 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        jruby_version: [9.4.14.0, 10.1.2.0]
         suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, hybrid_agent, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, ruby_openai, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
 
     steps:
@@ -54,7 +57,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # tag v1.321.0
         with:
-          ruby-version: jruby-9.4.14.0
+          ruby-version: jruby-${{ matrix.jruby_version }}
 
       - name: Bundle
         run: bundle install
@@ -90,6 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        jruby_version: [9.4.14.0, 10.1.2.0]
         suite: [sidekiq]
 
     steps:
@@ -102,7 +106,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # tag v1.321.0
         with:
-          ruby-version: jruby-9.4.14.0
+          ruby-version: jruby-${{ matrix.jruby_version }}
 
       - name: Bundle
         run: bundle install
