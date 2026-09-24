@@ -7,6 +7,12 @@
 require 'timeout'
 
 class ContinuousProfilingTest < Minitest::Test
+  # Resolved at call time, not as a constant: the tests below require the encoder individually,
+  # and the generated proto classes don't exist until one of them has.
+  def export_request
+    NewRelic::Agent::ContinuousProfiling::Proto::ExportProfilesServiceRequest
+  end
+
   def test_stack_prof_sampler_round_trips_against_the_real_gem
     sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
 
@@ -134,7 +140,7 @@ class ContinuousProfilingTest < Minitest::Test
     end
 
     refute_nil request
-    decoded = Opentelemetry::Proto::Collector::Profiles::V1development::ExportProfilesServiceRequest.decode(request.body)
+    decoded = export_request.decode(request.body)
 
     refute_empty decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples
   end
@@ -208,7 +214,7 @@ class ContinuousProfilingTest < Minitest::Test
     }
 
     bytes = NewRelic::Agent::ContinuousProfiling::ProfileEncoder.encode(report)
-    decoded = Opentelemetry::Proto::Collector::Profiles::V1development::ExportProfilesServiceRequest.decode(bytes)
+    decoded = export_request.decode(bytes)
     dict = decoded.dictionary
     sample = decoded.resource_profiles[0].scope_profiles[0].profiles[0].samples[0]
 

@@ -14,9 +14,9 @@
 
 syntax = "proto3";
 
-package opentelemetry.proto.collector.profiles.v1development;
+package new_relic.agent.continuous_profiling.proto;
 
-import "opentelemetry/proto/profiles/v1development/profiles.proto";
+import "new_relic/agent/continuous_profiling/proto/profiles.proto";
 
 option csharp_namespace = "OpenTelemetry.Proto.Collector.Profiles.V1Development";
 option java_multiple_files = true;
@@ -37,10 +37,10 @@ message ExportProfilesServiceRequest {
   // element. Intermediary nodes (such as OpenTelemetry Collector) that receive
   // data from multiple origins typically batch the data before forwarding further and
   // in that case this array will contain multiple elements.
-  repeated opentelemetry.proto.profiles.v1development.ResourceProfiles resource_profiles = 1;
+  repeated ResourceProfiles resource_profiles = 1;
 
   // The reference table containing all data shared by profiles across the message being sent.
-  opentelemetry.proto.profiles.v1development.ProfilesDictionary dictionary = 2;
+  ProfilesDictionary dictionary = 2;
 }
 
 // Status: [Alpha]

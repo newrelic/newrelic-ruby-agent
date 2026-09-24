@@ -905,8 +905,8 @@ module NewRelic::Agent::ContinuousProfiling
       assert_metrics_not_recorded('Supportability/Ruby/Profiling/Export/SkippedNoResults')
     end
 
-    # The require is how an incompatible schema registered by another gem actually surfaces: the
-    # generated files resolve their message classes out of the pool as they load.
+    # The require is where a broken vendored schema surfaces: the generated files resolve their
+    # message classes out of the pool as they load, so a failed lookup raises on nil.
     def test_harvest_and_send_stops_profiling_when_the_encoder_cannot_be_loaded
       report = {:samples => 1, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
@@ -917,7 +917,7 @@ module NewRelic::Agent::ContinuousProfiling
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       @session.stubs(:require).raises(NoMethodError.new("undefined method 'msgclass' for nil"))
       NewRelic::Agent.agent.service.expects(:profiles_data).never
-      NewRelic::Agent.logger.expects(:error).with(regexp_matches(/incompatible OpenTelemetry profiles schema/))
+      NewRelic::Agent.logger.expects(:error).with(regexp_matches(/Could not load the continuous profiling protobuf encoder/))
 
       @session.send(:harvest_and_send)
 
@@ -925,15 +925,15 @@ module NewRelic::Agent::ContinuousProfiling
       assert_metrics_recorded('Supportability/Ruby/Profiling/Disabled')
     end
 
-    def test_harvest_and_send_stops_profiling_when_the_protobuf_schema_does_not_match
+    def test_harvest_and_send_unsubscribes_when_an_encoder_load_error_is_raised
       report = {:samples => 1, :mode => :cpu}
       sampler = NewRelic::Agent::ContinuousProfiling::StackProfSampler.new
       sampler.expects(:stop_and_collect).returns(report)
       sampler.stubs(:start).returns(true)
       @session.instance_variable_set(:@sampler, sampler)
       @session.start
-      @session.stubs(:encode_and_export).raises(Session::SchemaMismatchError.new('mismatched schema'))
-      NewRelic::Agent.logger.expects(:error).with('mismatched schema')
+      @session.stubs(:encode_and_export).raises(Session::EncoderLoadError.new('encoder unavailable'))
+      NewRelic::Agent.logger.expects(:error).with('encoder unavailable')
 
       @session.send(:harvest_and_send)
 

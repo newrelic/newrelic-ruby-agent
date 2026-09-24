@@ -11,9 +11,8 @@ module NewRelic
       # Server-side config and agent commands are independent activation paths; which one the
       # collector will standardize on isn't settled, so neither is folded into the other.
       class Session
-        # Not retryable: the DescriptorPool is process-wide and never unregisters, so a mismatch
-        # found on one harvest will be there on every later one.
-        class SchemaMismatchError < StandardError; end
+        # Not retryable: a require that failed once fails the same way on every later harvest.
+        class EncoderLoadError < StandardError; end
 
         ENABLED_METRIC = 'Supportability/Ruby/Profiling/Enabled'
         DISABLED_METRIC = 'Supportability/Ruby/Profiling/Disabled'
@@ -430,7 +429,7 @@ module NewRelic
 
         # Stops rather than retrying: sampling would otherwise burn CPU for the life of the process
         # while every export failed the same way, visible only as a log line.
-        def finish_due_to_schema_mismatch(message)
+        def finish_due_to_encoder_failure(message)
           @lock.synchronize do
             @running = false
             unsubscribe_from_transaction_hooks
@@ -477,8 +476,8 @@ module NewRelic
             "Continuous profiling collected #{report[:samples]} sample(s) in #{report[:mode]} mode"
           )
           encode_and_export(report)
-        rescue SchemaMismatchError => e
-          finish_due_to_schema_mismatch(e.message)
+        rescue EncoderLoadError => e
+          finish_due_to_encoder_failure(e.message)
         rescue => e
           NewRelic::Agent.logger.error('Error harvesting continuous profiling data', e)
         end
@@ -517,30 +516,16 @@ module NewRelic
           end
 
           load_encoder!
-          verify_schema!
           bytes = ProfileEncoder.encode(report)
           NewRelic::Agent.agent.service.profiles_data(bytes)
         end
 
-        # The generated protobuf files resolve their message classes out of the process-wide pool,
-        # so a foreign revision registered first makes this require fail before verify_schema! runs.
         def load_encoder!
           require 'new_relic/agent/continuous_profiling/profile_encoder'
         rescue StandardError, LoadError => e
-          raise SchemaMismatchError.new(
-            'Could not load the continuous profiling protobuf encoder, which usually means another ' \
-            "gem registered an incompatible OpenTelemetry profiles schema (#{e.class}: #{e.message}). " \
+          raise EncoderLoadError.new(
+            "Could not load the continuous profiling protobuf encoder (#{e.class}: #{e.message}). " \
             'Stopping continuous profiling.'
-          )
-        end
-
-        def verify_schema!
-          incompatible = Proto::Registrar.incompatible_messages
-          return if incompatible.empty?
-
-          raise SchemaMismatchError.new(
-            'The OpenTelemetry profiles protobuf schema registered in this process is not the ' \
-            "revision this agent expects (#{incompatible.join('; ')}). Stopping continuous profiling."
           )
         end
       end

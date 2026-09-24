@@ -30,10 +30,10 @@
 
 syntax = "proto3";
 
-package opentelemetry.proto.profiles.v1development;
+package new_relic.agent.continuous_profiling.proto;
 
-import "opentelemetry/proto/common/v1/common.proto";
-import "opentelemetry/proto/resource/v1/resource.proto";
+import "new_relic/agent/continuous_profiling/proto/common.proto";
+import "new_relic/agent/continuous_profiling/proto/resource.proto";
 
 option csharp_namespace = "OpenTelemetry.Proto.Profiles.V1Development";
 option java_multiple_files = true;
@@ -220,7 +220,7 @@ message ResourceProfiles {
 
   // The resource for the profiles in this message.
   // If this field is not set then no resource info is known.
-  opentelemetry.proto.resource.v1.Resource resource = 1;
+  Resource resource = 1;
 
   // A list of ScopeProfiles that originate from this resource.
   repeated ScopeProfiles scope_profiles = 2;
@@ -241,7 +241,7 @@ message ScopeProfiles {
   // The instrumentation scope information for the profiles in this message.
   // Semantically when InstrumentationScope isn't set, it is equivalent with
   // an empty instrumentation scope name (unknown).
-  opentelemetry.proto.common.v1.InstrumentationScope scope = 1;
+  InstrumentationScope scope = 1;
 
   // A list of Profiles that originate from this instrumentation scope.
   repeated Profile profiles = 2;
@@ -529,7 +529,7 @@ message KeyValueAndUnit {
   // The index into the string table for the attribute's key.
   int32 key_strindex  = 1;
   // The value of the attribute.
-  opentelemetry.proto.common.v1.AnyValue value = 2;
+  AnyValue value = 2;
   // The index into the string table for the attribute's unit.
   // zero indicates implicit (by semconv) or non-defined unit.
   // If present, the unit string SHOULD be in UCUM format.

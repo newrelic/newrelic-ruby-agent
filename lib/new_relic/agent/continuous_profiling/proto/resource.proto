@@ -14,9 +14,9 @@
 
 syntax = "proto3";
 
-package opentelemetry.proto.resource.v1;
+package new_relic.agent.continuous_profiling.proto;
 
-import "opentelemetry/proto/common/v1/common.proto";
+import "new_relic/agent/continuous_profiling/proto/common.proto";
 
 option csharp_namespace = "OpenTelemetry.Proto.Resource.V1";
 option java_multiple_files = true;
@@ -30,7 +30,7 @@ message Resource {
   // Attribute keys MUST be unique (it is not allowed to have more than one
   // attribute with the same key).
   // The behavior of software that receives duplicated keys can be unpredictable.
-  repeated opentelemetry.proto.common.v1.KeyValue attributes = 1;
+  repeated KeyValue attributes = 1;
 
   // The number of dropped attributes. If the value is 0, then
   // no attributes were dropped.
@@ -41,5 +41,5 @@ message Resource {
   // Note: keys in the references MUST exist in attributes of this message.
   //
   // Status: [Development]
-  repeated opentelemetry.proto.common.v1.EntityRef entity_refs = 3;
+  repeated EntityRef entity_refs = 3;
 }

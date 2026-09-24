@@ -5,7 +5,7 @@
 # google-protobuf isn't available to the unit suite, so ProfileEncoder is only exercised here.
 require 'new_relic/agent/continuous_profiling/profile_encoder'
 
-OTelCollector = Opentelemetry::Proto::Collector::Profiles::V1development
+OTelCollector = NewRelic::Agent::ContinuousProfiling::Proto
 
 class ProfileEncoderTest < Minitest::Test
   # Two occurrences of stack [main, foo, bar] (leaf=bar), one of [main, foo, baz].
@@ -176,7 +176,7 @@ class ProfileEncoderTest < Minitest::Test
   end
 
   def test_placeholder_index_zero_exists_in_every_dictionary_table
-    profiles_module = Opentelemetry::Proto::Profiles::V1development
+    profiles_module = NewRelic::Agent::ContinuousProfiling::Proto
 
     assert_equal profiles_module::Mapping.new, @dict.mapping_table[0]
     assert_equal profiles_module::Location.new, @dict.location_table[0]

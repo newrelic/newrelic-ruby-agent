@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
-require_relative 'proto/opentelemetry/proto/collector/profiles/v1development/profiles_service_pb'
+require 'new_relic/agent/continuous_profiling/proto/profiles_service_pb'
 
 module NewRelic
   module Agent
@@ -11,11 +11,6 @@ module NewRelic
       # ProfilesDictionary tables are deduped per encode call only; nothing persists across
       # harvests, since every index is relative to the dictionary shipped alongside it.
       class ProfileEncoder
-        OTEL_PROFILES = Opentelemetry::Proto::Profiles::V1development
-        OTEL_COLLECTOR = Opentelemetry::Proto::Collector::Profiles::V1development
-        OTEL_COMMON = Opentelemetry::Proto::Common::V1
-        OTEL_RESOURCE = Opentelemetry::Proto::Resource::V1
-
         TIME_SAMPLE_VALUE_UNIT = 'nanoseconds'
         OBJECT_SAMPLE_VALUE_UNIT = 'count'
         NANOSECONDS_PER_MICROSECOND = 1_000
@@ -26,27 +21,27 @@ module NewRelic
         end
 
         def self.decode_for_audit(bytes)
-          OTEL_COLLECTOR::ExportProfilesServiceRequest.decode(bytes).to_h.inspect
+          Proto::ExportProfilesServiceRequest.decode(bytes).to_h.inspect
         end
 
         def initialize(report)
           @report = report
           @string_table = ['']
           @string_indices = {'' => 0}
-          @function_table = [OTEL_PROFILES::Function.new]
+          @function_table = [Proto::Function.new]
           @function_indices = {}
-          @location_table = [OTEL_PROFILES::Location.new]
+          @location_table = [Proto::Location.new]
           @location_indices = {}
-          @stack_table = [OTEL_PROFILES::Stack.new]
+          @stack_table = [Proto::Stack.new]
           @stack_indices = {}
-          @link_table = [OTEL_PROFILES::Link.new]
+          @link_table = [Proto::Link.new]
           @link_indices = {}
         end
 
         def encode
           req = request
           log_correlation_summary
-          OTEL_COLLECTOR::ExportProfilesServiceRequest.encode(req)
+          Proto::ExportProfilesServiceRequest.encode(req)
         end
 
         private
@@ -62,39 +57,39 @@ module NewRelic
         end
 
         def request
-          OTEL_COLLECTOR::ExportProfilesServiceRequest.new(
+          Proto::ExportProfilesServiceRequest.new(
             resource_profiles: [resource_profiles],
             dictionary: dictionary
           )
         end
 
         def resource_profiles
-          OTEL_PROFILES::ResourceProfiles.new(
+          Proto::ResourceProfiles.new(
             resource: resource,
             scope_profiles: [scope_profiles]
           )
         end
 
         def resource
-          OTEL_RESOURCE::Resource.new(attributes: resource_attributes)
+          Proto::Resource.new(attributes: resource_attributes)
         end
 
         def resource_attributes
           attributes = [
-            OTEL_COMMON::KeyValue.new(
+            Proto::KeyValue.new(
               key: 'service.name',
-              value: OTEL_COMMON::AnyValue.new(string_value: Array(NewRelic::Agent.config[:app_name]).first.to_s)
+              value: Proto::AnyValue.new(string_value: Array(NewRelic::Agent.config[:app_name]).first.to_s)
             ),
-            OTEL_COMMON::KeyValue.new(
+            Proto::KeyValue.new(
               key: 'host',
-              value: OTEL_COMMON::AnyValue.new(string_value: NewRelic::Agent::Hostname.get.to_s)
+              value: Proto::AnyValue.new(string_value: NewRelic::Agent::Hostname.get.to_s)
             )
           ]
 
           if (entity_guid = NewRelic::Agent.config[:entity_guid])
-            attributes << OTEL_COMMON::KeyValue.new(
+            attributes << Proto::KeyValue.new(
               key: NewRelic::Agent::ENTITY_GUID_KEY,
-              value: OTEL_COMMON::AnyValue.new(string_value: entity_guid)
+              value: Proto::AnyValue.new(string_value: entity_guid)
             )
           end
 
@@ -102,8 +97,8 @@ module NewRelic
         end
 
         def scope_profiles
-          OTEL_PROFILES::ScopeProfiles.new(
-            scope: OTEL_COMMON::InstrumentationScope.new(
+          Proto::ScopeProfiles.new(
+            scope: Proto::InstrumentationScope.new(
               name: INSTRUMENTATION_SCOPE_NAME,
               version: NewRelic::VERSION::STRING
             ),
@@ -114,7 +109,7 @@ module NewRelic
         def profile
           type = sample_type
 
-          OTEL_PROFILES::Profile.new(
+          Proto::Profile.new(
             sample_type: type,
             samples: samples,
             time_unix_nano: window_start_nanos,
@@ -134,7 +129,7 @@ module NewRelic
         end
 
         def sample_type
-          OTEL_PROFILES::ValueType.new(
+          Proto::ValueType.new(
             type_strindex: intern(@report[:mode].to_s),
             unit_strindex: intern(object_mode? ? OBJECT_SAMPLE_VALUE_UNIT : TIME_SAMPLE_VALUE_UNIT)
           )
@@ -148,7 +143,7 @@ module NewRelic
           groups = correlation_possible? ? collapse_ticks(expand_ticks) : uncorrelated_groups
 
           groups.map do |(location_ids, trace_id, span_id), weight|
-            OTEL_PROFILES::Sample.new(
+            Proto::Sample.new(
               stack_index: stack_index(location_ids),
               link_index: link_index(trace_id, span_id),
               values: [sample_value(weight)]
@@ -287,7 +282,7 @@ module NewRelic
         def function_index(frame_id)
           @function_indices[frame_id] ||= begin
             frame = @report[:frames][frame_id] || {}
-            @function_table << OTEL_PROFILES::Function.new(
+            @function_table << Proto::Function.new(
               name_strindex: intern(frame[:name].to_s),
               filename_strindex: intern(frame[:file].to_s),
               start_line: (frame[:line] || 0)
@@ -299,8 +294,8 @@ module NewRelic
         def location_index(frame_id, line)
           by_line = (@location_indices[frame_id] ||= {})
           by_line[line] ||= begin
-            @location_table << OTEL_PROFILES::Location.new(
-              lines: [OTEL_PROFILES::Line.new(function_index: function_index(frame_id), line: line || 0)]
+            @location_table << Proto::Location.new(
+              lines: [Proto::Line.new(function_index: function_index(frame_id), line: line || 0)]
             )
             @location_table.length - 1
           end
@@ -309,7 +304,7 @@ module NewRelic
         def stack_index(location_ids)
           key = location_ids.freeze
           @stack_indices[key] ||= begin
-            @stack_table << OTEL_PROFILES::Stack.new(location_indices: key)
+            @stack_table << Proto::Stack.new(location_indices: key)
             @stack_table.length - 1
           end
         end
@@ -320,7 +315,7 @@ module NewRelic
 
           key = [trace_id, span_id]
           @link_indices[key] ||= begin
-            @link_table << OTEL_PROFILES::Link.new(trace_id: hex_to_bytes(trace_id), span_id: hex_to_bytes(span_id))
+            @link_table << Proto::Link.new(trace_id: hex_to_bytes(trace_id), span_id: hex_to_bytes(span_id))
             @link_table.length - 1
           end
         end
@@ -332,12 +327,12 @@ module NewRelic
         # Every table's index 0 is the spec-mandated zero value, attribute_table included even
         # though nothing here references attributes yet.
         def dictionary
-          OTEL_PROFILES::ProfilesDictionary.new(
-            mapping_table: [OTEL_PROFILES::Mapping.new],
+          Proto::ProfilesDictionary.new(
+            mapping_table: [Proto::Mapping.new],
             location_table: @location_table,
             function_table: @function_table,
             link_table: @link_table,
-            attribute_table: [OTEL_PROFILES::KeyValueAndUnit.new],
+            attribute_table: [Proto::KeyValueAndUnit.new],
             string_table: @string_table,
             stack_table: @stack_table
           )

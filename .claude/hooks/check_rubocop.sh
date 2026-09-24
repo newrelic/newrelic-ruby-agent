@@ -18,7 +18,9 @@ if [ "${#EXISTING_FILES[@]}" -eq 0 ]; then
 fi
 
 set +e
-RESULT="$(bundle exec rubocop --format simple "${EXISTING_FILES[@]}" 2>&1)"
+# --force-exclusion: rubocop ignores AllCops/Exclude when given explicit paths, which would
+# otherwise lint generated files (e.g. the vendored *_pb.rb protobuf classes) the project excludes.
+RESULT="$(bundle exec rubocop --format simple --force-exclusion "${EXISTING_FILES[@]}" 2>&1)"
 EXIT_CODE=$?
 set -e
 
