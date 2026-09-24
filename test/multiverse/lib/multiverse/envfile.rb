@@ -17,6 +17,11 @@ module Multiverse
       gem 'ostruct'
     NON_BUILTIN_GEMS
 
+    # To avoid a Gem::LoadError
+    JRUBY_GEMS = <<~JRUBY_ONLY_GEMS
+      gem 'json', '~> 2.21', platforms: :jruby
+    JRUBY_ONLY_GEMS
+
     def initialize(file_path, options = {})
       self.file_path = file_path
       @instrumentation_permutations = ['chain']
@@ -65,13 +70,19 @@ module Multiverse
       content = strip_leading_spaces(content)
       return if content.nil? || content.empty?
 
-      @gemfiles.push(add_ruby34_plus_gems(content))
+      @gemfiles.push(add_jruby_gems(add_ruby34_plus_gems(content)))
     end
 
     def add_ruby34_plus_gems(content)
       return content unless RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
 
       content + RUBY34_PLUS_GEMS
+    end
+
+    def add_jruby_gems(content)
+      return content unless RUBY_ENGINE == 'jruby'
+
+      content + JRUBY_GEMS
     end
 
     def ruby3_gem_sorted_set
