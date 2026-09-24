@@ -39,7 +39,7 @@ module NewRelic
       end
 
       def log_request(uri, data, marshaller)
-        log_body(uri) do
+        log_request_body(uri) do
           if marshaller.class.human_readable?
             marshaller.dump(data, :encoder => @encoder)
           else
@@ -48,13 +48,9 @@ module NewRelic
         end
       end
 
-      def log_profiles_request(uri, &body)
-        log_body(uri, &body)
-      end
-
       # Yielded, not passed: rendering a body eagerly would cost a marshal or protobuf decode on
       # every request even when audit logging is off or the endpoint is filtered out.
-      def log_body(uri)
+      def log_request_body(uri)
         return unless enabled? && allowed_endpoint?(uri)
 
         setup_logger unless setup?

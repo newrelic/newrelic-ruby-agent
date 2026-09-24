@@ -54,11 +54,11 @@ module NewRelic
         # link_table only fills in once `request` builds every Sample -- logged here after
         # that, since Session never sees these tables.
         def log_correlation_summary
-          distinct_spans = @link_table.length - 1
-          distinct_traces = @link_table[1..].map(&:trace_id).uniq.length
-          NewRelic::Agent.logger.debug(
+          NewRelic::Agent.logger.debug do
+            distinct_spans = @link_table.length - 1
+            distinct_traces = @link_table[1..].map(&:trace_id).uniq.length
             "Continuous profiling correlated samples to #{distinct_spans} distinct span(s) across #{distinct_traces} distinct trace(s)"
-          )
+          end
         end
 
         def request

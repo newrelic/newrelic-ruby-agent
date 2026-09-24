@@ -297,28 +297,19 @@ module NewRelic
       end
 
       def establish_shared_connection
-        get_or_create_connection(:@shared_tcp_connection)
+        @shared_tcp_connection ||= create_and_start_http_connection
       end
 
       def close_shared_connection
-        close_connection(:@shared_tcp_connection, 'shared')
+        if @shared_tcp_connection
+          ::NewRelic::Agent.logger.debug("Closing shared TCP connection to #{@shared_tcp_connection.address}:#{@shared_tcp_connection.port}")
+          @shared_tcp_connection.finish if @shared_tcp_connection.started?
+          @shared_tcp_connection = nil
+        end
       end
 
       def has_shared_connection?
         !@shared_tcp_connection.nil?
-      end
-
-      def get_or_create_connection(ivar)
-        instance_variable_get(ivar) || instance_variable_set(ivar, create_and_start_http_connection)
-      end
-
-      def close_connection(ivar, label)
-        conn = instance_variable_get(ivar)
-        return unless conn
-
-        NewRelic::Agent.logger.debug("Closing #{label} TCP connection to #{conn.address}:#{conn.port}")
-        conn.finish if conn.started?
-        instance_variable_set(ivar, nil)
       end
 
       def ssl_cert_store
@@ -444,7 +435,7 @@ module NewRelic
         }
 
         if @audit_logger.enabled?
-          @audit_logger.log_profiles_request(profiles_audit_uri) { profiles_audit_body(bytes) }
+          @audit_logger.log_request_body(profiles_audit_uri) { profiles_audit_body(bytes) }
           @audit_logger.log_request_headers(profiles_audit_uri, redacted_profiles_headers(headers))
         end
 

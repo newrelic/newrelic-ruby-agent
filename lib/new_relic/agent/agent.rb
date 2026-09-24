@@ -153,6 +153,8 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
+        MAX_CONCURRENT_PROFILES_FORWARDERS = 4
+
         # the agent control health check file generator
         attr_reader :health_check
         # the statistics engine that holds all the timeslice data
@@ -338,8 +340,6 @@ module NewRelic
             transmit_data_types
           end
         end
-
-        MAX_CONCURRENT_PROFILES_FORWARDERS = 4
 
         private
 

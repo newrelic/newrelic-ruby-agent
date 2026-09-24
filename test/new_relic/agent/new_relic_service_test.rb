@@ -620,7 +620,7 @@ class NewRelicServiceTest < Minitest::Test
       @http_handle.respond_to('v1/profiles', '', :code => 202)
       audit_logger = @service.instance_variable_get(:@audit_logger)
       audit_logger.expects(:log_request_headers).never
-      audit_logger.expects(:log_profiles_request).never
+      audit_logger.expects(:log_request_body).never
 
       @service.profiles_data('raw-profile-bytes')
     end
@@ -633,7 +633,7 @@ class NewRelicServiceTest < Minitest::Test
       audit_logger.expects(:log_request_headers).with do |uri, headers|
         uri == "#{@server}/v1/profiles" && headers['api-key'] == 'license-ke*'
       end
-      audit_logger.stubs(:log_profiles_request)
+      audit_logger.stubs(:log_request_body)
 
       @service.profiles_data('raw-profile-bytes')
     end
@@ -645,7 +645,7 @@ class NewRelicServiceTest < Minitest::Test
       audit_logger = @service.instance_variable_get(:@audit_logger)
       audit_logger.stubs(:log_request_headers)
       audited = nil
-      audit_logger.define_singleton_method(:log_profiles_request) { |uri, &body| audited = [uri, body.call] }
+      audit_logger.define_singleton_method(:log_request_body) { |uri, &body| audited = [uri, body.call] }
 
       @service.profiles_data('raw-profile-bytes')
 
@@ -671,7 +671,7 @@ class NewRelicServiceTest < Minitest::Test
         refute_includes headers.values, 'license-key'
         true
       end
-      audit_logger.stubs(:log_profiles_request)
+      audit_logger.stubs(:log_request_body)
 
       @service.profiles_data('raw-profile-bytes')
     end

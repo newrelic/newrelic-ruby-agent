@@ -60,8 +60,8 @@ module NewRelic
 
         private
 
-        # StackProf's `interval` means microseconds of cpu/wall time for :cpu/:wall, but a count
-        # of object allocations for :object.
+        # StackProf's `interval` means microseconds of CPU time for :cpu, but a count of object
+        # allocations for :object.
         def sample_interval(mode)
           return NewRelic::Agent.config[:'profiling.object_allocation_interval'] if mode == :object
 

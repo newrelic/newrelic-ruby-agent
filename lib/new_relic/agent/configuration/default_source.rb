@@ -225,7 +225,7 @@ module NewRelic
         SAMPLE_PERIOD_MINIMUM_SECONDS = 1 / 1_000_000.0
         SAMPLE_PERIOD_MAXIMUM_SECONDS = STACKPROF_INTERVAL_MAXIMUM / 1_000_000.0
 
-        def self.enforce_object_allocation_interval_minimum(value)
+        def self.enforce_object_allocation_interval_range(value)
           return value if value.nil?
 
           if value < OBJECT_ALLOCATION_INTERVAL_MINIMUM
@@ -1156,7 +1156,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :transform => DefaultSource.method(:enforce_object_allocation_interval_minimum),
+          :transform => DefaultSource.method(:enforce_object_allocation_interval_range),
           :description => 'The number of object allocations between stack samples taken by the continuous ' \
             'profiler. Only used when `profiling.include` is `object`. Must be between ' \
             "#{DefaultSource::OBJECT_ALLOCATION_INTERVAL_MINIMUM} and #{DefaultSource::STACKPROF_INTERVAL_MAXIMUM}."

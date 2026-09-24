@@ -373,8 +373,8 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_enforce_object_allocation_interval_minimum_leaves_valid_values_untouched
-      assert_equal 10_000, DefaultSource.enforce_object_allocation_interval_minimum(10_000)
+    def test_enforce_object_allocation_interval_range_leaves_valid_values_untouched
+      assert_equal 10_000, DefaultSource.enforce_object_allocation_interval_range(10_000)
     end
 
     def test_object_allocation_interval_config_enforces_minimum

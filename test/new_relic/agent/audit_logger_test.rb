@@ -196,65 +196,65 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
-  def test_log_profiles_request_never_setup_if_disabled
+  def test_log_request_body_never_setup_if_disabled
     with_config(:'audit_log.enabled' => false) do
       logger = NewRelic::Agent::AuditLogger.new
-      logger.log_profiles_request(@uri) { 'decoded profile body' }
+      logger.log_request_body(@uri) { 'decoded profile body' }
 
       refute_predicate logger, :setup?, 'Expected logger to not have been setup'
     end
   end
 
-  def test_log_profiles_request_logs_uri_and_body
+  def test_log_request_body_logs_uri_and_body
     setup_fake_logger
-    @logger.log_profiles_request(@uri) { 'decoded profile body' }
+    @logger.log_request_body(@uri) { 'decoded profile body' }
 
     assert_log_contains_string("REQUEST: #{@uri}")
     assert_log_contains_string('decoded profile body')
   end
 
-  def test_log_profiles_request_filters_endpoints
+  def test_log_request_body_filters_endpoints
     with_config(:'audit_log.endpoints' => ['metric_data']) do
       setup_fake_logger
-      @logger.log_profiles_request('host/v1/profiles') { 'decoded profile body' }
+      @logger.log_request_body('host/v1/profiles') { 'decoded profile body' }
 
       assert_empty read_log_body
     end
   end
 
-  def test_log_profiles_request_does_not_render_the_body_for_a_filtered_endpoint
+  def test_log_request_body_does_not_render_the_body_for_a_filtered_endpoint
     with_config(:'audit_log.endpoints' => ['metric_data']) do
       setup_fake_logger
       rendered = false
 
-      @logger.log_profiles_request('host/v1/profiles') { rendered = true }
+      @logger.log_request_body('host/v1/profiles') { rendered = true }
 
       refute rendered, 'Expected the body block to be skipped for a filtered endpoint'
     end
   end
 
-  def test_log_profiles_request_allows_through_endpoints
+  def test_log_request_body_allows_through_endpoints
     with_config(:'audit_log.endpoints' => ['v1/profiles']) do
       setup_fake_logger
-      @logger.log_profiles_request('host/v1/profiles') { 'decoded profile body' }
+      @logger.log_request_body('host/v1/profiles') { 'decoded profile body' }
 
       assert_log_contains_string('decoded profile body')
     end
   end
 
   TRAPPABLE_ERRORS.each do |error|
-    define_method("test_log_profiles_request_traps_#{error.class}") do
+    define_method("test_log_request_body_traps_#{error.class}") do
       setup_fake_logger_with_failure(error)
-      @logger.log_profiles_request(@uri) { 'decoded profile body' }
+      @logger.log_request_body(@uri) { 'decoded profile body' }
 
       assert_empty read_log_body
     end
   end
 
-  def test_log_profiles_request_allows_other_exceptions_through
+  def test_log_request_body_allows_other_exceptions_through
     setup_fake_logger_with_failure(Exception.new)
     assert_raises(Exception) do
-      @logger.log_profiles_request(@uri) { 'decoded profile body' }
+      @logger.log_request_body(@uri) { 'decoded profile body' }
     end
   end
 
