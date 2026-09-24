@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jruby_version: [9.4.14.0, 10.1.2.0]
+        jruby_version: [9.4.14.0, 10.1.1.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jruby_version: [9.4.14.0, 10.1.2.0]
+        jruby_version: [9.4.14.0, 10.1.1.0]
         suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, hybrid_agent, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, ruby_openai, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
 
     steps:
@@ -93,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jruby_version: [9.4.14.0, 10.1.2.0]
+        jruby_version: [9.4.14.0, 10.1.1.0]
         suite: [sidekiq]
 
     steps:
