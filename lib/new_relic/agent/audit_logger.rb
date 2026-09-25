@@ -39,16 +39,23 @@ module NewRelic
       end
 
       def log_request(uri, data, marshaller)
+        log_request_body(uri) do
+          if marshaller.class.human_readable?
+            marshaller.dump(data, :encoder => @encoder)
+          else
+            marshaller.prepare(data, :encoder => @encoder).inspect
+          end
+        end
+      end
+
+      # Yielded, not passed: rendering a body eagerly would cost a marshal or protobuf decode on
+      # every request even when audit logging is off or the endpoint is filtered out.
+      def log_request_body(uri)
         return unless enabled? && allowed_endpoint?(uri)
 
         setup_logger unless setup?
-        request_body = if marshaller.class.human_readable?
-          marshaller.dump(data, :encoder => @encoder)
-        else
-          marshaller.prepare(data, :encoder => @encoder).inspect
-        end
         @log.info("REQUEST: #{uri}")
-        @log.info("REQUEST BODY: #{request_body}")
+        @log.info("REQUEST BODY: #{yield}")
       rescue StandardError, SystemStackError, SystemCallError => e
         ::NewRelic::Agent.logger.warn('Failed writing to audit log', e)
       rescue Exception => e

@@ -14,12 +14,23 @@ module NewRelic::Agent
     def initialize
       @events = {}
       @runaway_threshold = 100
+      @write_lock = Mutex.new
     end
 
+    # Copy-on-write, not `<<`, so a #notify iterating the old array is undisturbed; @write_lock
+    # stops two writers building copies from the same stale array and discarding each other.
     def subscribe(event, &handler)
-      @events[event] ||= []
-      @events[event] << handler
+      @write_lock.synchronize { @events[event] = (@events[event] || []) + [handler] }
       check_for_runaway_subscriptions(event)
+      handler
+    end
+
+    def unsubscribe(event, handler)
+      @write_lock.synchronize do
+        return unless @events[event]
+
+        @events[event] -= [handler]
+      end
     end
 
     def check_for_runaway_subscriptions(event)
