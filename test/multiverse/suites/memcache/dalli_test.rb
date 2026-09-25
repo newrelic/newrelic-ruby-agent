@@ -118,6 +118,20 @@ if defined?(Dalli)
           assert_equal ring.server_for_key('key'), ring.server_for_key('key', alive_cache)
           refute_empty alive_cache, 'expected dalli to populate the alive_cache it was passed'
         end
+
+        # A dropped req_options keyword is silently treated as an extra cache key, so dalli's
+        # own validation of the option is the only observable proof that it arrived.
+        MULTI_OPERATIONS.each do |operation|
+          define_method(:"test_#{operation}_forwards_req_options_keyword") do
+            key = set_key_for_testcase
+
+            error = assert_raises(ArgumentError) do
+              @cache.send(operation, key, :req_options => {:p_token => 123})
+            end
+
+            assert_match(/p_token must be a String/, error.message)
+          end
+        end
       end
 
       def test_assign_instance_to_with_ip_and_port

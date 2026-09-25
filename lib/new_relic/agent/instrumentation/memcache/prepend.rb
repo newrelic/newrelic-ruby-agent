@@ -69,6 +69,9 @@ module NewRelic::Agent::Instrumentation
           define_method method_name do |*args, &block|
             get_multi_with_newrelic_tracing(method_name) { super(*args, &block) }
           end
+
+          # Preserves Dalli 5.1.1's req_options keyword argument
+          ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
         end
       end
 

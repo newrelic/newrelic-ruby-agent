@@ -34,6 +34,9 @@ module NewRelic
                 get_multi_with_newrelic_tracing(method_name) { __send__(method_name_without, *args, &block) }
               end
 
+              # Preserves Dalli 5.1.1's req_options keyword argument
+              ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
+
               __send__(visibility, method_name)
               __send__(visibility, method_name_without)
             end
