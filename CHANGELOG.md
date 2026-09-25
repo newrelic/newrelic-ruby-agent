@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.9.0
 
 - **Feature: Continuous Profiling (preview)**
 
