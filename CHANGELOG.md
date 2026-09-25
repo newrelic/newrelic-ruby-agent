@@ -18,12 +18,12 @@
 
   | Configuration name | Default | Behavior |
   | ------------------ | ------- | -------- |
-  | profiling.enabled | `false` | If `true`, the agent collects and reports continuous profiling data |
-  | profiling.include | `cpu` | What to sample: `cpu` for CPU time, or `object` for object allocations |
-  | profiling.sample_period | `0.01` | Seconds between stack samples. Only used when `profiling.include` is `cpu`. Must be between 0.000001 and 0.999999 |
-  | profiling.object_allocation_interval | `10000` | Object allocations between stack samples. Only used when `profiling.include` is `object`. Must be between 1000 and 999999 |
-  | profiling.delay | `0` | Milliseconds to wait before profiling starts. `0` starts immediately |
-  | profiling.duration | `0` | Milliseconds to profile before stopping automatically. `0` profiles until the process exits |
+  | profiling.enabled | `false` | If `true`, the agent collects and reports continuous profiling data. |
+  | profiling.include | `cpu` | What to sample: `cpu` for CPU time, or `object` for object allocations. |
+  | profiling.sample_period | `0.01` | Seconds between stack samples. Only used when `profiling.include` is `cpu`. Must be between 0.000001 and 0.999999. |
+  | profiling.object_allocation_interval | `10000` | Object allocations between stack samples. Only used when `profiling.include` is `object`. Must be between 1000 and 999999. |
+  | profiling.delay | `0` | Milliseconds to wait before profiling starts. `0` starts immediately. |
+  | profiling.duration | `0` | Milliseconds to profile before stopping automatically. `0` profiles until the process exits. |
 
   [PR#3617](https://github.com/newrelic/newrelic-ruby-agent/pull/3617)
 
