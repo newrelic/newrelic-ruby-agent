@@ -45,8 +45,9 @@ module NewRelic
 
               alias_method(:server_for_key_without_newrelic_trace, :server_for_key)
 
-              def server_for_key(key)
-                server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace(key) }
+              # Dalli 5.1.1 added an optional alive_cache argument
+              def server_for_key(key, *args)
+                server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace(key, *args) }
               end
             end
           end

@@ -89,7 +89,8 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def server_for_key(key)
+          # Dalli 5.1.1 added an optional alive_cache argument
+          def server_for_key(key, *args)
             server_for_key_with_newrelic_tracing { super }
           end
         end
