@@ -330,6 +330,10 @@ module NewRelic
         @trace_id = value
       end
 
+      def trace_id_if_generated
+        @trace_id
+      end
+
       def default_priority
         (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
       end
