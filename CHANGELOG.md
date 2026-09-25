@@ -27,6 +27,10 @@
 
   [PR#3617](https://github.com/newrelic/newrelic-ruby-agent/pull/3617)
 
+- **Feature: Add support for Dalli 5.1.1**
+
+  Dalli 5.1.1 added arguments to some of the methods the agent instruments, which could raise an `ArgumentError` on multi-key operations or cause request options to be silently dropped. Now, the agent accepts and forwards a variable number of positional and keyword arguments for these methods. [PR#3683](https://github.com/newrelic/newrelic-ruby-agent/pull/3683)
+
 ## v10.8.0
 
 - **Feature: Report a unique hostname for Google Cloud Run Worker Pools and Jobs**
