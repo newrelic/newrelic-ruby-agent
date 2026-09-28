@@ -237,6 +237,11 @@ module NewRelic
 
         def merge_data_from_pipe(pipe_handle)
           pipe = find_pipe_for_handle(pipe_handle)
+
+          # Only called for pipes IO.select just reported readable, so eof? can't block here. Checked after
+          # the read, it could block until every process that inherited the write end exits.
+          return pipe.close if pipe.eof?
+
           raw_payload = pipe.read
           if raw_payload && !raw_payload.empty?
             if raw_payload == Pipe::READY_MARKER
@@ -249,8 +254,6 @@ module NewRelic
               end
             end
           end
-
-          pipe.close if pipe.eof?
         end
 
         def unmarshal(data)

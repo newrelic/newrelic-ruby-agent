@@ -31,6 +31,10 @@
 
   Dalli 5.1.1 added arguments to some of the methods the agent instruments, which could raise an `ArgumentError` on multi-key operations or cause request options to be silently dropped. Now, the agent accepts and forwards a variable number of positional and keyword arguments for these methods. [PR#3683](https://github.com/newrelic/newrelic-ruby-agent/pull/3683)
 
+- **Bugfix: Prevent `Parallel` workers from hanging when reporting large payloads**
+
+  When `parallel` instrumentation was enabled, `Parallel.each`/`Parallel.map` with `in_processes:` could hang forever. Each worker inherited the pipe write ends the agent registered for its earlier siblings, so those pipes couldn't reach end-of-file, and the agent's pipe listener thread blocked waiting on one of them. Any worker whose data exceeded the operating system pipe buffer then blocked on exit. Now, the agent closes each pipe's write end in the parent right after forking, and the listener no longer blocks on a single pipe while others still have data waiting. Thank you to [@yayamochi](https://github.com/yayamochi) for reporting this bug. [Issue#3680](https://github.com/newrelic/newrelic-ruby-agent/issues/3680) [PR#3687](https://github.com/newrelic/newrelic-ruby-agent/pull/3687)
+
 ## v10.8.0
 
 - **Feature: Report a unique hostname for Google Cloud Run Worker Pools and Jobs**
