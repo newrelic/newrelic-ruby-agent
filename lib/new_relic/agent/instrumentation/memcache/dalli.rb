@@ -34,6 +34,9 @@ module NewRelic
                 get_multi_with_newrelic_tracing(method_name) { __send__(method_name_without, *args, &block) }
               end
 
+              # Preserves Dalli 5.1.1's req_options keyword argument
+              ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
+
               __send__(visibility, method_name)
               __send__(visibility, method_name_without)
             end
@@ -45,8 +48,9 @@ module NewRelic
 
               alias_method(:server_for_key_without_newrelic_trace, :server_for_key)
 
-              def server_for_key(key)
-                server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace(key) }
+              # Dalli 5.1.1 added an optional alive_cache argument
+              def server_for_key(key, *args)
+                server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace(key, *args) }
               end
             end
           end

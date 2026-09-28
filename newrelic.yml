@@ -785,6 +785,33 @@ common: &default_settings
   # Specify a custom hostname for display in the New Relic UI.
   # process_host.display_name: default hostname
 
+  # The delay, in milliseconds, before continuous profiling starts after being
+  # enabled. Defaults to 0, meaning profiling starts immediately.
+  # profiling.delay: 0
+
+  # The duration, in milliseconds, that continuous profiling runs before
+  # automatically stopping. Defaults to 0, meaning profiling runs indefinitely
+  # until explicitly stopped.
+  # profiling.duration: 0
+
+  # If true, enables continuous profiling. Requires the stackprof and
+  # google-protobuf gems to be present in the application. Not supported on JRuby.
+  # Automatically disabled when high security mode is enabled.
+  # profiling.enabled: false
+
+  # The stackprof sampling mode to use for continuous profiling: cpu or object.
+  # profiling.include: cpu
+
+  # The number of object allocations between stack samples taken by the continuous
+  # profiler. Only used when profiling.include is object. Must be between 1000 and
+  # 999999.
+  # profiling.object_allocation_interval: 10000
+
+  # The interval, in seconds, between stack samples taken by the continuous
+  # profiler. Only used when profiling.include is cpu. Must be between 0.000001
+  # and 0.999999.
+  # profiling.sample_period: 0.01
+
   # Defines a host for communicating with the New Relic collector via a proxy
   # server.
   # proxy_host: nil

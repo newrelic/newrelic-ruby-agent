@@ -28,6 +28,7 @@ require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
 require 'new_relic/agent/log_event_aggregator'
+require 'new_relic/agent/continuous_profiling/session'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -87,6 +88,8 @@ module NewRelic
         @wait_on_connect_mutex = Mutex.new
         @after_fork_lock = Mutex.new
         @wait_on_connect_condition = ConditionVariable.new
+        @profiles_forwarder_lock = Mutex.new
+        @profiles_forwarder_count = 0
       end
 
       def init_components
@@ -121,6 +124,7 @@ module NewRelic
         @custom_event_aggregator = CustomEventAggregator.new(@events)
         @span_event_aggregator = SpanEventAggregator.new(@events)
         @log_event_aggregator = LogEventAggregator.new(@events)
+        @continuous_profiling_session = ContinuousProfiling::Session.new(@events)
       end
 
       def setup_attribute_filter
@@ -149,6 +153,8 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
+        MAX_CONCURRENT_PROFILES_FORWARDERS = 4
+
         # the agent control health check file generator
         attr_reader :health_check
         # the statistics engine that holds all the timeslice data
@@ -181,6 +187,7 @@ module NewRelic
         attr_reader :custom_event_aggregator
         attr_reader :span_event_aggregator
         attr_reader :log_event_aggregator
+        attr_reader :continuous_profiling_session
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
@@ -230,6 +237,10 @@ module NewRelic
           # Clear out locks and stats left over from parent process
           reset_objects_with_locks
           drop_buffered_data
+
+          # Ahead of setup_and_start_agent: a connect on the worker thread it spawns applies
+          # server-side config, which can start a session this call would then tear down.
+          @continuous_profiling_session.after_fork
 
           setup_and_start_agent(options)
         end
@@ -319,6 +330,9 @@ module NewRelic
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
           @stats_engine = StatsEngine.new
+          @continuous_profiling_session.reset_after_fork_from_parent_thread
+          @profiles_forwarder_lock = Mutex.new
+          @profiles_forwarder_count = 0
         end
 
         def flush_pipe_data # used only by resque
@@ -348,7 +362,41 @@ module NewRelic
           end
         end
 
+        # Forwarded off-thread so a slow export doesn't block other children's data; capped
+        # since forwarders serialize on NewRelicService's profiles request lock anyway.
+        def forward_profiles_data(data)
+          @profiles_forwarder_lock.synchronize do
+            if @profiles_forwarder_count >= MAX_CONCURRENT_PROFILES_FORWARDERS
+              NewRelic::Agent.increment_metric('Supportability/Ruby/Profiling/Forward/Dropped')
+              NewRelic::Agent.logger.debug(
+                'Dropping a forwarded continuous profiling payload: too many exports already in flight'
+              )
+              return nil
+            end
+
+            @profiles_forwarder_count += 1
+          end
+
+          begin
+            Threading::AgentThread.create('Continuous Profiling Forwarder') do
+              @service.profiles_data(data)
+            ensure
+              @profiles_forwarder_lock.synchronize { @profiles_forwarder_count -= 1 }
+            end
+          rescue => e
+            # The block's ensure never runs if the thread was never created, and a count that
+            # can't come back down drops every later payload for the life of the process.
+            @profiles_forwarder_lock.synchronize { @profiles_forwarder_count -= 1 }
+            NewRelic::Agent.logger.error('Failed to start a continuous profiling forwarder thread', e)
+            nil
+          end
+        end
+
         def merge_data_for_endpoint(endpoint, data)
+          if endpoint == :profiles_data && data && !data.empty?
+            return forward_profiles_data(data)
+          end
+
           if data && !data.empty?
             container = container_for_endpoint(endpoint)
             if container.respond_to?(:has_metadata?) && container.has_metadata?

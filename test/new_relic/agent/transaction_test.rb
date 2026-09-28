@@ -1499,6 +1499,28 @@ module NewRelic::Agent
       assert_equal 32, txn.trace_id.size
     end
 
+    def test_trace_id_if_generated_does_not_generate_but_reflects_later_generation
+      txn = NewRelic::Agent::Transaction.new(:web, {})
+
+      NewRelic::Agent::GuidGenerator.expects(:generate_guid).once.returns('a' * 32)
+
+      assert_nil txn.trace_id_if_generated
+
+      assert_equal 'a' * 32, txn.trace_id
+      assert_equal 'a' * 32, txn.trace_id_if_generated
+    end
+
+    def test_trace_id_if_generated_reflects_an_assigned_or_generated_trace_id
+      assigned = NewRelic::Agent::Transaction.new(:web, {})
+      assigned.trace_id = 'a' * 32
+
+      assert_equal 'a' * 32, assigned.trace_id_if_generated
+
+      generated = NewRelic::Agent::Transaction.new(:web, {})
+
+      assert_equal generated.trace_id, generated.trace_id_if_generated
+    end
+
     def test_trace_ratio_sampled_with_ratio_one_always_samples
       txn = in_transaction {}
 
