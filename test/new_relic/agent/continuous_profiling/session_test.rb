@@ -6,7 +6,7 @@ require_relative '../../../test_helper'
 require 'timeout'
 require 'new_relic/agent/continuous_profiling/session'
 
-unless defined?(JRuby)
+unless NewRelic::LanguageSupport.jruby?
 
   module NewRelic::Agent::ContinuousProfiling
     class SessionTest < Minitest::Test
