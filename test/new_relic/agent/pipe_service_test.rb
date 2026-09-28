@@ -129,6 +129,14 @@ class PipeServiceTest < Minitest::Test
       assert_equal payload, received_data[:log_event_data]
     end
 
+    def test_profiles_data
+      received_data = data_from_forked_process do
+        @service.profiles_data('raw-profile-bytes')
+      end
+
+      assert_equal 'raw-profile-bytes', received_data[:profiles_data]
+    end
+
     def test_multiple_writes_to_pipe
       pid = Process.fork do
         metric_data0 = generate_metric_data('Custom/something')

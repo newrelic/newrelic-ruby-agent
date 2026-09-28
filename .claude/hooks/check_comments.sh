@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Stop hook: judges every comment line added during this session against this repo's
-# CLAUDE.md comment-discipline rule (WHY only, never WHAT, 1-2 lines). Blocks the turn from
-# ending if a fresh, context-free `claude -p` review finds anything to fix.
+# CLAUDE.md comment-discipline rule (WHY only, never WHAT, 1-2 lines), defaulting to removal
+# rather than rewording. Blocks the turn from ending if a fresh, context-free `claude -p`
+# review finds anything to fix.
 set -euo pipefail
 
 # Guard against the nested `claude -p` judge call below re-triggering this same hook.
@@ -30,17 +31,34 @@ if [ -z "$ADDED_COMMENTS" ]; then
 fi
 
 PROMPT="Review ONLY the added lines (prefixed with +) in this git diff for Ruby comments.
-Rule: a comment is only justified if it states a non-obvious WHY (a hidden constraint, a 
-subtle invariant, a workaround, surprising behavior) that a reader could not get from the 
-code itself. Never justified: restating WHAT the code does, referencing PR/issue numbers 
-or task history, or exceeding 2 lines when a shorter version would do. If a comment doesn't 
-need to be there, remove it. 
-Ignore the standard 2-line license header and frozen_string_literal comment, and any yardoc 
+
+The default verdict is REMOVE. Deletion is the preferred fix; shortening is a distant second
+and is right only for a comment that genuinely must stay but is wordy. Begin from the
+assumption that every added comment should go, and spare one only if deleting it would
+plausibly lead a competent reader of this code to make a mistake.
+
+A comment survives only if it states a non-obvious WHY the code cannot state itself: a hidden
+constraint, a cross-file or ordering dependency, a subtle invariant, a workaround for specific
+behavior, or something whose breakage would be silent. \"Useful context\", \"helps the reader
+follow along\", and \"explains the design\" are NOT survival reasons -- those are removals.
+
+Report REMOVE (never merely shortening) when the comment:
+- restates WHAT the code does, or narrates the obvious
+- explains or justifies a change, or reads as commit-message, PR, issue, or task-history content
+- repeats what a nearby existing comment, a method name, a constant name, or a test name says
+- explains why code is defensive, redundant, or belt-and-braces
+- labels or introduces the lines beneath it
+- needs more than 2 lines to make its point -- treat the length as evidence it is narrating
+  rather than constraining, and remove it instead of compressing it
+
+Ignore the standard 2-line license header, the frozen_string_literal comment, and yardoc
 comments for public documentation.
 
-For each added comment that violates the rule, report file, line (from the diff hunk
-header), the comment text, and a one-sentence reason. If every added comment is fine,
-say so explicitly.
+For each added comment that should change, report file, line (from the diff hunk header), the
+comment text, and a one-sentence reason that starts with the action: \"remove -- \" plus why it
+fails, or, for the rare must-stay-but-wordy case, \"shorten -- \" plus what constraint makes it
+load-bearing. When torn between the two, say remove. If every added comment is justified,
+return an empty violations array.
 
 Respond with ONLY a JSON object, no markdown fences, no other text, matching exactly:
 {\"violations\": [{\"file\": \"...\", \"line\": ..., \"comment\": \"...\", \"reason\": \"...\"}]}
@@ -67,5 +85,6 @@ fi
 
 REASON="$(echo "$RESULT" | jq -r '.violations[] | "- \(.file):\(.line) — \(.comment | tostring) — \(.reason)"' 2>/dev/null || true)"
 
-jq -n --arg reason "Comment-discipline check found issues to fix before finishing:
+jq -n --arg reason "Comment-discipline check found comments to fix before finishing. Prefer
+deleting a flagged comment over rewording it; only shorten one that is genuinely load-bearing:
 $REASON" '{decision: "block", reason: $reason}'

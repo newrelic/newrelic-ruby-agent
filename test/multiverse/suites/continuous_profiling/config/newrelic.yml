@@ -1,0 +1,6 @@
+---
+development:
+  license_key: bootstrap_newrelic_admin_license_key_000
+  app_name: test
+  monitor_mode: true
+  log_level: debug

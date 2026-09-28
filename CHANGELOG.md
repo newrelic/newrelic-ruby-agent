@@ -1,5 +1,36 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.9.0
+
+- **Feature: Continuous Profiling (preview)**
+
+  Continuous Profiling is a new feature which is not yet generally available for use. The agent-side component code is now present in the agent but to actually use it ahead of the General Availability release, you will need to contact your New Relic sales representative to join the preview early.
+
+  Continuous Profiling repeatedly samples the Ruby call stacks of your running application and reports them to New Relic, so you can see which methods are consuming the most CPU time (or allocating the most objects) in production, without adding code to your app.
+
+  To turn it on, add the [`stackprof`](https://rubygems.org/gems/stackprof) and [`google-protobuf`](https://rubygems.org/gems/google-protobuf) gems to your application's `Gemfile`, then set `profiling.enabled` to `true`:
+
+  ```yaml
+    profiling.enabled: true
+  ```
+
+  With only `profiling.enabled` set, the agent samples CPU time every 10 milliseconds for the life of the process. These options let you tune that behavior:
+
+  | Configuration name | Default | Behavior |
+  | ------------------ | ------- | -------- |
+  | profiling.enabled | `false` | If `true`, the agent collects and reports continuous profiling data. |
+  | profiling.include | `cpu` | What to sample: `cpu` for CPU time, or `object` for object allocations. |
+  | profiling.sample_period | `0.01` | Seconds between stack samples. Only used when `profiling.include` is `cpu`. Must be between 0.000001 and 0.999999. |
+  | profiling.object_allocation_interval | `10000` | Object allocations between stack samples. Only used when `profiling.include` is `object`. Must be between 1000 and 999999. |
+  | profiling.delay | `0` | Milliseconds to wait before profiling starts. `0` starts immediately. |
+  | profiling.duration | `0` | Milliseconds to profile before stopping automatically. `0` profiles until the process exits. |
+
+  [PR#3617](https://github.com/newrelic/newrelic-ruby-agent/pull/3617)
+
+- **Feature: Add support for Dalli 5.1.1**
+
+  Dalli 5.1.1 added arguments to some of the methods the agent instruments, which could raise an `ArgumentError` on multi-key operations or cause request options to be silently dropped. Now, the agent accepts and forwards a variable number of positional and keyword arguments for these methods. [PR#3683](https://github.com/newrelic/newrelic-ruby-agent/pull/3683)
+
 ## v10.8.0
 
 - **Feature: Report a unique hostname for Google Cloud Run Worker Pools and Jobs**

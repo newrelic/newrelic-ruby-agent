@@ -69,6 +69,9 @@ module NewRelic::Agent::Instrumentation
           define_method method_name do |*args, &block|
             get_multi_with_newrelic_tracing(method_name) { super(*args, &block) }
           end
+
+          # Preserves Dalli 5.1.1's req_options keyword argument
+          ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
         end
       end
 
@@ -89,7 +92,8 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def server_for_key(key)
+          # Dalli 5.1.1 added an optional alive_cache argument
+          def server_for_key(key, *args)
             server_for_key_with_newrelic_tracing { super }
           end
         end
