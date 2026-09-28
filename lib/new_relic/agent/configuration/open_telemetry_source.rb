@@ -24,9 +24,14 @@ module NewRelic
             @otel_values[config_key] = transform(config_key, raw)
           end
 
-          # optional in the spec
           log_ignored_keys
 
+          # OpenTelemetrySource only applies if otel is enabled, so we can't
+          # pass the configs in the super hash arg like the other sources.
+          # Instead, we bring in the configs during Configuration::Manager#fetch
+          # with has_key?
+          #
+          # This class inherits from Hash, so initialize must return a hash.
           super({})
         end
 
