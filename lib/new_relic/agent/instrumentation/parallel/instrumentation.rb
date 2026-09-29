@@ -17,6 +17,12 @@ module NewRelic::Agent::Instrumentation
         yield
       end
 
+      # Runs in the parent right after the fork. Parallel forks every worker back-to-back,
+      # so waiting for the child's READY marker would let later siblings inherit this write end.
+      def close_report_channel_write_end(channel_id)
+        NewRelic::Agent::PipeChannelManager.channels[channel_id]&.after_fork_in_parent
+      end
+
       def setup_for_txn_metric_merge_at_exit
         # Clear out any existing transaction metrics to prevent duplicates
         # when merging metrics back in at the end of the forked process
