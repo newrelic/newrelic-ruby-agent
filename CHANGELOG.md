@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
+
+  When the agent could not identify a request's controller class, it logged `TypeError: no implicit conversion of nil into String` and then `NoMethodError: undefined method 'finish' for nil`, and recorded no data for that request. These transactions are now named `Controller/(unknown)/<action>` and recorded normally. [PR#3691](https://github.com/newrelic/newrelic-ruby-agent/pull/3691)
+
 ## v10.9.0
 
 - **Feature: Continuous Profiling (preview)**
