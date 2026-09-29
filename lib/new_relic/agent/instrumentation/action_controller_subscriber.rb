@@ -75,6 +75,9 @@ module NewRelic
         def format_metric_name(metric_action, controller)
           controller_class = controller.is_a?(Class) ? controller : Object.const_get(controller)
           "Controller/#{controller_class.controller_path}/#{metric_action}"
+        rescue StandardError => e
+          NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Rails controller name")
+          "Controller/#{NewRelic::Agent::UNKNOWN_METRIC}/#{metric_action}"
         end
 
         def controller_class(payload)

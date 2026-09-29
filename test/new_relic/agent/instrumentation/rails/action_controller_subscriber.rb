@@ -134,6 +134,10 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     assert_equal 'Controller/test/index', metric_name
   end
 
+  def test_format_metric_name_with_an_unresolvable_controller
+    assert_equal 'Controller/(unknown)/index', @subscriber.format_metric_name('index', nil)
+  end
+
   def test_sets_default_transaction_name_on_start
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
 
