@@ -313,6 +313,24 @@ class GrpcServerTest < Minitest::Test
     assert_equal expected, basic_grpc_desc.send(:grpc_headers, input)
   end
 
+  def test_grpc_headers_exclude_synthetics_headers
+    expected = {dino: :rawr}
+    input = expected.merge('x-newrelic-synthetics' => 'header', 'x-newrelic-synthetics-info' => 'info')
+
+    assert_equal expected, basic_grpc_desc.send(:grpc_headers, input)
+  end
+
+  def test_process_synthetics_headers_if_metadata_is_present
+    metadata = {'x-newrelic-synthetics' => 'header', 'x-newrelic-synthetics-info' => 'info'}
+    received = nil
+
+    NewRelic::Agent.agent.monitors.synthetics_monitor.stub(:on_before_call, proc { |headers| received = headers }) do
+      basic_grpc_desc.send(:process_synthetics_headers, metadata)
+    end
+
+    assert_equal({'HTTP_X_NEWRELIC_SYNTHETICS' => 'header', 'HTTP_X_NEWRELIC_SYNTHETICS_INFO' => 'info'}, received)
+  end
+
   def test_trace_options
     desc = basic_grpc_desc
     desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD, method_name)
