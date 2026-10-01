@@ -35,7 +35,7 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: Install Ruby 3.4
-        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # tag v1.327.0
         with:
           ruby-version: 3.4
 
