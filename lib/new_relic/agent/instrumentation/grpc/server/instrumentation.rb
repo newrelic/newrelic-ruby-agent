@@ -82,9 +82,8 @@ module NewRelic
           def process_synthetics_headers(metadata)
             return unless metadata && !metadata.empty?
 
-            ::NewRelic::Agent.agent.monitors.synthetics_monitor.on_before_call(
-              SyntheticsMonitor::SYNTHETICS_HEADER_KEY => metadata[SYNTHETICS_KEY],
-              SyntheticsMonitor::SYNTHETICS_INFO_HEADER_KEY => metadata[SYNTHETICS_INFO_KEY]
+            ::NewRelic::Agent.agent.monitors.synthetics_monitor.accept_headers(
+              metadata[SYNTHETICS_KEY], metadata[SYNTHETICS_INFO_KEY]
             )
           end
 

@@ -324,11 +324,11 @@ class GrpcServerTest < Minitest::Test
     metadata = {'x-newrelic-synthetics' => 'header', 'x-newrelic-synthetics-info' => 'info'}
     received = nil
 
-    NewRelic::Agent.agent.monitors.synthetics_monitor.stub(:on_before_call, proc { |headers| received = headers }) do
+    NewRelic::Agent.agent.monitors.synthetics_monitor.stub(:accept_headers, proc { |*args| received = args }) do
       basic_grpc_desc.send(:process_synthetics_headers, metadata)
     end
 
-    assert_equal({'HTTP_X_NEWRELIC_SYNTHETICS' => 'header', 'HTTP_X_NEWRELIC_SYNTHETICS_INFO' => 'info'}, received)
+    assert_equal %w[header info], received
   end
 
   def test_trace_options
