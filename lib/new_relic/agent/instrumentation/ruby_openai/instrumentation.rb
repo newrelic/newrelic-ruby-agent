@@ -179,7 +179,7 @@ module NewRelic::Agent::Instrumentation
 
     def nr_supportability_metric
       metric = "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
-      return metric if NewRelic::Agent.config[:'ai_monitoring.enabled'] == true
+      return metric if record_content_enabled? || NewRelic::Agent.config[:'ai_monitoring.enabled'] == true
 
       "#{metric}/Basic"
     end
