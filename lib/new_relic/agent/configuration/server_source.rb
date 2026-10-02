@@ -146,6 +146,8 @@ module NewRelic
             if connect_reply.has_key?(gate_key)
               allowed_by_server = connect_reply[gate_key]
               requested_value = ungated_value(config_key, merged_settings, existing_config)
+              next if requested_value.nil?
+
               effective_value = (allowed_by_server && requested_value)
               merged_settings[config_key] = effective_value
             end

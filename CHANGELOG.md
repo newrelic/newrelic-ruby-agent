@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add `ai_monitoring.basic_telemetry.enabled` and deprecate `ai_monitoring.enabled`**
+
+  AI Monitoring now sends basic LLM telemetry (metrics, events, and spans, without input or output content) by default through the new `ai_monitoring.basic_telemetry.enabled` setting, which defaults to `true`. If you've explicitly set `ai_monitoring.enabled`, that setting still takes precedence: `false` turns AI Monitoring off and `true` sends data with content controlled by `ai_monitoring.record_content.enabled`. `ai_monitoring.enabled` is deprecated and will be removed in the next major release. [PR#3698](https://github.com/newrelic/newrelic-ruby-agent/pull/3698)
+
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
 
   When the agent could not identify a request's controller class, it logged `TypeError: no implicit conversion of nil into String` and then `NoMethodError: undefined method 'finish' for nil`, and recorded no data for that request. These transactions are now named `Controller/(unknown)/<action>` and recorded normally. [PR#3691](https://github.com/newrelic/newrelic-ruby-agent/pull/3691)

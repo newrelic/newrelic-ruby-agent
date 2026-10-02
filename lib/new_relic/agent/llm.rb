@@ -16,7 +16,10 @@ module NewRelic
       SEGMENT_PATTERN = %r{Llm/.+/OpenAI/.+}.freeze
 
       def self.instrumentation_enabled?
-        NewRelic::Agent.config[:'ai_monitoring.enabled']
+        enabled = NewRelic::Agent.config[:'ai_monitoring.enabled']
+        return enabled unless enabled.nil?
+
+        NewRelic::Agent.config[:'ai_monitoring.basic_telemetry.enabled']
       end
 
       # LLM content-related attributes are exempt from the 4095 byte limit
@@ -29,7 +32,7 @@ module NewRelic
 
       def self.openai?
         @openai ||= %i[prepend chain].include?(NewRelic::Agent.config[:'instrumentation.ruby_openai']) &&
-          NewRelic::Agent.config[:'ai_monitoring.enabled']
+          instrumentation_enabled?
       end
 
       # Used in NetHTTP instrumentation

@@ -309,6 +309,13 @@ module NewRelic::Agent::Configuration
       assert @source[:'ai_monitoring.enabled']
     end
 
+    def test_should_set_ai_monitoring_basic_telemetry_when_server_says_to
+      rsp = {'agent_config' => {'ai_monitoring.basic_telemetry.enabled' => false}}
+      @source = ServerSource.new(rsp, {})
+
+      refute @source[:'ai_monitoring.basic_telemetry.enabled']
+    end
+
     def test_should_set_ai_monitoring_record_content_when_server_says_to
       rsp = {'agent_config' => {'ai_monitoring.record_content.enabled' => false}}
       @source = ServerSource.new(rsp, {})

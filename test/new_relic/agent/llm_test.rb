@@ -11,6 +11,39 @@ module NewRelic
         NewRelic::Agent::LLM.remove_instance_variable(:@openai) if NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
       end
 
+      def test_instrumentation_enabled_falls_back_to_basic_telemetry_when_ai_monitoring_enabled_unset
+        with_config(:'ai_monitoring.basic_telemetry.enabled' => true) do
+          assert_nil NewRelic::Agent.config[:'ai_monitoring.enabled']
+          assert_predicate NewRelic::Agent::LLM, :instrumentation_enabled?
+        end
+      end
+
+      def test_instrumentation_disabled_when_basic_telemetry_disabled_and_ai_monitoring_enabled_unset
+        with_config(:'ai_monitoring.basic_telemetry.enabled' => false) do
+          refute_predicate NewRelic::Agent::LLM, :instrumentation_enabled?
+        end
+      end
+
+      def test_ai_monitoring_enabled_true_overrides_basic_telemetry
+        [true, false].each do |basic|
+          with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.basic_telemetry.enabled' => basic) do
+            assert_predicate NewRelic::Agent::LLM, :instrumentation_enabled?
+          end
+        end
+      end
+
+      def test_ai_monitoring_enabled_false_is_an_opt_out_even_with_basic_telemetry
+        with_config(:'ai_monitoring.enabled' => false, :'ai_monitoring.basic_telemetry.enabled' => true) do
+          refute_predicate NewRelic::Agent::LLM, :instrumentation_enabled?
+        end
+      end
+
+      def test_openai_true_with_basic_telemetry_and_ai_monitoring_enabled_unset
+        NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :prepend, :'ai_monitoring.basic_telemetry.enabled' => true}) do
+          assert_truthy NewRelic::Agent::LLM.openai?
+        end
+      end
+
       def test_openai_true_when_ruby_openai_prepend_and_ai_monitoring_enabled
         # with_config doesn't work because the value for
         # instrumentation.ruby_openai will be overriden during
