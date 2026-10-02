@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
 
