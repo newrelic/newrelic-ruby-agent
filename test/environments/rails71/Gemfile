@@ -14,6 +14,11 @@ platforms :ruby, :rbx do
   gem 'sqlite3', '~> 1.4'
 end
 
+platforms :jruby do
+  gem 'activerecord-jdbcmysql-adapter', '~> 71.0'
+  gem 'activerecord-jdbcsqlite3-adapter', '~> 71.0'
+end
+
 gem 'newrelic_rpm', path: '../../..'
 
 gem 'pry' if ENV['ENABLE_PRY']

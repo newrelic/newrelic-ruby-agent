@@ -30,12 +30,12 @@ jobs:
       # the bot PAT — the bot's token isn't scoped for a direct push to this repo,
       # only for cross-repo pushes and gh pr create/edit (see prerelease.yml).
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
         with:
           ref: ${{ github.ref_name }}
 
       - name: Install Ruby 3.4
-        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # tag v1.315.0
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # tag v1.327.0
         with:
           ruby-version: 3.4
 

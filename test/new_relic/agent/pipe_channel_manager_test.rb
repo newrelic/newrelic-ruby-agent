@@ -228,6 +228,53 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       listener.stop
     end
 
+    def test_listener_drains_other_pipes_while_a_sibling_holds_a_write_end_open
+      listener = NewRelic::Agent::PipeChannelManager.listener
+      listener.register_pipe(672)
+      listener.register_pipe(673)
+      gate_read, gate_write = IO.pipe
+
+      first_pid = Process.fork do
+        gate_read.close
+        listener.pipes[672].after_fork_in_child
+        exit!
+      end
+
+      # Forked before the parent closes 672's write end, so this child keeps 672 from reaching EOF
+      second_pid = Process.fork do
+        gate_write.close
+        gate_read.read
+        listener.pipes[673].after_fork_in_child
+        listener.pipes[673].write('x' * 256 * 1024)
+        exit!
+      end
+
+      gate_read.close
+      gate_write.close
+      listener.start
+
+      Process.wait(first_pid)
+
+      assert exited_within?(second_pid, 10), 'Child blocked writing to its pipe: the listener stopped draining pipes'
+      listener.stop_listener_thread
+
+      assert_pipe_finished(672)
+      assert_pipe_finished(673)
+    end
+
+    def exited_within?(pid, seconds)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
+      until Process.waitpid(pid, Process::WNOHANG)
+        if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+          Process.kill('KILL', pid)
+          Process.wait(pid)
+          return false
+        end
+        sleep(0.01)
+      end
+      true
+    end
+
     def pipe_finished?(id)
       (!NewRelic::Agent::PipeChannelManager.channels[id] ||
         NewRelic::Agent::PipeChannelManager.channels[id].closed?)
