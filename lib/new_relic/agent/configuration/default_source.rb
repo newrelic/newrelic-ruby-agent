@@ -380,7 +380,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :deprecated => true,
-          :description => deprecated_description(:'ai_monitoring.basic_telemetry.enabled', 'If `true`, LLM instrumentation will send metrics, events, and spans, with content governed by `ai_monitoring.record_content.enabled`. If `false`, no AI monitoring data will be sent, regardless of `ai_monitoring.basic_telemetry.enabled`. If unset, `ai_monitoring.basic_telemetry.enabled` is used.')
+          :description => deprecated_description(:'ai_monitoring.basic_telemetry.enabled', 'If `true`, LLM instrumentation will send metrics, events, and spans, with content governed by `ai_monitoring.record_content.enabled`. If `false`, no AI monitoring data will be sent, regardless of `ai_monitoring.basic_telemetry.enabled`. If unset, `ai_monitoring.basic_telemetry.enabled` is used. AI Monitoring is automatically disabled if `high_security` mode is enabled.')
         },
         :'ai_monitoring.basic_telemetry.enabled' => {
           :default => true,
@@ -394,7 +394,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. Content is only captured when `ai_monitoring.enabled` is `true`.'
+          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. Content is only captured when `ai_monitoring.enabled` is `true`. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         # this is only set via server side config
         :apdex_t => {
