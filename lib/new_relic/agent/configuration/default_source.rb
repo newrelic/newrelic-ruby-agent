@@ -374,18 +374,27 @@ module NewRelic
           :description => 'If `true`, the agent will use the ActiveRecord model\'s table name instead of the class name when naming ActiveRecord metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
         },
         :'ai_monitoring.enabled' => {
-          :default => false,
+          :default => nil,
+          :allow_nil => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
+          :deprecated => true,
+          :description => deprecated_description(:'ai_monitoring.basic_telemetry.enabled', 'If `true`, LLM instrumentation will send metrics, events, and spans, with content governed by `ai_monitoring.record_content.enabled`. If `false`, no AI monitoring data will be sent, regardless of `ai_monitoring.basic_telemetry.enabled`. If unset, `ai_monitoring.basic_telemetry.enabled` is used.')
+        },
+        :'ai_monitoring.basic_telemetry.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, LLM instrumentation will send metrics, events, and spans without input or output content. If `false`, no AI monitoring data will be sent.'
         },
         :'ai_monitoring.record_content.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `false`, LLM instrumentation (OpenAI only for now) will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.'
+          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. Content is only captured when `ai_monitoring.enabled` is `true`.'
         },
         # this is only set via server side config
         :apdex_t => {

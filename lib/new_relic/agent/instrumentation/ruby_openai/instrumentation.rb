@@ -153,7 +153,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def record_content_enabled?
-      NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
+      NewRelic::Agent.config[:'ai_monitoring.enabled'] == true &&
+        NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
     end
 
     def add_content(message, content)
@@ -177,7 +178,10 @@ module NewRelic::Agent::Instrumentation
     end
 
     def nr_supportability_metric
-      @nr_supportability_metric ||= "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
+      metric = "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
+      return metric if NewRelic::Agent.config[:'ai_monitoring.enabled'] == true
+
+      "#{metric}/Basic"
     end
 
     def finish(segment, event)

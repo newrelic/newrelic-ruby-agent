@@ -10,7 +10,13 @@ DependencyDetection.defer do
   named :'ruby_openai'
 
   depends_on do
-    NewRelic::Agent.config[:'ai_monitoring.enabled'] &&
+    unless NewRelic::Agent.config[:'ai_monitoring.enabled'].nil?
+      NewRelic::Agent.logger.log_once(:warn, :deprecated_ai_monitoring_enabled,
+        '[DEPRECATED] ai_monitoring.enabled will be removed in the next major release. ' \
+        'Use `ai_monitoring.basic_telemetry.enabled` and `ai_monitoring.record_content.enabled` instead.')
+    end
+
+    NewRelic::Agent::LLM.instrumentation_enabled? &&
       defined?(OpenAI) && defined?(OpenAI::Client) &&
       NewRelic::Helper.version_satisfied?(OpenAI::VERSION, '>=', '3.4.0')
   end
