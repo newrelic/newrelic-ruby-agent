@@ -12,6 +12,7 @@ module NewRelic::Agent::Instrumentation
     CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
 
     def json_post_with_new_relic(path:, parameters:)
+      return yield unless NewRelic::Agent::LLM.instrumentation_enabled?
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH
 
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
