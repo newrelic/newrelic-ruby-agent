@@ -19,8 +19,9 @@ module NewRelic
               @host
             end
 
+            # gRPC raises ArgumentError on non-lowercase metadata keys.
             def []=(key, value)
-              @newrelic_metadata[key] = value
+              @newrelic_metadata[key.to_s.downcase] = value
             end
           end
         end
