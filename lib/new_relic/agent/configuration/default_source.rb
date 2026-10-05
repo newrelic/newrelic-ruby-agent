@@ -373,6 +373,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, the agent will use the ActiveRecord model\'s table name instead of the class name when naming ActiveRecord metrics, spans, and transaction trace segments. This can reduce cardinality when multiple models share a database table. Defaults to `false`.'
         },
+        # TODO: MAJOR VERSION: remove ai_monitoring.enabled and also make ai_monitoring.record_content.enabled false by default
         :'ai_monitoring.enabled' => {
           :default => nil,
           :allow_nil => true,
