@@ -121,7 +121,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_message_events_assign_all_attributes
-    with_config(:'ai_monitoring.enabled' => true) do
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
       in_transaction do
         stub_post_request do
           client.chat(parameters: chat_params)
@@ -213,7 +213,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_embedding_events_assign_all_attributes
-    with_config(:'ai_monitoring.enabled' => true) do
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
       in_transaction do
         stub_post_request do
           client.embeddings(parameters: embeddings_params)
