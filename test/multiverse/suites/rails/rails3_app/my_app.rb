@@ -84,6 +84,29 @@ if !defined?(MyApp)
   end
   MyApp.initialize!
 
+  test_controller_actions = {
+    'bad_instrumentation' => %w[failwhale],
+    'child' => %w[bar foo],
+    'data' => %w[do_a_redirect exist_fragment expire_test_fragment halt_my_callback
+      not_allowed read_test_fragment send_test_data send_test_file send_test_stream
+      write_test_fragment],
+    'error' => %w[controller_error error_with_custom_params exception_error frozen_error
+      ignored_action ignored_error ignored_status_code middleware_error model_error
+      noticed_error noticed_error_with_expected_error server_ignored_error
+      string_noticed_error view_error],
+    'gc' => %w[gc_action],
+    'ignored' => %w[action_not_ignored action_to_ignore action_to_ignore_apdex],
+    'live' => %w[brains],
+    'parameter_capture' => %w[error sql transaction],
+    'queue' => %w[nested queued],
+    'request_stats' => %w[stats_action stats_action_with_custom_params],
+    'transaction_ignorer' => %w[run_transaction],
+    'undead' => %w[brain_stream brains],
+    'views' => %w[collection_render deep_partial_render file_render haml_render
+      inline_render js_render json_render no_template nothing_render raise_render
+      render_with_delays template_render_with_3_partial_renders text_render xml_render]
+  }
+
   MyApp.routes.draw do
     get('/bad_route' => 'test#controller_error',
       :constraints => lambda do |_|
@@ -98,7 +121,11 @@ if !defined?(MyApp)
 
     get '/view_components', :to => 'view_component#index' # This app and route is used in ViewComponent tests
 
-    get '/:controller(/:action(/:id))'
+    test_controller_actions.each do |controller, actions|
+      actions.each do |action|
+        get "/#{controller}/#{action}(/:id)", :to => "#{controller}##{action}"
+      end
+    end
   end
 
   class ApplicationController < ActionController::Base

@@ -402,12 +402,14 @@ class NewRelicHealthCheckTest < Minitest::Test
           agent.after_fork
         end
 
-        sleep(1)
+        health_files = []
+        wait_until_not_nil(5) do
+          health_files = Dir.glob("#{health_dir}/health-*.yml")
+          health_files.length >= agents.length ? health_files : nil
+        end
 
-        health_files = Dir.glob("#{health_dir}/health-*.yml")
-
-        assert_operator health_files.length, :>=, 3,
-          "Expected at least 2 health check files, found #{health_files.length}: #{health_files}"
+        assert_operator health_files.length, :>=, agents.length,
+          "Expected at least #{agents.length} health check files, found #{health_files.length}: #{health_files}"
       end
     end
   ensure

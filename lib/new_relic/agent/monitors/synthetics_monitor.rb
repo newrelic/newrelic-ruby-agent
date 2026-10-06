@@ -17,9 +17,11 @@ module NewRelic
       end
 
       def on_before_call(request) # THREAD_LOCAL_ACCESS
-        encoded_header = request[SYNTHETICS_HEADER_KEY]
-        info_header = request[SYNTHETICS_INFO_HEADER_KEY]
-        return unless encoded_header
+        accept_headers(request[SYNTHETICS_HEADER_KEY], request[SYNTHETICS_INFO_HEADER_KEY])
+      end
+
+      def accept_headers(encoded_header, info_header)
+        return unless encoded_header && (txn = Tracer.current_transaction)
 
         incoming_payload = deserialize_header(encoded_header, SYNTHETICS_HEADER_KEY)
 
@@ -28,11 +30,12 @@ module NewRelic
           SyntheticsMonitor.is_supported_version?(incoming_payload) &&
           SyntheticsMonitor.is_trusted?(incoming_payload)
 
-        txn = Tracer.current_transaction
         txn.raw_synthetics_header = encoded_header
         txn.raw_synthetics_info_header = info_header
         txn.synthetics_payload = incoming_payload
         txn.synthetics_info_payload = load_json(info_header, SYNTHETICS_INFO_HEADER_KEY)
+      rescue => e
+        NewRelic::Agent.logger.debug('Failure accepting synthetics headers', e)
       end
 
       def load_json(header, key)

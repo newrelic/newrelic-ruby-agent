@@ -130,6 +130,29 @@ class GrpcClientTest < Minitest::Test
     assert_distributed_tracing_payload_created_for_transaction(transaction)
   end
 
+  def test_synthetics_headers_are_downcased_for_grpc_metadata
+    metadata = {}
+
+    NewRelic::Agent.instance.stub(:connected?, true) do
+      in_transaction('gRPC client test') do |txn|
+        txn.raw_synthetics_header = 'raw-synthetics-header'
+        txn.raw_synthetics_info_header = 'raw-synthetics-info-header'
+        grpc_client = basic_grpc_client
+        trace_with_newrelic_true(grpc_client)
+        grpc_client.issue_request_with_tracing(
+          nil, METHOD, nil, nil, nil,
+          deadline: nil, return_op: nil, parent: nil, credentials: nil,
+          metadata: metadata
+        ) { '' }
+      end
+    end
+
+    assert_includes metadata.keys, 'x-newrelic-synthetics'
+    assert_includes metadata.keys, 'x-newrelic-synthetics-info'
+
+    assert_newrelic_metadata_present(metadata)
+  end
+
   def test_span_attributes_added
     successful_grpc_client_issue_request_with_tracing
     spans = harvest_span_events!

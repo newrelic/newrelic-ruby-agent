@@ -14,6 +14,9 @@ module NewRelic
           INSTRUMENTATION_NAME = 'gRPC_Server'
 
           DT_KEYS = [NewRelic::NEWRELIC_KEY, NewRelic::TRACEPARENT_KEY, NewRelic::TRACESTATE_KEY].freeze
+          SYNTHETICS_KEY = 'x-newrelic-synthetics'
+          SYNTHETICS_INFO_KEY = 'x-newrelic-synthetics-info'
+          NEWRELIC_KEYS = (DT_KEYS + [SYNTHETICS_KEY, SYNTHETICS_INFO_KEY]).freeze
           INSTANCE_VAR_HOST = :@host_nr
           INSTANCE_VAR_PORT = :@port_nr
           INSTANCE_VAR_METHOD = :@method_nr
@@ -33,6 +36,7 @@ module NewRelic
               trace_options)
             add_attributes(txn, metadata, streamer_type)
             process_distributed_tracing_headers(metadata)
+            process_synthetics_headers(metadata)
 
             begin
               yield
@@ -75,6 +79,14 @@ module NewRelic
             ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(metadata, 'Other')
           end
 
+          def process_synthetics_headers(metadata)
+            return unless metadata && !metadata.empty?
+
+            ::NewRelic::Agent.agent.monitors.synthetics_monitor.accept_headers(
+              metadata[SYNTHETICS_KEY], metadata[SYNTHETICS_INFO_KEY]
+            )
+          end
+
           def host_and_port_from_host_string(host_string)
             return unless host_string
 
@@ -101,7 +113,7 @@ module NewRelic
           end
 
           def grpc_headers(metadata)
-            metadata.reject { |k, v| DT_KEYS.include?(k) }
+            metadata.reject { |k, v| NEWRELIC_KEYS.include?(k) }
           end
 
           def grpc_params(metadata, streamer_type)

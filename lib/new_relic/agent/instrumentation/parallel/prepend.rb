@@ -17,9 +17,11 @@ module NewRelic::Agent::Instrumentation
         channel_id = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
         NewRelic::Agent.register_report_channel(channel_id)
 
-        super do |*args|
+        worker = super do |*args|
           worker_with_tracing(channel_id) { yield(*args) }
         end
+        close_report_channel_write_end(channel_id)
+        worker
       end
     end
   end

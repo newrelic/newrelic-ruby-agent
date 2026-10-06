@@ -1,5 +1,19 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.9.1
+
+- **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
+
+  When the agent could not identify a request's controller class, it logged `TypeError: no implicit conversion of nil into String` and then `NoMethodError: undefined method 'finish' for nil`, and recorded no data for that request. These transactions are now named `Controller/(unknown)/<action>` and recorded normally. [PR#3691](https://github.com/newrelic/newrelic-ruby-agent/pull/3691)
+
+- **Bugfix: Prevent `Parallel` workers from hanging when reporting large payloads**
+
+  When `parallel` instrumentation was enabled, `Parallel.each`/`Parallel.map` with `in_processes:` could hang forever. Each worker inherited the pipe write ends the agent registered for its earlier siblings, so those pipes couldn't reach end-of-file, and the agent's pipe listener thread blocked waiting on one of them. Any worker whose data exceeded the operating system pipe buffer then blocked on exit. Now, the agent closes each pipe's write end in the parent right after forking, and the listener no longer blocks on a single pipe while others still have data waiting. Thank you to [@yayamochi](https://github.com/yayamochi) for reporting this bug. [Issue#3680](https://github.com/newrelic/newrelic-ruby-agent/issues/3680) [PR#3688](https://github.com/newrelic/newrelic-ruby-agent/pull/3688)
+
+- **Bugfix: gRPC calls no longer fail on requests from Synthetics monitors**
+
+  When a request from a Synthetics monitor made a gRPC call, the agent added `X-NewRelic-Synthetics` to the call's metadata. gRPC only allows lowercase metadata keys, so the call raised `ArgumentError: 'X-NewRelic-Synthetics' is an invalid header key`. The agent now sends the synthetics headers in lowercase. gRPC server transactions also now read the synthetics headers from incoming metadata, so a gRPC service called during a Synthetics check records its trace and Synthetics attributes. [PR#3693](https://github.com/newrelic/newrelic-ruby-agent/pull/3693)
+
 ## v10.9.0
 
 - **Feature: Continuous Profiling (preview)**
