@@ -6,6 +6,10 @@
 
   After each connect, including reconnects, the agent now reports its effective configuration to New Relic: every setting explicitly configured through `newrelic.yml`, environment variables, or manual start options, merged with any server-side configuration, using the values the agent is actually running with. Settings left at their default values are not included, and sensitive settings such as `license_key` and proxy credentials are omitted. This reporting can be disabled by setting the new `enable_agent_settings` configuration option to `false`.
 
+- **Feature: Add `ai_monitoring.basic_telemetry.enabled` and deprecate `ai_monitoring.enabled`**
+
+  AI Monitoring now sends basic LLM telemetry (metrics, events, and spans, without input or output content) by default through the new `ai_monitoring.basic_telemetry.enabled` setting, which defaults to `true`. If you've explicitly set `ai_monitoring.enabled`, that setting still takes precedence: `false` turns AI Monitoring off and `true` sends data with content controlled by `ai_monitoring.record_content.enabled`. `ai_monitoring.enabled` is deprecated and will be removed in the next major release. [PR#3698](https://github.com/newrelic/newrelic-ruby-agent/pull/3698)
+
 ## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**

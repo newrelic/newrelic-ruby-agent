@@ -75,6 +75,16 @@ module NewRelic::Agent::Configuration
       refute @manager[:'ai_monitoring.enabled']
     end
 
+    def test_high_security_overrides_server_side_ai_monitoring_basic_telemetry_enabled
+      high_security = HighSecuritySource.new({})
+      server_source = ServerSource.new('agent_config' => {'ai_monitoring.basic_telemetry.enabled' => true})
+
+      @manager.replace_or_add_config(server_source)
+      @manager.replace_or_add_config(high_security)
+
+      refute @manager[:'ai_monitoring.basic_telemetry.enabled']
+    end
+
     def test_identifying_config_source
       hash_source = {:foo => 'foo', :bar => 'default'}
       @manager.add_config_for_testing(hash_source, false)
