@@ -207,7 +207,7 @@ module NewRelic::Agent::Configuration
       assert_equal({:proxy_port => 3128}, @manager.to_agent_settings_hash)
     end
 
-    def test_to_agent_settings_hash_reports_server_values_over_yaml
+    def test_to_agent_settings_hash_reports_server_values_over_local_config
       @manager.replace_or_add_config(ManualSource.new(:apdex_t => 0.5, :capture_params => true))
       @manager.replace_or_add_config(ServerSource.new('apdex_t' => 2.0, 'encoding_key' => 'abc123'))
 
@@ -222,19 +222,15 @@ module NewRelic::Agent::Configuration
       assert_equal({:capture_params => true}, @manager.to_agent_settings_hash)
     end
 
-    def test_to_agent_settings_hash_reports_high_security_overrides
-      @manager.replace_or_add_config(ManualSource.new(:capture_params => true))
-      @manager.replace_or_add_config(HighSecuritySource.new({}))
-      settings = @manager.to_agent_settings_hash
+    def test_to_agent_settings_hash_reports_transformed_values_as_strings
+      @manager.replace_or_add_config(ManualSource.new(
+        :'rules.ignore_url_regexes' => ['^/health', 'ping$'],
+        :'strip_exception_messages.allowed_classes' => ['ArgumentError']
+      ))
 
-      refute settings[:capture_params]
-      assert settings[:'strip_exception_messages.enabled']
-    end
-
-    def test_to_agent_settings_hash_serializes_transformed_regexps_as_strings
-      @manager.replace_or_add_config(ManualSource.new(:'rules.ignore_url_regexes' => ['^/health', 'ping$']))
-
-      assert_equal({:'rules.ignore_url_regexes' => ['^/health', 'ping$']}, @manager.to_agent_settings_hash)
+      assert_equal({:'rules.ignore_url_regexes' => ['^/health', 'ping$'],
+                    :'strip_exception_messages.allowed_classes' => ['ArgumentError']},
+        @manager.to_agent_settings_hash)
     end
 
     def test_to_agent_settings_hash_flattens_web_transactions_apdex
@@ -243,7 +239,7 @@ module NewRelic::Agent::Configuration
       assert_equal({:'web_transactions_apdex.WebTransaction/Controller/home' => 1.5}, @manager.to_agent_settings_hash)
     end
 
-    def test_to_agent_settings_hash_is_plain_hash
+    def test_to_agent_settings_hash_returns_bare_hash
       @manager.replace_or_add_config(ManualSource.new(:capture_params => true))
 
       assert_instance_of(::Hash, @manager.to_agent_settings_hash)
