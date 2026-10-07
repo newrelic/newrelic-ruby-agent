@@ -6,6 +6,7 @@ def default_service(stubbed_method_overrides = {})
   service = stub
   stubbed_method_defaults = {
     :connect => {},
+    :agent_settings => nil,
     :shutdown => nil,
     :agent_id= => nil,
     :agent_id => nil,

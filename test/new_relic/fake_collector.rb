@@ -60,6 +60,7 @@ module NewRelic
       @mock = {
         'preconnect' => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
         'connect' => Response.new(200, proc { {'return_value' => {'agent_run_id' => agent_run_id}} }),
+        'agent_settings' => Response.new(200, {'return_value' => nil}),
         'get_agent_commands' => Response.new(200, {'return_value' => []}),
         'agent_command_results' => Response.new(200, {'return_value' => []}),
         'metric_data' => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),

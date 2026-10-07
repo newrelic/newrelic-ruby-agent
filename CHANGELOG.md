@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Report the agent's effective configuration to New Relic**
+
+  After each connect, including reconnects, the agent now reports its effective configuration to New Relic: every setting explicitly configured through `newrelic.yml`, environment variables, or manual start options, merged with any server-side configuration, using the values the agent is actually running with. Settings left at their default values are not included, and sensitive settings such as `license_key` and proxy credentials are omitted. This reporting can be disabled by setting the new `enable_agent_settings` configuration option to `false`.
+
 ## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
