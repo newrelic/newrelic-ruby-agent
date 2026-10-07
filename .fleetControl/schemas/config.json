@@ -484,6 +484,11 @@
       "description": "If true, the agent obfuscates Elasticsearch queries in transaction traces.",
       "default": true
     },
+    "enable_agent_settings": {
+      "type": "boolean",
+      "description": "If true, the agent reports its effective configuration (all explicitly set configuration merged with server-side configuration) to New Relic after each connect.",
+      "default": true
+    },
     "error_collector.attributes.enabled": {
       "type": "boolean",
       "description": "If true, the agent captures attributes from error collection.",
@@ -1437,7 +1442,8 @@
     },
     "proxy_host": {
       "type": "string",
-      "description": "Defines a host for communicating with the New Relic collector via a proxy server."
+      "description": "Defines a host for communicating with the New Relic collector via a proxy server.",
+      "writeOnly": true
     },
     "proxy_pass": {
       "type": "string",
