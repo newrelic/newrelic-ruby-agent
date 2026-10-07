@@ -7,7 +7,7 @@ require_relative 'openai_helpers'
 class RubyOpenAIInstrumentationTest < Minitest::Test
   include OpenAIHelpers
 
-  def setup # ai_monitoring.enabled is false by default. We've enabled it in this suite's newrelic.yml for testing
+  def setup
     @aggregator = NewRelic::Agent.agent.custom_event_aggregator
     NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback) if NewRelic::Agent.instance_variable_defined?(:@llm_token_count_callback)
   end
@@ -23,7 +23,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}", "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
   end
 
   def test_openai_metric_recorded_for_chat_completions_every_time
@@ -34,7 +34,20 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
+    assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic" => {call_count: 2}})
+  end
+
+  def test_openai_full_metric_recorded_when_ai_monitoring_enabled
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+    end
+
+    assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
   end
 
   def test_openai_chat_completion_segment_name
@@ -108,9 +121,11 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_message_events_assign_all_attributes
-    in_transaction do
-      stub_post_request do
-        client.chat(parameters: chat_params)
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
       end
     end
     _, events = @aggregator.harvest!
@@ -198,9 +213,11 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_embedding_events_assign_all_attributes
-    in_transaction do
-      stub_post_request do
-        client.embeddings(parameters: embeddings_params)
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
       end
     end
     _, events = @aggregator.harvest!
@@ -293,7 +310,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
+    assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic" => {call_count: 2}})
   end
 
   def test_embedding_event_sets_error_true_if_raised
@@ -445,7 +462,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_embeddings_drop_input_when_record_content_disabled
-    with_config(:'ai_monitoring.record_content.enabled' => false) do
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
       in_transaction do
         stub_embeddings_post_request do
           client.embeddings(parameters: embeddings_params)
@@ -458,7 +475,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_messages_drop_content_when_record_content_disabled
-    with_config(:'ai_monitoring.record_content.enabled' => false) do
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
       in_transaction do
         stub_post_request do
           client.chat(parameters: chat_params)
@@ -474,7 +491,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_embeddings_include_input_when_record_content_enabled
-    with_config(:'ai_monitoring.record_content.enabled' => true) do
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
       in_transaction do
         stub_embeddings_post_request do
           client.embeddings(parameters: embeddings_params)
@@ -487,7 +504,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_messages_include_content_when_record_content_enabled
-    with_config(:'ai_monitoring.record_content.enabled' => true) do
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
       in_transaction do
         stub_post_request do
           client.chat(parameters: chat_params)
@@ -500,5 +517,53 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
         assert_truthy event[1]['content']
       end
     end
+  end
+
+  def test_embeddings_drop_input_with_basic_telemetry
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    refute events[0][1]['input']
+  end
+
+  def test_messages_drop_content_with_basic_telemetry
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+    message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    refute_empty message_events
+    message_events.each do |event|
+      refute event[1]['content']
+    end
+  end
+
+  def test_deprecation_warning_logged_when_ai_monitoring_enabled_set
+    item = DependencyDetection.dependency_by_name(:ruby_openai)
+
+    log_results = with_array_logger(:warn) do
+      with_config(:'ai_monitoring.enabled' => false) do
+        item.check_dependencies
+      end
+    end
+
+    refute_empty log_results.array.grep(/\[DEPRECATED\] ai_monitoring.enabled/)
+  end
+
+  def test_deprecation_warning_not_logged_when_ai_monitoring_enabled_unset
+    item = DependencyDetection.dependency_by_name(:ruby_openai)
+
+    log_results = with_array_logger(:warn) do
+      item.check_dependencies
+    end
+
+    assert_empty log_results.array.grep(/\[DEPRECATED\] ai_monitoring.enabled/)
   end
 end
