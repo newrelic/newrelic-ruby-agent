@@ -117,6 +117,8 @@ module NewRelic
           return unless Agent.config[:enable_agent_settings]
 
           @service.agent_settings(Agent.config.to_agent_settings_hash)
+        rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
+          raise
         rescue => e
           ::NewRelic::Agent.logger.debug("Unable to send agent settings: #{e.class} - #{e.message}")
         end

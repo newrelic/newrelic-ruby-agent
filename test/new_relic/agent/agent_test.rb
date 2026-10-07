@@ -438,6 +438,14 @@ module NewRelic
         assert_predicate(@agent, :disconnected?)
       end
 
+      def test_connect_disconnects_on_force_disconnect_from_agent_settings
+        @agent.service.stubs(:connect).returns({'agent_run_id' => 23})
+        @agent.service.expects(:agent_settings).raises(NewRelic::Agent::ForceDisconnectException)
+        @agent.send(:connect)
+
+        assert_predicate(@agent, :disconnected?)
+      end
+
       def test_agent_health_status_set_to_invalid_license_key
         # stub a valid health check, by setting @continue = true
         @agent.health_check.instance_variable_set(:@continue, true)

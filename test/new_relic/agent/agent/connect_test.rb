@@ -228,6 +228,16 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     assert_equal 23, response['agent_run_id']
   end
 
+  def test_connect_propagates_collector_control_exceptions_from_agent_settings
+    [NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException].each do |exception_class|
+      service = default_service(:connect => {'agent_run_id' => 23})
+      NewRelic::Agent.instance.instance_variable_set(:@service, service)
+      service.stubs(:agent_settings).raises(exception_class.new('boom'))
+
+      assert_raises(exception_class) { NewRelic::Agent.agent.connect_to_server }
+    end
+  end
+
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.instance_variable_set(:@service, default_service(
