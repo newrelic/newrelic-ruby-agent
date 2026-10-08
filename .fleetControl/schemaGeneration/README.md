@@ -36,11 +36,11 @@ its output against the Draft 2020-12 meta-schema when `json_schemer` is installe
 
 ## How versioning works
 
-- **On push** (`.github/workflows/agent_config_schema.yml`): regenerates `config.json`
-  and commits it if it changed.
-- **At prerelease** (`prerelease.yml`): diffs the current schema against the previous
-  release's, bumps the version in `configurationDefinitions.yml`, and includes it in the
-  prerelease PR. No previous schema → treated as the first release, no bump.
+- **At prerelease** (`prerelease.yml`): regenerates `config.json`, diffs it against the
+  previous release's schema, bumps the version in `configurationDefinitions.yml`, and
+  includes both in the prerelease PR. No previous schema → treated as the first release,
+  no bump. Between releases, `config.json` on feature branches may be stale; run
+  `ruby generate_schema.rb` locally if you want it current.
 
 ## Version bump rules
 
