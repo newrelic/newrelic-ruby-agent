@@ -10,6 +10,7 @@ class AgentSettingsTest < Minitest::Test
   end
 
   def test_sends_agent_settings_after_connect
+    NewRelic::Agent.instance.send(:transmit_agent_settings)
     post = first_call_for('agent_settings')
     settings = post.body.first
 

@@ -12,6 +12,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     NewRelic::Agent.instance.stubs(:connected?).returns(true)
+    self.stubs(:transmit_agent_settings)
     self.expects(:create_and_run_event_loop)
     deferred_work!('connection_options')
   end
@@ -20,6 +21,48 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     NewRelic::Agent.instance.stubs(:connected?).returns(false)
+    deferred_work!('connection_options')
+  end
+
+  def test_deferred_work_transmits_agent_settings_before_event_loop
+    self.expects(:catch_errors).yields
+    self.stubs(:connect)
+    NewRelic::Agent.instance.stubs(:connected?).returns(true)
+    sequence = sequence('deferred_work')
+    self.expects(:transmit_agent_settings).once.in_sequence(sequence)
+    self.expects(:create_and_run_event_loop).in_sequence(sequence)
+    deferred_work!('connection_options')
+  end
+
+  def test_deferred_work_runs_event_loop_when_agent_settings_session_fails
+    agent = NewRelic::Agent::Agent.new
+    agent.instance_variable_set(:@service, default_service)
+    agent.service.stubs(:session).raises(NewRelic::Agent::ServerConnectionException)
+    agent.stubs(:catch_errors).yields
+    agent.stubs(:connect)
+    agent.stubs(:connected?).returns(true)
+    NewRelic::Agent.stubs(:instance).returns(agent)
+    agent.expects(:create_and_run_event_loop).once
+
+    agent.deferred_work!('connection_options')
+  end
+
+  def test_deferred_work_does_not_transmit_agent_settings_when_disabled
+    self.expects(:catch_errors).yields
+    self.stubs(:connect)
+    NewRelic::Agent.instance.stubs(:connected?).returns(true)
+    self.expects(:transmit_agent_settings).never
+    self.stubs(:create_and_run_event_loop)
+    with_config(:enable_agent_settings => false) do
+      deferred_work!('connection_options')
+    end
+  end
+
+  def test_deferred_work_does_not_transmit_agent_settings_when_not_connected
+    self.expects(:catch_errors).yields
+    self.stubs(:connect)
+    NewRelic::Agent.instance.stubs(:connected?).returns(false)
+    self.expects(:transmit_agent_settings).never
     deferred_work!('connection_options')
   end
 
@@ -64,6 +107,16 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     end
 
     assert_equal 3, @runs, 'should retry the block when it fails'
+  end
+
+  def test_force_restart_from_agent_settings_reaches_catch_errors
+    error = NewRelic::Agent::ForceRestartException.new
+    self.stubs(:connect)
+    NewRelic::Agent.instance.stubs(:connected?).returns(true)
+    self.stubs(:transmit_agent_settings).raises(error).then.returns(nil)
+    self.expects(:handle_force_restart).with(error).once
+    self.expects(:create_and_run_event_loop).once
+    deferred_work!('connection_options')
   end
 
   private

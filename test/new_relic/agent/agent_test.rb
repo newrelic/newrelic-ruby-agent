@@ -438,24 +438,6 @@ module NewRelic
         assert_predicate(@agent, :disconnected?)
       end
 
-      def test_connect_disconnects_on_force_disconnect_from_agent_settings
-        @agent.service.stubs(:connect).returns({'agent_run_id' => 23})
-        @agent.service.expects(:agent_settings).raises(NewRelic::Agent::ForceDisconnectException)
-        @agent.send(:connect)
-
-        assert_predicate(@agent, :disconnected?)
-      end
-
-      def test_connect_reconnects_on_force_restart_from_agent_settings
-        service = @agent.service
-        service.expects(:connect).twice.returns({'agent_run_id' => 23})
-        service.stubs(:agent_settings).raises(ForceRestartException).then.returns(nil)
-        @agent.stubs(:connect_retry_period).returns(0)
-        @agent.send(:connect)
-
-        assert_predicate(@agent, :connected?)
-      end
-
       def test_agent_health_status_set_to_invalid_license_key
         # stub a valid health check, by setting @continue = true
         @agent.health_check.instance_variable_set(:@continue, true)
@@ -749,6 +731,78 @@ module NewRelic
           @agent.service.expects(:get_agent_commands).raises(cls.new)
           assert_raises(cls) do
             @agent.send(:check_for_and_handle_agent_commands)
+          end
+        end
+      end
+
+      def test_send_agent_settings_sends_settings_with_server_side_config_applied
+        @agent.service.stubs(:connect).returns({'agent_run_id' => 23, 'apdex_t' => 2.0})
+        @agent.connect_to_server
+        @agent.service.expects(:agent_settings).with { |settings| settings[:apdex_t] == 2.0 }
+
+        @agent.send(:send_agent_settings)
+      end
+
+      def test_send_agent_settings_does_not_swallow_forced_errors
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:agent_settings).raises(cls.new)
+          assert_raises(cls) do
+            @agent.send(:send_agent_settings)
+          end
+        end
+      end
+
+      def test_send_agent_settings_with_error
+        @agent.service.expects(:agent_settings).raises('bad news')
+        @agent.send(:send_agent_settings)
+      end
+
+      def test_send_agent_settings_sets_failed_to_connect_when_rejected
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.service.expects(:agent_settings).raises(NewRelic::Agent::UnrecoverableServerException)
+        @agent.send(:send_agent_settings)
+
+        assert_equal NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT, @agent.health_check.instance_variable_get(:@status)
+      end
+
+      def test_send_agent_settings_records_remote_unavailable
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.service.expects(:agent_settings).raises(NewRelic::Agent::ServerConnectionException)
+        @agent.send(:send_agent_settings)
+
+        assert_equal NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT, @agent.health_check.instance_variable_get(:@status)
+        assert_metrics_recorded(['Supportability/remote_unavailable', 'Supportability/remote_unavailable/agent_settings'])
+      end
+
+      def test_transmit_agent_settings_uses_a_session
+        @agent.service.expects(:session).once.yields
+        @agent.service.expects(:agent_settings).once
+        @agent.instance_eval { transmit_agent_settings }
+      end
+
+      def test_transmit_agent_settings_logs_session_errors
+        @agent.service.expects(:session).raises(NewRelic::Agent::ServerConnectionException)
+        @agent.service.expects(:agent_settings).never
+        expects_logging(:error, 'Error transmitting agent_settings: ', instance_of(NewRelic::Agent::ServerConnectionException))
+
+        @agent.instance_eval { transmit_agent_settings }
+      end
+
+      def test_transmit_agent_settings_does_not_swallow_forced_errors_from_session
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:session).raises(cls.new)
+          assert_raises(cls) do
+            @agent.instance_eval { transmit_agent_settings }
           end
         end
       end

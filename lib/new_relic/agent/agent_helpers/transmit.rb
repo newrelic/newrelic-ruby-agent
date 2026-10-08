@@ -31,6 +31,15 @@ module NewRelic
           transmit_single_data_type(:harvest_and_send_log_event_data, LOG_EVENT)
         end
 
+        AGENT_SETTINGS = 'AgentSettings'.freeze
+        def transmit_agent_settings
+          transmit_single_data_type(:send_agent_settings, AGENT_SETTINGS)
+        rescue ForceRestartException, ForceDisconnectException
+          raise
+        rescue => e
+          NewRelic::Agent.logger.error('Error transmitting agent_settings: ', e)
+        end
+
         def transmit_single_data_type(harvest_method, supportability_name)
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 

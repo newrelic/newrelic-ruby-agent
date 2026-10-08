@@ -183,48 +183,9 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       # every call to :connect should pass the same expected event_harvest_config payload
       .with { |value| value[:event_harvest_config] == expected_event_harvest_config_payload }
 
-    NewRelic::Agent.instance.service.stubs(:agent_settings)
-
     # Calling connect twice should send the same event data both times
     NewRelic::Agent.agent.connect_to_server
     NewRelic::Agent.agent.connect_to_server
-  end
-
-  def test_connect_sends_agent_settings_with_server_side_config_applied
-    service = default_service(:connect => {'agent_run_id' => 23, 'apdex_t' => 2.0})
-    NewRelic::Agent.instance.instance_variable_set(:@service, service)
-    service.expects(:agent_settings).with { |settings| settings[:apdex_t] == 2.0 }
-
-    NewRelic::Agent.agent.connect_to_server
-  end
-
-  def test_each_connect_sends_agent_settings
-    service = default_service(:connect => {'agent_run_id' => 23})
-    NewRelic::Agent.instance.instance_variable_set(:@service, service)
-    service.expects(:agent_settings).twice
-
-    NewRelic::Agent.agent.connect_to_server
-    NewRelic::Agent.agent.connect_to_server
-  end
-
-  def test_connect_does_not_send_agent_settings_when_disabled
-    service = default_service(:connect => {'agent_run_id' => 23})
-    NewRelic::Agent.instance.instance_variable_set(:@service, service)
-    service.expects(:agent_settings).never
-
-    with_config(:enable_agent_settings => false) do
-      NewRelic::Agent.agent.connect_to_server
-    end
-  end
-
-  def test_connect_succeeds_when_agent_settings_fails
-    service = default_service(:connect => {'agent_run_id' => 23})
-    NewRelic::Agent.instance.instance_variable_set(:@service, service)
-    service.stubs(:agent_settings).raises(NewRelic::Agent::ServerConnectionException.new('boom'))
-
-    response = NewRelic::Agent.agent.connect_to_server
-
-    assert_equal 23, response['agent_run_id']
   end
 
   def test_logging_collector_messages

@@ -109,18 +109,7 @@ module NewRelic
           response_handler.configure_agent(connect_response)
 
           log_connection(connect_response) if connect_response
-          send_agent_settings if connect_response
           connect_response
-        end
-
-        def send_agent_settings
-          return unless Agent.config[:enable_agent_settings]
-
-          @service.agent_settings(Agent.config.to_agent_settings_hash)
-        rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
-          raise
-        rescue => e
-          ::NewRelic::Agent.logger.debug("Unable to send agent settings: #{e.class} - #{e.message}")
         end
 
         # Logs when we connect to the server, for debugging purposes
