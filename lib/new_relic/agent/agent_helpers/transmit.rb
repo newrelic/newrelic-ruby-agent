@@ -34,6 +34,7 @@ module NewRelic
         AGENT_SETTINGS = 'AgentSettings'.freeze
         def transmit_agent_settings
           transmit_single_data_type(:send_agent_settings, AGENT_SETTINGS)
+          # we rescue here because this does not run in an event loop, unlike the other transmits
         rescue ForceRestartException, ForceDisconnectException
           raise
         rescue => e
