@@ -150,7 +150,6 @@ module NewRelic
         rescue ForceRestartException, ForceDisconnectException
           raise
         rescue UnrecoverableServerException => e
-          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
           NewRelic::Agent.logger.warn('agent_settings message was rejected by remote service, discarding. Error: ', e)
         rescue ServerConnectionException => e
           NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)

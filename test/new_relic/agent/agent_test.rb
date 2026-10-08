@@ -754,13 +754,6 @@ module NewRelic
         @agent.send(:send_agent_settings)
       end
 
-      def test_send_agent_settings_sets_failed_to_connect_when_rejected
-        @agent.health_check.instance_variable_set(:@continue, true)
-        @agent.service.expects(:agent_settings).raises(NewRelic::Agent::UnrecoverableServerException)
-        @agent.send(:send_agent_settings)
-
-        assert_equal NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT, @agent.health_check.instance_variable_get(:@status)
-      end
 
       def test_send_agent_settings_records_remote_unavailable
         @agent.health_check.instance_variable_set(:@continue, true)
