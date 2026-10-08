@@ -754,7 +754,6 @@ module NewRelic
         @agent.send(:send_agent_settings)
       end
 
-
       def test_send_agent_settings_records_remote_unavailable
         @agent.health_check.instance_variable_set(:@continue, true)
         @agent.service.expects(:agent_settings).raises(NewRelic::Agent::ServerConnectionException)
