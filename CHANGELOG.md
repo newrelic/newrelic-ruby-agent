@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Report effective configuration to New Relic**
+
+  After connecting, the agent now reports the configuration settings it's running with to New Relic. To turn this off, set the new `enable_agent_settings` configuration option to `false`. [PR#3702](https://github.com/newrelic/newrelic-ruby-agent/pull/3702)
+
 - **Feature: Add `ai_monitoring.basic_telemetry.enabled` and deprecate `ai_monitoring.enabled`**
 
   AI Monitoring now sends basic LLM telemetry (metrics, events, and spans, without input or output content) by default through the new `ai_monitoring.basic_telemetry.enabled` setting, which defaults to `true`. If you've explicitly set `ai_monitoring.enabled`, that setting still takes precedence: `false` turns AI Monitoring off and `true` sends data with content controlled by `ai_monitoring.record_content.enabled`. `ai_monitoring.enabled` is deprecated and will be removed in the next major release. [PR#3698](https://github.com/newrelic/newrelic-ruby-agent/pull/3698)

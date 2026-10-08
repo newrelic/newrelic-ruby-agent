@@ -372,6 +372,11 @@ common: &default_settings
   # If true, the agent obfuscates Elasticsearch queries in transaction traces.
   # elasticsearch.obfuscate_queries: true
 
+  # If true, the agent reports its effective configuration (all explicitly set
+  # configuration merged with server-side configuration) to New Relic after each
+  # connect.
+  # enable_agent_settings: true
+
   # If true, the agent captures attributes from error collection.
   # error_collector.attributes.enabled: true
 

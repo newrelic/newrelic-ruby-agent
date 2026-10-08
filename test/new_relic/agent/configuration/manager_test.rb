@@ -187,6 +187,66 @@ module NewRelic::Agent::Configuration
       assert_equal({:one => 1, :two => 2}, @manager.to_collector_hash)
     end
 
+    def test_to_agent_settings_hash_omits_defaults
+      @manager.add_config_for_testing(:app_name => 'my app')
+
+      assert_equal({:app_name => ['my app']}, @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_includes_explicit_values_that_match_defaults
+      @manager.add_config_for_testing(:capture_params => false)
+
+      assert_equal({:capture_params => false}, @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_omits_unknown_keys
+      @manager.add_config_for_testing(:capture_params => true, :not_a_real_setting => 'typo')
+
+      assert_equal({:capture_params => true}, @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_omits_sensitive_settings
+      @manager.add_config_for_testing(
+        :license_key => 'secret',
+        :proxy_host => 'proxy.example.com',
+        :proxy_user => 'user',
+        :proxy_pass => 'password',
+        :proxy_port => 3128
+      )
+
+      assert_equal({:proxy_port => 3128}, @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_reports_server_values_over_local_config
+      @manager.replace_or_add_config(ManualSource.new(:apdex_t => 0.5, :capture_params => true))
+      @manager.replace_or_add_config(ServerSource.new('apdex_t' => 2.0, 'encoding_key' => 'abc123'))
+
+      assert_equal({:apdex_t => 2.0, :capture_params => true, :encoding_key => 'abc123'}, @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_reports_transformed_values_as_strings
+      @manager.add_config_for_testing(
+        :'rules.ignore_url_regexes' => ['^/health', 'ping$'],
+        :'strip_exception_messages.allowed_classes' => ['ArgumentError']
+      )
+
+      assert_equal({:'rules.ignore_url_regexes' => ['^/health', 'ping$'],
+                    :'strip_exception_messages.allowed_classes' => ['ArgumentError']},
+        @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_flattens_web_transactions_apdex
+      @manager.replace_or_add_config(ServerSource.new('web_transactions_apdex' => {'WebTransaction/Controller/home' => 1.5}))
+
+      assert_equal({:'web_transactions_apdex.WebTransaction/Controller/home' => 1.5}, @manager.to_agent_settings_hash)
+    end
+
+    def test_to_agent_settings_hash_returns_bare_hash
+      @manager.add_config_for_testing(:capture_params => true)
+
+      assert_instance_of(::Hash, @manager.to_agent_settings_hash)
+    end
+
     def test_config_masks
       NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = proc { true }
 

@@ -735,6 +735,56 @@ module NewRelic
         end
       end
 
+      def test_send_agent_settings_does_not_swallow_forced_errors
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:agent_settings).raises(cls.new)
+          assert_raises(cls) do
+            @agent.send(:send_agent_settings)
+          end
+        end
+      end
+
+      def test_send_agent_settings_with_error
+        @agent.service.expects(:agent_settings).raises('bad news')
+        @agent.send(:send_agent_settings)
+      end
+
+      def test_send_agent_settings_records_remote_unavailable
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.service.expects(:agent_settings).raises(NewRelic::Agent::ServerConnectionException)
+        @agent.send(:send_agent_settings)
+
+        assert_equal NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT, @agent.health_check.instance_variable_get(:@status)
+        assert_metrics_recorded(['Supportability/remote_unavailable', 'Supportability/remote_unavailable/agent_settings'])
+      end
+
+      def test_transmit_agent_settings_logs_session_errors
+        @agent.service.expects(:session).raises(NewRelic::Agent::ServerConnectionException)
+        @agent.service.expects(:agent_settings).never
+        expects_logging(:error, 'Error transmitting agent_settings: ', instance_of(NewRelic::Agent::ServerConnectionException))
+
+        @agent.instance_eval { transmit_agent_settings }
+      end
+
+      def test_transmit_agent_settings_does_not_swallow_forced_errors_from_session
+        error_classes = [
+          NewRelic::Agent::ForceRestartException,
+          NewRelic::Agent::ForceDisconnectException
+        ]
+
+        error_classes.each do |cls|
+          @agent.service.expects(:session).raises(cls.new)
+          assert_raises(cls) do
+            @agent.instance_eval { transmit_agent_settings }
+          end
+        end
+      end
+
       def test_graceful_disconnect_should_emit_before_disconnect_event
         before_shutdown_call_count = 0
         @agent.events.subscribe(:before_shutdown) do

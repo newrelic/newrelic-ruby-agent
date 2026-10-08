@@ -145,6 +145,19 @@ module NewRelic
           end
         end
 
+        def send_agent_settings
+          @service.agent_settings(Agent.config.to_agent_settings_hash)
+        rescue ForceRestartException, ForceDisconnectException
+          raise
+        rescue UnrecoverableServerException => e
+          NewRelic::Agent.logger.warn('agent_settings message was rejected by remote service, discarding. Error: ', e)
+        rescue ServerConnectionException => e
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
+          log_remote_unavailable(:agent_settings, e)
+        rescue => e
+          NewRelic::Agent.logger.info('Error during send_agent_settings: ', e)
+        end
+
         def log_remote_unavailable(endpoint, e)
           NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
           NewRelic::Agent.record_metric('Supportability/remote_unavailable', 0.0)

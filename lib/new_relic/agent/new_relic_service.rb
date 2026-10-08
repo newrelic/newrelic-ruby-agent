@@ -110,6 +110,10 @@ module NewRelic
         invoke_remote(:preconnect, [{'high_security' => is_high_security}])
       end
 
+      def agent_settings(settings)
+        invoke_remote(:agent_settings, [settings])
+      end
+
       def shutdown(time)
         invoke_remote(:shutdown, [@agent_id, time.to_i]) if @agent_id
       ensure
