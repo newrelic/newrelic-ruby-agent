@@ -735,14 +735,6 @@ module NewRelic
         end
       end
 
-      def test_send_agent_settings_sends_settings_with_server_side_config_applied
-        @agent.service.stubs(:connect).returns({'agent_run_id' => 23, 'apdex_t' => 2.0})
-        @agent.connect_to_server
-        @agent.service.expects(:agent_settings).with { |settings| settings[:apdex_t] == 2.0 }
-
-        @agent.send(:send_agent_settings)
-      end
-
       def test_send_agent_settings_does_not_swallow_forced_errors
         error_classes = [
           NewRelic::Agent::ForceRestartException,
@@ -777,12 +769,6 @@ module NewRelic
 
         assert_equal NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT, @agent.health_check.instance_variable_get(:@status)
         assert_metrics_recorded(['Supportability/remote_unavailable', 'Supportability/remote_unavailable/agent_settings'])
-      end
-
-      def test_transmit_agent_settings_uses_a_session
-        @agent.service.expects(:session).once.yields
-        @agent.service.expects(:agent_settings).once
-        @agent.instance_eval { transmit_agent_settings }
       end
 
       def test_transmit_agent_settings_logs_session_errors

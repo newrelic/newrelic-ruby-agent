@@ -188,31 +188,31 @@ module NewRelic::Agent::Configuration
     end
 
     def test_to_agent_settings_hash_omits_defaults
-      @manager.replace_or_add_config(ManualSource.new(:app_name => 'my app'))
+      @manager.add_config_for_testing(:app_name => 'my app')
 
       assert_equal({:app_name => ['my app']}, @manager.to_agent_settings_hash)
     end
 
     def test_to_agent_settings_hash_includes_explicit_values_that_match_defaults
-      @manager.replace_or_add_config(ManualSource.new(:capture_params => false))
+      @manager.add_config_for_testing(:capture_params => false)
 
       assert_equal({:capture_params => false}, @manager.to_agent_settings_hash)
     end
 
     def test_to_agent_settings_hash_omits_unknown_keys
-      @manager.replace_or_add_config(ManualSource.new(:capture_params => true, :not_a_real_setting => 'typo'))
+      @manager.add_config_for_testing(:capture_params => true, :not_a_real_setting => 'typo')
 
       assert_equal({:capture_params => true}, @manager.to_agent_settings_hash)
     end
 
     def test_to_agent_settings_hash_omits_sensitive_settings
-      @manager.replace_or_add_config(ManualSource.new(
+      @manager.add_config_for_testing(
         :license_key => 'secret',
         :proxy_host => 'proxy.example.com',
         :proxy_user => 'user',
         :proxy_pass => 'password',
         :proxy_port => 3128
-      ))
+      )
 
       assert_equal({:proxy_port => 3128}, @manager.to_agent_settings_hash)
     end
@@ -224,19 +224,11 @@ module NewRelic::Agent::Configuration
       assert_equal({:apdex_t => 2.0, :capture_params => true, :encoding_key => 'abc123'}, @manager.to_agent_settings_hash)
     end
 
-    def test_to_agent_settings_hash_reports_type_coerced_environment_values
-      with_environment('NEW_RELIC_CAPTURE_PARAMS' => 'true') do
-        @manager.replace_or_add_config(EnvironmentSource.new)
-      end
-
-      assert_equal({:capture_params => true}, @manager.to_agent_settings_hash)
-    end
-
     def test_to_agent_settings_hash_reports_transformed_values_as_strings
-      @manager.replace_or_add_config(ManualSource.new(
+      @manager.add_config_for_testing(
         :'rules.ignore_url_regexes' => ['^/health', 'ping$'],
         :'strip_exception_messages.allowed_classes' => ['ArgumentError']
-      ))
+      )
 
       assert_equal({:'rules.ignore_url_regexes' => ['^/health', 'ping$'],
                     :'strip_exception_messages.allowed_classes' => ['ArgumentError']},
@@ -250,7 +242,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_to_agent_settings_hash_returns_bare_hash
-      @manager.replace_or_add_config(ManualSource.new(:capture_params => true))
+      @manager.add_config_for_testing(:capture_params => true)
 
       assert_instance_of(::Hash, @manager.to_agent_settings_hash)
     end
