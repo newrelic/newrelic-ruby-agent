@@ -2,9 +2,9 @@
 
 ## dev
 
-- **Feature: Report the agent's effective configuration to New Relic**
+- **Feature: Report effective configuration to New Relic**
 
-  After each connect, including reconnects, the agent now reports its effective configuration to New Relic: every setting explicitly configured through `newrelic.yml`, environment variables, or manual start options, merged with any server-side configuration, using the values the agent is actually running with. Settings left at their default values are not included, and sensitive settings such as `license_key` and proxy credentials are omitted. This reporting can be disabled by setting the new `enable_agent_settings` configuration option to `false`.
+  After connecting, the agent now reports the configuration settings it's running with to New Relic. To turn this off, set the new `enable_agent_settings` configuration option to `false`. [PR#3702](https://github.com/newrelic/newrelic-ruby-agent/pull/3702)
 
 - **Feature: Add `ai_monitoring.basic_telemetry.enabled` and deprecate `ai_monitoring.enabled`**
 
