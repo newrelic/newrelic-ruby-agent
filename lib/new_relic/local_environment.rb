@@ -136,7 +136,8 @@ module NewRelic
     end
 
     def check_for_puma
-      return unless defined?(::Puma) && File.basename($0) == 'puma'
+      return unless defined?(::Puma) &&
+        (File.basename($0) == 'puma' || defined?(::Puma::RackHandler) || defined?(::Rack::Handler::Puma))
 
       @discovered_dispatcher = :puma
     end
