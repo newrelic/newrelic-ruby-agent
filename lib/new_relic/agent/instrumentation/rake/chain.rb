@@ -14,6 +14,12 @@ module NewRelic::Agent::Instrumentation
           def invoke(*args)
             invoke_with_newrelic_tracing(*args) { invoke_without_newrelic(*args) }
           end
+
+          alias_method(:execute_without_newrelic, :execute)
+
+          def execute(args = nil)
+            execute_with_newrelic_tracing(args) { execute_without_newrelic(args) }
+          end
         end
       end
     end
