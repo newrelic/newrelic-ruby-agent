@@ -42,6 +42,48 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
     $PROGRAM_NAME = opn
   end
 
+  def test_puma_binary
+    with_program_name('puma') do
+      with_constant_defined(:'::Puma') do
+        assert_equal :puma, NewRelic::LocalEnvironment.new.discovered_dispatcher
+      end
+    end
+  end
+
+  def test_puma_rack_handler_under_another_executable
+    with_program_name('rails') do
+      with_constant_defined(:'::Puma') do
+        with_constant_defined(:'::Puma::RackHandler') do
+          assert_equal :puma, NewRelic::LocalEnvironment.new.discovered_dispatcher
+        end
+      end
+    end
+  end
+
+  def test_legacy_rack_handler_puma_under_another_executable
+    with_program_name('rails') do
+      with_constant_defined(:'::Puma') do
+        with_constant_defined(:'::Rack') do
+          with_constant_defined(:'::Rack::Handler') do
+            with_constant_defined(:'::Rack::Handler::Puma') do
+              assert_equal :puma, NewRelic::LocalEnvironment.new.discovered_dispatcher
+            end
+          end
+        end
+      end
+    end
+  end
+
+  def test_puma_loaded_without_rack_handler_is_not_puma
+    skip 'Puma Rack handler already loaded' if defined?(::Puma::RackHandler) || defined?(::Rack::Handler::Puma)
+
+    with_program_name('rails') do
+      with_constant_defined(:'::Puma') do
+        refute_equal :puma, NewRelic::LocalEnvironment.new.discovered_dispatcher
+      end
+    end
+  end
+
   def test_not_resque
     combinations = [['notrake', 'resque:work', {'QUEUE' => '*'}],
       ['rake', 'notresque:work', {'QUEUE' => '*'}],
@@ -85,6 +127,14 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
         assert_resque(settings)
       end
     end
+  end
+
+  def with_program_name(name)
+    original = $PROGRAM_NAME
+    $PROGRAM_NAME = name
+    yield
+  ensure
+    $PROGRAM_NAME = original
   end
 
   def with_resque(basename, *args)
