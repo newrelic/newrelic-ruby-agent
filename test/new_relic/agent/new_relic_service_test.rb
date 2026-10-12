@@ -309,6 +309,16 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 'shut this bird down', response
   end
 
+  def test_agent_settings
+    @service.agent_id = 666
+    @http_handle.respond_to(:agent_settings, nil)
+    @service.agent_settings({'capture_params' => true})
+
+    assert_equal [{'capture_params' => true}], @http_handle.last_request_payload
+    assert_includes @http_handle.last_request.path, 'method=agent_settings'
+    assert_includes @http_handle.last_request.path, 'run_id=666'
+  end
+
   def test_should_not_shutdown_if_never_connected
     @http_handle.respond_to(:shutdown, 'shut this bird down')
     response = @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))

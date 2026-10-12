@@ -379,6 +379,16 @@ module NewRelic
           end
         end
 
+        def to_agent_settings_hash
+          settings = explicitly_set_keys.each_with_object({}) do |key, hash|
+            next if DEFAULTS.dig(key, :exclude_from_reported_settings)
+
+            hash[key] = reportable_value(self[key])
+          end
+
+          DottedHash.new(apply_mask(settings)).to_hash
+        end
+
         MALFORMED_LABELS_WARNING = 'Skipping malformed labels configuration'
         PARSING_LABELS_FAILURE = 'Failure during parsing labels. Ignoring and carrying on with connect.'
 
@@ -576,6 +586,23 @@ module NewRelic
           end
 
           stack
+        end
+
+        def explicitly_set_keys
+          config_stack
+            .reject { |source| source.equal?(@default_source) }
+            .flat_map(&:keys)
+            .uniq
+            .select { |key| DEFAULTS.key?(key) || @server_source&.key?(key) }
+        end
+
+        def reportable_value(value)
+          case value
+          when Regexp then value.source
+          when Module then value.name
+          when Array then value.map { |v| reportable_value(v) }
+          else value
+          end
         end
       end
     end
