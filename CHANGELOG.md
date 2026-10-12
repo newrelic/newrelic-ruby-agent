@@ -10,6 +10,18 @@
 
   AI Monitoring now sends basic LLM telemetry (metrics, events, and spans, without input or output content) by default through the new `ai_monitoring.basic_telemetry.enabled` setting, which defaults to `true`. If you've explicitly set `ai_monitoring.enabled`, that setting still takes precedence: `false` turns AI Monitoring off and `true` sends data with content controlled by `ai_monitoring.record_content.enabled`. `ai_monitoring.enabled` is deprecated and will be removed in the next major release. [PR#3698](https://github.com/newrelic/newrelic-ruby-agent/pull/3698)
 
+- **Feature: Add experimental support for some OpenTelemetry configuration options when opentelemetry.enabled is true**
+
+  If `opentelemetry.enabled` is `true`, the following OpenTelemetry environment variables will be applied to your agent's configuration:
+
+  | OpenTelemetry env var | New Relic env var         | New Relic YAML   |
+  | --------------------- | ------------------------- | ---------------- |
+  | `OTEL_SERVICE_NAME`   | `NEW_RELIC_APP_NAME`      | `:app_name`      |
+  | `OTEL_LOG_LEVEL`      | `NEW_RELIC_LOG_LEVEL`     | `:log_level`     |
+  | `OTEL_SDK_DISABLED`   | `NEW_RELIC_AGENT_ENABLED` | `:agent_enabled` |
+
+  If `opentelemetry.enabled` is `false`, these environment variables will have no impact. The OpenTelemetry environment variables have the same precedence level as New Relic environment variables. If the same value is set by both a New Relic environment variable (ex. `NEW_RELIC_APP_NAME`), the New Relic variable will take precedence. Keep in mind that this is an experimental feature and may be subject to significant changes without a major release. [PR#3619](https://github.com/newrelic/newrelic-ruby-agent/pull/3619)
+
 - **Bugfix: Detect Puma as the dispatcher under rails server**
 
   The agent previously detected Puma only when the app was started with the `puma` executable, so apps started with `rails server` logged `No known dispatcher detected.` and connected from the Puma master process. The agent now also detects Puma when its Rack handler is loaded. As with the `puma` executable, it waits to start until each Puma process handles its first request, which avoids an extra connection from the master in clustered mode. Apps started with `rackup` load the agent before Puma, so Puma still can't be detected there. Set `NEW_RELIC_DISPATCHER=puma` to get the same behavior. [PR#3706](https://github.com/newrelic/newrelic-ruby-agent/pull/3706)
