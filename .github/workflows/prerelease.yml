@@ -26,6 +26,18 @@ jobs:
     - name: Update newrelic.yml
       run: bundle exec rake newrelic:update_newrelicyml
 
+    # Must run before the schema version bump, bc it compares vs last release
+    - name: Regenerate config schema
+      run: |
+        set +e
+        ruby .fleetControl/schemaGeneration/generate_schema.rb
+        code=$?
+        set -e
+        case "$code" in
+          0|1) ;;
+          *) echo "Schema generation failed (exit $code)."; exit 1 ;;
+        esac
+
     # Fetch just the latest release tag (shallow) so the schema bump can diff
     # against the previous release without a full-history checkout.
     - name: Fetch last release tag for schema diff
