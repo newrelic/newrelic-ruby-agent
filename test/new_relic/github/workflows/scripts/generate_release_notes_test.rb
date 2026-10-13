@@ -20,6 +20,10 @@ module NewRelic
             - Support for new framework X
             - Support for new framework Y
 
+        - **Enhancement: Add something shiny to an existing feature**
+
+          An existing feature just got cooler.
+
         - **Bugfix: Fix memory leak in instrumentation**
 
           Memory leak issue has been resolved.
@@ -84,6 +88,7 @@ module NewRelic
       metadata, latest_entry = generator.build_metadata
 
       assert_equal ['Add support for new framework'], metadata[:features]
+      assert_equal ['Add something shiny to an existing feature'], metadata[:enhancements]
       assert_equal ['Fix memory leak in instrumentation'], metadata[:bugs]
       assert_equal ['Address potential XSS vulnerability'], metadata[:security]
       assert_includes latest_entry, '## v9.8.0'
@@ -106,6 +111,7 @@ module NewRelic
       metadata, _latest_entry = generator.build_metadata
 
       assert_empty metadata[:features]
+      assert_empty metadata[:enhancements]
       assert_empty metadata[:bugs]
       assert_empty metadata[:security]
 
@@ -122,10 +128,17 @@ module NewRelic
       assert_includes content, "version: #{NewRelic::VERSION::STRING}"
       assert_includes content, "downloadLink: https://rubygems.org/gems/newrelic_rpm/versions/#{NewRelic::VERSION::STRING}"
       assert_includes content, 'features: ["Add support for new framework"]'
+      assert_includes content, 'enhancements: ["Add something shiny to an existing feature"]'
       assert_includes content, 'bugs: ["Fix memory leak in instrumentation"]'
       assert_includes content, 'security: ["Address potential XSS vulnerability"]'
       assert_includes content, GenerateReleaseNotes::SUPPORT_STATEMENT
-      assert_includes content, '## v9.8.0'
+    end
+
+    def test_build_release_content_groups_entries_into_template_sections
+      content = GenerateReleaseNotes.new(@fake_changelog_file).build_release_content
+
+      assert_equal ['### New features', '### Improvements and enhancements', '### Bug fixes', '### Security updates'], content.scan(/^### .*$/)
+      assert_includes content, "### Bug fixes\n\n- Fix memory leak in instrumentation\n\n  Memory leak issue has been resolved."
     end
 
     def test_major_bump_detection_true
