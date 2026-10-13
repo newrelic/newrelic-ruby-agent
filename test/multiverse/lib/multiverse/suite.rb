@@ -8,7 +8,6 @@
 # Rubies starting with 1.9.x
 
 require_relative '../../../warning_test_helper'
-require_relative '../../../simplecov_test_helper'
 require_relative '../../../../lib/new_relic/base64'
 
 require 'logger'
@@ -234,6 +233,8 @@ module Multiverse
         ensure_bundle_uncached(env_index)
       end
       with_potentially_mismatched_bundler do
+        ::Bundler.setup
+        require_relative '../../../simplecov_test_helper'
         ::Bundler.require
       end
     end
@@ -287,6 +288,7 @@ module Multiverse
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
         f.puts "gem 'webrick'"
         f.puts "gem 'warning'"
+        f.puts "gem 'simplecov', require: false" if simplecov?
 
         # i18n 1.15.0+ is broken on Ruby 3.1 and will not be fixed, so pin below it
         f.puts "gem 'i18n', '< 1.15.0'" if RUBY_VERSION.start_with?('3.1.')
@@ -302,6 +304,10 @@ module Multiverse
         puts yellow("Gemfile.#{env_index} set to:")
         puts File.read(gemfile)
       end
+    end
+
+    def simplecov?
+      RUBY_VERSION >= '2.7.0' && ENV['VERBOSE_TEST_OUTPUT']
     end
 
     def newrelic_gemfile_line
