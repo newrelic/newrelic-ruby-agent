@@ -762,13 +762,6 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal [AGENT_COMMAND, second_command], @service.drain_agent_commands
   end
 
-  def test_drain_agent_commands_unwraps_an_agent_commands_key
-    @http_handle.respond_to(:metric_data, {'agent_commands' => [AGENT_COMMAND]})
-    @service.metric_data(NewRelic::Agent::StatsHash.new)
-
-    assert_equal [AGENT_COMMAND], @service.drain_agent_commands
-  end
-
   def test_drain_agent_commands_ignores_an_empty_202_response
     response = @http_handle.create_response_mock(nil, :code => 202)
     response.body = ''

@@ -31,14 +31,6 @@ class InlineAgentCommandsTest < Minitest::Test
     assert_empty $collector.calls_for('agent_command_results')
   end
 
-  def test_handles_commands_wrapped_in_an_agent_commands_key
-    $collector.stub('metric_data', {'agent_commands' => [stop_profiler_command(803)]})
-
-    NewRelic::Agent.agent.send(:transmit_data)
-
-    assert_command_results_sent_for(803)
-  end
-
   def test_a_redelivered_command_runs_once
     $collector.stub('metric_data', [stop_profiler_command(804)])
 

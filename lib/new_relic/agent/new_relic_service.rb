@@ -40,8 +40,6 @@ module NewRelic
       PROFILES_EXPORT_DURATION_METRIC = 'Supportability/Ruby/Profiling/Export/Duration'
       PROFILES_EXPORT_FAILURE_METRIC = 'Supportability/Ruby/Profiling/Export/Failure'
 
-      AGENT_COMMANDS_KEY = 'agent_commands'
-
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
 
@@ -683,10 +681,9 @@ module NewRelic
       end
 
       def agent_commands_from(return_value)
-        candidates = return_value.is_a?(Hash) ? return_value[AGENT_COMMANDS_KEY] : return_value
-        return NewRelic::EMPTY_ARRAY unless candidates.is_a?(Array)
+        return NewRelic::EMPTY_ARRAY unless return_value.is_a?(Array)
 
-        commands, invalid = candidates.partition { |candidate| valid_agent_command?(candidate) }
+        commands, invalid = return_value.partition { |candidate| valid_agent_command?(candidate) }
         ::NewRelic::Agent.logger.debug("Ignoring unrecognized agent command payload: #{invalid.inspect}") unless invalid.empty?
         commands
       end
