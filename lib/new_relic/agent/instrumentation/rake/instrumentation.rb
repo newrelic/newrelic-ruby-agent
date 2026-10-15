@@ -14,6 +14,11 @@ module NewRelic
               return yield
             end
 
+            if NewRelic::Agent::Tracer.current_transaction
+              NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(self)
+              return NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/invoke/#{name}", internal: true) { yield }
+            end
+
             NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
             begin
@@ -30,6 +35,14 @@ module NewRelic
               NewRelic::Agent::Instrumentation::Rake.record_attributes(args, self)
               yield
             end
+          end
+
+          def execute_with_newrelic_tracing(args)
+            if NewRelic::Agent::Tracer.current_transaction || !NewRelic::Agent::Instrumentation::Rake.command_line_task?(self)
+              return yield
+            end
+
+            invoke_with_newrelic_tracing(*args.to_a) { yield }
           end
         end
 
@@ -52,6 +65,12 @@ module NewRelic
           end
         end
 
+        def command_line_task?(task)
+          task.application.top_level_tasks.any? do |task_string|
+            task.application.parse_task_string(task_string).first == task.name
+          end
+        end
+
         def instrument_execute_on_prereqs(task)
           task.prerequisite_tasks.each do |child_task|
             instrument_execute(child_task)
@@ -64,7 +83,7 @@ module NewRelic
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
           task.instance_eval do
             def execute(*args, &block)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}", internal: true) do
                 super
               end
             end
@@ -76,7 +95,7 @@ module NewRelic
         def instrument_invoke_prerequisites_concurrently(task)
           task.instance_eval do
             def invoke_prerequisites_concurrently(*_)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped('Rake/execute/multitask') do
+              NewRelic::Agent::MethodTracer.trace_execution_scoped('Rake/execute/multitask', internal: true) do
                 super
               end
             end
