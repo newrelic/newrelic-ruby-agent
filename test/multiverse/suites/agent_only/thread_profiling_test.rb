@@ -12,7 +12,6 @@ class ThreadProfilingTest < Minitest::Test
 
   setup_and_teardown_agent(:'thread_profiler.enabled' => true) do |collector|
     collector.stub('connect', {'agent_run_id' => 666})
-    collector.stub('get_agent_commands', [])
     collector.stub('agent_command_results', [])
   end
 
@@ -41,7 +40,7 @@ class ThreadProfilingTest < Minitest::Test
     }
   }]]
 
-  STOP_COMMAND = [[666, {
+  STOP_COMMAND = [[667, {
     'name' => 'stop_profiler',
     'arguments' => {
       'profile_id' => -1,
@@ -94,9 +93,10 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   def issue_command(cmd)
-    $collector.stub('get_agent_commands', cmd)
+    $collector.stub('metric_data', cmd)
+    agent.service.metric_data(NewRelic::Agent::StatsHash.new)
     agent.send(:check_for_and_handle_agent_commands)
-    $collector.stub('get_agent_commands', [])
+    $collector.stub('metric_data', [])
   end
 
   # Runs a thread we expect to span entire test and be killed at the end

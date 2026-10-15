@@ -731,22 +731,79 @@ class NewRelicServiceTest < Minitest::Test
     NewRelic::Agent::ContinuousProfiling.send(:remove_const, :ProfileEncoder)
   end
 
-  def test_get_agent_commands
-    @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, [1, 2, 3])
+  AGENT_COMMAND = [5231, {'name' => 'start_profiler', 'arguments' => {'profile_duration' => 60}}]
 
-    response = @service.get_agent_commands
-
-    assert_equal [1, 2, 3], response
+  def test_drain_agent_commands_is_empty_before_any_harvest
+    assert_empty @service.drain_agent_commands
   end
 
-  def test_get_agent_commands_with_no_response
-    @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, nil)
+  def test_drain_agent_commands_returns_commands_from_a_metric_data_response
+    @http_handle.respond_to(:metric_data, [AGENT_COMMAND])
+    @service.metric_data(NewRelic::Agent::StatsHash.new)
 
-    response = @service.get_agent_commands
+    assert_equal [AGENT_COMMAND], @service.drain_agent_commands
+  end
 
-    assert_nil response
+  def test_drain_agent_commands_empties_the_pending_commands
+    @http_handle.respond_to(:metric_data, [AGENT_COMMAND])
+    @service.metric_data(NewRelic::Agent::StatsHash.new)
+    @service.drain_agent_commands
+
+    assert_empty @service.drain_agent_commands
+  end
+
+  def test_drain_agent_commands_accumulates_across_metric_data_responses
+    second_command = [5232, {'name' => 'stop_profiler', 'arguments' => {}}]
+    @http_handle.respond_to(:metric_data, [AGENT_COMMAND])
+    @service.metric_data(NewRelic::Agent::StatsHash.new)
+    @http_handle.respond_to(:metric_data, [second_command])
+    @service.metric_data(NewRelic::Agent::StatsHash.new)
+
+    assert_equal [AGENT_COMMAND, second_command], @service.drain_agent_commands
+  end
+
+  def test_drain_agent_commands_unwraps_an_agent_commands_key
+    @http_handle.respond_to(:metric_data, {'agent_commands' => [AGENT_COMMAND]})
+    @service.metric_data(NewRelic::Agent::StatsHash.new)
+
+    assert_equal [AGENT_COMMAND], @service.drain_agent_commands
+  end
+
+  def test_drain_agent_commands_ignores_an_empty_202_response
+    response = @http_handle.create_response_mock(nil, :code => 202)
+    response.body = ''
+    @http_handle.stubs(:request).returns(response)
+
+    assert_nil @service.metric_data(NewRelic::Agent::StatsHash.new)
+    assert_empty @service.drain_agent_commands
+  end
+
+  def test_drain_agent_commands_ignores_values_that_are_not_commands
+    [[1, 2], [[{'name' => 'Some/Metric/Spec'}, 1]], 'a string', {'other' => 'hash'}, [['5231', {'name' => 'x'}]],
+      [[5231, {'arguments' => {}}]]].each do |return_value|
+      @http_handle.respond_to(:metric_data, return_value)
+      @service.metric_data(NewRelic::Agent::StatsHash.new)
+
+      assert_empty @service.drain_agent_commands, "Expected #{return_value.inspect} to be ignored"
+    end
+  end
+
+  def test_drain_agent_commands_keeps_valid_commands_mixed_with_invalid_ones
+    @http_handle.respond_to(:metric_data, [[1, 2], AGENT_COMMAND])
+    @service.metric_data(NewRelic::Agent::StatsHash.new)
+
+    assert_equal [AGENT_COMMAND], @service.drain_agent_commands
+  end
+
+  def test_drain_agent_commands_ignores_responses_other_than_metric_data
+    @http_handle.respond_to(:analytic_event_data, [AGENT_COMMAND])
+    @http_handle.respond_to(:error_data, [AGENT_COMMAND])
+    @http_handle.respond_to(:agent_command_results, [AGENT_COMMAND])
+    @service.analytic_event_data([{}, []])
+    @service.error_data([])
+    @service.agent_command_results({'1' => {}})
+
+    assert_empty @service.drain_agent_commands
   end
 
   def test_agent_command_results

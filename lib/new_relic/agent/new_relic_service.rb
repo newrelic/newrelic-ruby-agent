@@ -40,6 +40,8 @@ module NewRelic
       PROFILES_EXPORT_DURATION_METRIC = 'Supportability/Ruby/Profiling/Export/Duration'
       PROFILES_EXPORT_FAILURE_METRIC = 'Supportability/Ruby/Profiling/Export/Failure'
 
+      AGENT_COMMANDS_KEY = 'agent_commands'
+
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
 
@@ -58,6 +60,8 @@ module NewRelic
         @profiles_connection_generation = 0
         @profiles_connection_in_use = false
         @request_headers_map = nil
+        @pending_agent_commands = []
+        @agent_commands_lock = Mutex.new
         reset_remote_method_uris
 
         prep_audit_logger
@@ -145,11 +149,13 @@ module NewRelic
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
-        invoke_remote(
+        return_value = invoke_remote(
           :metric_data,
           [@agent_id, timeslice_start, timeslice_end, metric_data_array],
           :item_count => metric_data_array.size
         )
+        collect_agent_commands(return_value)
+        return_value
       end
 
       def error_data(unsent_errors)
@@ -174,8 +180,12 @@ module NewRelic
         invoke_remote(:profile_data, [@agent_id, profile], :skip_normalization => true) || ''
       end
 
-      def get_agent_commands
-        invoke_remote(:get_agent_commands, [@agent_id])
+      def drain_agent_commands
+        @agent_commands_lock.synchronize do
+          commands = @pending_agent_commands
+          @pending_agent_commands = []
+          commands
+        end
       end
 
       def agent_command_results(results)
@@ -665,6 +675,30 @@ module NewRelic
         end
       end
 
+      def collect_agent_commands(return_value)
+        commands = agent_commands_from(return_value)
+        return if commands.empty?
+
+        @agent_commands_lock.synchronize { @pending_agent_commands.concat(commands) }
+      end
+
+      def agent_commands_from(return_value)
+        candidates = return_value.is_a?(Hash) ? return_value[AGENT_COMMANDS_KEY] : return_value
+        return NewRelic::EMPTY_ARRAY unless candidates.is_a?(Array)
+
+        commands, invalid = candidates.partition { |candidate| valid_agent_command?(candidate) }
+        ::NewRelic::Agent.logger.debug("Ignoring unrecognized agent command payload: #{invalid.inspect}") unless invalid.empty?
+        commands
+      end
+
+      def valid_agent_command?(candidate)
+        candidate.is_a?(Array) &&
+          candidate.size == 2 &&
+          candidate[0].is_a?(Integer) &&
+          candidate[1].is_a?(Hash) &&
+          candidate[1]['name'].is_a?(String)
+      end
+
       def handle_serialization_error(method, e)
         NewRelic::Agent.increment_metric('Supportability/serialization_failure')
         NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
@@ -691,7 +725,7 @@ module NewRelic
       # total_call_time      => total size in bytes of payloads across all invocations
       # total_exclusive_time => total size in items (e.g. unique metrics, traces, events, etc) across all invocations
       #
-      # The last field doesn't make sense for all methods (e.g. get_agent_commands),
+      # The last field doesn't make sense for all methods (e.g. agent_command_results),
       # so we omit it for those methods that don't really take collections
       # of items as arguments.
       def record_size_supportability_metrics(method, size_bytes, item_count)
