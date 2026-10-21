@@ -388,7 +388,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, LLM instrumentation will send metrics, events, and spans without input or output content. If `false`, no AI monitoring data will be sent.'
+          :description => 'If `true`, LLM instrumentation will send metrics, events, and spans. Whether input and output content is included is controlled by `ai_monitoring.record_content.enabled`. If `false`, no AI monitoring data will be sent.'
         },
         :'ai_monitoring.record_content.enabled' => {
           :default => nil,
@@ -396,7 +396,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. If unset, content is captured only when `ai_monitoring.enabled` is explicitly `true`. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
+          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. If unset, content is captured only when the deprecated `ai_monitoring.enabled` setting is explicitly `true`. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         # this is only set via server side config
         :apdex_t => {
