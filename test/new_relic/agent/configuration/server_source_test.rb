@@ -312,6 +312,7 @@ module NewRelic::Agent::Configuration
     def test_collect_ai_false_disables_basic_telemetry_when_ai_monitoring_enabled_unset
       @source = ServerSource.new({'collect_ai' => false}, {:'ai_monitoring.basic_telemetry.enabled' => true})
 
+      refute_nil @source[:'ai_monitoring.enabled']
       refute @source[:'ai_monitoring.enabled']
       refute @source[:'ai_monitoring.basic_telemetry.enabled']
     end
