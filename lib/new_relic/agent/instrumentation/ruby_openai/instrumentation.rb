@@ -155,7 +155,9 @@ module NewRelic::Agent::Instrumentation
 
     def record_content_enabled?
       record_content = NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
-      record_content.nil? ? NewRelic::Agent.config[:'ai_monitoring.enabled'] == true : record_content
+      return record_content unless record_content.nil?
+
+      NewRelic::Agent.config[:'ai_monitoring.enabled'] == true
     end
 
     def add_content(message, content)
