@@ -154,8 +154,6 @@ module NewRelic::Agent::Instrumentation
     end
 
     def record_content_enabled?
-      return false unless NewRelic::Agent::LLM.instrumentation_enabled?
-
       record_content = NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
       record_content.nil? ? NewRelic::Agent.config[:'ai_monitoring.enabled'] == true : record_content
     end
