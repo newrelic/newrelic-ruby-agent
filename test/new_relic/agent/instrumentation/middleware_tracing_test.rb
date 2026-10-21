@@ -54,12 +54,20 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
     assert_equal '42', txn.response_content_length
   end
 
+  def test_sums_lowercase_array_content_length
+    txn = capture_response_headers('content-length' => %w[10 32])
+
+    assert_equal 42, txn.response_content_length
+  end
+
   private
 
   def capture_response_headers(headers)
-    in_transaction do |txn|
+    txn = nil
+    in_transaction do |t|
+      txn = t
       HostClass.new.capture_response_attributes(NewRelic::Agent::Tracer.state, [200, headers, []])
-      return txn
     end
+    txn
   end
 end

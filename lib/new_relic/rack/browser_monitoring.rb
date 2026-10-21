@@ -23,9 +23,7 @@ module NewRelic
       CONTENT_TYPE = 'Content-Type'
       CONTENT_DISPOSITION = 'Content-Disposition'
       CONTENT_LENGTH = 'Content-Length'
-      CONTENT_TYPE_LOWER = 'content-type'
       CONTENT_DISPOSITION_LOWER = 'content-disposition'
-      CONTENT_LENGTH_LOWER = 'content-length'
       TRANSFER_ENCODING = 'Transfer-Encoding'
       TRANSFER_ENCODING_LOWER = 'transfer-encoding'
       ATTACHMENT = /attachment/.freeze
