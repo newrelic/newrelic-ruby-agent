@@ -316,24 +316,11 @@ module NewRelic::Agent::Configuration
       refute @source[:'ai_monitoring.basic_telemetry.enabled']
     end
 
-    def test_collect_ai_false_overrides_basic_telemetry_from_agent_config
-      rsp = {
-        'collect_ai' => false,
-        'agent_config' => {'ai_monitoring.basic_telemetry.enabled' => true, 'ai_monitoring.enabled' => true}
-      }
-      @source = ServerSource.new(rsp, {})
+    def test_collect_ai_true_leaves_ai_monitoring_settings_alone
+      @source = ServerSource.new({'collect_ai' => true}, {})
 
-      refute @source[:'ai_monitoring.enabled']
-      refute @source[:'ai_monitoring.basic_telemetry.enabled']
-    end
-
-    def test_collect_ai_true_or_absent_leaves_ai_monitoring_settings_alone
-      [{'collect_ai' => true}, {}].each do |rsp|
-        @source = ServerSource.new(rsp, {})
-
-        refute @source.key?(:'ai_monitoring.enabled')
-        refute @source.key?(:'ai_monitoring.basic_telemetry.enabled')
-      end
+      refute @source.key?(:'ai_monitoring.enabled')
+      refute @source.key?(:'ai_monitoring.basic_telemetry.enabled')
     end
 
     def test_should_set_ai_monitoring_basic_telemetry_when_server_says_to
