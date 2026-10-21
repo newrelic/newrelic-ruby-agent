@@ -37,8 +37,21 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic" => {call_count: 2}})
   end
 
-  def test_openai_full_metric_recorded_when_ai_monitoring_enabled
+  def test_openai_basic_metric_recorded_when_ai_monitoring_enabled_and_record_content_false
     with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+    end
+
+    assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+  end
+
+  def test_openai_full_metric_recorded_when_ai_monitoring_enabled_and_record_content_unset
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => nil) do
       in_transaction do
         stub_post_request do
           client.chat(parameters: chat_params)
@@ -48,6 +61,58 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
     refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
+  end
+
+  def test_openai_full_metric_recorded_with_basic_telemetry_and_record_content_true
+    with_config(:'ai_monitoring.basic_telemetry.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+    end
+
+    assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
+  end
+
+  def test_content_sent_when_ai_monitoring_enabled_and_record_content_unset
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => nil) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    assert events[0][1]['input']
+  end
+
+  def test_content_sent_with_basic_telemetry_and_record_content_true
+    with_config(:'ai_monitoring.basic_telemetry.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    assert events[0][1]['input']
+  end
+
+  def test_no_content_when_record_content_unset_and_ai_monitoring_enabled_unset
+    with_config(:'ai_monitoring.record_content.enabled' => nil) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    refute events[0][1]['input']
   end
 
   def test_openai_chat_completion_segment_name
