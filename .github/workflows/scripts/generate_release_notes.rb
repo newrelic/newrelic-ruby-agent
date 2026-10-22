@@ -9,17 +9,23 @@ require_relative '../../../lib/new_relic/version'
 class GenerateReleaseNotes
   DIVIDER = '---'
   SUPPORT_STATEMENT = <<~SUPPORT_STATEMENT
-  <Callout variant="important">
-    We recommend updating to the latest agent version as soon as it's available. If you can't upgrade to the latest version, update your agents to a version no more than 90 days old. Read more about [keeping agents up to date](/docs/new-relic-solutions/new-relic-one/install-configure/update-new-relic-agent/).
+    <Callout variant="important">
+      We recommend updating to the latest agent version as soon as it's available. If you can't upgrade to the latest version, update your agents to a version no more than 90 days old. Read more about [keeping agents up to date](/docs/new-relic-solutions/new-relic-one/install-configure/update-new-relic-agent/).
 
-    See the New Relic Ruby agent [EOL policy](/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
-  </Callout>
+      See the New Relic Ruby agent [EOL policy](/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
+    </Callout>
   SUPPORT_STATEMENT
   MAJOR_VERSION_BANNER = <<~BANNER
-  <Callout variant='important'>
-    **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide [here](/docs/apm/agents/ruby-agent/getting-started/migration-%sx-guide/).
-  </Callout>
+    <Callout variant='important'>
+      **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide [here](/docs/apm/agents/ruby-agent/getting-started/migration-%sx-guide/).
+    </Callout>
   BANNER
+  SECTION_HEADINGS = {
+    features: 'New features',
+    enhancements: 'Improvements and enhancements',
+    bugs: 'Bug fixes',
+    security: 'Security updates'
+  }.freeze
 
   # pass the filename as an arg to simplify testing
   def initialize(changelog_filename = 'CHANGELOG.md')
@@ -39,6 +45,8 @@ class GenerateReleaseNotes
         metadata[:features] << t.delete_prefix('Breaking Change: ')
       when 'Feature'
         metadata[:features] << t.delete_prefix('Feature: ')
+      when 'Enhancement'
+        metadata[:enhancements] << t.delete_prefix('Enhancement: ')
       when 'Bugfix'
         metadata[:bugs] << t.delete_prefix('Bugfix: ')
       when 'Security'
@@ -49,6 +57,36 @@ class GenerateReleaseNotes
     return metadata, latest_entry
   end
 
+  def build_body(metadata, latest_entry)
+    bullets = changelog_bullets(latest_entry)
+    sections = []
+
+    SECTION_HEADINGS.each do |metadata_key, heading|
+      titles_in_section = metadata[metadata_key]
+      bullets_in_section = bullets.select { |bullet| titles_in_section.include?(bullet_title(bullet)) }
+      next if bullets_in_section.empty?
+
+      sections << "### #{heading}\n\n#{bullets_in_section.join("\n\n")}"
+    end
+
+    sections.join("\n\n")
+  end
+
+  def changelog_bullets(latest_entry)
+    raw_bullets = latest_entry.split("\n- **").drop(1)
+
+    raw_bullets.map do |raw_bullet|
+      without_category = raw_bullet.split(': ', 2).last
+      without_closing_asterisks = without_category.sub('**', '')
+      "- #{without_closing_asterisks.rstrip}"
+    end
+  end
+
+  def bullet_title(bullet)
+    first_line = bullet.lines.first.chomp
+    first_line.delete_prefix('- ')
+  end
+
   def build_release_content
     metadata, latest_entry = build_metadata
     <<~FRONTMATTER
@@ -56,14 +94,15 @@ class GenerateReleaseNotes
       subject: Ruby agent
       releaseDate: '#{Date.today}'
       version: #{NewRelic::VERSION::STRING}
-      downloadLink: https://rubygems.org/gems/newrelic_rpm/versions/#{NewRelic::VERSION::STRING}
       features: #{metadata[:features]}
+      enhancements: #{metadata[:enhancements]}
       bugs: #{metadata[:bugs]}
       security: #{metadata[:security]}
+      downloadLink: https://rubygems.org/gems/newrelic_rpm/versions/#{NewRelic::VERSION::STRING}
       #{DIVIDER}
       #{MAJOR_VERSION_BANNER % NewRelic::VERSION::MAJOR if major_bump?}
       #{SUPPORT_STATEMENT}
-      #{latest_entry}
+      #{build_body(metadata, latest_entry)}
     FRONTMATTER
   end
 
