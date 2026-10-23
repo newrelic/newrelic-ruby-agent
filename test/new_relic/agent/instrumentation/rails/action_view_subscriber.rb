@@ -240,6 +240,48 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       partial_node.metric_name)
   end
 
+  def test_skips_partials_and_collections_if_partial_instrumentation_disabled
+    with_config(:disable_view_partial_instrumentation => true) do
+      nr_freeze_process_time
+      in_transaction do
+        @subscriber.start('render_template.action_view', :id,
+          :identifier => 'model/index.html.erb')
+        @subscriber.start('!render_template.action_view', :id,
+          :virtual_path => 'model/index')
+        @subscriber.start('render_partial.action_view', :id,
+          :identifier => '/root/app/views/model/_form.html.erb')
+        @subscriber.start('!render_template.action_view', :id,
+          :virtual_path => 'model/_form')
+        advance_process_time(1.0)
+        @subscriber.finish('!render_template.action_view', :id,
+          :virtual_path => 'model/_form')
+        @subscriber.finish('render_partial.action_view', :id,
+          :identifier => '/root/app/views/model/_form.html.erb')
+        @subscriber.start('render_collection.action_view', :id,
+          :identifier => '/root/app/views/model/_user.html.erb')
+        @subscriber.start('!render_template.action_view', :id,
+          :virtual_path => 'model/_user')
+        advance_process_time(1.0)
+        @subscriber.finish('!render_template.action_view', :id,
+          :virtual_path => 'model/_user')
+        @subscriber.finish('render_collection.action_view', :id,
+          :identifier => '/root/app/views/model/_user.html.erb')
+        @subscriber.finish('!render_template.action_view', :id,
+          :virtual_path => 'model/index')
+        @subscriber.finish('render_template.action_view', :id,
+          :identifier => 'model/index.html.erb')
+      end
+    end
+
+    assert_metrics_recorded('View/model/index.html.erb/Rendering' => {:call_count => 1, :total_call_time => 2.0})
+    assert_metrics_not_recorded(['View/model/_form.html.erb/Partial', 'View/model/_user.html.erb/Partial'])
+
+    template_node = last_transaction_trace.root_node.children[0].children[0]
+
+    assert_equal('View/model/index.html.erb/Rendering', template_node.metric_name)
+    assert_empty(template_node.children)
+  end
+
   def test_creates_nodes_for_each_in_a_collection_event
     in_transaction do
       @subscriber.start('render_collection.action_view', :id,

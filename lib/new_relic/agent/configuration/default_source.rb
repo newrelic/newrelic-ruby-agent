@@ -1466,6 +1466,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables view instrumentation.'
         },
+        :disable_view_partial_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables segments and metrics for partial and collection renders. Their time is included in the template or layout that rendered them.'
+        },
         :disable_vm_sampler => {
           :default => false,
           :public => true,
