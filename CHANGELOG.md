@@ -26,6 +26,10 @@
 
   The agent previously detected Puma only when the app was started with the `puma` executable, so apps started with `rails server` logged `No known dispatcher detected.` and connected from the Puma master process. The agent now also detects Puma when its Rack handler is loaded. As with the `puma` executable, it waits to start until each Puma process handles its first request, which avoids an extra connection from the master in clustered mode. Apps started with `rackup` load the agent before Puma, so Puma still can't be detected there. Set `NEW_RELIC_DISPATCHER=puma` to get the same behavior. [PR#3706](https://github.com/newrelic/newrelic-ruby-agent/pull/3706)
 
+- **Enhancement: Stop polling for agent commands**
+
+  The agent no longer polls New Relic for agent commands once a minute. It now receives them with its regular data harvest, which removes one request per agent per minute. [PR#3715](https://github.com/newrelic/newrelic-ruby-agent/pull/3715)
+
 ## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
