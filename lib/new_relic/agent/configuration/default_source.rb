@@ -1471,7 +1471,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables segments and metrics for partial and collection renders. Their time is included in the template or layout that rendered them.'
+          :description => 'If `true`, disables segments and metrics for partial and collection renders. Their time is included in the enclosing segment, usually the template or layout that rendered them.'
         },
         :disable_vm_sampler => {
           :default => false,
