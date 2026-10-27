@@ -4,7 +4,7 @@
 
 - **Feature: Add `disable_view_partial_instrumentation` configuration option**
 
-  Setting `disable_view_partial_instrumentation` to `true` stops the agent from recording a segment and a `View/<path>/Partial` metric for each partial and collection render. Their time is still included in the template or layout that rendered them. Unlike `disable_view_instrumentation`, template and layout timings are kept. Defaults to `false`. [PR#3716](https://github.com/newrelic/newrelic-ruby-agent/pull/3716)
+  Setting `disable_view_partial_instrumentation` to `true` stops the agent from recording a segment and a `View/<path>/Partial` metric for each partial and collection render. Their time is still included in the template or layout that rendered them. Unlike `disable_view_instrumentation`, template and layout timings are kept. Defaults to `false`. Thank you to [@andrewfader](https://github.com/andrewfader) for this contribution. [PR#3716](https://github.com/newrelic/newrelic-ruby-agent/pull/3716)
 
 - **Feature: Report effective configuration to New Relic**
 
