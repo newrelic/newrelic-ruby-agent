@@ -38,6 +38,10 @@ module NewRelic
           end
 
           def execute_with_newrelic_tracing(args)
+            unless NewRelic::Agent::Instrumentation::Rake.should_trace?(name)
+              return yield
+            end
+
             if NewRelic::Agent::Tracer.current_transaction || !NewRelic::Agent::Instrumentation::Rake.command_line_task?(self)
               return yield
             end
@@ -69,6 +73,9 @@ module NewRelic
           task.application.top_level_tasks.any? do |task_string|
             task.application.parse_task_string(task_string).first == task.name
           end
+        rescue => e
+          NewRelic::Agent.logger.error('Error checking whether Rake task was run from the command line.', e)
+          false
         end
 
         def instrument_execute_on_prereqs(task)
