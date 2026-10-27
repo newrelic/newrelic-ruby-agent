@@ -50,6 +50,8 @@ module NewRelic
         # are the ones we want to record.  There are a couple
         # special cases of events without children.
         def recordable?(event_name, metric_name)
+          return false if metric_name.end_with?('/Partial') && NewRelic::Agent.config[:disable_view_partial_instrumentation]
+
           event_name[0] == '!' \
               || metric_name == 'View/text template/Rendering' \
               || metric_name == "View/#{::NewRelic::Agent::UNKNOWN_METRIC}/Partial"
