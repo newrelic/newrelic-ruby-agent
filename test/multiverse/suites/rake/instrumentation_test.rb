@@ -69,6 +69,15 @@ class RakeInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_execute_with_newrelic_tracing_skips_tasks_not_on_the_command_line
+    instance = TesterClass.new
+    NewRelic::Agent::Instrumentation::Rake.stub :command_line_task?, false, [instance] do
+      instance.stub :invoke_with_newrelic_tracing, -> { raise 'should not trace' } do
+        assert_equal :result, instance.execute_with_newrelic_tracing(nil) { :result }
+      end
+    end
+  end
+
   def test_we_should_install_if_newrelic_rake_is_absent
     skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 

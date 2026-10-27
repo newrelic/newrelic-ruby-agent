@@ -26,6 +26,10 @@
 
   The agent previously detected Puma only when the app was started with the `puma` executable, so apps started with `rails server` logged `No known dispatcher detected.` and connected from the Puma master process. The agent now also detects Puma when its Rack handler is loaded. As with the `puma` executable, it waits to start until each Puma process handles its first request, which avoids an extra connection from the master in clustered mode. Apps started with `rackup` load the agent before Puma, so Puma still can't be detected there. Set `NEW_RELIC_DISPATCHER=puma` to get the same behavior. [PR#3706](https://github.com/newrelic/newrelic-ruby-agent/pull/3706)
 
+- **Bugfix: Rake instrumentation now traces the task named on the command line in Rails apps**
+
+  In Rails apps, the agent didn't trace Rake tasks that depend on `:environment` when they were run from the command line, such as `bin/rails my:task`, even when they were listed in `rake.tasks`. This has been fixed. Thank you to [@foca](https://github.com/foca) for reporting this issue and sharing solution ideas. [Issue#3704](https://github.com/newrelic/newrelic-ruby-agent/issues/3704) [PR#3707](https://github.com/newrelic/newrelic-ruby-agent/pull/3707)
+
 ## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**
