@@ -71,9 +71,9 @@ class RakeInstrumentationTest < Minitest::Test
 
   def test_execute_with_newrelic_tracing_skips_tasks_not_on_the_command_line
     instance = TesterClass.new
-    NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
-      NewRelic::Agent::Instrumentation::Rake.stub :command_line_task?, false, [instance] do
-        instance.stub :invoke_with_newrelic_tracing, -> { raise 'should not trace' } do
+    NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true do
+      NewRelic::Agent::Instrumentation::Rake.stub :command_line_task?, false do
+        instance.stub :invoke_with_newrelic_tracing, ->(*) { raise 'should not trace' } do
           assert_equal :result, instance.execute_with_newrelic_tracing(nil) { :result }
         end
       end

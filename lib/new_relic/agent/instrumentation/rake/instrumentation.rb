@@ -14,6 +14,9 @@ module NewRelic
               return yield
             end
 
+            # If this task was invoked by another traced Rake task, add it to that task's
+            # transaction as a segment. Without this check, in_transaction would rename
+            # the outer task's transaction to the nested task's name.
             if NewRelic::Agent::Tracer.current_transaction&.category == :rake
               NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(self)
               return NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/invoke/#{name}", internal: true) { yield }

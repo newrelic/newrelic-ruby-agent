@@ -28,7 +28,7 @@
 
 - **Bugfix: Rake instrumentation now traces the task named on the command line in Rails apps**
 
-  In Rails apps, the agent didn't trace Rake tasks that depend on `:environment` when they were run from the command line, such as `bin/rails my:task`, even when they were listed in `rake.tasks`. This has been fixed. Thank you to [@foca](https://github.com/foca) for reporting this issue and sharing solution ideas. [Issue#3704](https://github.com/newrelic/newrelic-ruby-agent/issues/3704) [PR#3707](https://github.com/newrelic/newrelic-ruby-agent/pull/3707)
+  In Rails apps, the agent didn't trace Rake tasks that depend on `:environment` when they were run from the command line, such as `bin/rails my:task`, even when they were listed in `rake.tasks`. The agent now traces these tasks. Also, a traced task invoked from inside another traced Rake task is now recorded as a `Rake/invoke/<task>` segment instead of renaming the outer task's transaction. Thank you to [@foca](https://github.com/foca) for reporting this issue and sharing solution ideas. [Issue#3704](https://github.com/newrelic/newrelic-ruby-agent/issues/3704) [PR#3707](https://github.com/newrelic/newrelic-ruby-agent/pull/3707)
 
 ## v10.9.1
 
