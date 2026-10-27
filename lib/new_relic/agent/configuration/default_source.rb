@@ -463,6 +463,13 @@ module NewRelic
             Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order): `config/newrelic.yml` -> `newrelic.yml` -> `$HOME/.newrelic/newrelic.yml` -> `$HOME/newrelic.yml`
           DESCRIPTION
         },
+        :enable_agent_settings => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent reports its effective configuration (all explicitly set configuration merged with server-side configuration) to New Relic after each connect.'
+        },
         :'exclude_newrelic_header' => {
           :default => false,
           :public => true,
@@ -541,6 +548,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :exclude_from_reported_settings => true,
           :description => 'Defines a host for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
         },
         :proxy_pass => {

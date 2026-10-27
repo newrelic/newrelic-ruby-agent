@@ -130,6 +130,7 @@ module NewRelic
             NewRelic::Agent.disable_all_tracing do
               connect(connection_options)
               if NewRelic::Agent.instance.connected?
+                transmit_agent_settings if Agent.config[:enable_agent_settings]
                 create_and_run_event_loop
                 # never reaches here unless there is a problem or
                 # the agent is exiting
