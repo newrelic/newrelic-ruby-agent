@@ -14,7 +14,7 @@ module NewRelic
               return yield
             end
 
-            if NewRelic::Agent::Tracer.current_transaction
+            if NewRelic::Agent::Tracer.current_transaction&.category == :rake
               NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(self)
               return NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/invoke/#{name}", internal: true) { yield }
             end
