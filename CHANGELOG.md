@@ -30,6 +30,10 @@
 
   The agent previously detected Puma only when the app was started with the `puma` executable, so apps started with `rails server` logged `No known dispatcher detected.` and connected from the Puma master process. The agent now also detects Puma when its Rack handler is loaded. As with the `puma` executable, it waits to start until each Puma process handles its first request, which avoids an extra connection from the master in clustered mode. Apps started with `rackup` load the agent before Puma, so Puma still can't be detected there. Set `NEW_RELIC_DISPATCHER=puma` to get the same behavior. [PR#3706](https://github.com/newrelic/newrelic-ruby-agent/pull/3706)
 
+- **Bugfix: Record response headers sent with lowercase names on Rack 3**
+
+  Rack 3 requires lowercase response header names, and responses that use a plain Hash for headers (such as Rails 7.2+ error pages) were missing the `response.headers.contentType` and `response.headers.contentLength` attributes. Browser monitoring also missed these headers when deciding whether to inject the JavaScript agent and when updating `content-length`. The agent now recognizes both the standard (`Content-Type`) and lowercase (`content-type`) spellings of these header names. [PR#3714](https://github.com/newrelic/newrelic-ruby-agent/pull/3714)
+
 ## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**

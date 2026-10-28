@@ -46,4 +46,28 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
     middleware = HostClass.new { [200, {}, ['hi!']] }
     middleware.call({})
   end
+
+  def test_captures_lowercase_response_headers
+    txn = capture_response_headers('content-type' => 'text/html', 'content-length' => '42')
+
+    assert_equal 'text/html', txn.response_content_type
+    assert_equal '42', txn.response_content_length
+  end
+
+  def test_sums_lowercase_array_content_length
+    txn = capture_response_headers('content-length' => %w[10 32])
+
+    assert_equal 42, txn.response_content_length
+  end
+
+  private
+
+  def capture_response_headers(headers)
+    txn = nil
+    in_transaction do |t|
+      txn = t
+      HostClass.new.capture_response_attributes(NewRelic::Agent::Tracer.state, [200, headers, []])
+    end
+    txn
+  end
 end
