@@ -37,17 +37,49 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic" => {call_count: 2}})
   end
 
-  def test_openai_full_metric_recorded_when_ai_monitoring_enabled
+  def test_basic_metric_and_no_content_when_ai_monitoring_enabled_and_record_content_false
     with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
       in_transaction do
-        stub_post_request do
-          client.chat(parameters: chat_params)
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
         end
       end
     end
+    _, events = @aggregator.harvest!
+
+    assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+    refute events[0][1]['input']
+  end
+
+  def test_full_metric_and_content_sent_when_ai_monitoring_enabled_and_record_content_unset
+    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => nil) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
 
     assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
     refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
+    assert events[0][1]['input']
+  end
+
+  def test_full_metric_and_content_sent_when_record_content_true
+    with_config(:'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    assert_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}/Basic"])
+    assert events[0][1]['input']
   end
 
   def test_openai_chat_completion_segment_name
@@ -461,19 +493,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_embeddings_drop_input_when_record_content_disabled
-    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
-      in_transaction do
-        stub_embeddings_post_request do
-          client.embeddings(parameters: embeddings_params)
-        end
-      end
-    end
-    _, events = @aggregator.harvest!
-
-    refute events[0][1]['input']
-  end
-
   def test_messages_drop_content_when_record_content_disabled
     with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => false) do
       in_transaction do
@@ -490,21 +509,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_embeddings_include_input_when_record_content_enabled
-    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
-      in_transaction do
-        stub_embeddings_post_request do
-          client.embeddings(parameters: embeddings_params)
-        end
-      end
-    end
-    _, events = @aggregator.harvest!
-
-    assert_truthy events[0][1]['input']
-  end
-
   def test_messages_include_content_when_record_content_enabled
-    with_config(:'ai_monitoring.enabled' => true, :'ai_monitoring.record_content.enabled' => true) do
+    with_config(:'ai_monitoring.record_content.enabled' => true) do
       in_transaction do
         stub_post_request do
           client.chat(parameters: chat_params)

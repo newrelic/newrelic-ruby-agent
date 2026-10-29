@@ -2,13 +2,17 @@
 
 ## dev
 
+- **Feature: Add `disable_view_partial_instrumentation` configuration option**
+
+  Setting `disable_view_partial_instrumentation` to `true` stops the agent from recording a segment and a `View/<path>/Partial` metric for each partial and collection render. Their time is still included in the template or layout that rendered them. Unlike `disable_view_instrumentation`, template and layout timings are kept. Defaults to `false`. [PR#3716](https://github.com/newrelic/newrelic-ruby-agent/pull/3716)
+
 - **Feature: Report effective configuration to New Relic**
 
   After connecting, the agent now reports the configuration settings it's running with to New Relic. To turn this off, set the new `enable_agent_settings` configuration option to `false`. [PR#3702](https://github.com/newrelic/newrelic-ruby-agent/pull/3702)
 
 - **Feature: Add `ai_monitoring.basic_telemetry.enabled` and deprecate `ai_monitoring.enabled`**
 
-  AI Monitoring now sends basic LLM telemetry (metrics, events, and spans, without input or output content) by default through the new `ai_monitoring.basic_telemetry.enabled` setting, which defaults to `true`. If you've explicitly set `ai_monitoring.enabled`, that setting still takes precedence: `false` turns AI Monitoring off and `true` sends data with content controlled by `ai_monitoring.record_content.enabled`. `ai_monitoring.enabled` is deprecated and will be removed in the next major release. [PR#3698](https://github.com/newrelic/newrelic-ruby-agent/pull/3698)
+  AI Monitoring now sends basic LLM telemetry (metrics, events, and spans, without input or output content) by default through the new `ai_monitoring.basic_telemetry.enabled` setting, which defaults to `true`. Whether content is sent is controlled by `ai_monitoring.record_content.enabled`, which no longer has a default value. `ai_monitoring.enabled` is deprecated and will be removed in the next major release; if you've explicitly set it, it still takes precedence. [PR#3698](https://github.com/newrelic/newrelic-ruby-agent/pull/3698)
 
 - **Feature: Add experimental support for some OpenTelemetry configuration options when opentelemetry.enabled is true**
 
@@ -29,6 +33,10 @@
 - **Enhancement: Stop polling for agent commands**
 
   The agent no longer polls New Relic for agent commands once a minute. It now receives them with its regular data harvest, which removes one request per agent per minute. [PR#3715](https://github.com/newrelic/newrelic-ruby-agent/pull/3715)
+
+- **Bugfix: Record response headers sent with lowercase names on Rack 3**
+
+  Rack 3 requires lowercase response header names, and responses that use a plain Hash for headers (such as Rails 7.2+ error pages) were missing the `response.headers.contentType` and `response.headers.contentLength` attributes. Browser monitoring also missed these headers when deciding whether to inject the JavaScript agent and when updating `content-length`. The agent now recognizes both the standard (`Content-Type`) and lowercase (`content-type`) spellings of these header names. [PR#3714](https://github.com/newrelic/newrelic-ruby-agent/pull/3714)
 
 ## v10.9.1
 

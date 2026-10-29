@@ -388,14 +388,15 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, LLM instrumentation will send metrics, events, and spans without input or output content. If `false`, no AI monitoring data will be sent.'
+          :description => 'If `true`, LLM instrumentation will send metrics, events, and spans. Whether input and output content is included is controlled by `ai_monitoring.record_content.enabled`. If `false`, no AI monitoring data will be sent.'
         },
         :'ai_monitoring.record_content.enabled' => {
-          :default => true,
+          :default => nil,
+          :allow_nil => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. Content is only captured when `ai_monitoring.enabled` is `true`. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
+          :description => 'If `false`, LLM instrumentation will not capture the `content` attribute on LlmChatCompletionMessage events or the `input` attribute on LlmEmbedding events. This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs. If unset, content is captured only when the deprecated `ai_monitoring.enabled` setting is explicitly `true`. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         # this is only set via server side config
         :apdex_t => {
@@ -1465,6 +1466,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables view instrumentation.'
+        },
+        :disable_view_partial_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables segments and metrics for partial and collection renders. Their time is included in the enclosing segment, usually the template or layout that rendered them.'
         },
         :disable_vm_sampler => {
           :default => false,
