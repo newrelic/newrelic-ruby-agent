@@ -2,8 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This class is the central point for dispatching get_agent_commands messages
-# to the various components that actually process them.
+# This class is the central point for dispatching agent commands received in
+# metric_data responses to the various components that actually process them.
 #
 # This could be evented further, but we eventually need direct access to things
 # like the ThreadProfiler, so it's simpler to just keep it together here.
@@ -17,6 +17,7 @@ module NewRelic
       class AgentCommandRouter
         START_CONTINUOUS_PROFILING_COMMAND = 'start_continuous_profiling'
         STOP_CONTINUOUS_PROFILING_COMMAND = 'stop_continuous_profiling'
+        EXECUTED_COMMAND_ID_TTL = 600
 
         attr_reader :handlers
 
@@ -24,6 +25,7 @@ module NewRelic
 
         def initialize(event_listener = nil)
           @handlers = Hash.new { |*| proc { |cmd| self.unrecognized_agent_command(cmd) } }
+          @executed_command_ids = {}
 
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
@@ -93,19 +95,39 @@ module NewRelic
         end
 
         def get_agent_commands
-          commands = new_relic_service.get_agent_commands
-          NewRelic::Agent.logger.debug("Received get_agent_commands = #{commands.inspect}")
+          commands = new_relic_service.drain_agent_commands
+          return NewRelic::EMPTY_ARRAY if commands.empty?
+
+          NewRelic::Agent.logger.debug("Received agent commands = #{commands.inspect}")
           commands.map { |collector_command| AgentCommand.new(collector_command) }
         end
 
         def invoke_commands(agent_commands)
           results = {}
+          forget_expired_command_ids
 
           agent_commands.each do |agent_command|
+            next if already_executed?(agent_command)
+
             results[agent_command.id.to_s] = invoke_command(agent_command)
           end
 
           results
+        end
+
+        def already_executed?(agent_command)
+          if @executed_command_ids.key?(agent_command.id)
+            NewRelic::Agent.logger.debug("Ignoring already executed agent command #{agent_command.id}")
+            return true
+          end
+
+          @executed_command_ids[agent_command.id] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          false
+        end
+
+        def forget_expired_command_ids
+          cutoff = Process.clock_gettime(Process::CLOCK_MONOTONIC) - EXECUTED_COMMAND_ID_TTL
+          @executed_command_ids.delete_if { |_id, executed_at| executed_at < cutoff }
         end
 
         class AgentCommandError < StandardError
