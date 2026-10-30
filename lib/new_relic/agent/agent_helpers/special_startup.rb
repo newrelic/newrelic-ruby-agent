@@ -68,6 +68,12 @@ module NewRelic
           NewRelic::Agent.logger.debug('Installing at_exit handler')
           at_exit { shutdown }
         end
+
+        def install_fork_hook
+          return unless ForkHook.install
+
+          NewRelic::Agent.logger.debug('Installed Process._fork hook')
+        end
       end
     end
   end
