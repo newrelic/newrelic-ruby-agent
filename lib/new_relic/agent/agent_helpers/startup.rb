@@ -55,6 +55,7 @@ module NewRelic
 
           unless in_resque_child_process?
             install_exit_handler
+            install_fork_hook
             environment_for_connect
             @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
           end
