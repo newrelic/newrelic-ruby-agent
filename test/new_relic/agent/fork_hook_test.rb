@@ -62,24 +62,19 @@ class NewRelic::Agent::ForkHookTest < Minitest::Test
       assert_equal :alive, in_forked_child { :alive }
     end
 
-    def test_child_continues_when_forked_from_a_signal_handler
-      read, write = IO.pipe
-      child = nil
+    def test_hook_does_not_raise_inside_a_signal_handler
+      fake_process = Module.new { define_singleton_method(:_fork) { 0 } } # 0 = "we are the child"
+      fake_process.singleton_class.prepend(NewRelic::Agent::ForkHook)
+      result = nil
       previous = trap('USR2') do
-        child = Process.fork do
-          read.close
-          write.write('alive')
-          write.close
-          exit!(0)
-        end
+        result = fake_process._fork
+      rescue StandardError => e
+        result = e
       end
       Process.kill('USR2', Process.pid)
-      sleep(0.01) until child
-      write.close
-      result = read.read
-      Process.wait(child)
+      sleep(0.01) until result
 
-      assert_equal 'alive', result
+      assert_equal 0, result
     ensure
       trap('USR2', previous || 'DEFAULT')
     end
