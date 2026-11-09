@@ -16,8 +16,7 @@ module NewRelic
       EXECUTION_ENVIRONMENT = "AWS_Lambda_ruby#{RUBY_VERSION.rpartition('.').first}".freeze
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
-      METHOD_BLOCKLIST = %i[agent_command_results connect get_agent_commands preconnect profile_data
-        shutdown].freeze
+      METHOD_BLOCKLIST = %i[agent_command_results connect preconnect profile_data shutdown].freeze
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'

@@ -266,13 +266,26 @@ module NewRelic
       end
 
       def test_handle_for_agent_commands
-        @agent.service.expects(:get_agent_commands).returns([]).once
+        @agent.service.expects(:drain_agent_commands).returns([]).once
+        @agent.service.expects(:agent_command_results).never
+        @agent.send(:check_for_and_handle_agent_commands)
+      end
+
+      def test_check_for_and_handle_agent_commands_sends_results_for_received_commands
+        @agent.service.stubs(:drain_agent_commands).returns([[1, {'name' => 'unknown_command', 'arguments' => {}}]])
+        @agent.service.expects(:agent_command_results).with({'1' => {}})
         @agent.send(:check_for_and_handle_agent_commands)
       end
 
       def test_check_for_and_handle_agent_commands_with_error
-        @agent.service.expects(:get_agent_commands).raises('bad news')
+        @agent.service.stubs(:drain_agent_commands).returns([[1, {'name' => 'unknown_command', 'arguments' => {}}]])
+        @agent.service.expects(:agent_command_results).raises('bad news')
         @agent.send(:check_for_and_handle_agent_commands)
+      end
+
+      def test_transmit_data_handles_agent_commands
+        @agent.service.expects(:drain_agent_commands).returns([]).once
+        @agent.instance_eval { transmit_data }
       end
 
       def test_harvest_and_send_for_agent_commands
@@ -727,8 +740,9 @@ module NewRelic
           NewRelic::Agent::ForceDisconnectException
         ]
 
-        error_classes.each do |cls|
-          @agent.service.expects(:get_agent_commands).raises(cls.new)
+        error_classes.each_with_index do |cls, id|
+          @agent.service.stubs(:drain_agent_commands).returns([[id, {'name' => 'unknown_command', 'arguments' => {}}]])
+          @agent.service.expects(:agent_command_results).raises(cls.new)
           assert_raises(cls) do
             @agent.send(:check_for_and_handle_agent_commands)
           end
