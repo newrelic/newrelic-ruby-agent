@@ -228,7 +228,7 @@ common: &default_settings
 
   # If true, the agent will report source code level metrics for traced methods.
   # See:
-  # https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/
+  # https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-code-level-metrics/
   # code_level_metrics.enabled: true
 
   # Path to newrelic.yml. If undefined, the agent checks the following directories
