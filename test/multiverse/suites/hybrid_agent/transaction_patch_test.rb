@@ -248,25 +248,23 @@ module NewRelic
         end
 
         def test_thread_local_span_isolation_across_threads
-          results = {}
-          threads = []
-
-          2.times do |i|
-            threads << Thread.new do
+          threads = Array.new(2) do |i|
+            Thread.new do
+              result = nil
               in_transaction(name: "txn_#{i}") do |txn|
                 txn.stubs(:sampled?).returns(true)
 
-                # Each thread should have its own NR span
                 current_span = ::OpenTelemetry::Trace.current_span
-                results[i] = {
+                result = {
                   span_id: current_span.context.span_id,
                   thread_local_span: Thread.current[:nr_otel_current_span]
                 }
               end
+              result
             end
           end
 
-          threads.each(&:join)
+          results = threads.map(&:value)
 
           # Each thread should have different span IDs
           refute_equal results[0][:span_id], results[1][:span_id], 'Threads should have different span IDs'
