@@ -578,6 +578,8 @@ module Multiverse
 
       load(@after_file) if @after_file
 
+      $collector&.stop
+
       if RUBY_VERSION >= '2.7.0'
         # This is only used for SimpleCov at this time,
         # an error will be raised on Ruby versions that do not run
