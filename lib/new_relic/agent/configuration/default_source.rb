@@ -1528,7 +1528,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => false,
+          :public => true,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
@@ -1537,7 +1537,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => false,
+          :public => true,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
@@ -1546,7 +1546,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => false,
+          :public => true,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
