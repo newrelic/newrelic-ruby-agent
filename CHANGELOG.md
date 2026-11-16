@@ -36,7 +36,7 @@
 
 - **Bugfix: Stop forked processes from re-sending their parent's buffered data**
 
-  A process forked without the agent's `after_fork` running in the child, such as a `Parallel` worker with `instrumentation.parallel` set to `disabled`, inherited the parent's unsent logs, metrics, and events and sent them again when it exited. The agent now empties those buffers in the child as soon as it is forked. Thank you to [@genya0407](https://github.com/genya0407) for reporting this issue. [Issue#3718](https://github.com/newrelic/newrelic-ruby-agent/issues/3718)
+  A process forked without the agent's `after_fork` running in the child, such as a `Parallel` worker with `instrumentation.parallel` set to `disabled`, inherited the parent's unsent logs, metrics, and events and sent them again when it exited. The agent now empties those buffers in the child as soon as it is forked. This fix is avaliable for Ruby versions 3.1+. Thank you to [@genya0407](https://github.com/genya0407) for reporting this issue. [Issue#3718](https://github.com/newrelic/newrelic-ruby-agent/issues/3718)
 
 ## v10.9.1
 
