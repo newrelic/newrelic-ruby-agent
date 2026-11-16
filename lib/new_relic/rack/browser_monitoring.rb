@@ -23,6 +23,9 @@ module NewRelic
       CONTENT_TYPE = 'Content-Type'
       CONTENT_DISPOSITION = 'Content-Disposition'
       CONTENT_LENGTH = 'Content-Length'
+      CONTENT_DISPOSITION_LOWER = 'content-disposition'
+      TRANSFER_ENCODING = 'Transfer-Encoding'
+      TRANSFER_ENCODING_LOWER = 'transfer-encoding'
       ATTACHMENT = /attachment/.freeze
       TEXT_HTML = %r{text/html}.freeze
 
@@ -41,9 +44,9 @@ module NewRelic
         js_to_inject = NewRelic::Agent.browser_timing_header(nonce(env))
         if (js_to_inject != NewRelic::EMPTY_STR) && should_instrument?(env, status, headers)
           response_string = autoinstrument_source(response, js_to_inject)
-          if headers.key?(CONTENT_LENGTH)
+          if (length_key = content_length_key(headers))
             content_length = response_string ? response_string.bytesize : 0
-            headers[CONTENT_LENGTH] = content_length.to_s
+            headers[length_key] = content_length.to_s
           end
 
           env[ALREADY_INSTRUMENTED_KEY] = true
@@ -111,11 +114,19 @@ module NewRelic
       end
 
       def html?(headers)
-        headers[CONTENT_TYPE]&.match?(TEXT_HTML)
+        _nr_response_header(headers, CONTENT_TYPE, CONTENT_TYPE_LOWER)&.match?(TEXT_HTML)
+      end
+
+      def content_length_key(headers)
+        if headers.key?(CONTENT_LENGTH)
+          CONTENT_LENGTH
+        elsif headers.key?(CONTENT_LENGTH_LOWER)
+          CONTENT_LENGTH_LOWER
+        end
       end
 
       def attachment?(headers)
-        headers[CONTENT_DISPOSITION]&.match?(ATTACHMENT)
+        _nr_response_header(headers, CONTENT_DISPOSITION, CONTENT_DISPOSITION_LOWER)&.match?(ATTACHMENT)
       end
 
       def streaming?(env, headers)
@@ -124,7 +135,7 @@ module NewRelic
         # With version v8.0+, Rails assumes that the web server will be using
         # Rack v3+ or an equally modern alternative and simply leaves the
         # streaming behavior up to them.
-        return true if headers && headers['Transfer-Encoding'] == 'chunked'
+        return true if headers && _nr_response_header(headers, TRANSFER_ENCODING, TRANSFER_ENCODING_LOWER) == 'chunked'
 
         defined?(ActionController::Live) &&
           env['action_controller.instance'].class.include?(ActionController::Live)

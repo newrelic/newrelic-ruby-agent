@@ -50,4 +50,27 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
   end
 
+  class LowercaseResponseHeadersTest < Minitest::Test
+    include MultiverseHelpers
+
+    setup_and_teardown_agent
+
+    include Rack::Test::Methods
+
+    def app
+      Rack::Builder.app do
+        use(NewRelic::Rack::AgentHooks)
+        run(LowercaseHeadersExampleApp.new)
+      end
+    end
+
+    def test_records_lowercase_response_headers_on_analytics_events
+      get('/')
+      attributes = get_last_analytics_event[2]
+
+      assert_equal('application/json', attributes[:'response.headers.contentType'])
+      assert_equal(17, attributes[:'response.headers.contentLength'])
+    end
+  end
+
 end

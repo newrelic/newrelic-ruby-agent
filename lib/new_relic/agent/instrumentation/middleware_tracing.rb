@@ -29,9 +29,16 @@ module NewRelic
         TXN_STARTED_KEY = 'newrelic.transaction_started'
         CONTENT_TYPE = 'Content-Type'
         CONTENT_LENGTH = 'Content-Length'
+        CONTENT_TYPE_LOWER = 'content-type'
+        CONTENT_LENGTH_LOWER = 'content-length'
 
         def _nr_has_middleware_tracing
           true
+        end
+
+        # Rack 3 requires lowercase header names, but plain Hash headers are case-sensitive
+        def _nr_response_header(headers, name, lowercase_name)
+          headers[name] || headers[lowercase_name]
         end
 
         def build_transaction_options(env, first_middleware)
@@ -61,14 +68,14 @@ module NewRelic
         def capture_response_content_type(state, result)
           if result.is_a?(Array) && state.current_transaction
             _, headers, _ = result
-            state.current_transaction.response_content_type = headers[CONTENT_TYPE]
+            state.current_transaction.response_content_type = _nr_response_header(headers, CONTENT_TYPE, CONTENT_TYPE_LOWER)
           end
         end
 
         def capture_response_content_length(state, result)
           if result.is_a?(Array) && state.current_transaction
             _, headers, _ = result
-            length = headers[CONTENT_LENGTH]
+            length = _nr_response_header(headers, CONTENT_LENGTH, CONTENT_LENGTH_LOWER)
             length = length.reduce(0) { |sum, h| sum + h.to_i } if length.is_a?(Array)
             state.current_transaction.response_content_length = length
           end

@@ -307,6 +307,28 @@ if defined?(Rack::Test)
       assert_equal '0', headers['Content-Length']
     end
 
+    def test_content_length_set_when_header_is_lowercase
+      original_headers = {
+        'content-length' => '0',
+        'content-type' => 'text/html'
+      }
+      headers = headers_from_request(original_headers, '<html><body></body></html>')
+
+      assert_equal '390', headers['content-length']
+    end
+
+    def test_should_instrument_with_lowercase_content_type
+      assert app.should_instrument?({}, 200, {'content-type' => 'text/html'})
+    end
+
+    def test_should_not_instrument_with_lowercase_content_disposition
+      refute app.should_instrument?({}, 200, {'content-type' => 'text/html', 'content-disposition' => 'attachment; filename=test.html'})
+    end
+
+    def test_should_not_instrument_with_lowercase_chunked_transfer_encoding
+      refute app.should_instrument?({}, 200, {'content-type' => 'text/html', 'transfer-encoding' => 'chunked'})
+    end
+
     # give #should_instrument? a bogus int hash value guaranteed to raise an
     # exception when `#match?` is called on it, and ensure that the error
     # is caught and a boolean value still returned

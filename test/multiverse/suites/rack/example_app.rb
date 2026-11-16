@@ -12,6 +12,13 @@ class ExampleApp
   end
 end
 
+class LowercaseHeadersExampleApp
+  def call(env)
+    body = 'lowercase headers'
+    [200, {'content-type' => 'application/json', 'content-length' => body.bytesize.to_s}, [body]]
+  end
+end
+
 class FirstCascadeExampleApp
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 

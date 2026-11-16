@@ -140,13 +140,14 @@ module NewRelic
             'custom_insights_events.enabled' => 'collect_custom_events',
             'error_collector.capture_events' => 'collect_error_events',
             'span_events.enabled' => 'collect_span_events',
-            'ai_monitoring.enabled' => 'collect_ai'
+            'ai_monitoring.enabled' => 'collect_ai',
+            'ai_monitoring.basic_telemetry.enabled' => 'collect_ai'
           }
           gated_features.each do |config_key, gate_key|
             if connect_reply.has_key?(gate_key)
               allowed_by_server = connect_reply[gate_key]
               requested_value = ungated_value(config_key, merged_settings, existing_config)
-              next if requested_value.nil?
+              next if requested_value.nil? && allowed_by_server
 
               effective_value = (allowed_by_server && requested_value)
               merged_settings[config_key] = effective_value
