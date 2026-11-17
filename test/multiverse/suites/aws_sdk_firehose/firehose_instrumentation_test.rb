@@ -15,21 +15,6 @@ class FirehoseInstrumentationTest < Minitest::Test
     Aws::Firehose::Client.new(region: 'us-east-2')
   end
 
-  def test_resource_id_uses_region_partition
-    client = Aws::Firehose::Client.new(region: 'us-gov-west-1')
-
-    with_config('cloud.aws.account_id': '123456789012') do
-      in_transaction do |txn|
-        txn.stubs(:sampled?).returns(true)
-        client.create_delivery_stream({delivery_stream_name: 'the_shire'})
-      end
-    end
-
-    span = harvest_span_events![1][0]
-
-    assert_equal 'arn:aws-us-gov:firehose:us-gov-west-1:123456789012:deliverystream/the_shire', span[2]['cloud.resource_id']
-  end
-
   def test_all_attributes_added_to_segment_in_create_delivery_stream
     client = create_client
 

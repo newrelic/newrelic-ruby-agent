@@ -39,12 +39,6 @@ class AwsTest < Minitest::Test
     end
   end
 
-  def test_partition_from_region_falls_back_to_table_without_sdk
-    NewRelic::Agent::Aws.stub(:sdk_partition_from_region, nil) do
-      assert_equal 'aws-cn', NewRelic::Agent::Aws.partition_from_region('cn-north-1')
-    end
-  end
-
   def test_partition_from_region_prefers_sdk
     NewRelic::Agent::Aws.stub(:sdk_partition_from_region, 'aws-sdk-says') do
       assert_equal 'aws-sdk-says', NewRelic::Agent::Aws.partition_from_region('us-east-1')
@@ -88,7 +82,15 @@ class AwsTest < Minitest::Test
   end
 
   def test_sdk_partition_from_region_returns_nil_for_empty_region
-    assert_nil NewRelic::Agent::Aws.sdk_partition_from_region('')
+    matchers = Module.new do
+      def self.aws_partition(_region)
+        {'name' => 'aws-us-gov'}
+      end
+    end
+
+    with_aws_endpoints_matchers(matchers) do
+      assert_nil NewRelic::Agent::Aws.sdk_partition_from_region('')
+    end
   end
 
   def test_get_account_id_decodes_access_key

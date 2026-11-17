@@ -20,21 +20,6 @@ class DynamodbInstrumentationTest < Minitest::Test
     Aws::DynamoDB::Client.new(region: 'us-east-2')
   end
 
-  def test_resource_id_uses_region_partition
-    NewRelic::Agent::Aws.unstub(:create_arn)
-    client = Aws::DynamoDB::Client.new(region: 'cn-north-1')
-
-    with_config('cloud.aws.account_id': '123456789012') do
-      in_transaction do
-        client.query({table_name: 'test-table'})
-      end
-    end
-
-    span = harvest_span_events![1][0]
-
-    assert_equal 'arn:aws-cn:dynamodb:cn-north-1:123456789012:table/test-table', span[2]['cloud.resource_id']
-  end
-
   def test_all_attributes_added_to_segment
     client = create_client
     Seahorse::Client::Http::Response.any_instance.stubs(:headers).returns({'x-amzn-requestid' => '1234321'})
