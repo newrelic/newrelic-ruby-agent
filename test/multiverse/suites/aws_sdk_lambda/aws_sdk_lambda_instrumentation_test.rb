@@ -118,6 +118,31 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_resource_id_uses_region_partition
+    with_config('cloud.aws.account_id': AWS_ACCOUNT_ID) do
+      in_transaction do |txn|
+        region = 'us-gov-west-1'
+        client = Aws::Lambda::Client.new(region: region, stub_responses: {invoke: {status_code: 200}})
+        client.invoke(function_name: 'Gov-Func')
+
+        assert_equal "arn:aws-us-gov:lambda:#{region}:#{AWS_ACCOUNT_ID}:function:Gov-Func",
+          agent_attributes(lambda_segment(txn))['cloud.resource_id']
+      end
+    end
+  end
+
+  def test_resource_id_is_function_name_when_already_an_arn
+    arn = "arn:aws-cn:lambda:cn-north-1:#{AWS_ACCOUNT_ID}:function:Already-An-Arn"
+    with_config('cloud.aws.account_id': AWS_ACCOUNT_ID) do
+      in_transaction do |txn|
+        client = Aws::Lambda::Client.new(region: REGION, stub_responses: {invoke: {status_code: 200}})
+        client.invoke(function_name: arn)
+
+        assert_equal arn, agent_attributes(lambda_segment(txn))['cloud.resource_id']
+      end
+    end
+  end
+
   private
 
   def perform_invocation(method, response = {}, extra_args = {})

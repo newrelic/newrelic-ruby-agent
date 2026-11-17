@@ -81,6 +81,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def aws_arn(function, region)
+      return function if function.to_s.start_with?('arn:')
+
       NewRelic::Agent::Aws.create_arn(AWS_SERVICE, "function:#{function}", region, nr_account_id)
     end
 

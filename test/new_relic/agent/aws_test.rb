@@ -16,6 +16,81 @@ class AwsTest < Minitest::Test
     assert_equal expected, arn
   end
 
+  def test_create_arn_uses_region_partition
+    arn = NewRelic::Agent::Aws.create_arn('lambda', 'function:my-func', 'us-gov-west-1', '123456789')
+
+    assert_equal 'arn:aws-us-gov:lambda:us-gov-west-1:123456789:function:my-func', arn
+  end
+
+  def test_table_partition_from_region
+    {
+      'us-east-1' => 'aws',
+      'cn-north-1' => 'aws-cn',
+      'us-gov-west-1' => 'aws-us-gov',
+      'us-iso-east-1' => 'aws-iso',
+      'us-isob-east-1' => 'aws-iso-b',
+      'eu-isoe-west-1' => 'aws-iso-e',
+      'us-isof-south-1' => 'aws-iso-f',
+      'eusc-de-east-1' => 'aws-eusc',
+      'mars-north-1' => 'aws',
+      '' => 'aws'
+    }.each do |region, partition|
+      assert_equal partition, NewRelic::Agent::Aws.table_partition_from_region(region), "region: #{region.inspect}"
+    end
+  end
+
+  def test_partition_from_region_falls_back_to_table_without_sdk
+    NewRelic::Agent::Aws.stub(:sdk_partition_from_region, nil) do
+      assert_equal 'aws-cn', NewRelic::Agent::Aws.partition_from_region('cn-north-1')
+    end
+  end
+
+  def test_partition_from_region_prefers_sdk
+    NewRelic::Agent::Aws.stub(:sdk_partition_from_region, 'aws-sdk-says') do
+      assert_equal 'aws-sdk-says', NewRelic::Agent::Aws.partition_from_region('us-east-1')
+    end
+  end
+
+  def test_sdk_partition_from_region_uses_sdk_matcher
+    matchers = Module.new do
+      def self.aws_partition(_region)
+        {'name' => 'aws-us-gov'}
+      end
+    end
+
+    with_aws_endpoints_matchers(matchers) do
+      assert_equal 'aws-us-gov', NewRelic::Agent::Aws.sdk_partition_from_region('us-gov-west-1')
+    end
+  end
+
+  def test_sdk_partition_from_region_returns_nil_when_sdk_errors
+    matchers = Module.new do
+      def self.aws_partition(_region)
+        raise 'kaboom'
+      end
+    end
+    with_aws_endpoints_matchers(matchers) do
+      assert_nil NewRelic::Agent::Aws.sdk_partition_from_region('us-gov-west-1')
+      assert_equal 'aws-us-gov', NewRelic::Agent::Aws.partition_from_region('us-gov-west-1')
+    end
+  end
+
+  def test_sdk_partition_from_region_returns_nil_when_sdk_returns_nothing
+    matchers = Module.new do
+      def self.aws_partition(_region)
+        nil
+      end
+    end
+    with_aws_endpoints_matchers(matchers) do
+      assert_nil NewRelic::Agent::Aws.sdk_partition_from_region('cn-north-1')
+      assert_equal 'aws-cn', NewRelic::Agent::Aws.partition_from_region('cn-north-1')
+    end
+  end
+
+  def test_sdk_partition_from_region_returns_nil_for_empty_region
+    assert_nil NewRelic::Agent::Aws.sdk_partition_from_region('')
+  end
+
   def test_get_account_id_decodes_access_key
     config = mock
     mock_credentials = mock
@@ -33,6 +108,21 @@ class AwsTest < Minitest::Test
 
     with_config(:'cloud.aws.account_id' => '123456789') do
       assert_equal '123456789', NewRelic::Agent::Aws.get_account_id(config)
+    end
+  end
+
+  private
+
+  def with_aws_endpoints_matchers(matchers)
+    aws = Module.new
+    endpoints = Module.new
+    endpoints.const_set(:Matchers, matchers)
+    aws.const_set(:Endpoints, endpoints)
+    Object.const_set(:Aws, aws)
+    begin
+      yield
+    ensure
+      Object.send(:remove_const, :Aws)
     end
   end
 end
