@@ -6,73 +6,92 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
-    outputs:
-      agent_version: ${{ steps.version.outputs.VERSION }}
+    environment: release
     permissions:
-      contents: write
-      repository-projects: write
+      contents: read
+      id-token: write # RubyGems trusted publishing (OIDC)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - gem: newrelic_rpm
+            dir: .
+            gemspec: newrelic_rpm.gemspec
+          - gem: newrelic-infinite_tracing
+            dir: infinite_tracing
+            gemspec: newrelic-infinite_tracing.gemspec
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-      with:
-        fetch-depth: 0
 
     - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # tag v1.335.0
       with:
         ruby-version: 3.4
 
-    - name: Install onetimepass
-      run: pip install onetimepass==1.0.1
+    - name: Build ${{ matrix.gem }} gem
+      working-directory: ${{ matrix.dir }}
+      run: gem build ${{ matrix.gemspec }}
 
-    - name: Configure gem credentials
+    - name: Configure RubyGems trusted publishing credentials
+      uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # tag v2.1.0
+
+    - name: Publish ${{ matrix.gem }} to rubygems.org
+      working-directory: ${{ matrix.dir }}
       run: |
-        echo "GEM_HOST_API_KEY=${{ secrets.RUBYGEMS_API_KEY }}" >> $GITHUB_ENV
-        echo "RUBYGEMS_MFA_KEY=${{ secrets.RUBYGEMS_MFA_KEY }}" >> $GITHUB_ENV
+        if ! output=$(gem push ${{ matrix.gem }}-*.gem 2>&1); then
+          echo "$output"
+          echo "$output" | grep -q 'Repushing of gem versions is not allowed' || exit 1
+          echo "Version already published, skipping"
+        else
+          echo "$output"
+        fi
 
-    - name: Build newrelic_rpm gem
-      run: gem build newrelic_rpm.gemspec
+  github-release:
+    needs: [publish]
+    runs-on: ubuntu-latest
+    outputs:
+      agent_version: ${{ steps.version.outputs.VERSION }}
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
 
-    - name: Build newrelic-infinite_tracing gem
-      run: |
-        cd infinite_tracing
-        gem build newrelic-infinite_tracing.gemspec
-        cd ..
+    - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # tag v1.327.0
+      with:
+        ruby-version: 3.4
 
     - name: Determine version
       id: version
-      run: |
-        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
-        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_OUTPUT
+      run: echo "VERSION=$(ruby -r ./lib/new_relic/version -e 'puts NewRelic::VERSION::STRING')" >> $GITHUB_OUTPUT
 
     - name: Create github release
-      uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # tag v3.0.3
-      if: $(git tag -l ${{ env.VERSION }}) == false
-      with:
-        tag_name: ${{ env.VERSION }}
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Obtain OTP to publish newrelic_rpm to rubygems.org
-      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
-
-    - name: Publish newrelic_rpm to rubygems.org
-      run: ruby ./.github/workflows/scripts/rubygems-publish.rb newrelic_rpm
-
-    - name: Obtain OTP to publish newrelic-infinite_tracing to rubygems.org
-      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
-
-    - name: Publish newrelic-infinite_tracing to rubygems.org
-      run: ruby ./.github/workflows/scripts/rubygems-publish.rb infinite_tracing/newrelic-infinite_tracing
+        VERSION: ${{ steps.version.outputs.VERSION }}
+      run: |
+        if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+          echo "Release $VERSION already exists, skipping"
+        else
+          gh release create "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --notes ''
+        fi
 
   update-agent-metadata:
-    needs: [release]
+    needs: [github-release]
     permissions:
       contents: read
     uses: ./.github/workflows/agent_metadata.yml
     with:
-      version: ${{ needs.release.outputs.agent_version }}
+      version: ${{ needs.github-release.outputs.agent_version }}
     secrets:
       FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
       FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
