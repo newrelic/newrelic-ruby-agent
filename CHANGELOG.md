@@ -38,6 +38,10 @@
 
   Rack 3 requires lowercase response header names, and responses that use a plain Hash for headers (such as Rails 7.2+ error pages) were missing the `response.headers.contentType` and `response.headers.contentLength` attributes. Browser monitoring also missed these headers when deciding whether to inject the JavaScript agent and when updating `content-length`. The agent now recognizes both the standard (`Content-Type`) and lowercase (`content-type`) spellings of these header names. [PR#3714](https://github.com/newrelic/newrelic-ruby-agent/pull/3714)
 
+- **Bugfix: Use the correct AWS partition in ARNs**
+
+  The `cloud.resource_id` attribute for DynamoDB, Kinesis, Firehose, and Lambda calls now uses the partition for the client's region, such as `aws-us-gov` for GovCloud or `aws-cn` for China, instead of always using `aws`. Lambda function names that are already full ARNs are now reported as-is instead of being wrapped in a second ARN. [PR#3730](https://github.com/newrelic/newrelic-ruby-agent/pull/3730)
+
 ## v10.9.1
 
 - **Bugfix: Action Controller instrumentation no longer errors when it can't identify the controller class**

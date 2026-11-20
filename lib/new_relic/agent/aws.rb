@@ -7,14 +7,45 @@ module NewRelic
     module Aws
       CHARACTERS = %w[A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 2 3 4 5 6 7].freeze
       HEX_MASK = '7fffffffff80'
+      DEFAULT_PARTITION = 'aws'
+      REGION_PREFIX_PARTITIONS = [
+        ['cn-', 'aws-cn'],
+        ['us-gov-', 'aws-us-gov'],
+        ['us-isob-', 'aws-iso-b'],
+        ['us-iso-', 'aws-iso'],
+        ['eu-isoe-', 'aws-iso-e'],
+        ['us-isof-', 'aws-iso-f'],
+        ['eusc-', 'aws-eusc']
+      ].freeze
 
       def self.create_arn(service, resource, region, account_id)
         # if any of the values are nil, we can't create an ARN
         return unless service && resource && region && account_id
 
-        "arn:aws:#{service}:#{region}:#{account_id}:#{resource}"
+        partition = partition_from_region(region.to_s)
+        "arn:#{partition}:#{service}:#{region}:#{account_id}:#{resource}"
       rescue => e
         NewRelic::Agent.logger.warn("Failed to create ARN: #{e}")
+      end
+
+      def self.partition_from_region(region)
+        sdk_partition_from_region(region) || table_partition_from_region(region)
+      end
+
+      def self.sdk_partition_from_region(region)
+        return if region.empty? || !defined?(::Aws::Endpoints::Matchers) || !::Aws::Endpoints::Matchers.respond_to?(:aws_partition)
+
+        ::Aws::Endpoints::Matchers.aws_partition(region)&.fetch('name', nil)
+      rescue => e
+        NewRelic::Agent.logger.debug("Failed to get AWS partition from SDK: #{e}")
+        nil
+      end
+
+      def self.table_partition_from_region(region)
+        REGION_PREFIX_PARTITIONS.each do |prefix, partition|
+          return partition if region.start_with?(prefix)
+        end
+        DEFAULT_PARTITION
       end
 
       def self.get_account_id(config)
