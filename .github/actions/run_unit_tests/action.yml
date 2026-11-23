@@ -53,6 +53,9 @@ runs:
             "4.0.10": {
               "rails": "norails,rails61,rails70,rails71,rails72,rails80,rails81,railsedge"
             }
+            "4.1.0-preview1": {
+              "rails": "rails70,rails71,rails72,rails80,rails81,railsedge"
+            }
           }
 
 
