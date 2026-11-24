@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
         with:
           ref: 'main'
-      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # tag v1.327.0
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # tag v1.343.0
         with:
           ruby-version: 3.4
       - run: bundle install
@@ -42,7 +42,7 @@ jobs:
       - run: bundle
       - run: bundle exec script/runner -C -M > performance_results.md
       - name: Save performance results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # tag v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # tag v7.0.2
         with:
           name: performance-test-results-${{ matrix.ruby-version }}
           path: ./test/performance/performance_results.md

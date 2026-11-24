@@ -31,6 +31,14 @@ task :argument, [:who, :where] => [] do
   puts 'argument'
 end
 
+task :invoker do
+  Rake::Task['invoked'].invoke
+end
+
+task :invoked do
+  puts 'invoked'
+end
+
 task :boom do
   raise 'a legitimate issue with the proposal.'
 end

@@ -220,6 +220,27 @@ if NewRelic::Agent::Instrumentation::Rake.should_install? &&
         end
       end
 
+      def test_traces_command_line_task_when_agent_loads_mid_invoke
+        with_tasks_traced('my_task') do
+          run_rake('-f Rakefile_late my_task[hello]')
+
+          trace = single_transaction_trace_posted
+
+          assert_equal 'OtherTransaction/Rake/invoke/my_task', trace.metric_name
+          assert_equal 'hello', trace.agent_attributes['job.rake.args.arg']
+        end
+      end
+
+      def test_explicitly_invoked_task_does_not_rename_the_outer_transaction
+        with_tasks_traced('invoker', 'invoked') do
+          run_rake('invoker')
+
+          assert_equal 'OtherTransaction/Rake/invoke/invoker',
+            single_transaction_trace_posted.metric_name
+          assert_metric_names_posted 'Rake/invoke/invoked'
+        end
+      end
+
       def test_doesnt_capture_command_line_if_disabled_by_agent_attributes
         with_tasks_traced('default', 'argument') do
           without_attributes do

@@ -10,6 +10,10 @@ module NewRelic::Agent::Instrumentation
       def invoke(*args)
         invoke_with_newrelic_tracing(*args) { super }
       end
+
+      def execute(args = nil)
+        execute_with_newrelic_tracing(args) { super }
+      end
     end
   end
 end

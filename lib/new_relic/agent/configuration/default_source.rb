@@ -1123,7 +1123,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :description => "If `true`, the agent will report source code level metrics for traced methods.\n\tSee: " \
-                          'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
+                          'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-code-level-metrics/'
         },
         # Continuous profiler
         :'profiling.enabled' => {
@@ -1528,7 +1528,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => false,
+          :public => true,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
@@ -1537,7 +1537,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => false,
+          :public => true,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
@@ -1546,7 +1546,7 @@ module NewRelic
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => {
           :default => nil,
-          :public => false,
+          :public => true,
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,

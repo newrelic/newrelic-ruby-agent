@@ -1,0 +1,16 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+# Rails starts the agent partway through a Rake task. This file does the same.
+require 'bundler/setup'
+require 'logger'
+
+task :start_agent do
+  Bundler.require
+  require 'tasks/newrelic'
+end
+
+task :my_task, [:arg] => :start_agent do
+  puts 'my_task'
+end
