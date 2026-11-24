@@ -15,7 +15,7 @@ if RUBY_VERSION > '3.0'
 end
 
 # Sinatra 3
-if RUBY_VERSION < '4.1.0'
+if RUBY_VERSION > '2.6.0' && RUBY_VERSION < '4.1.0'
   gemfile <<~RB
     gem 'activesupport'
     gem 'padrino'
