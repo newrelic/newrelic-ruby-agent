@@ -93,6 +93,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     @health_check.expects(:create_and_run_health_check_loop)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
+    self.expects(:install_fork_hook)
     self.expects(:environment_for_connect)
     with_config(:dispatcher => 'test', :sync_startup => false, :monitor_mode => true,
       :license_key => 'a' * 40, :disable_samplers => false) do
@@ -107,6 +108,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
+    self.expects(:install_fork_hook)
     self.expects(:environment_for_connect)
     with_config(:dispatcher => 'test', :sync_startup => true, :monitor_mode => true,
       :license_key => 'a' * 40, :disable_samplers => false) do
@@ -166,6 +168,11 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
       self.expects(:sinatra_classic_app?).returns(true)
       install_exit_handler
     end
+  end
+
+  def test_install_fork_hook
+    NewRelic::Agent::ForkHook.expects(:install).returns(true)
+    install_fork_hook
   end
 
   def test_monitoring_positive
