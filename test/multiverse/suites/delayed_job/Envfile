@@ -9,10 +9,10 @@ def sqlite
     "gem 'activerecord-jdbcsqlite3-adapter'"
   elsif RUBY_VERSION >= '3.0'
     "gem 'sqlite3', '~> 2.0'"
-  elsif RUBY_VERSION <= '2.6'
-    "gem 'sqlite3', '~> 1.4.2'"
+  elsif RUBY_VERSION >= '2.7'
+    "gem 'sqlite3', '~> 1.6'"
   else
-    "gem 'sqlite3', '~> 1.4'"
+    "gem 'sqlite3', '~> 1.4.4'"
   end
 end
 
