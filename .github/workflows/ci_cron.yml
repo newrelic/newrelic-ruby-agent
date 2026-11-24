@@ -19,9 +19,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # tag v1.335.0
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # tag v1.343.0
         with:
-          ruby-version: 4.0.5
+          ruby-version: 4.0.10
       - run: bundle install
       - run: rubocop
 
@@ -288,9 +288,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag v7.0.1
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # tag v1.335.0
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # tag v1.343.0
         with:
-          ruby-version: 4.0.5
+          ruby-version: 4.0.10
       - run: gem install httparty
       # TODO: MAJOR VERSION - Remove this version constraint when we update the
       # minitest version in the gemspec
