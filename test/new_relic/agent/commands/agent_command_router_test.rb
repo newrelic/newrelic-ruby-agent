@@ -71,7 +71,7 @@ class AgentCommandRouterTest < Minitest::Test
   # General command routing
 
   def test_check_for_and_handle_agent_commands_dispatches_command
-    service.stubs(:get_agent_commands).returns([BAZZLE])
+    service.stubs(:drain_agent_commands).returns([BAZZLE])
     service.stubs(:agent_command_results)
 
     agent_commands.check_for_and_handle_agent_commands
@@ -80,37 +80,86 @@ class AgentCommandRouterTest < Minitest::Test
   end
 
   def test_check_for_and_handle_agent_commands_generates_results
-    service.stubs(:get_agent_commands).returns([BAZZLE])
+    service.stubs(:drain_agent_commands).returns([BAZZLE])
     service.expects(:agent_command_results).with({BAZZLE_ID.to_s => {}})
 
     agent_commands.check_for_and_handle_agent_commands
   end
 
   def test_check_for_and_handle_agent_commands_dispatches_with_error
-    service.stubs(:get_agent_commands).returns([BOOM])
+    service.stubs(:drain_agent_commands).returns([BOOM])
     service.expects(:agent_command_results).with({BOOM_ID.to_s => {'error' => 'BOOOOOM'}})
 
     agent_commands.check_for_and_handle_agent_commands
   end
 
   def test_check_for_and_handle_agent_commands_allows_multiple
-    service.stubs(:get_agent_commands).returns([BAZZLE, BOOM])
+    service.stubs(:drain_agent_commands).returns([BAZZLE, BOOM])
     service.expects(:agent_command_results).with({BAZZLE_ID.to_s => {},
                                                    BOOM_ID.to_s => {'error' => 'BOOOOOM'}})
     agent_commands.check_for_and_handle_agent_commands
   end
 
   def test_check_for_and_handle_agent_commands_doesnt_call_results_if_no_commands
-    service.stubs(:get_agent_commands).returns([])
+    service.stubs(:drain_agent_commands).returns([])
     service.expects(:agent_command_results).never
 
     agent_commands.check_for_and_handle_agent_commands
   end
 
+  def test_check_for_and_handle_agent_commands_skips_an_already_executed_command
+    service.stubs(:drain_agent_commands).returns([BAZZLE])
+    service.expects(:agent_command_results).once
+
+    2.times { agent_commands.check_for_and_handle_agent_commands }
+
+    assert_equal [DEFAULT_ARGS], calls
+  end
+
+  def test_check_for_and_handle_agent_commands_skips_a_duplicate_within_one_delivery
+    service.stubs(:drain_agent_commands).returns([BAZZLE, BAZZLE])
+    service.expects(:agent_command_results).with({BAZZLE_ID.to_s => {}})
+
+    agent_commands.check_for_and_handle_agent_commands
+
+    assert_equal [DEFAULT_ARGS], calls
+  end
+
+  def test_check_for_and_handle_agent_commands_does_not_rerun_a_command_that_errored
+    service.stubs(:drain_agent_commands).returns([BOOM])
+    service.expects(:agent_command_results).once
+
+    2.times { agent_commands.check_for_and_handle_agent_commands }
+  end
+
+  def test_check_for_and_handle_agent_commands_reruns_a_command_id_after_its_ttl
+    nr_freeze_process_time
+    service.stubs(:drain_agent_commands).returns([BAZZLE])
+    service.stubs(:agent_command_results)
+
+    agent_commands.check_for_and_handle_agent_commands
+    advance_process_time(NewRelic::Agent::Commands::AgentCommandRouter::EXECUTED_COMMAND_ID_TTL + 1)
+    agent_commands.check_for_and_handle_agent_commands
+
+    assert_equal [DEFAULT_ARGS, DEFAULT_ARGS], calls
+  end
+
+  def test_check_for_and_handle_agent_commands_still_skips_a_command_id_within_its_ttl
+    nr_freeze_process_time
+    service.stubs(:drain_agent_commands).returns([BAZZLE])
+    service.stubs(:agent_command_results)
+
+    agent_commands.check_for_and_handle_agent_commands
+    advance_process_time(NewRelic::Agent::Commands::AgentCommandRouter::EXECUTED_COMMAND_ID_TTL - 1)
+    agent_commands.check_for_and_handle_agent_commands
+
+    assert_equal [DEFAULT_ARGS], calls
+  end
+
   def test_start_continuous_profiling_command_dispatches_to_continuous_profiling_session
     continuous_profiling_session = stub_continuous_profiling_session
     continuous_profiling_session.expects(:handle_start_command)
-    service.stubs(:get_agent_commands).returns([[321, {
+    service.stubs(:drain_agent_commands).returns([[321, {
       'name' => NewRelic::Agent::Commands::AgentCommandRouter::START_CONTINUOUS_PROFILING_COMMAND,
       'arguments' => {}
     }]])
@@ -122,7 +171,7 @@ class AgentCommandRouterTest < Minitest::Test
   def test_stop_continuous_profiling_command_dispatches_to_continuous_profiling_session
     continuous_profiling_session = stub_continuous_profiling_session
     continuous_profiling_session.expects(:handle_stop_command)
-    service.stubs(:get_agent_commands).returns([[322, {
+    service.stubs(:drain_agent_commands).returns([[322, {
       'name' => NewRelic::Agent::Commands::AgentCommandRouter::STOP_CONTINUOUS_PROFILING_COMMAND,
       'arguments' => {}
     }]])
@@ -138,7 +187,7 @@ class AgentCommandRouterTest < Minitest::Test
   end
 
   def test_unrecognized_commands
-    service.stubs(:get_agent_commands).returns([UNRECOGNIZED])
+    service.stubs(:drain_agent_commands).returns([UNRECOGNIZED])
     service.stubs(:agent_command_results)
 
     expects_logging(:debug, regexp_matches(/unrecognized/i))

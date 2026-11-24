@@ -23,7 +23,7 @@ module NewRelic
         nil
       end
 
-      def get_agent_commands
+      def drain_agent_commands
         NewRelic::EMPTY_ARRAY
       end
 
