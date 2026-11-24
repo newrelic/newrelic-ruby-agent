@@ -15,7 +15,7 @@ if RUBY_VERSION > '3.0'
 end
 
 # Sinatra 3
-if RUBY_VERSION > '2.6.0'
+if RUBY_VERSION < '4.1.0'
   gemfile <<~RB
     gem 'activesupport'
     gem 'padrino'
@@ -25,9 +25,11 @@ if RUBY_VERSION > '2.6.0'
 end
 
 # Sinatra 2
-gemfile <<~RB
-  gem 'activesupport', '~> 3'
-  gem 'padrino', '0.15.1'
-  gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
-  gem 'sinatra', '< 3'
-RB
+if RUBY_VERSION < '4.1.0'
+  gemfile <<~RB
+    gem 'activesupport', '~> 3'
+    gem 'padrino', '0.15.1'
+    gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
+    gem 'sinatra', '< 3'
+  RB
+end

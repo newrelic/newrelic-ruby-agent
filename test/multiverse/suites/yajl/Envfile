@@ -6,6 +6,10 @@ suite_condition("Yajl not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
+suite_condition("Yajl not yet supported by Ruby 4.1") do
+  RUBY_VERSION == '4.1'
+end
+
 YAJL_VERSIONS = [
   [nil],
   ['1.2.1']
@@ -15,7 +19,6 @@ def gem_list(yajl_version = nil)
   <<~RB
     gem 'rack'
     gem 'yajl-ruby'#{yajl_version}, require: ['yajl', 'yajl/json_gem']
-    
   RB
 end
 
