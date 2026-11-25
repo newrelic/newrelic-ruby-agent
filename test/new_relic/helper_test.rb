@@ -7,13 +7,21 @@ require_relative '../test_helper'
 
 # tests NewRelic::Helper
 class HelperTest < Minitest::Test
+  def setup
+    @original_path = ENV['PATH']
+  end
+
+  def teardown
+    ENV['PATH'] = @original_path
+  end
+
   #
   # executable_in_path?
   #
   def test_executable_is_in_path
     executable = 'seagulls'
     fake_dir = '/usr/local/existent'
-    ENV.stubs(:[]).with('PATH').returns(fake_dir)
+    ENV['PATH'] = fake_dir
 
     executable_path = File.join(fake_dir, executable)
     File.stubs(:exist?).with(executable_path).returns(true)
@@ -27,7 +35,7 @@ class HelperTest < Minitest::Test
   def test_executable_is_not_in_path
     executable = 'seagulls'
     fake_dir = '/dev/null/nonexistent'
-    ENV.stubs(:[]).with('PATH').returns(fake_dir)
+    ENV['PATH'] = fake_dir
     executable_path = File.join(fake_dir, executable)
     File.stubs(:exist?).with(executable_path).returns(false)
     exists = NewRelic::Helper.executable_in_path?(executable)
@@ -36,7 +44,7 @@ class HelperTest < Minitest::Test
   end
 
   def test_path_does_not_exist
-    ENV.stubs(:[]).with('PATH').returns(nil)
+    ENV.delete('PATH')
     exists = NewRelic::Helper.executable_in_path?('Whisper of the Heart')
 
     assert_false exists

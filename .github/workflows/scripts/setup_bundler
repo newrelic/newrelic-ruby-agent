@@ -20,6 +20,8 @@ function update_to_desired_rubygems_version {
   if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
     echo "DEBUG: running 'gem update --system 3.0.6 --force'"
     gem update --system 3.0.6 --force >/dev/null
+  elif [[ $RUBY_VERSION =~ ^4\.1 ]]; then
+    echo "DEBUG: keeping the Rubygems bundled with Ruby $RUBY_VERSION"
   else
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force >/dev/null
@@ -100,7 +102,7 @@ echo "DEBUG: setting up Bundler"
 set_up_bundler
 
 echo "DEBUG: running 'bundle install'"
-bundle install
+bundle install || exit 1
 
 echo "DEBUG: installing Ruby version specific gems"
 install_ruby_version_specific_gems

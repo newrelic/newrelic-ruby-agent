@@ -6,6 +6,10 @@ suite_condition("unicorn not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
+suite_condition("unicorn not yet supported by Ruby 4.1") do
+  RUBY_VERSION == '4.1'
+end
+
 SUPPORTED_UNICORN_VERSIONS = [
   [nil],
   ['4.9.0']
