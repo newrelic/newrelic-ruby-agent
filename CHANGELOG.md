@@ -26,6 +26,10 @@
 
   If `opentelemetry.enabled` is `false`, these environment variables will have no impact. The OpenTelemetry environment variables have the same precedence level as New Relic environment variables. If the same value is set by both a New Relic environment variable (ex. `NEW_RELIC_APP_NAME`), the New Relic variable will take precedence. Keep in mind that this is an experimental feature and may be subject to significant changes without a major release. [PR#3619](https://github.com/newrelic/newrelic-ruby-agent/pull/3619)
 
+- **Bugfix: Stop shipping Claude Code files in the published gem**
+
+  Versions 10.7.0 through 10.9.1 of the gem included the repository's `.claude/` directory and `CLAUDE.md`. These development-only files are now excluded from the gem. Thank you to [@ceritium](https://github.com/ceritium) for reporting this issue. [Issue#3734](https://github.com/newrelic/newrelic-ruby-agent/issues/3734)
+
 - **Bugfix: Detect Puma as the dispatcher under rails server**
 
   The agent previously detected Puma only when the app was started with the `puma` executable, so apps started with `rails server` logged `No known dispatcher detected.` and connected from the Puma master process. The agent now also detects Puma when its Rack handler is loaded. As with the `puma` executable, it waits to start until each Puma process handles its first request, which avoids an extra connection from the master in clustered mode. Apps started with `rackup` load the agent before Puma, so Puma still can't be detected there. Set `NEW_RELIC_DISPATCHER=puma` to get the same behavior. [PR#3706](https://github.com/newrelic/newrelic-ruby-agent/pull/3706)

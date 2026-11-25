@@ -26,3 +26,5 @@ lib/tasks/instrumentation_generator/
 lib/tasks/multiverse.rake
 lib/tasks/multiverse.rb
 lib/tasks/tests.rb
+.claude/
+CLAUDE.md
