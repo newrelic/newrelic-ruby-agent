@@ -4,10 +4,10 @@
 
 instrumentation_methods :chain, :prepend
 
-def sqlite
+def sqlite(activerecord_6_1: false)
   if RUBY_PLATFORM == 'java'
     "gem 'activerecord-jdbcsqlite3-adapter'"
-  elsif RUBY_VERSION >= '3.0'
+  elsif RUBY_VERSION >= '3.0' && !activerecord_6_1
     "gem 'sqlite3', '~> 2.0'"
   elsif RUBY_VERSION >= '2.7'
     "gem 'sqlite3', '~> 1.6'"
@@ -16,12 +16,14 @@ def sqlite
   end
 end
 
-boilerplate_gems = <<~SQLITE
-  gem 'rack'
-  gem 'benchmark'
-  #{sqlite}
+def boilerplate_gems(activerecord_6_1: false)
+  <<~GEMS
+    gem 'rack'
+    gem 'benchmark'
+    #{sqlite(activerecord_6_1: activerecord_6_1)}
 
-SQLITE
+  GEMS
+end
 
 if RUBY_VERSION >= '2.6.0' && RUBY_VERSION < '4.1.0'
   # delayed_job depends on activesupport and activesupport >= v7.2.0 depends on
@@ -39,7 +41,7 @@ if RUBY_VERSION >= '2.6.0' && RUBY_VERSION < '4.1.0'
     gem 'delayed_job'
     gem 'delayed_job_active_record'
     gem 'activerecord', '~> 6.1.0'
-    #{boilerplate_gems}
+    #{boilerplate_gems(activerecord_6_1: true)}
   RB
 end
 
