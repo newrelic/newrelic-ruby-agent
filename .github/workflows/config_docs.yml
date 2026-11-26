@@ -30,15 +30,22 @@ jobs:
     - run: bundle install
 
     - name: Generate config doc
-      run: bundle exec rake newrelic:config:docs[html]
+      run: bundle exec rake newrelic:config:docs_pages
 
     - name: Check if config doc has changed
       id: check_changes
       run: |
-        curl -sf -o published-config-doc.mdx \
-          "https://raw.githubusercontent.com/$DESTINATION_REPO/develop/src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx" \
-          || true
-        if [ -f published-config-doc.mdx ] && diff -q ruby-agent-configuration.mdx published-config-doc.mdx > /dev/null 2>&1; then
+        changed=false
+        for page in config-docs/*.mdx; do
+          name=$(basename "$page")
+          curl -sf -o "published-$name" \
+            "https://raw.githubusercontent.com/$DESTINATION_REPO/develop/src/content/docs/apm/agents/ruby-agent/configuration/$name" \
+            || true
+          if [ ! -f "published-$name" ] || ! diff -q "$page" "published-$name" > /dev/null 2>&1; then
+            changed=true
+          fi
+        done
+        if [ "$changed" = false ]; then
           echo "No changes detected in the generated config doc. Skipping branch and PR creation." | tee -a "$GITHUB_STEP_SUMMARY"
           echo "changed=false" >> "$GITHUB_OUTPUT"
         else
@@ -51,7 +58,7 @@ jobs:
       env:
         API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
       with:
-        source_file: "ruby-agent-configuration.mdx"
+        source_file: "config-docs/."
         destination_repo: ${{ env.DESTINATION_REPO }}
         destination_folder: 'src/content/docs/apm/agents/ruby-agent/configuration'
         user_email: ${{ secrets.EMAIL }}

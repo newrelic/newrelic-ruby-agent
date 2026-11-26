@@ -37,6 +37,7 @@ node_modules/
 yarn.lock
 package-lock.json
 errors.txt
+config-docs/
 .history/
 vendor/
 Brewfile.lock.json
