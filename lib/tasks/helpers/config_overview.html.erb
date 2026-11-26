@@ -1,5 +1,5 @@
 ---
-title: Ruby agent configuration
+title: Configuration overview
 tags:
   - Agents
   - Ruby agent
@@ -8,11 +8,12 @@ metaDescription: 'APM for Ruby: how to configure the Ruby agent, including editi
 translate:
   - jp
 redirects:
+  - /docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration
   - /docs/agents/ruby-agent/configuration/ruby-agent-configuration
   - /docs/ruby/ruby-agent-configuration
   - /docs/agents/ruby-agent/installation-and-configuration/ruby-agent-configuration
   - /docs/agents/ruby-agent/installation-configuration/ruby-agent-configuration
-freshnessValidatedDate: never
+freshnessValidatedDate: 2026-08-05
 ---
 
 <CONTRIBUTOR_NOTE>
@@ -94,34 +95,15 @@ To update `newrelic.yml` file after a new release, use the template in the base 
   Updating the gem does not automatically update `config/newrelic.yml`.
 </Callout>
 
-<% sections.each do |(section_key, section_name, section_description, configs)| %>
-## <%=section_name%>
+<Callout variant="important">
+  The two settings you **must** configure are your app name and license key — set via `app_name` and `license_key` in `newrelic.yml` (or the `NEW_RELIC_APP_NAME` and `NEW_RELIC_LICENSE_KEY` environment variables). All other settings are optional.
+</Callout>
 
-<%= "#{section_description}" unless section_description.nil? %>
+## Settings reference [#settings-reference]
 
-<CollapserGroup>
-  <% configs.each do |config|%>
-  <Collapser id="<%= config[:key].gsub('.', '-') %>" title="<%=config[:key]%>">
-    <table>
-      <tbody>
-        <tr><th>Type</th><td><%=config[:type]%></td></tr>
-        <tr><th>Default</th><td>`<%=config[:default]%>`</td></tr>
-        <tr><th>Environ variable</th><td>`<%=config[:env_var]%>`</td></tr>
-      </tbody>
-    </table>
+All configuration settings are documented in the sub-pages below. Each setting shows its type, default value, and environment variable equivalent.
 
-  <%=config[:description]%>
-  </Collapser>
-  <% end %>
-</CollapserGroup>
+| Settings page | What it covers |
+|---|---|
+<% pages.each do |page| %>| [<%= page[:table_label] %>](<%= url_prefix %><%= page[:slug] %>) | <%= page[:table_summary] %> |
 <% end %>
-
-## Errors inbox configuration [#errors-inbox-configuration]
-
-Setting one of the following environment variables will help you identify which versions of your software produced the errors.
-
-* `NEW_RELIC_METADATA_SERVICE_VERSION` creates `tags.service.version` on event data containing the version of your code that is deployed, in many cases a semantic version such as `1.2.3`, but not always.
-* `NEW_RELIC_METADATA_RELEASE_TAG` creates `tags.releaseTag` on event data containing the release tag (such as `v0.1.209` or `release-209`).
-* `NEW_RELIC_METADATA_COMMIT` creates `tags.commit` on event data containing the commit SHA. The entire SHA can be used or just the first seven characters (e.g., `734713b`).
-
-[Errors inbox](/docs/errors-inbox/version-tracking/) will automatically track which versions of your software are producing errors.

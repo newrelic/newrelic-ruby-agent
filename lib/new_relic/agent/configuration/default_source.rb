@@ -626,7 +626,7 @@ module NewRelic
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Threshold (in seconds) above which the agent will collect explain plans. Relevant only when [`explain_enabled`](#transaction_tracer.explain_enabled) is true.'
+          :description => 'Threshold (in seconds) above which the agent will collect explain plans. Relevant only when [`explain_enabled`](#transaction_tracer-explain_enabled) is true.'
         },
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
@@ -868,7 +868,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent attaches [labels](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#labels) to log records.'
+          :description => 'If `true`, the agent attaches [labels](/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration-general-settings#labels) to log records.'
         },
         :'application_logging.forwarding.labels.exclude' => {
           :default => [],
